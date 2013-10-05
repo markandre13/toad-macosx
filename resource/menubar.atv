@@ -1,0 +1,170 @@
+// this is a generated file
+
+toad::TMenuLayout{
+  scope = "toplevel"
+  toad::TMenuEntry {
+    name = "file"
+    label = "File"
+    shortcut = ""
+    icon = ""
+    toad::TMenuEntry {
+      name = "new"
+      label = "New"
+      shortcut = "Ctrl+N"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "newview"
+      label = "New View"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "open"
+      label = "Open"
+      shortcut = "Ctrl+O"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "save"
+      label = "Save"
+      shortcut = "Ctrl+S"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "save_as"
+      label = "Save As..."
+      shortcut = "Ctrl+A"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "close"
+      label = "Close"
+      shortcut = ""
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "print"
+      label = "Print"
+      shortcut = "Ctrl+P"
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "quit"
+      label = "Quit"
+      shortcut = "Alt+F4"
+      icon = "exit.png"
+    }
+  }
+  toad::TMenuEntry {
+    name = "edit"
+    label = "Edit"
+    shortcut = ""
+    icon = ""
+    toad::TMenuEntry {
+      name = "undo"
+      label = "Undo"
+      shortcut = "Ctrl+Z"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "redo"
+      label = "Redo"
+      shortcut = "Ctrl+Y"
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "cut" 
+      label = "Cut"
+      shortcut = "Ctrl+X"  
+      icon = "editcut.png"
+    }
+    toad::TMenuEntry {
+      name = "copy" 
+      label = "Copy"
+      shortcut = "Ctrl+C"   
+      icon = "editcopy.png"
+    }
+    toad::TMenuEntry {  
+      name = "paste"    
+      label = "Paste"   
+      shortcut = "Ctrl+V"
+      icon = "editpaste.png"
+    }
+    toad::TMenuEntry {
+      name = "delete" 
+      label = "Delete"
+      shortcut = ""
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry { // Select > Deselect
+      name = "deselect_all" 
+      label = "Deselect All"
+      shortcut = "Ctrl+Shift+A"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "select_all" 
+      label = "Select All"
+      shortcut = "Ctrl+A"
+      icon = ""
+    }
+  }
+
+  toad::TMenuEntry {
+    name = "object"
+    label = "Object"
+    shortcut = ""
+    icon = ""
+    toad::TMenuEntry {
+      name = "path"
+      label = "Path"
+      shortcut = ""
+      icon = ""
+      toad::TMenuEntry { // join selected handles
+        name = "join"
+        label = "Join"
+        shortcut = "Ctrl+J"
+        icon = ""
+      }
+    }
+  }
+
+  toad::TMenuEntry {
+    name = "slide"
+    label = "Slide"
+    shortcut = ""   
+    icon = ""
+    toad::TMenuEntry {
+      name = "slides"
+      label = "Slides"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "layers"
+      label = "Layers"
+      icon = ""
+    }
+  }
+  toad::TMenuEntry {
+    name = "help"
+    label = "Help"
+    shortcut = ""   
+    icon = ""
+    toad::TMenuEntry {
+      name = "manual"
+      label = "Show Manual"
+      shortcut = ""   
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "about"
+      label = "About"
+      shortcut = ""   
+      icon = ""
+    }
+  }
+}

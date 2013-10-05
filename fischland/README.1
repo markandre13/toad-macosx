@@ -1,0 +1,36 @@
+
+       Various problems of the current model-view architecture in TOAD
+                    by Mark-André Hopf <mhopf@mark13.org>
+                                 2005-06-19
+
+major
+o an object may depend on multiple models, whose changes may relate to
+  each other, but it receives one event after the other and therefore
+  performs the wrong decisions after the first event.
+
+  example:
+  TTable has a TTableAdapter and a TSelectionModel.
+
+  When a row is added to the TTableAdapter (TTableModel), table is first
+  notified about a selection change (which is because of the code in
+  Fischland!), then about the adapter change.
+
+  As TTable adjusts the cursor to the selection, it still works with the
+  wrong number of rows and columns. There's a hack in
+  TTable::selectionChanged to cope with this but when I'm forced to do
+  such stuff, other may also run into this problem.
+
+  possible solutions:
+  i) make sure the events are in the order we want
+     (this isn't a real solution but a workaround in another location)
+ ii) compress the events
+     (is this really a solution?)
+iii) compress the events globally
+     (i'm afraid Amulet comes into my mind, but more with something like an
+     optional parallel constraint resolver?)
+
+minor
+o a model may be modified multiple times during a single transaction,
+  causing the depended objects to follow every change without having
+  a chance to compress the various changes
+o model containing models

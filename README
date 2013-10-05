@@ -1,0 +1,21 @@
+This is an experimental port of the TOAD C++ GUI Library to Mac OS X's Cocoa
+
++: done
+-: todo
+
+o TWindow
+  + create/destroy
+  + parentless window
+  + end application when last parentless window is closed
+  + nest windows
+  + background color
+  + paint events
+  + mouse events
+  + getRootPos
+o TMenuBar
+  - place menubutton in popup
+o TPen
+  + draw line
+  + draw string
+o TFont
+  + create/destroy

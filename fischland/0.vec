@@ -1,0 +1,39 @@
+// fish -- a Fischland 2D Vector Graphics file
+// Please see http://www.mark13.org/fischland/ for more details.
+
+fischland::TDocument {
+  author = ""
+  date = ""
+  description = ""
+  fischland::TSlide {
+    name = "unnamed #3"
+    comment = ""
+    lock = false
+    show = true
+    print = true
+    fischland::TLayer {
+      name = "unnamed #4"
+      comment = ""
+      lock = false
+      show = true
+      print = true
+      toad::TFRectangle {
+        linecolor ={ 0 0 0 }
+        linewidth = 48
+        x = 384
+        y = 384
+        w = 8449
+        h = 6913
+      }
+      toad::TFRectangle {
+        linecolor ={ 0 0 0 }
+        fillcolor ={ 0 0 0 }
+        linewidth = 48
+        x = 768
+        y = 768
+        w = 7681
+        h = 6145
+      }
+    }
+  }
+}

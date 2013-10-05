@@ -1,0 +1,8 @@
+// fish -- a Fischland 2D Vector Graphics file
+// Please see http://www.mark13.org/fischland/ for more details.
+
+fischland::TDocument {
+  author = ""
+  date = ""
+  description = ""
+}

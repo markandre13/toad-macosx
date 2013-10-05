@@ -1,0 +1,249 @@
+? .DS_Store
+? .gdb_history
+? .svn
+? 0.vec
+? 1.vec
+? 2.vec
+? Makefile
+? README.1
+? a.atv
+? autom4te.cache
+? b.atv
+? c.atv
+? cairo.cc.001
+? comic001.fish
+? comic002.fish
+? config.h
+? config.log
+? config.status
+? configure
+? dancingnudes.fish
+? egypt.fish
+? egypt2.fish
+? example.fish
+? fischland
+? fischland.atv
+? fish.diff
+? fishsoup.atv
+? hip.fish
+? ipsec.fish
+? ipsec2.fish
+? l
+? netedit-icons.fish
+? netedit.fish
+? nightmare_on_behmstreet.fish
+? output.pdf
+? spam
+? table.fish
+? test.cc
+? toolbox.cc.001
+? resource/.svn
+? resource/.xvpics
+? resource/tool_pen+.png
+? resource/tool_pen-.png
+? resource/tool_penc.png
+Index: draw.cc
+===================================================================
+RCS file: /sources/toadgui/examples/figureeditor/draw.cc,v
+retrieving revision 1.45
+diff -u -r1.45 draw.cc
+--- draw.cc	25 Aug 2006 19:22:07 -0000	1.45
++++ draw.cc	11 Sep 2006 06:59:13 -0000
+@@ -546,7 +546,7 @@
+   paintDecoration(scr);
+ 
+ #else
+-
++  // old style drawing operation
+   TPen scr(window);
+   scr.identity();  
+   TRectangle r;    
+Index: fpath.cc
+===================================================================
+RCS file: /sources/toadgui/examples/figureeditor/fpath.cc,v
+retrieving revision 1.3
+diff -u -r1.3 fpath.cc
+--- fpath.cc	31 Aug 2006 18:34:12 -0000	1.3
++++ fpath.cc	11 Sep 2006 06:59:15 -0000
+@@ -132,6 +132,11 @@
+   polygon[handle]=p;
+ }
+ 
++void
++TFPath::paintSelection(TPenBase &pen, int handle)
++{
++}
++
+ 
+ void
+ TFPath::paint(TPenBase &pen, EPaintType type)
+@@ -141,11 +146,28 @@
+   pen.setLineStyle(line_style);
+   pen.setLineWidth(line_width);
+ 
+-  if (!closed || !filled) {  
+-    pen.drawPolyBezier(polygon);
++  if (!cmat) {
++    if (!closed || !filled) {  
++      pen.drawPolyBezier(polygon);
++    } else {
++      pen.setFillColor(fill_color);
++      pen.fillPolyBezier(polygon);
++    }
+   } else {
+-    pen.setFillColor(fill_color);
+-    pen.fillPolyBezier(polygon);
++    TPoint polygon2[polygon.size()];
++    TPoint *p2 = polygon2;
++    for(TPolygon::const_iterator p = polygon.begin();
++        p != polygon.end();
++        ++p, ++p2)
++    {
++      cmat->map(p->x, p->y, &p2->x, &p2->y);
++    }
++    if (!closed || !filled) {  
++      pen.drawPolyBezier(polygon2, polygon.size());
++    } else {
++      pen.setFillColor(fill_color);
++      pen.fillPolyBezier(polygon2, polygon.size());
++    }
+   }
+ 
+   if (type!=EDIT && type!=SELECT)
+@@ -153,10 +175,20 @@
+ 
+   pen.setLineWidth(1);
+ 
++  TMatrix2D _m0;
+   TMatrix2D *m0 = pen.getMatrix();
+-  if (m0) {
++  if (m0 || cmat) {
+     pen.push();
+     pen.identity();
++    if (cmat) {
++      if (!m0) {
++        m0 = cmat;
++      } else {
++        _m0 = *m0;
++        _m0 *= *cmat;
++        m0 = &_m0;
++      }
++    }
+   }
+   
+   pen.setLineColor(TColor::FIGURE_SELECTION);
+Index: fpath.hh
+===================================================================
+RCS file: /sources/toadgui/examples/figureeditor/fpath.hh,v
+retrieving revision 1.2
+diff -u -r1.2 fpath.hh
+--- fpath.hh	31 Aug 2006 18:34:12 -0000	1.2
++++ fpath.hh	11 Sep 2006 06:59:15 -0000
+@@ -15,6 +15,7 @@
+       closed = false;
+     }
+     void paint(TPenBase&, EPaintType);
++    void paintSelection(TPenBase &pen, int handle);
+     void getShape(toad::TRectangle *r);
+ 
+     void translate(int dx, int dy);
+Index: toolbox.cc
+===================================================================
+RCS file: /sources/toadgui/examples/figureeditor/toolbox.cc,v
+retrieving revision 1.25
+diff -u -r1.25 toolbox.cc
+--- toolbox.cc	25 Aug 2006 19:22:07 -0000	1.25
++++ toolbox.cc	11 Sep 2006 06:59:15 -0000
+@@ -312,6 +312,7 @@
+ {
+     // by default strokes and effects aren't scaled
+     TBoolModel scale_strokes_and_fx; // Preferences > General
++
+     bool down;                // is the mouse button down?
+     bool rect;                // rectangle selection?
+     bool grab;                // grabbed selection for moving
+@@ -326,6 +327,7 @@
+     vector<TMatrix2D> oldmat;
+   public:
+     TSelectionTool() {
++      scale_strokes_and_fx = false;
+       down = false;
+       rect = false;
+       grab = false;
+@@ -379,10 +381,14 @@
+                 p != fe->selection.end();
+                 ++p)
+             {
+-              if ( (*p)->mat )
+-                oldmat.push_back(*(*p)->mat);
+-              else
++              if ( (*p)->mat || (*p)->cmat ) {
++                if (scale_strokes_and_fx)
++                  oldmat.push_back(*(*p)->mat);
++                else
++                  oldmat.push_back(*(*p)->cmat);
++              } else {
+                 oldmat.push_back(TMatrix2D());
++              }
+             }
+ //            cout << "its inside handle " << i << endl;
+             return;
+@@ -473,10 +479,18 @@
+             p != fe->selection.end();
+             ++p, ++i)
+         {
+-          if ((*p)->mat) {
+-            *(*p)->mat = m * oldmat[i];
++          if (scale_strokes_and_fx) {
++            if ((*p)->mat) {
++              *(*p)->mat = m * oldmat[i];
++            } else {
++              (*p)->mat = new TMatrix2D(m);
++            }
+           } else {
+-            (*p)->mat = new TMatrix2D(m);
++            if ((*p)->cmat) {
++              *(*p)->cmat = m * oldmat[i];
++            } else {
++              (*p)->cmat = new TMatrix2D(m);
++            }
+           }
+         }
+ 
+@@ -538,6 +552,9 @@
+         fe->mouse2sheet(rx1, ry1, &p1.x, &p1.y);
+         TRectangle r0(p1, p0), r1;
+         while(p!=e) {
++#if 1
++          fe->getFigureShape(*p, &r1, NULL);
++#else
+           (*p)->getShape(&r1);
+           
+           #warning "why isn't the following already done by getShape?"
+@@ -547,7 +564,7 @@
+             (*p)->mat->map(r1.x+r1.w-1, r1.y+r1.h-1, &p1.x, &p1.y);
+             r1.set(p0, p1);
+           }
+-          
++#endif
+           if (r0.isInside( r1.x, r1.y ) &&
+               r0.isInside( r1.x+r1.w, r1.y+r1.h ) )
+           {
+@@ -695,6 +712,9 @@
+       ++p)
+   {
+     TRectangle r;
++#if 1
++    fe->getFigureShape(*p, &r, NULL);
++#else
+     (*p)->getShape(&r);
+     if ( (*p)->mat ) {
+       TPoint p0, p1;
+@@ -702,6 +722,7 @@
+       (*p)->mat->map(r.x+r.w-1, r.y+r.h-1, &p1.x, &p1.y);
+       r.set(p0, p1);
+     }
++#endif
+     if (p==fe->selection.begin()) {
+       x0 = r.x; 
+       y0 = r.y;
