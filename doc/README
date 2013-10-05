@@ -1,0 +1,4 @@
+To create the documentation in doc/html/ please execute
+
+  apt-get install doxygen graphviz
+  doxygen
