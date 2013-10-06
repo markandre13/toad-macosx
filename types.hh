@@ -24,15 +24,16 @@
 #include <iostream>
 #include <vector>
 
+#import <CoreGraphics/CGBase.h>
+
 typedef unsigned long ulong;
 typedef unsigned char ubyte;
 typedef unsigned char byte;
 
 namespace toad {
 
-typedef float TCoord; // cocoa
+typedef CGFloat TCoord; // cocoa
 // typedef double TCoord; // cairo
-
 
 using namespace std;
 
@@ -49,9 +50,9 @@ inline ostream& operator<<(ostream &s, const TPoint& p) {
 
 struct TDPoint {
   TDPoint() {x=y=0;}
-  TDPoint(double a, double b):x(a),y(b){}
-  double x,y;
-  void set(double a,double b) { x=a;y=b; }
+  TDPoint(TCoord a, TCoord b):x(a),y(b){}
+  TCoord x,y;
+  void set(TCoord a, TCoord b) { x=a;y=b; }
 };
 
 inline ostream& operator<<(ostream &s, const TDPoint& p) {
@@ -122,7 +123,7 @@ class TDPolygon:
 {
   public:
     void addPoint(const TDPoint &p) { push_back(p); }
-    void addPoint(double x, double y) { push_back(TDPoint(x,y)); }
+    void addPoint(TCoord x, TCoord y) { push_back(TDPoint(x,y)); }
 };
 
 } // namespace toad
