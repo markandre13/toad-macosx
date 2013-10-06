@@ -47,14 +47,14 @@ TColorSelector::TColorSelector(TWindow *parent,
 
   pb1 = new TPushButton(this, "palette");
   pb1->flagNoFocus = true;
-  pb1->loadBitmap("memory://toad/colorpalette.png");
+  pb1->loadBitmap("file://tresource/colorpalette.png");
   pb1->setToolTip("Open Color Palette");
   pb1->setShape(w2,0,getWidth()-w2,getHeight()/2);
   connect(pb1->sigClicked, this, &TColorSelector::openColorPalette);
 
   pb2 = new TPushButton(this, "coloreditor");
   pb2->flagNoFocus = true;
-  pb2->loadBitmap("memory://toad/colordialog.png");
+  pb2->loadBitmap("file://tresource/colordialog.png");
   pb2->setToolTip("Open Color Editor");
   pb2->setShape(w2,getHeight()/2,getWidth()-w2,getHeight()/2);
   connect(pb2->sigClicked, this, &TColorSelector::openColorDialog);
