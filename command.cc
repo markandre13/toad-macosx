@@ -40,14 +40,16 @@ toad::sendMessage(TCommand *cmd)
 void
 toad::executeMessages()
 {
-  for(vector<TCommand*>::iterator p = cmds.begin();
-      p != cmds.end();
+  vector<TCommand*> oldcmds(cmds);
+  cmds.clear();
+
+  for(vector<TCommand*>::iterator p = oldcmds.begin();
+      p != oldcmds.end();
       ++p)
   {
     (*p)->execute();
     delete *p;
   }
-  cmds.clear();
 }
 
 void
