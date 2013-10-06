@@ -780,6 +780,7 @@ TWindow::createWindow()
     [nswindow setContentView: nsview];
     [nswindow makeKeyAndOrderFront: nil];
     [nswindow setAcceptsMouseMovedEvents: true];
+    [nswindow setHasShadow: true];
   }
   // we must create the tracking window after the view was added to it's
   // parent, otherwise tracking does not work
