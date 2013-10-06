@@ -851,12 +851,41 @@ TWindow::setSize(int w, int h)
     h = this->h;
   if (w==this->w && h==this->h)
     return;
+
+#if 0
+cerr << "TWindow::setSize("<<w<<","<<h<<"): title=\"" << getTitle() << "\", nswindow=" << nswindow << ", nsview=" << nsview << endl;
+cerr << "  old pos="<<this->x<<","<<this->y<<", size="<<this->w<<","<<this->h<<endl;
+
+  if (nswindow) {
+    NSRect r = [nswindow frame];
+    cerr << "  nswindow=("<<r.origin.x<<","<<r.origin.y<<","<<r.size.width<<","<<r.size.height<<")\n";
+  }
+
+  if (nsview) {
+    NSRect r = [nsview frame];
+    cerr << "  nsview=("<<r.origin.x<<","<<r.origin.y<<","<<r.size.width<<","<<r.size.height<<")\n";
+  }
+#endif
+  
+  if (nswindow) {
+    NSRect r = [nswindow frame];
+    // MacOS's screen origin is left-bottom, TOAD's is left-top so changing the
+    // size also requires to adjust the windows position
+    r.origin.y += this->h - h;
+    r.size.width = w;
+    r.size.height = h;
+    [nswindow setFrame: r display: true];
+  }
+
+  if (nsview) {
+    NSRect r = [nsview frame];
+    r.size.width = w;
+    r.size.height = h;
+    [nsview setFrame: r];
+  }
+
   this->w = w;
   this->h = h;
-  if (nsview) {
-    NSRect nr = NSMakeRect(x, y, w, h);
-    [nsview setFrame: nr];
-  }
 }
 
 void
