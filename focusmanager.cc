@@ -213,7 +213,7 @@ TFocusManager::newWindow(TWindow* wnd)
       case KF_TOP_DOMAIN: {
         TDomain *domain = GetTopDomain(p->wnd);
         if (domain) {
-cout << "delayed register filter for window " << wnd << " in domain " << domain << endl;
+// cout << "delayed register filter for window " << wnd << " in domain " << domain << endl;
           p->flt->next = domain->filter;
           p->flt->ptr  = domain;
           domain->filter = p->flt;
@@ -1069,7 +1069,7 @@ TFocusManager::insertEventFilter(TEventFilter *flt, TWindow *wnd, EEventFilterPo
           flt->ptr  = domain;
           domain->filter = flt;
         } else {
-          cout << "upsi, no domain found for window " << flt << " to register filter; delaying" << endl;
+//          cout << "upsi, no domain found for window " << flt << " to register filter; delaying" << endl;
           no_domain_yet.push_back(no_domain_yet_s(flt, wnd, pos));
         }
       } break;

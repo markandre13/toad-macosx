@@ -35,6 +35,9 @@ using namespace toad;
 
 /**
  * \class toad::TSpringLayout
+ *
+ * This layout arranges windows relative to each other.
+ *
  * \pre
 toad::TSpringLayout {
   <windowname> = {
@@ -137,7 +140,7 @@ TSpringLayout::TSpringLayout()
   flist = lastadd = NULL;
   nBorderOverlap = 1;
   bKeepOwnBorder = false;
-running = false;
+  running = false;
 }
 
 TSpringLayout::~TSpringLayout()
@@ -214,6 +217,18 @@ TSpringLayout::attachLast(unsigned where, unsigned how, TWindow *which)
 }
 #endif
 
+/**
+ * Attach a window to another window.
+ *
+ * \param window
+ *   Title of the window to be attached to.
+ * \param where
+ *    A combination of TOP, BOTTOM, LEFT and RIGHT.
+ * \param how
+ *    One of NONE, FORM, WINDOW or OPPOSITE_WINDOW
+ * \param which
+ *    Title of the window to be attached.
+ */
 void 
 TSpringLayout::attach(const string &window, unsigned where, EMethod how, const string &which)
 {
@@ -233,6 +248,16 @@ TSpringLayout::attach(const string &window, unsigned where, EMethod how, const s
   }
 }
 
+/**
+ * Specify distance to other windows.
+ *
+ * \param window
+ *   Title of the window whose distance is set.
+ * \param distance
+ *   The distance
+ * \param
+ *   A combination of TOP, BOTTOM, LEFT and RIGHT.
+ */
 void
 TSpringLayout::distance(const string &window, int distance, unsigned where)
 {
@@ -265,23 +290,16 @@ TSpringLayout::arrange()
 void
 TSpringLayout::arrange(int fx,int fy,int fw,int fh)
 {
-if (running) {
-//  cout << "Rekursion" << endl;
-  return;
-}
-running = true;
-
-//cout << "TForm: arranging" << endl;
-  #ifdef DEBUG
-  printf("--> Arrange\n");
-  #endif
-  if (!flist) {
-running = false;
+  // when there is no layout, return
+  if (!flist)
     return;
-  }
+
+  // FIXME: layout loops cause by multiple layouts should be handled globally
+  if (running)
+    return;
+  running = true;
 
   // initialize data structures
-  //----------------------------
   TRectangle shape;
   unsigned nChildren=0;
   bool bError=false;
@@ -293,7 +311,7 @@ running = false;
       ptr->it->XPos(), ptr->it->YPos(),
       ptr->it->Width(), ptr->it->Height());
     #endif
-    nChildren++;
+    ++nChildren;
     ptr->done  = 0;
     ptr->nflag = 0;
     ptr->getShape(window, &shape);
@@ -308,8 +326,7 @@ running = false;
     }
     if ((ptr->nflag&3)==3 || (ptr->nflag&12)==12) {
       if(!ptr->it(window)->flagShell && !ptr->it(window)->flagPopup ) {
-        fprintf(stderr, "toad: '%s' within TForm has undefined attachment\n",
-                ptr->name.c_str());
+        cerr << "toad: window '"<<ptr->name<<"' within TSpringLayout has a undefined attachment"<<endl;
         bError = true;
       }
     }
@@ -323,7 +340,6 @@ running = false;
   }
 
   // arrange children
-  //+-----------------
   int form[4];
   // form[0]=0; form[1]=Height(); form[2]=0; form[3]=Width();
   form[DTOP]=fy;
@@ -340,10 +356,9 @@ running = false;
     count++;
     if (ptr->done != HAS_ALL) {
       // window has non attached sides
-      //-------------------------------
+
       // 1st strategy:
       // attach all sides where the opposite side of another object is known
-      //---------------------------------------------------------------------
       for(int i=0; i<4; i++) {
         if (!(ptr->done & (1<<i))) {
           switch(ptr->how[i])
@@ -379,7 +394,7 @@ running = false;
                 count = 0;
               }
               break;
-            case OPPOSITE_WINDOW: // CODE IS MISSING FOR DISTANCE !!!
+            case OPPOSITE_WINDOW: // FIXME: CODE IS MISSING FOR DISTANCE !!!
               ptr2=_find(ptr->whichname[i]);
               if ((ptr2->done) & (1<<(i))) {
                 ptr->done |=(1<<i);
@@ -392,42 +407,12 @@ running = false;
       } // end of the 1st strategy
       
       if ( (ptr->done|ptr->nflag) == HAS_ALL) {
-      
         // 2nd strategy
         // we're almost done with the window, the missing coordinates
         // can be calculated from the objects size
-        //------------------------------------------------------------
         ptr->getShape(window, &shape);
-        #ifdef DEBUG
-        printf("Placing %s now:\n",ptr->name.c_str());
-        #endif
+
         // no top and/or left attachment
-        #ifdef DEBUG
-        if (ptr->nflag & TOP) {
-          ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.h;
-          printf("  has no top attachment, calculating it from bottom(%i) & height(%i)\n",
-           ptr->coord[DBOTTOM],shape.h);
-        }
-        if (ptr->nflag & BOTTOM) {
-          ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.h;
-          printf("  has no bottom attachment, calculating it from top(%i) & height(%i)\n",
-           ptr->coord[DTOP],shape.h);
-        }
-        if (ptr->nflag & LEFT) {
-          ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
-          printf("  has no left attachment, calculating it from right(%i) & width(%i)\n",
-          ptr->coord[DRIGHT], shape.w);
-        }
-        if (ptr->nflag & RIGHT) {
-          ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
-          printf("  has no right attachment, calculating it from right(%i) & width(%i)\n",
-          ptr->coord[DLEFT], shape.w);
-        }
-        printf("  want to (%i,%i)-(%i,%i)\n",ptr->coord[DLEFT]
-                                            ,ptr->coord[DTOP]
-                                            ,ptr->coord[DRIGHT]
-                                            ,ptr->coord[DBOTTOM] );
-        #else
         if (ptr->nflag & TOP)
           ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.h;
         if (ptr->nflag & BOTTOM)
@@ -436,7 +421,7 @@ running = false;
           ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
         if (ptr->nflag & RIGHT)
           ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
-        #endif
+
         unsigned w,h;
         w = ptr->coord[DRIGHT] - ptr->coord[DLEFT];
         h = ptr->coord[DBOTTOM] - ptr->coord[DTOP];
@@ -458,12 +443,6 @@ running = false;
           ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
         if (ptr->nflag & RIGHT)
           ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
-        #ifdef DEBUG
-        printf("  want to (%i,%i)-(%i,%i)\n",ptr->coord[DLEFT]
-                                            ,ptr->coord[DTOP]
-                                            ,ptr->coord[DRIGHT]
-                                            ,ptr->coord[DBOTTOM] );
-        #endif
         
         ptr->it(window)->setPosition(ptr->coord[DLEFT],ptr->coord[DTOP]);
         ptr->getShape(window, &shape);
@@ -474,17 +453,10 @@ running = false;
         ptr->coord[DRIGHT]  = shape.x+shape.w;
         ptr->done = HAS_ALL;
         done++;
-        #ifdef DEBUG
-        printf("  set to (%i,%i)-(%i,%i)\n" ,ptr->coord[DLEFT]
-                                            ,ptr->coord[DTOP]
-                                            ,ptr->coord[DRIGHT]
-                                            ,ptr->coord[DBOTTOM] );
-        #endif
       }
     }
 
     if (done>=nChildren) {
-//      cout << "TForm: >>>done<<<" << endl;
       running = false;
       return;
     }
@@ -528,7 +500,7 @@ running = false;
             bNoGuess = false;
           }
           if (ptr->done == HAS_ALL) {
-            cout << "TForm: looks like recursive attachment" << endl;
+            cerr << "TSpringLayout: looks like recursive attachment" << endl;
           }
         }
         count++;
@@ -536,7 +508,7 @@ running = false;
       }
 
       if(bNoGuess) {
-        printf("*TForm: Can't handle recursive attachment. Stopped.\n");
+        cerr << "TSpringLayout: Can't handle recursive attachment. Stopped." << endl;
         #ifdef DEBUG
         count=0;
         while(count<nChildren) {
@@ -560,8 +532,7 @@ running = false;
     }
     ptr = ptr->next;
   }
-running=false;
-return;
+  running=false;
 }
 
 TSpringLayout::TFormNode* 
@@ -653,22 +624,6 @@ TSpringLayout::restore(TInObjectStream &in)
   unsigned pos = 0;
 
   do {
-#if 0
-    cout << "(" << depth << ") ";
-    switch(in.what) {
-      case ATV_START:
-        cout << "ATV_START"; break;
-      case ATV_VALUE:
-        cout << "ATV_VALUE"; break;
-      case ATV_GROUP:
-        cout << "ATV_GROUP"; 
-        break;
-      case ATV_FINISHED:
-        cout << "ATV_FINISHED"; 
-        break;
-    }
-    cout << ": (\""<< in.attribute << "\", \"" << in.type << "\", \"" << in.value << "\")\n";
-#endif
     switch(depth) {
       case 0:
         if (in.what == ATV_GROUP &&

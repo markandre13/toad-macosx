@@ -43,6 +43,12 @@ using namespace toad;
  * \class toad::TMenuHelper
  *
  * TMenuHelper is a base class for TMenuBar and similar classes.
+ 
+ 
+ * TMenuEntry
+ * TMenuSeparator
+ 
+ 
  *
  * \todo
  *   \li
@@ -181,13 +187,9 @@ TMenuHelper::setScopeInteractor(TInteractor *interactor)
 void 
 TMenuHelper::resize()
 {
-DBM2(cerr << "+ TMenuHelper::resize\n");
   if (!isRealized()) {
-    DBM2(cerr << "  isn't realized yet, forget it\n";)
     return;
   }
-
-//printStackTrace();
 
   menu_width_icon = menu_width_text = menu_width_short = menu_width_sub = 0;
   TInteractor *i;
@@ -196,8 +198,8 @@ DBM2(cerr << "+ TMenuHelper::resize\n");
   i = getFirstChild();
   while(i) {
     TMenuButton *mb = dynamic_cast<TMenuButton*>(i);
-    assert(mb!=NULL);
-    mb->adjustButton();
+    if (mb)
+      mb->adjustButton();
     i = i->getNextSibling();
   }
 #else
@@ -213,22 +215,19 @@ DBM2(cerr << "+ TMenuHelper::resize\n");
 
   if (vertical) {
     // vertical
-    //----------
+//cerr << "TMenuHelper::resize: vertical" << endl;
     TNode *node = root.down;
     int y=0, rw = 0;
     while(node!=NULL) {
       if (node->isAvailable()) {
         node->createWindowAt(this);
         y+=node->getHeight();
-//        if (rw < node->window->getWidth())
-//          rw = node->window->getWidth();
       } else {
         node->deleteWindow();
       }
       node = node->next;
     }
     rw = 3+menu_width_icon+8+menu_width_text+8+menu_width_short+8;
-DBM2(cerr << "  vertical setSize " << rw << ", " << y << endl;)
     setSize(rw, y);
     node = root.down;
     y=0;
@@ -242,27 +241,16 @@ DBM2(cerr << "  vertical setSize " << rw << ", " << y << endl;)
     }
   } else {
     // horizontal
-    //------------
+//cerr << "TMenuHelper::resize: horizontal" << endl;
     TNode *node = root.down;
     int x=0, y=0, rh = 0;
-DBM2(
-if (root.down==0) {
-  cerr << "  root.down = 0\n";
-  rh = 16;
-}
-)
     while(node!=NULL) {
-DBM2(cerr << "    check node '" << node->getTitle() << "'\n";)
-
       if (node->isAvailable()) {
-DBM2(cerr << "      is available: create window\n";)
         node->createWindowAt(this);
       } else {
-DBM2(cerr << "      isn't available: delete window \n";)
         node->deleteWindow();
       }
       if (node->isRealized()) {
-DBM2(cerr << "      node has a window\n";)
         if (x > 0 && x+node->getWidth() > getWidth()) {
           x=0;
           y+=rh;
@@ -272,24 +260,17 @@ DBM2(cerr << "      node has a window\n";)
         x+=node->getWidth();
         if (rh < node->getHeight())
           rh = node->getHeight();
-      } else {
-DBM2(cerr << "      node has no window\n";)
       }
       node = node->next;
     }
-DBM2(cerr << "  TMenuHelper::resize " << __LINE__ << endl;);
     setSize(-1, y+rh);
-DBM2(cerr << "  horizontal setSize TSIZE_PREVIOUS " << y << "+" << rh << endl;)
   }
-DBM2(cerr << "- TMenuHelper::resize\n");
 }
 
 void
 TMenuHelper::closeRequest()
 {
-DBM2(cerr << "TMenuHelper received closeRequest" << endl;)
   if (flagPopup) {
-    DBM2(cerr << "  it's a popup, closing it\n" << endl;)
     destroyWindow();
   }
 }
@@ -708,17 +689,19 @@ void TMenuHelper::TNode::trigger(unsigned idx)
 }
 
 /**
- * Create windows for the node.
+ * Create a window for the node in 'parent'.
  *
- * \param parent The parent window for the windows to be created.
+ * \param parent The parent window for the nodes window to be created.
  */
 void
 TMenuHelper::TNode::createWindowAt(TMenuHelper *parent)
 {
-cerr << "TMenuHelper::TNode::createWindowAt**************"<<endl;
 
   if (winarray!=NULL)
     return;
+
+//cerr << "TMenuHelper::TNode::createWindowAt: parent=\""<<parent->getTitle()<<"\", me, node with title=\"" << title << "\"" << endl;
+
   vertical = parent->vertical;
 
   // - nodes with action=NULL are menubar entries with submenus
@@ -814,7 +797,6 @@ TMenuHelper::TNode::isRealized()
 void
 TMenuHelper::TNode::setPosition(int x, int y)
 {
-cerr << "TMenuHelper::TNode::setPosition: title=\""<<getTitle()<<", x="<<x<<", y="<<y<<endl;
   for(unsigned i=0; i<nwinarray; i++) {
     winarray[i]->setPosition(x, y);
     if (vertical) {
@@ -970,7 +952,7 @@ TMenuLayout::~TMenuLayout()
 void
 TMenuLayout::arrange()
 {
-DBM2(cerr << "TMenuLayout::arrange " << this << ", " << window << endl;)
+cerr << "TMenuLayout::arrange: this=" << this << ", window=" << window << endl;
   if (!window)
     return;
   if (!window->isRealized())

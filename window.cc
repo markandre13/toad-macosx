@@ -26,6 +26,15 @@
 
 #include <set>
 
+/**
+ * \class toad::TWindow
+ * \extends toad::TInteractor
+ * \extends toad::TRectangle
+ *
+ * The rectangular frame which can be drawn into and which also receives
+ * input from the mouse pointer, keyboard, etc.
+ */
+
 using namespace toad;
 
 TWindow*
@@ -44,8 +53,6 @@ TWindow::getParent() const
 
 typedef vector<TWindow*> TVectorParentless;
 static TVectorParentless parentless;
-
-static set<TWindow*> aw;
 
 void TWindow::paint()
 {
@@ -401,6 +408,12 @@ TWindow::destroyParentless()
 */
 @end
 
+/*
+ *
+ * Cocoa toadView
+ *
+ */
+
 @interface toadView : NSView
 {
   @public
@@ -408,7 +421,6 @@ TWindow::destroyParentless()
     NSTrackingRectTag trackAll;
 }
 @end
-
 
 @implementation toadView : NSView
 /*
@@ -472,16 +484,13 @@ TWindow::destroyParentless()
   twindow->h = newSize.height;
   twindow->doResize();
 }
-
 - (void) drawRect:(NSRect)rect
 {
   // [self inLiveResize]
 //printf("print draw rect (%f,%f,%f,%f)\n",rect.origin.x,rect.origin.y,
 //                                         rect.size.width,rect.size.height);
-  if (aw.find(twindow)==aw.end()) {
-    cerr << "window is no more" << endl;
-    exit(1);
-  }
+  if (!twindow)
+    return;
 
   {
   TPen pen(twindow);
@@ -498,8 +507,6 @@ TWindow::destroyParentless()
  *   becomeFirstResponder
  *   needsPanelToBecomeKey
  *   becomesKeyOnlyIfNeeded(NSPanel)
- 
- 
  */
 
 /**
@@ -683,30 +690,10 @@ TMouseEvent::modifier() const
   return _modifier;
 }
 
-TWindow::~TWindow()
-{
-  aw.erase(aw.find(this));
-  // deleteChildren is also called in TInteractor::~TInteractor but
-  // then this object is not a TWindow anymore, thus we do it here
-  deleteChildren();
-  destroyWindow();
-  
-  if (getParent()==NULL) {
-    for(TVectorParentless::iterator p=parentless.begin(); p!=parentless.end(); ++p) {
-      if (*p==this) {
-        parentless.erase(p);
-      }
-      if (parentless.empty()) {
-        [NSApp terminate: nil];
-      }
-    }
-  }
-}
-
 TWindow::TWindow(TWindow *parent, const string &title):
   TInteractor(parent, title)
 {
-  aw.insert(this);
+cerr << "TWindow::TWindow: title="<<title<<", this="<<this<<endl;
   if (parent==NULL) {
     flagShell = true;
     parentless.push_back(this);
@@ -730,13 +717,37 @@ TWindow::TWindow(TWindow *parent, const string &title):
   flag_wm_resize = false;
 }
 
+TWindow::~TWindow()
+{
+cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+  // deleteChildren is also called in TInteractor::~TInteractor but
+  // then this object is not a TWindow anymore, thus we do it here
+  deleteChildren();
+  destroyWindow();
+
+  
+  // remove from parentless list (if applicable)
+  if (getParent()==NULL) {
+    for(TVectorParentless::iterator p=parentless.begin(); p!=parentless.end(); ++p) {
+      if (*p==this) {
+        parentless.erase(p);
+      }
+      if (parentless.empty()) {
+        [NSApp terminate: nil];
+      }
+    }
+  }
+cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+}
+
+
 void
 TWindow::createWindow()
 {
   // if we already have a window, return
   if (nsview)
     return;
-cerr << "TWindow::createWindow: title=\"" << getTitle() << ", pos="<<x<<", "<<y<<endl;
+//cerr << "TWindow::createWindow: title=\"" << getTitle() << "\", pos="<<x<<", "<<y<<endl;
   nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
   nsview->twindow = this;
   if (getParent() && !flagShell && !flagPopup) {
@@ -796,12 +807,14 @@ TWindow::destroyWindow()
   [nsview setWindow: nil];
   // [nsview setHidden: true];
   [nsview removeFromSuperview];
+  nsview->twindow = NULL;
   nsview = nil;
   
   if (!nswindow)
     return;
   [nswindow setWindow: nil];
   [nswindow close];
+  nswindow->twindow = NULL;
   nswindow = nil;
 }
 
@@ -894,7 +907,7 @@ TWindow::setPosition(int x, int y)
   if (nsview) {
     if (this->x==x && this->y==y)
       return;
-    cerr << "change position of Cocoa window " << getTitle() << " from " << this->x << ", " << this->y << " to " << x << ", " << y << endl;
+//    cerr << "change position of Cocoa window " << getTitle() << " from " << this->x << ", " << this->y << " to " << x << ", " << y << endl;
     NSPoint pt = NSMakePoint(x, y);
     [nsview setFrameOrigin: pt];
   }

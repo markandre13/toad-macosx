@@ -30,7 +30,7 @@ using namespace toad;
 // this one creates a simple custom menu without NIB files
 - (void) createMenu
 {
-  printf("create menu\n");
+  printf("createMenu: create simple NSMenu\n");
   NSMenu *m0, *m1;
 
   // menu = AUTORELEASE ([NSMenu new]);

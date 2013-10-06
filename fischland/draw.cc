@@ -1355,11 +1355,12 @@ TTest::paint()
 TCursor *fischland::cursor[16];
 
 void
-foo(){}
+foo(){exit(0);}
 
 #define TEST03 1
 
 #ifdef TEST01
+
 class TMyWindow:
   public TWindow
 {
@@ -1461,10 +1462,8 @@ main(int argc, char **argv, char **envv)
     TScrollBar *sb;
     sb = new TScrollBar(wnd, "horizontal");
     sb = new TScrollBar(wnd, "vertical");
-
     TSpringLayout *form = new TSpringLayout;
     form->attach("menubar", TSpringLayout::TOP|TSpringLayout::LEFT|TSpringLayout::RIGHT);
-
     form->attach("toolbar", TSpringLayout::LEFT|TSpringLayout::RIGHT);
     form->attach("toolbar", TSpringLayout::TOP, "menubar");
 
@@ -1489,7 +1488,7 @@ main(int argc, char **argv, char **envv)
   } toad::terminate();
   return 0;
 #endif
-#if 0
+#ifdef TEST04
   // mouse test
   toad::initialize(argc, argv);
   class TMyWindow: public TWindow {
@@ -1799,7 +1798,6 @@ main(int argc, char **argv, char **envv)
   cursor[4] = new TCursor(bm[4], 0, 21);
   cursor[5] = new TCursor(bm[5], 0, 21);
 
-#if 1
   new TToolBox(0, programname);
   if (argc==1) {
     new TMainWindow(0, programname);
@@ -1809,13 +1807,9 @@ main(int argc, char **argv, char **envv)
       wnd->load(argv[i]);
     }
   }
-#else
-  new TTest(0, "test");
-#endif
   toad::mainLoop();
   bmp_vlogo = 0;
   toad::terminate();
   return 0;
 #endif
 }
-

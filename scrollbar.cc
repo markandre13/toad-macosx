@@ -32,7 +32,7 @@
 using namespace toad;
 
 /**
- * \class TScrollBar
+ * \class toad::TScrollBar
  *
  * \todo
  *   \li
@@ -86,7 +86,6 @@ TScrollBar::getFixedSize()
 void
 TScrollBar::resize()
 {
-  printf("%s\n", __FUNCTION__);
   bVertical = getWidth() < getHeight();
   _placeChildren();
   _placeSlider();

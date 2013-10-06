@@ -24,30 +24,33 @@ using namespace toad;
 
 /**
  * \class toad::TInteractor
- *  TInteractor is the base class for all objects in the window
- *  hierachy. So the window hierachy isn't limited to windows.<br>
- *  An interactor can't be the parent of a window but window and
- *  interactor can be the parent of an interactor.
- *   <ul>
- *     <li>By <code>TWindow(TWindow*, const string&amp;)</code>
- *         interactor can't be parents of windows.</li>
- *    <li>By <code>TInteractor(TInteractor*)</code> windows can
- *         be parents of interactors.</li>
- *   </ul>
- *   Interactors are (will be) used as
- *  <ul>
- *     <li>lightweight widgets</li>
- *     <li>drop areas for drag'n drop operations</li>
- *     <li>actions that register and unregister themselfes in menubars 
- *         and toolbars</li>
- *     <li>hot spots (invisible area which trigger events on mouse clicks)</li>
- *     <li>figures that use their parent windows for drawing</li>
- *     <li>gesture recognition<br>
- *         (There is a PhD thesis from 1990 by Dean Rubine on gesture 
- *          recognition, which was used for Amulet. His code is under GNU GPL.)
- *   </ul>
+ *
+ * \brief The base class for TWindow and other objects in the 'window' hierachy.
+ *
+ * Windows on the screen are organzied as a tree, with the desktop being the
+ * root window and each window containing a variable number of other windows.
+ *
+ * With TOAD, this tree isn't just used for windows, but for other user interface
+ * objects too. E.g.:
+ *
+ * <ul>
+ *   <li>
+ *     TAction objects can be displayed by the nearest TMenuBar upwards in
+ *     the interactor hierachy.
+ *   <li>
+ *     TUndo objects are added to the nearest TUndoManager upwards in the interactor
+ *     hierachy.
+ * </ul>
+ *
+ * Other possible usages:
+ * <ul>
+ *   <li>lightweight widgets</li>
+ *   <li>drop areas for drag'n drop operations</li>
+ *   <li>hot spots (invisible area which trigger events on mouse clicks)</li>
+ *   <li>figures that use their parent windows for drawing</li>
+ *   <li>gesture recognition</li>
+ * </ul>
  */
-
 
 TInteractor::TInteractor(TInteractor *parent, const string &title)
 {

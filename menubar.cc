@@ -35,26 +35,83 @@
 using namespace toad;
 
 /**
- * \ingroup control
  * \class toad::TMenuBar
  *
  * A horizontal menubar.
  *
- * The menubar uses a TMenuLayout for its layout definition.
+ * This class basically
+ * \li is a horizontal TMenuHelper
+ * \li sets up a TMenuLayout
+ * \li installs a keyboard filter.
  *
- * TMenuBar also installs a keyboard filter to handle keyboard shortcuts as
- * defined within the layout. Keyboard shortcuts can be defined as one
- * or more names connected with the '+' sign. For example 'Alt+F4'.
+ * The keyboard filter looks for a shortcut defined in menu layout and
+ * triggers an action if it finds a match.
  *
- * Known names are case insensitive and can be one of the common keyboard
- * symbols or 'Alt', 'Ctrl', 'Strg' or 'F1' to 'F20'.
+ * Keyboard shortcuts can be defined as one or more key names connected with
+ * an '+' sign, eg.  'alt+f4'.
  *
- * \note The name 'Shift' isn't implemented because the symbol which can
- * be typed with 'Shift' is usually already seen on the keyboard. It would
- * also have complicated the implementation of the shortcut code.
+ * Known key names are case insensitive and can be one of the common keyboard
+ * characters or special keys like 'alt', 'ctrl' or 'f1' to 'f20'.
+ */
+
+class TMenuBar::TMyKeyFilter:  
+  public TEventFilter
+{
+    public:
+      TMyKeyFilter(TMenuBar *menubar) {
+        this->menubar = menubar;
+      }
+    protected:
+      TMenuBar *menubar;
+      bool keyEvent(TKeyEvent &ke);
+};
+
+TMenuBar::TMenuBar(TWindow *p, const string& t):
+  super(p, t)
+{
+  vertical = false; // i'm a horizontal menuhelper
+  setLayout(new TMenuLayout()); // i require a layout
+
+  TFocusManager::insertEventFilter(new TMyKeyFilter(this), this, KF_TOP_DOMAIN);  
+}
+
+TMenuBar::~TMenuBar()
+{
+}
+
+static bool
+menubar_keyboard_filter_recursion(TMenuBar::TNode *node, const string &str, TKey key, unsigned modifier, unsigned indent=0);
+
+bool
+TMenuBar::TMyKeyFilter::keyEvent(TKeyEvent &ke)
+{
+  // separate ALT, ALTGR and CONTROL from modifier
+  unsigned m = ke.modifier();
+  unsigned original_modifier = m;
+
+  unsigned modifier = 0;
+  if (m & MK_CONTROL)
+    modifier|=MK_CONTROL;
+
+  // interpret both ALT and ALTGR as menu modifier
+  // FIXME: should be configurable or not here at all!
+  if ((m & MK_ALT) || (m & MK_ALTGR))
+    modifier|=MK_ALT;
+
+  m &= ~(MK_CONTROL|MK_ALT|MK_ALTGR);
+  ke.setModifier(m);
+
+  bool result = menubar_keyboard_filter_recursion(&menubar->root, ke.getString(), ke.getKey(), modifier);
+
+  ke.setModifier(original_modifier);
+  return result;
+}
+
+/**
+ * Find a node in the menubar whose shortcut matches the pressed key.
  */
 static bool
-iterate(TMenuBar::TNode *node, const string &str, TKey key, unsigned modifier, unsigned indent=0)
+menubar_keyboard_filter_recursion(TMenuBar::TNode *node, const string &str, TKey key, unsigned modifier, unsigned indent)
 {
   TMenuBar::TNode *p = node;
   while(p) {
@@ -191,50 +248,10 @@ iterate(TMenuBar::TNode *node, const string &str, TKey key, unsigned modifier, u
     }
     
     if (p->down) {
-      if (iterate(p->down, str, key, modifier, indent+1))
+      if (menubar_keyboard_filter_recursion(p->down, str, key, modifier, indent+1))
         return true;
     }
     p = p->next;
   }
   return false;
-}
-
-class TMenuBar::TMyKeyFilter:  
-  public TEventFilter
-{
-    public:
-      TMyKeyFilter(TMenuBar *menubar) {
-        this->menubar = menubar;
-      }
-    protected:
-      TMenuBar *menubar;
-      bool keyEvent(TKeyEvent &ke) {
-        unsigned m = ke.modifier();
-        unsigned orig = m;
-        unsigned modifier = 0;
-        if (m & MK_CONTROL)
-          modifier|=MK_CONTROL;
-        if ((m & MK_ALT) || (m & MK_ALTGR))
-          modifier|=MK_ALT;
-        m &= ~(MK_CONTROL|MK_ALT|MK_ALTGR);
-        ke.setModifier(m);
-        string str = ke.getString();
-        bool result = iterate(&menubar->root, str, ke.getKey(), modifier);
-        ke.setModifier(orig);
-        return result;
-      }
-};
-
-
-TMenuBar::TMenuBar(TWindow *p, const string& t):
-  super(p, t)
-{
-  vertical = false; // i'm a horizontal menuhelper
-  setLayout(new TMenuLayout()); // i require a layout
-
-  TFocusManager::insertEventFilter(new TMyKeyFilter(this), this, KF_TOP_DOMAIN);  
-}
-
-TMenuBar::~TMenuBar()
-{
 }

@@ -13,7 +13,8 @@ o TWindow
   + mouse events
   + getRootPos
 o TMenuBar
-  - place menubutton in popup
+  + place menubutton in popup
+  - resizing a menubar causes lots windows created and destroyed: stop this!
 o TPen
   + draw line
   + draw string

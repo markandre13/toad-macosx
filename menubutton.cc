@@ -52,7 +52,7 @@ TMenuButton::TMenuButton(TMenuHelper *p, TMenuHelper::TNode *n):
   TWindow(p, n->getTitle()), node(n), master(p)
 {
   assert(master!=NULL);
-cout << "MENUBUTTON: CREATE  " << this << endl;
+//cout << "MENUBUTTON: CREATE  " << this << endl;
   setBorder(0);
 //  bNoBackground = true;
   setBackground(TColor::MENU);
@@ -76,8 +76,7 @@ TMenuButton::~TMenuButton()
 
 void TMenuButton::adjustButton()
 {
-cout << "TMenuButton::adjustButton: title=\""<<getTitle()<<"\""<<endl;
-DBM2(cerr << "+ TMenuButton::adjustButton" << endl;)
+//cout << "TMenuButton::adjustButton: title=\""<<getTitle()<<"\""<<endl;
   if (node->type==TMenuHelper::TNode::SEPARATOR) {
     setSize(1,4);
     return;
@@ -101,7 +100,7 @@ DBM2(cerr << "+ TMenuButton::adjustButton" << endl;)
     master->menu_width_short = max(master->menu_width_short, n);
     w+=n;
   }
-#if 1
+
   if (master->vertical) {
     w += 12+2;
     h += 2;
@@ -111,8 +110,6 @@ DBM2(cerr << "+ TMenuButton::adjustButton" << endl;)
   }
 
   setSize(w,h);
-#endif
-DBM2(cerr << "- TMenuButton::adjustButton" << endl;)
 }
 
 /**
@@ -657,22 +654,6 @@ TMenuButton::closePopup()
   DBM(cerr << "- closePopup " << this << "\n";)
 }
 
-class TMyPopup:
-  public TPopup
-{
-  public:
-    TMyPopup(TWindow *parent, const string &title):
-      TPopup(parent, title) {
-        cerr << "TMyPopup*********************" << endl;
-        setBackground(255,128,0);
-      }
-    void paint() {
-      TPen pen(this);
-      pen.drawLine(0,0,getWidth(), getHeight());
-      pen.drawLine(0,getHeight(),getWidth(),0);
-    }
-};
-
 void 
 TMenuButton::openPopup()
 {
@@ -683,7 +664,7 @@ TMenuButton::openPopup()
      )
   {
     DBM(cerr << "+ openPopup " << this << "\n";)
-    popup = new TMyPopup(this, "popup");
+    popup = new TPopup(this, "popup");
     popup->btnmaster = this;
     popup->root.down = node->down;
 
@@ -695,9 +676,9 @@ TMenuButton::openPopup()
     else
       popup->setPosition(x, y-getHeight());
 */
-popup->setPosition(10,20);
-    popup->setSize(80,200);
-//    popup->placeWindow(PLACE_PULLDOWN, this); // FIXME
+//popup->setPosition(10,20);
+//    popup->setSize(80,200);
+    popup->placeWindow(PLACE_PULLDOWN, this); // FIXME
 
     popup->createWindow();
     DBM(cerr << "- openPopup " << this << "\n";)
