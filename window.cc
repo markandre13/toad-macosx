@@ -720,11 +720,17 @@ cerr << "TWindow::TWindow: title="<<title<<", this="<<this<<endl;
 TWindow::~TWindow()
 {
 cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+  
+  if (layout) {
+    // layout->toFile();
+    delete layout;
+    layout = NULL;
+  }
+
   // deleteChildren is also called in TInteractor::~TInteractor but
   // then this object is not a TWindow anymore, thus we do it here
   deleteChildren();
   destroyWindow();
-
   
   // remove from parentless list (if applicable)
   if (getParent()==NULL) {
