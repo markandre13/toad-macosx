@@ -772,7 +772,8 @@ cerr << "TWindow::createWindow: title=\"" << getTitle() << ", pos="<<x<<", "<<y<
   if (flagShell)
     TFocusManager::domainToWindow(this);
 
-  doResize();
+  if (layout)
+    layout->arrange();
 
   // create children
   TInteractor *ptr = getFirstChild();
@@ -782,6 +783,8 @@ cerr << "TWindow::createWindow: title=\"" << getTitle() << ", pos="<<x<<", "<<y<
       p->createWindow();
     ptr = getNextSibling(ptr);
   }
+
+  doResize();
 }
 
 void
