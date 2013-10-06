@@ -231,6 +231,7 @@ class TWindow:
 
     void createWindow();
     void destroyWindow();
+    void doModalLoop();
     
     void setMapped(bool);
     bool isMapped() const;

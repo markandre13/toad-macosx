@@ -152,19 +152,6 @@ TDialog::childNotify(TWindow *who, EChildNotify type)
 #endif
 }
 
-/**
- * Create window as a modal dialog and wait until the dialog is destroyed.
- */
-void
-TDialog::doModalLoop()
-{
-  cerr << __FUNCTION__ << " isn't implemented yet" << endl;
-#if 0
-  TOADBase::doModalLoop(this);
-  flush();
-#endif
-}
-
 void
 TDialog::adjust()
 {

@@ -12,6 +12,7 @@ o TWindow
   + paint events
   + mouse events
   + getRootPos
+  - implement doModalLoop (required for modal dialogs)
 o TMenuBar
   + place menubutton in popup
   - resizing a menubar causes lots windows created and destroyed: stop this!

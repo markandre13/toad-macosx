@@ -775,7 +775,9 @@ TMainWindow::menuOpen()
   TFileDialog dlg(this, "Open..");
   dlg.addFileFilter("Fischland (*.atv, *.vec, *.fish)");
   // dlg.addFileFilter("Scaleable Vector Graphics (*.svg)");
+cerr << "start modal loop" << endl;
   dlg.doModalLoop();
+cerr << "left modal loop" << endl;
   if (dlg.getResult()!=TMessageBox::OK)
     return;
   load(dlg.getFilename());
@@ -1420,7 +1422,7 @@ class TMyWindow:
 int 
 main(int argc, char **argv, char **envv)
 {
-#if 1
+#if 0
 #ifdef TEST01
   toad::initialize(argc, argv);
   TWindow *w0 = new TMyWindow(0, "TEST01");

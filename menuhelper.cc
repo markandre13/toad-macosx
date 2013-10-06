@@ -952,7 +952,7 @@ TMenuLayout::~TMenuLayout()
 void
 TMenuLayout::arrange()
 {
-cerr << "TMenuLayout::arrange: this=" << this << ", window=" << window << endl;
+//cerr << "TMenuLayout::arrange: this=" << this << ", window=" << window << endl;
   if (!window)
     return;
   if (!window->isRealized())

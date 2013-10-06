@@ -58,8 +58,6 @@ class TDialog:
     TDialog(TWindow *parent, const string &title);
     ~TDialog();
     
-    void doModalLoop();
-
     bool bDrawFocus;
     
     void adjust();

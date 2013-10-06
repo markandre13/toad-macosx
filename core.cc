@@ -128,9 +128,9 @@ TSignal::delayedTrigger()
 }
 
 bool
-toad::modalLoop(toad::TWindow*)
+toad::modalLoop(toad::TWindow *wnd)
 {
-  printf("%s: not implemented\n", __PRETTY_FUNCTION__);
+  wnd->doModalLoop();
 }
 
 TFontDialog::TFontDialog(TWindow *parent, const string &title):

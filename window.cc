@@ -816,9 +816,17 @@ TWindow::createWindow()
   doResize();
 }
 
+static TWindow* runningAsModal = 0;
+
 void
 TWindow::destroyWindow()
 {
+  if (this==runningAsModal) {
+    runningAsModal = 0;
+    [NSApp stopModal];
+    return; // doModalLoop will invoke destroyWindow again
+  }
+
   if (!nsview)
     return;
   TFocusManager::destroyWindow(this);
@@ -834,6 +842,20 @@ TWindow::destroyWindow()
   [nswindow close];
   nswindow->twindow = NULL;
   nswindow = nil;
+}
+
+void
+TWindow::doModalLoop()
+{
+  createWindow();
+  if (nswindow) {
+    runningAsModal = this;
+    [NSApp runModalForWindow: nswindow];
+  } else {
+    cerr << "error: TWindow::doModalLoop requires '" << getTitle() << "' to be top level window" << endl;
+    exit(0);
+  }
+  destroyWindow();
 }
 
 void
