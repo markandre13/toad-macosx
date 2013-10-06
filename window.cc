@@ -737,10 +737,21 @@ cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
     for(TVectorParentless::iterator p=parentless.begin(); p!=parentless.end(); ++p) {
       if (*p==this) {
         parentless.erase(p);
+        break;
       }
-      if (parentless.empty()) {
-        [NSApp terminate: nil];
+    }
+    
+    // when all parentless windows without flagParentlessAssistant==true are
+    // gone, quit application
+    bool quitApplication = true;
+    for(TVectorParentless::iterator p=parentless.begin(); p!=parentless.end(); ++p) {
+      if (!(*p)->flagParentlessAssistant && (*p)->isRealized()) {
+        quitApplication = false;
+        break;
       }
+    }
+    if (quitApplication) {
+      [NSApp terminate: nil];
     }
   }
 cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
