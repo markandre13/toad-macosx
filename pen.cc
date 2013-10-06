@@ -31,10 +31,14 @@ TPen::TPen(TWindow *w)
   setColor(0,0,0);
   linestyle = SOLID;
   window = w;
+/*
+  According to the manual, Cocoa already setup a clip path during [NSView
+  drawRect: <rect>], hence there shouldn't be a need to do this.
+  
   clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(0, 0, w->w, w->h)];
   [clipPath setClip];
-  
+ */ 
   mstack.push_back([NSAffineTransform transform]);
 
   NSAffineTransform* xform = [NSAffineTransform transform];
