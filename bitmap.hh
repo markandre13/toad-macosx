@@ -48,12 +48,15 @@ class TBitmap:
       this->width = width;
       this->height = height;
     }
+    ~TBitmap();
     bool load(const string &filename);
     bool load(istream&);
     unsigned getWidth() const { return width; }
     unsigned getHeight() const { return height; }
     void setPixel(TCoord x, TCoord y, TCoord r, TCoord g, TCoord b) {}
     unsigned width, height;
+  private:
+    TBitmap(const TBitmap&) {}
 };
   
 typedef GSmartPointer<TBitmap> PBitmap;

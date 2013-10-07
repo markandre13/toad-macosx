@@ -24,26 +24,42 @@
 
 using namespace toad;
 
+TBitmap::~TBitmap()
+{
+  cerr << "release bitmap=" << this << ", image=" << img << endl;
+  if (img)
+    [img release];
+}
+
 bool
 TBitmap::load(const string &fn)
 {
-//  cerr << "load bitmap file " << fn << endl;
+//  cerr << "load bitmap file " << fn << ", bitmap=" << this << endl;
   NSError *err = nil;
   NSData *data = [NSData dataWithContentsOfFile: [NSString stringWithUTF8String: fn.c_str()]
                          options: 0
                          error: &err];
   if (data==nil) {
-    cerr << "failed to load file" << endl;
-    cerr << [[err localizedDescription] UTF8String] << endl;
+    cerr << "TBitmap::load: failed to load file "
+         << [[err localizedDescription] UTF8String] << endl;
     return false;
   }
   img = [NSBitmapImageRep imageRepWithData: data];
   if (img == nil) {
-    cerr << "failed to decode image data" << endl;
+    cerr << "TBitmap::load: failed to decode image data" << endl;
     return false;
   }
   width = [img pixelsWide];
   height = [img pixelsHigh];
+
+//  cerr << "  image=" << img << endl;
+  
+  [img retain];
+  
+  // don't release data, NSBitmapImageRep will parse it later
+  // FIXME: find out if we have to release data
+//  [data release];
+  
   return true;
 }
 
