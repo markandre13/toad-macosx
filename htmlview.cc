@@ -43,9 +43,7 @@ using namespace toad;
  * A minimal HTML viewer to view on-line help.
  *
  * This widget supports a subset of HTML with the following tags:
- * html, body, b, i, em, br, p, hr, a, table, tr, th
- *
- * The following tags are planned: table, tr, td, th, img.
+ * html, body, b, i, em, br, p, hr, a, img, table, tr, th
  *
  * \todo
  *   \li 
