@@ -75,8 +75,8 @@ using namespace toad;
 
 namespace {
 
-typedef set<TUndoManager*> TUndoManagerStore;
-TUndoManagerStore undomanagers;
+typedef set<TUndoManager*> TUndoManagerSet;
+TUndoManagerSet undomanagers;
 
 } // namespace
 
@@ -84,7 +84,7 @@ class toad::TModelUndoStore
 {
   public:
     // undomanager for the model
-    TUndoManagerStore undomanagers;
+    TUndoManagerSet undomanagers;
 
     // undo/redo objects for the model
     typedef vector<TUndo*> TUndoStack;
@@ -92,13 +92,17 @@ class toad::TModelUndoStore
 
     void addUndo(TModel *model, TUndo *undo);
     void clearRedo();
-    void clear(TModel *model);
+    void removeModel(TModel *model);
 };
 
 namespace {
   
-typedef map<TModel*, TModelUndoStore> TModelStore;
-TModelStore models;
+typedef map<TModel*, TModelUndoStore> TModelUndoMap;
+
+// the order is which static objects are destroyed isn't fixed and
+// some registered models might be static, hence 'models' must outlive
+// them
+TModelUndoMap &models = *(new TModelUndoMap());
 
 } // namespace
 
@@ -130,6 +134,7 @@ TUndoManager::TUndoManager(TWindow *parent,
 void
 TUndoManager::init()
 {
+//cerr << "TUndoManager::init: this=" << this << endl;
   undoing = redoing = false;
   undomanagers.insert(this);
   
@@ -142,18 +147,19 @@ TUndoManager::init()
 
 TUndoManager::~TUndoManager()
 {
-  DBM(cerr << "destroy undomanager " << this << endl;)
+//cerr << "enter TUndoManager::~TUndoManager: this=" << this << endl;
   for(TModelSet::iterator p=mmodels.begin();
       p!=mmodels.end();
       ++p)
   {
-    TModelStore::iterator q = models.find(*p);
+    TModelUndoMap::iterator q = models.find(*p);
     assert(q!=models.end());
-    TUndoManagerStore::iterator r = q->second.undomanagers.find(this);
+    TUndoManagerSet::iterator r = q->second.undomanagers.find(this);
     assert(r!=q->second.undomanagers.end());
     q->second.undomanagers.erase(r);
   }
   undomanagers.erase(undomanagers.find(this));
+cerr << "enter TUndoManager::~TUndoManager: leave=" << this << endl;
 }
 
 bool TUndoManager::undoing = false;
@@ -162,11 +168,13 @@ bool TUndoManager::redoing = false;
 /**
  * Iterate over all 'undomanagers' and find one which is a child of the
  * specified TWindow.
+ *
+ * (Shouldn't we travere the tree up to the root or what?)
  */
-static TUndoManagerStore::iterator
+static TUndoManagerSet::iterator
 findUndoManager(TWindow *window)
 {
-  TUndoManagerStore::iterator p;
+  TUndoManagerSet::iterator p;
   for(p=undomanagers.begin();   
       p!=undomanagers.end();    
       ++p)
@@ -188,25 +196,19 @@ findUndoManager(TWindow *window)
 /*static*/ bool
 TUndoManager::registerModel(TWindow *window, TModel *model)
 {
-  DBM(cerr << "register model " << model << " for window " << window << endl;)
-  TUndoManagerStore::iterator p = findUndoManager(window);
+  TUndoManagerSet::iterator p = findUndoManager(window);
   if (p==undomanagers.end())
-  {
-    DBM(cerr << "no undomanager found for model " << model << endl;)
     return false;
-  }
   
   // add reference from TUndoManager to TModel
-  DBM(cerr << "  add model " << model << " to undomanager " << *p << endl;)
   (*p)->mmodels.insert(model);
-  
+//cerr << "TUndoManger::registerModel("<<model<<")\n";
+
   // add reference from TModelUndoStore to TUndoManager
-  TModelStore::iterator q = models.find(model);
+  TModelUndoMap::iterator q = models.find(model);
   if (q==models.end()) {
-    DBM(cerr << "  insert to new TModelUndoStore" << endl;)
     models[model].undomanagers.insert(*p);
   } else {
-    DBM(cerr << "  insert to existing TModelUndoStore" << endl;)
     q->second.undomanagers.insert(*p);
   }
   return true;
@@ -240,13 +242,18 @@ TUndoManager::unregisterModel(TModel *model)
 {
 #warning "TUndoManager must be informed to update it's actions"
 #warning "must remove model from model-undo-store also"
-  DBM(cerr << "unregister model " << model << endl;)
-  TModelStore::iterator pms = models.find(model);
+//cerr << "TUndoManger::unregisterModel(" << model << ")\n";
+
+  TModelUndoMap::iterator pms = models.find(model);
   if (pms==models.end()) {
     return false;
   }
-  pms->second.clear(model);
+
+  // remove model from the TModelUndoStore
+  pms->second.removeModel(model);
+  // remove model from the list of all models
   models.erase(pms);
+
   return true;
 }
 
@@ -281,7 +288,7 @@ TUndoManager::unregisterModel(TWindow *window, TModel *model)
 {
 #warning "TUndoManager must be informed to update it's actions"
   DBM(cerr << "unregister model " << model << " for window " << window << endl;)
-  TUndoManagerStore::iterator p = findUndoManager(window);
+  TUndoManagerSet::iterator p = findUndoManager(window);
   if (p==undomanagers.end())
   {
     DBM(cerr << "  no undomanager found for model " << model << endl;)
@@ -299,14 +306,14 @@ TUndoManager::unregisterModel(TWindow *window, TModel *model)
   DBM(cerr << "    ok" << endl;)
   
   // add reference from TModelUndoStore to TUndoManager
-  TModelStore::iterator q = models.find(model);
+  TModelUndoMap::iterator q = models.find(model);
   if (q==models.end()) {
     DBM(cerr << "  model not found in model-undo-store" << endl;)
     return;
   }
   
   DBM(cerr << "  remove from existing TModelUndoStore" << endl;)
-  TUndoManagerStore::iterator s = q->second.undomanagers.find(*p);
+  TUndoManagerSet::iterator s = q->second.undomanagers.find(*p);
   if (s==q->second.undomanagers.end()) {
     DBM(cerr << "  undomanager not model-undo-store" << endl;)
     return;
@@ -476,7 +483,7 @@ TUndoManager::registerUndo(TModel *model, TUndo *undo)
   }
 
   DBM(cerr << "register undo " << undo << " for model " << model << endl;)
-  TModelStore::iterator p = models.find(model);
+  TModelUndoMap::iterator p = models.find(model);
   if (p==models.end()) {
     DBM(cerr << "no model registered" << endl;)
     delete undo;
@@ -522,7 +529,7 @@ TUndoManager::doIt(bool back)
   
   DBM(cerr << "checking all " << mmodels.size() << " models\n";)
   
-  TModelStore::iterator pms;
+  TModelUndoMap::iterator pms;
   TUndo *undo = 0;
   unsigned undocount = 0;
   
@@ -533,7 +540,7 @@ TUndoManager::doIt(bool back)
       ++p)
   {
     // get the additional undo/redo information for the model
-    TModelStore::iterator q = models.find(*p);
+    TModelUndoMap::iterator q = models.find(*p);
     assert(q!=models.end());
     
     // set 'undo' to the latest undo event
@@ -607,7 +614,7 @@ TUndoManager::doIt(bool back)
           p!=mmodels.end();
           ++p)
       {
-        TModelStore::iterator q = models.find(*p);
+        TModelUndoMap::iterator q = models.find(*p);
         assert(q!=models.end());
         
         if (back) {
@@ -653,12 +660,12 @@ TUndoGroup::undo(bool back)
 
   while(true) {
     TUndo *undo = 0;
-    TModelStore::iterator pms;
+    TModelUndoMap::iterator pms;
     for(TModelSet::iterator p = models.begin();
         p != models.end();
         ++p)
     {
-      TModelStore::iterator q = ::models.find(*p);
+      TModelUndoMap::iterator q = ::models.find(*p);
       assert(q!=::models.end());
       TUndo *u;
       if (back) {
@@ -718,7 +725,7 @@ TUndoManager::TUndoAction::getState(string *text, bool *active) const
     cerr << __PRETTY_FUNCTION__ << endl;
     cerr << "  action is:" << getTitle() << endl;
   )
-  TModelStore::iterator pms;
+  TModelUndoMap::iterator pms;
   TUndo *undo = 0;
   unsigned count = 0;
 
@@ -728,7 +735,7 @@ TUndoManager::TUndoAction::getState(string *text, bool *active) const
         p!=manager->mmodels.end();
         ++p)
     {
-      TModelStore::iterator q = models.find(*p);
+      TModelUndoMap::iterator q = models.find(*p);
       assert(q!=models.end());
       DBM(cerr << "  check model " << *p << endl;)
       if (!q->second.undostack.empty()) {
@@ -757,7 +764,7 @@ TUndoManager::TUndoAction::getState(string *text, bool *active) const
         p!=manager->mmodels.end();
         ++p)
     {
-      TModelStore::iterator q = models.find(*p);
+      TModelUndoMap::iterator q = models.find(*p);
       assert(q!=models.end());
       DBM(cerr << "  check model " << *p << endl;)
       if (!q->second.redostack.empty()) {
@@ -799,7 +806,7 @@ TUndoManager::canUndo() const
       p!=mmodels.end();
       ++p)
   {
-    TModelStore::const_iterator q = models.find(*p);
+    TModelUndoMap::const_iterator q = models.find(*p);
     assert(q!=models.end());
     if (!q->second.undostack.empty())
       return true;
@@ -819,7 +826,7 @@ TUndoManager::canRedo() const
       p!=mmodels.end();
       ++p)
   {
-    TModelStore::const_iterator q = models.find(*p);
+    TModelUndoMap::const_iterator q = models.find(*p);
     assert(q!=models.end());
     if (!q->second.redostack.empty())
       return true;
@@ -877,7 +884,7 @@ TModelUndoStore::addUndo(TModel *model, TUndo *undo)
     //         we now create a set of all models they manage
     DBM(cerr << "    create list of all models managed by undo managers which also manage model " << model << endl;)
     TModelSet xmodels;
-    for(TUndoManagerStore::iterator p=undomanagers.begin();
+    for(TUndoManagerSet::iterator p=undomanagers.begin();
         p!=undomanagers.end();
         ++p)
     {
@@ -901,7 +908,7 @@ TModelUndoStore::addUndo(TModel *model, TUndo *undo)
         p!=xmodels.end();
         ++p)
     {
-      TModelStore::iterator q = models.find(*p);
+      TModelUndoMap::iterator q = models.find(*p);
       assert(q!=models.end());
       DBM(cerr << "  clear redo list of model " << *p << endl;)
       q->second.clearRedo();
@@ -931,7 +938,7 @@ TModelUndoStore::addUndo(TModel *model, TUndo *undo)
   if (!TUndoManager::isUndoing()) {
     DBM(cerr << "add undo to models undostack" << endl;)
     undostack.push_back(undo);
-    for(TUndoManagerStore::iterator p=undomanagers.begin();
+    for(TUndoManagerSet::iterator p=undomanagers.begin();
         p!=undomanagers.end();
         ++p)
     {
@@ -947,7 +954,7 @@ TModelUndoStore::addUndo(TModel *model, TUndo *undo)
   } else {
     DBM(cerr << "add undo to models redostack" << endl;)
     redostack.push_back(undo);
-    for(TUndoManagerStore::iterator p=undomanagers.begin();
+    for(TUndoManagerSet::iterator p=undomanagers.begin();
         p!=undomanagers.end();
         ++p)
     {
@@ -974,7 +981,7 @@ TModelUndoStore::clearRedo() {
  *   class and must therefore be given with this parameter.
  */
 void
-TModelUndoStore::clear(TModel *model)
+TModelUndoStore::removeModel(TModel *model)
 {
   for(TUndoStack::iterator p=undostack.begin();
       p!=undostack.end();
@@ -988,7 +995,7 @@ TModelUndoStore::clear(TModel *model)
   {
     delete *p;
   }
-  for(TUndoManagerStore::iterator p=undomanagers.begin();
+  for(TUndoManagerSet::iterator p=undomanagers.begin();
       p!=undomanagers.end();
       ++p)
   {
