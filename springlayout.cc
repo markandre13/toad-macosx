@@ -409,7 +409,7 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
       if ( (ptr->done|ptr->nflag) == HAS_ALL) {
         // 2nd strategy
         // we're almost done with the window, the missing coordinates
-        // can be calculated from the objects size
+        // can be calculated from the object's size
         ptr->getShape(window, &shape);
 
         // no top and/or left attachment
