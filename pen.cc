@@ -32,7 +32,7 @@ TPen::TPen(TWindow *w)
   linestyle = SOLID;
   window = w;
 /*
-  According to the manual, Cocoa already setup a clip path during [NSView
+  According to the manual, Cocoa already sets up a clip path during [NSView
   drawRect: <rect>], hence there shouldn't be a need to do this.
   
   clipPath = [NSBezierPath bezierPath];
@@ -347,6 +347,7 @@ TPen::vdrawBitmap(TCoord x, TCoord y, const TBitmap &b)
   [xform translateXBy: x yBy: y+b.height];
   [xform scaleXBy: 1.0 yBy: -1.0];
   [xform concat];
+//cerr << "TPen::vdrawBitmap: bitmap=" << &b << ", image=" << b.img << endl;
   [b.img drawAtPoint: NSMakePoint(0, 0)];
   [xform invert];
   [xform concat];
