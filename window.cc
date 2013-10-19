@@ -492,11 +492,13 @@ TWindow::destroyParentless()
   if (!twindow)
     return;
 
+#if 0
   {
   TPen pen(twindow);
   pen.setColor(twindow->_bg.r/255.0, twindow->_bg.g/255.0, twindow->_bg.b/255.0);
   pen.fillRectangle(0,0,twindow->w,twindow->h);
   }
+#endif
   twindow->paint();
 }
 
@@ -693,7 +695,7 @@ TMouseEvent::modifier() const
 TWindow::TWindow(TWindow *parent, const string &title):
   TInteractor(parent, title)
 {
-cerr << "TWindow::TWindow: title="<<title<<", this="<<this<<endl;
+//cerr << "TWindow::TWindow: title="<<title<<", this="<<this<<endl;
   if (parent==NULL) {
     flagShell = true;
     parentless.push_back(this);
@@ -719,7 +721,7 @@ cerr << "TWindow::TWindow: title="<<title<<", this="<<this<<endl;
 
 TWindow::~TWindow()
 {
-cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+//cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
   
   if (layout) {
     // layout->toFile();
@@ -754,7 +756,7 @@ cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
       [NSApp terminate: nil];
     }
   }
-cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+//cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
 }
 
 
