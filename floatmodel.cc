@@ -18,9 +18,10 @@
  * MA  02111-1307,  USA
  */
 
-#include <toad/integermodel.hh>
+#include <toad/floatmodel.hh>
 #include <toad/textmodel.hh>
-#include <limits.h>
+#include <cmath>
+#include <cfloat>
 
 using namespace toad;
 
@@ -32,22 +33,22 @@ using namespace toad;
  * Defines the data model used by controls like TScrollBar.
  */
 
-class TIntegerTextModel:
+class TFloatTextModel:
   public TTextModel
 {
-    TIntegerModel * model;
+    TFloatModel * model;
     bool lock;
   public:
-    TIntegerTextModel(TIntegerModel *m) {
+    TFloatTextModel(TFloatModel *m) {
       model = m;
       lock = false;
       if (model) {
-        connect(model->sigChanged, this, &TIntegerTextModel::slaveChanged);
+        connect(model->sigChanged, this, &TFloatTextModel::slaveChanged);
         slaveChanged();
       }
 //      connect(this->sigChanged, this, &TIntegerTextModel::masterChanged);
     }
-    ~TIntegerTextModel() {
+    ~TFloatTextModel() {
       if (model)
         disconnect(model->sigChanged, this);
     }
@@ -58,20 +59,20 @@ DBM(cerr << "BoundedRangeTextModel filter detected '\\n', calling masterChanged\
         return 0;
       }
       if (c==TTextModel::CHARACTER_CURSOR_UP) {
-        model->setValue(model->getValue()+1);
+        model->setValue(model->getValue()+0.1);
         return 0;
       }
       if (c==TTextModel::CHARACTER_CURSOR_DOWN) {
-        model->setValue(model->getValue()-1);
+        model->setValue(model->getValue()-0.1);
         return 0;
       }
-      if ( (c<'0' || c>'9') && c!='-') {
+      if ( (c<'0' || c>'9') && c!='-' && c!='.') {
         return 0;
       }
       return c;
     }
     void focus(bool b) {
-DBM(cerr << "TIntegerTextModel::focus(" << b << ")\n";)
+DBM(cerr << "TFloatTextModel::focus(" << b << ")\n";)
       if (!b) {
 DBM(cerr << "-> calling master changed\n";)
         masterChanged();
@@ -79,13 +80,13 @@ DBM(cerr << "-> calling master changed\n";)
     }
     void masterChanged()
     {
-DBM(cerr << "TIntegerTextModel::masterChanged()\n";)
+DBM(cerr << "TFloatTextModel::masterChanged()\n";)
       if (lock) {
 DBM(cerr << "  locked => return\n";)
         return;
       }
 DBM(cerr << "  not locked => setValue\n";)
-      int a = atoi(_data.c_str());
+      double a = atof(_data.c_str());
       lock = true;
       model->setValue(a);
       lock = false;
@@ -101,10 +102,21 @@ DBM(cerr << "  locked => return\n";)
 DBM(cerr << "  not locked => getValue\n";)
       char buffer[16];
 #ifndef __WIN32__
-      snprintf(buffer, sizeof(buffer), "%i", model->getValue());
+      snprintf(buffer, sizeof(buffer), "%f", model->getValue());
 #else
-      sprintf(buffer, "%i", model->getValue());
+      sprintf(buffer, "%f", model->getValue());
 #endif
+
+      char *p = buffer+strlen(buffer)-1;
+      while(*p=='0') {
+        *p=0;
+        --p;
+      }
+      if (!isdigit(*p)) {
+        ++p;
+        *p='0';
+      }
+
       lock = true;
       setValue(buffer);
       lock = false;
@@ -112,18 +124,18 @@ DBM(cerr << "  not locked => getValue\n";)
 };
 
 TTextModel *
-toad::createTextModel(TIntegerModel * m)
+toad::createTextModel(TFloatModel * m)
 {
-  return new TIntegerTextModel(m);
+  return new TFloatTextModel(m);
 }
 
 bool
-restore(atv::TInObjectStream &in, toad::TIntegerModel *value)
+restore(atv::TInObjectStream &in, toad::TFloatModel *value)
 {
   if (in.what != ATV_VALUE)
     return false;
   char *endptr;  
-  *value = strtol(in.value.c_str(), &endptr, 10);
+  *value = strtod(in.value.c_str(), &endptr);
   if (endptr!=0 && *endptr!=0)
     return false;
   return true;   

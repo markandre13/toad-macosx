@@ -18,39 +18,39 @@
  * MA  02111-1307,  USA
  */
 
-#ifndef _TOAD_INTEGERMODEL_HH
-#define _TOAD_INTEGERMODEL_HH 1
+#ifndef _TOAD_FLOATMODEL_HH
+#define _TOAD_FLOATMODEL_HH 1
 
 #include <toad/numbermodel.hh>
 #include <toad/textmodel.hh>
 #include <iostream>
-#include <limits.h>
+#include <cfloat>
 
 namespace toad {
 
 using namespace std;
 
-class TIntegerModel:
-  public GNumberModel<int>
+class TFloatModel:
+  public GNumberModel<double>
 {
   public:
-    TIntegerModel():GNumberModel<int>(INT_MIN, INT_MAX, 0, 1) {}
-    TIntegerModel& operator=(int v) {
+    TFloatModel():GNumberModel<double>(-DBL_MAX, DBL_MAX, 0.0, 1.0) {}
+    TFloatModel& operator=(double v) {
       setValue(v);
       return *this;
     }
 };
 
-inline ostream& operator<<(ostream &s, const TIntegerModel &m) {
+inline ostream& operator<<(ostream &s, const TFloatModel &m) {
   return s<<m.getValue();
 }
 
-typedef GSmartPointer<TIntegerModel> PIntegerModel;
+typedef GSmartPointer<TFloatModel> PFloatModel;
 
-TTextModel * createTextModel(TIntegerModel *);
+TTextModel * createTextModel(TFloatModel *);
 
 } // namespace toad
 
-bool restore(atv::TInObjectStream &in, toad::TIntegerModel *value);
+bool restore(atv::TInObjectStream &in, toad::TFloatModel *value);
 
 #endif
