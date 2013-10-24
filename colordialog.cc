@@ -103,7 +103,7 @@ TColorDialog::_init()
   if (color) {
     origcolor = *color;
   } else {
-    origcolor.set(128, 128, 128);
+    origcolor.set(0.5, 0.5, 0.5);
   }
   createBitmaps();
 
@@ -111,6 +111,18 @@ TColorDialog::_init()
   hue.       setRangeProperties(0, 0, 0, 360);
   saturation.setRangeProperties(0, 0, 0, 100); // 0.0-1.0
   value.     setRangeProperties(0, 0, 0, 100); // 0.0-1.0
+  red.       setRangeProperties(0, 0, 0, 255);
+  TCLOSURE1(red.sigChanged,
+            _this, this,
+            _this->rgb.r = _this->red / 255.0; )
+  green.     setRangeProperties(0, 0, 0, 255);
+  TCLOSURE1(green.sigChanged,
+            _this, this,
+            _this->rgb.g = _this->green / 255.0; )
+  blue.      setRangeProperties(0, 0, 0, 255);
+  TCLOSURE1(blue.sigChanged,
+            _this, this,
+            _this->rgb.b = _this->blue / 255.0; )
   rgb = origcolor;
   rgb2hsv();
 
@@ -139,19 +151,19 @@ TColorDialog::_init()
         gg = new TGauge(this, "gg.value", &value);
         break;
       case 3:  
-        sb = new TScrollBar(this, "sb.red", &rgb.r);
-        tf = new TTextField(this, "tf.red", &rgb.r);
-        gg = new TGauge(this, "gg.red", &rgb.r);
+        sb = new TScrollBar(this, "sb.red", &red);
+        tf = new TTextField(this, "tf.red", &red);
+        gg = new TGauge(this, "gg.red", &red);
         break;
       case 4:  
-        sb = new TScrollBar(this, "sb.green", &rgb.g);
-        tf = new TTextField(this, "tf.green", &rgb.g);
-        gg = new TGauge(this, "gg.green", &rgb.g);
+        sb = new TScrollBar(this, "sb.green", &green);
+        tf = new TTextField(this, "tf.green", &green);
+        gg = new TGauge(this, "gg.green", &green);
         break;
       case 5:
-        sb = new TScrollBar(this, "sb.blue", &rgb.b);
-        tf = new TTextField(this, "tf.blue", &rgb.b);
-        gg = new TGauge(this, "gg.blue", &rgb.b);
+        sb = new TScrollBar(this, "sb.blue", &blue);
+        tf = new TTextField(this, "tf.blue", &blue);
+        gg = new TGauge(this, "gg.blue", &blue);
         break;
     }
     if (i<3) {
@@ -301,7 +313,7 @@ TColorDialog::paint()
   pen.fillRectanglePC(x-2, y-2, 5,5);
   pen.fillRectanglePC(8+256+8,z-2,16,5);
 
-  pen.setColor(255,255,255);
+  pen.setColor(1,1,1);
   pen.fillRectanglePC(x-1, y-1, 3,3);
   pen.fillRectanglePC(8+256+8+1,z-1,14,3);
   
@@ -341,21 +353,20 @@ TColorDialog::hsv2rgb()
 
 //  cerr << "hsv2rgb" << endl;
   int i;
-  int w = (int)value * 255 / 100;
+  TCoord w = value / 100.0;
 
   if (saturation == 0) {
     rgb.set(w,w,w);
   } else {
-    float f, h, v, s;
-    int p, q, r;
+    TCoord f, h, v, s, p, q, r;
     h = static_cast<float>(hue==360?0:hue) / 60.0;
     s = (float)saturation / 100.0;
     v = (float)value / 100.0;
-    i = (int)h;
+    i = h;
     f = h - i;
-    p = static_cast<int>(v * (1.0 - s) * 255.0);
-    q = static_cast<int>(v * (1.0 - s * f) * 255.0);
-    r = static_cast<int>(v * (1.0 - s * (1.0 - f)) * 255.0);
+    p = v * (1.0 - s);
+    q = v * (1.0 - s * f);
+    r = v * (1.0 - s * (1.0 - f));
     switch (i) {
       case 0: rgb.set(w, r, p); break;
       case 1: rgb.set(q, w, p); break;
@@ -365,8 +376,12 @@ TColorDialog::hsv2rgb()
       case 5: rgb.set(w, p ,q); break;
     }
   }
+  
+  red   = rgb.r * 255;
+  green = rgb.g * 255;
+  blue  = rgb.b * 255;
+  
   invalidateWindow(false);
-
   lock = false;
 }
 
@@ -383,9 +398,9 @@ TColorDialog::rgb2hsv()
   float max_v,min_v,diff,r_dist,g_dist,b_dist;
   float undefined = 0.0;
 
-  float r = (float)rgb.r / 255.0;
-  float g = (float)rgb.g / 255.0;
-  float b = (float)rgb.b / 255.0;
+  float r = rgb.r;
+  float g = rgb.g;
+  float b = rgb.b;
 
   max_v = max(max(r,g),max(g,b));
   min_v = min(min(r,g),min(g,b));

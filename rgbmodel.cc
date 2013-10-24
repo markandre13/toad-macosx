@@ -31,9 +31,9 @@ void
 TRGBModel::_init()
 {
   lock = false;
-  r.setRangeProperties(0, 0, 0, 255);
-  g.setRangeProperties(0, 0, 0, 255);
-  b.setRangeProperties(0, 0, 0, 255);
+  r.setRangeProperties(0, 0, 0, 1);
+  g.setRangeProperties(0, 0, 0, 1);
+  b.setRangeProperties(0, 0, 0, 1);
   connect(r.sigChanged, this, &TRGBModel::changed);
   connect(g.sigChanged, this, &TRGBModel::changed);
   connect(b.sigChanged, this, &TRGBModel::changed);
@@ -85,20 +85,14 @@ class TRGBTextModel:
     {
       int r, g, b;
       sscanf(_data.c_str(), "#%02x%02x%02x", &r, &g, &b);
-      model->set(r, g, b);
+      model->set(r/255.0, g/255.0, b/255.0);
     }
     void slaveChanged()
     {
       char buffer[8];
-#ifndef __WIN32__
-      snprintf(buffer, 8, "#%02x%02x%02x", (int)model->r, 
-                                           (int)model->g,
-                                           (int)model->b);
-#else
-      sprintf(buffer, "#%02x%02x%02x", (int)model->r, 
-                                       (int)model->g,
-                                       (int)model->b);
-#endif
+      snprintf(buffer, 8, "#%02x%02x%02x", (int)(model->r*255.0), 
+                                           (int)(model->g*255.0),
+                                           (int)(model->b*255.0));
       setValue(buffer);
     }
 };
