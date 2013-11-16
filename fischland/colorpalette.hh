@@ -40,7 +40,7 @@ class TColorPalette:
     struct TNamedColor:
       public TRGB
     {
-      TNamedColor(byte r, byte g, byte b, const string &aName):
+      TNamedColor(TCoord r, TCoord g, TCoord b, const string &aName):
         TRGB(r, g, b), name(aName) {}
       string name;
     };
@@ -76,6 +76,8 @@ class TColorPalette:
               renderBackground(te);
               te.pen->drawString(0,(te.h-te.pen->getHeight())/2,model->at(te.row)->name);
               renderCursor(te);
+              break;
+	    default:
               break;
           }
         }

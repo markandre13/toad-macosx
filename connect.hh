@@ -21,6 +21,7 @@
 
 #include <cstdlib>
 
+
 #ifndef TSignal
 #define TSignal TSignal
 
@@ -558,11 +559,11 @@ int main() {
  * \sa CLOSURE1
  */
 #define TCLOSURE1(SIG, P, V, DEF) \
-{ struct closure { \
-  typedef typeof(V) __t1; \
-  static void __f(__t1 P) { DEF } \
-}; \
-connect(SIG, closure::__f, V); }
+{ typedef typeof(V) __t1; \
+  struct closure { \
+    static void __f(__t1 P) { DEF } \
+  }; \
+  connect(SIG, closure::__f, V); }
 
 /**
  * \ingroup callback
@@ -598,12 +599,12 @@ int main() {
  * \sa CLOSURE2
  */
 #define TCLOSURE2(SIG, P1, V1, P2, V2, DEF) \
-{ struct closure { \
-  typedef typeof(V1) __t1; \
+{ typedef typeof(V1) __t1; \
   typedef typeof(V2) __t2; \
-  static void __f(__t1 P1, __t2 P2) { DEF } \
-}; \
-connect(SIG, closure::__f, V1, V2); }
+  struct closure { \
+    static void __f(__t1 P1, __t2 P2) { DEF } \
+  }; \
+  connect(SIG, closure::__f, V1, V2); }
 
 /**
  * \ingroup callback
@@ -622,13 +623,13 @@ connect(SIG, closure::__f, V1, V2); }
  * \sa TCLOSURE2
  */
 #define TCLOSURE3(SIG, P1, V1, P2, V2, P3, V3, DEF) \
-{ struct closure { \
-  typedef typeof(V1) __t1; \
+{ typedef typeof(V1) __t1; \
   typedef typeof(V2) __t2; \
   typedef typeof(V3) __t3; \
-  static void __f(__t1 P1, __t2 P2, __t3 P3) { DEF } \
-}; \
-connect(SIG, closure::__f, V1, V2, V3); }
+  struct closure { \
+    static void __f(__t1 P1, __t2 P2, __t3 P3) { DEF } \
+  }; \
+  connect(SIG, closure::__f, V1, V2, V3); }
 
 /**
  * \ingroup callback
@@ -649,14 +650,14 @@ connect(SIG, closure::__f, V1, V2, V3); }
  * \sa TCLOSURE2
  */
 #define TCLOSURE4(SIG, P1, V1, P2, V2, P3, V3, P4, V4, DEF) \
-{ struct closure { \
-  typedef typeof(V1) __t1; \
+{ typedef typeof(V1) __t1; \
   typedef typeof(V2) __t2; \
   typedef typeof(V3) __t3; \
   typedef typeof(V4) __t4; \
-  static void __f(__t1 P1, __t2 P2, __t3 P3, __t4 P4) { DEF } \
-}; \
-connect(SIG, closure::__f, V1, V2, V3, V4); }
+  struct closure { \
+    static void __f(__t1 P1, __t2 P2, __t3 P3, __t4 P4) { DEF } \
+  }; \
+  connect(SIG, closure::__f, V1, V2, V3, V4); }
 
 /*
  * various signal nodes & connect's

@@ -29,6 +29,11 @@ namespace fischland {
 
 using namespace toad;
 
+//!!!WE WANT THIS IN A NSPanel INSTEAD OF A NSWindow!!!
+//OR JUST HAVE A LOOK HOW GnuSteps NSPanel implementation does it:
+//http://searchcode.com/codesearch/view/16344957
+
+
 class TToolBox:
   public toad::TDialog
 {

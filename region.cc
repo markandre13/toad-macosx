@@ -1058,7 +1058,7 @@ TRegion::coalesceBands (int previousBand, int currentBand)
     while (gRectangles_[rEnd-4] == gRectangles_[rEnd])
       rEnd -= 4;
 
-    currentBand = rEnd >> 2 - gNRectangles_;
+    currentBand = (rEnd >> 2) - gNRectangles_;
     rEnd = gNRectangles_ << 2;
   }
 

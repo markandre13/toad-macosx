@@ -22,6 +22,7 @@
 
 using namespace toad;
 
-bool TEventFilter::windowEvent(TWindowEvent&) {}
-bool TEventFilter::mouseEvent(TMouseEvent&) {}
-bool TEventFilter::keyEvent(TKeyEvent&) {}
+TEventFilter::~TEventFilter() {}
+bool TEventFilter::windowEvent(TWindowEvent&) { return false; }
+bool TEventFilter::mouseEvent(TMouseEvent&) { return false; }
+bool TEventFilter::keyEvent(TKeyEvent&) { return false; }

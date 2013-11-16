@@ -346,15 +346,15 @@ r = *window; //  scr.getClipBox(&r);
 //cerr << "got screen clip box " << r << endl;
 //  TBitmap bmp(r.w, r.h);
   TPenBase *pen = 0;
-
 #ifdef HAVE_LIBCAIRO  
   if (useCairo) {
     pen = new TCairo(&bmp);
   } else
 #endif
 //  pen = new TPen(&bmp);
-  pen = new TPen(window);
+//#error "creating this pen causes the shift of all origins..."
 
+  pen = new TPen(window);
   pen->identity();
 
   pen->setColor(window->getBackground());
@@ -1097,6 +1097,7 @@ class TZoomAdapter:
           te.pen->drawString(0,0,zoom[te.row].text);
           renderCursor(te);
           break;
+        default:;
       }
     }
 };
@@ -1359,7 +1360,7 @@ TCursor *fischland::cursor[16];
 void
 foo(){exit(0);}
 
-#define TEST03 1
+#define TEST05 1
 
 #ifdef TEST01
 
@@ -1423,12 +1424,14 @@ int
 main(int argc, char **argv, char **envv)
 {
 #if 0
+
 #ifdef TEST01
   toad::initialize(argc, argv);
   TWindow *w0 = new TMyWindow(0, "TEST01");
   toad::mainLoop();
   toad::terminate();
 #endif
+
 #ifdef TEST02
   toad::initialize(argc, argv);
   TWindow *w = new TWindow(0, "combobox test");
@@ -1446,6 +1449,7 @@ main(int argc, char **argv, char **envv)
   toad::mainLoop();
   toad::terminate();
 #endif
+
 #if TEST03
   // springlayout
   toad::initialize(argc, argv); {
@@ -1490,6 +1494,7 @@ main(int argc, char **argv, char **envv)
   } toad::terminate();
   return 0;
 #endif
+
 #ifdef TEST04
   // mouse test
   toad::initialize(argc, argv);
@@ -1567,6 +1572,14 @@ main(int argc, char **argv, char **envv)
   TMyWindow wnd(0, "test 0");
   toad::mainLoop();
 #endif
+
+#ifdef TEST05
+  toad::initialize(argc, argv);
+  TWindow *w0 = new TTextArea(0, "TEST01");
+  toad::mainLoop();
+  toad::terminate();
+#endif
+
 #else
   toad::initialize(1, argv);
 //    createMemoryFiles();

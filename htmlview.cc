@@ -178,6 +178,7 @@ class TParser
  */
 struct TElement
 {
+  virtual ~TElement() {};
   virtual void render(TPen &pen, TState &state) = 0;
   
   // these two flags are used to justify a line during stage 1
@@ -1257,7 +1258,7 @@ static const unsigned char entity_table[33][58] =
   {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,233,0,234,0,0,0,232,0,0,0,0,0,0,0,0,0,0,0,0,240,235,0,0,0,0,0}
 };
 
-static const char rest_pointer[100] = {
+static const unsigned rest_pointer[100] = {
   0,1,2,3,4,5,3,6,7,8,9,10,11,12,2,13,3,14,15,16,15,17,2,2,18,19,20,
   21,22,2,2,13,2,2,23,24,25,26,27,28,29,30,31,32,25,26,27,29,25,26,27,29,33,
   34,25,26,27,28,29,35,36,25,26,27,29,37,38,31,25,26,39,28,29,30,31,40,25,26,27,
@@ -1875,6 +1876,7 @@ THTMLView::open(const string &url)
 
   this->url = url;
   parse(in);
+  return true;
 }
 
 void

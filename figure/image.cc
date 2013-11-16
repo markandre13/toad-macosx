@@ -83,10 +83,11 @@ TFImage::editEvent(TFigureEditEvent &ee)
     case TFigureEditEvent::TRANSLATE:
       x+=ee.x;
       y+=ee.y;
-      break;
+      return true;
     default:
       ;
   }
+  return false;
 }
 
 void

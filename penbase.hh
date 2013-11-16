@@ -37,6 +37,7 @@ class TPenBase
   protected:
     TRGBA stroke, fill;
   public:
+    virtual ~TPenBase();
     PFont font;
 
     enum EMode {

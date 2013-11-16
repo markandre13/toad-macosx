@@ -29,7 +29,7 @@ namespace toad {
 // class TSlider;
 class TArrowButton;
 class TPen;
-class TRectangle;
+struct TRectangle;
 
 class TScrollBar: 
   public TControl

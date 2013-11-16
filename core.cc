@@ -125,12 +125,14 @@ TSignal::delayedTrigger()
 {
   if (!_list) return false;
   sendMessage(new TCommandDelayedTrigger(this));
+  return true;
 }
 
 bool
 toad::modalLoop(toad::TWindow *wnd)
 {
   wnd->doModalLoop();
+  return true;
 }
 
 TFontDialog::TFontDialog(TWindow *parent, const string &title):

@@ -172,7 +172,7 @@ TColorPalette::loadPalette(const string &filename)
     if (buffer[0]=='\0' || buffer[0]=='#')
       continue;
     sscanf(buffer, "%i %i %i %[ -~]", &r, &g, &b, name); /*"*/
-    np->rgb.push_back(TNamedColor(r, g, b, name));
+    np->rgb.push_back(TNamedColor(r/255.0, g/255.0, b/255.0, name));
   }
   npos = 0;
   palettelistrenderer->modelChanged();

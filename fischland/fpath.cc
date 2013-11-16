@@ -155,8 +155,7 @@ TFPath::paint(TPenBase &pen, EPaintType type)
       pen.fillPolyBezier(polygon);
     }
   } else {
-    TPoint polygon2[polygon.size()];
-    TPoint *p2 = polygon2;
+    TPoint *p2 = new TPoint[polygon.size()];
     for(TPolygon::const_iterator p = polygon.begin();
         p != polygon.end();
         ++p, ++p2)
@@ -164,11 +163,12 @@ TFPath::paint(TPenBase &pen, EPaintType type)
       cmat->map(p->x, p->y, &p2->x, &p2->y);
     }
     if (!closed || !filled) {  
-      pen.drawPolyBezier(polygon2, polygon.size());
+      pen.drawPolyBezier(p2, polygon.size());
     } else {
       pen.setFillColor(fill_color);
-      pen.fillPolyBezier(polygon2, polygon.size());
+      pen.fillPolyBezier(p2, polygon.size());
     }
+    delete[] p2;
   }
 
   if (type!=EDIT && type!=SELECT)

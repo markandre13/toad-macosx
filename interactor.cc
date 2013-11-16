@@ -230,8 +230,3 @@ int TInteractor::getXPos() const {return 0;}
 int TInteractor::getYPos() const {return 0;}
 int TInteractor::getWidth() const {return 0;}
 int TInteractor::getHeight() const {return 0;}
-/*
-bool TEventFilter::windowEvent(TWindowEvent&) { return false; }
-bool TEventFilter::mouseEvent(TMouseEvent&) { return false; }
-bool TEventFilter::keyEvent(TKeyEvent&) { return false; }
-*/

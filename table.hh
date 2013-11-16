@@ -534,20 +534,20 @@ class TTable:
 
     size_t getRows() const { return rows; }
     size_t getCols() const { return cols; }
-    int getRowHeight(size_t row) const { return (row<0||row>=rows) ? 0 : row_info[row].size; }
-    int getColWidth(size_t col) const { return (col<0||col>=cols) ? 0 : col_info[col].size; }
+    int getRowHeight(size_t row) const { return (row>=rows) ? 0 : row_info[row].size; }
+    int getColWidth(size_t col) const { return (col>=cols) ? 0 : col_info[col].size; }
     void setRowHeight(size_t row, int height);
     void setColWidth(size_t row, int width);
 
-    bool isRowOpen(size_t row) const { return (row<0||row>=rows) ? 0 : row_info[row].open; }
-    bool isColOpen(size_t col) const { return (col<0||col>=cols) ? 0 : col_info[col].open; }
+    bool isRowOpen(size_t row) const { return (row>=rows) ? 0 : row_info[row].open; }
+    bool isColOpen(size_t col) const { return (col>=cols) ? 0 : col_info[col].open; }
     void setRowOpen(size_t row, bool open) {
-      if (row<0||row>=rows)
+      if (row>=rows)
         return;
       row_info[row].open = open;
     }
     void setColOpen(size_t col, bool open) {
-      if (col<0||col>=cols)
+      if (col>=cols)
         return;
       col_info[col].open = open;
     }

@@ -117,6 +117,7 @@ TFont::setWeight(int weight)
 int
 TFont::getWeight() const
 {
+  return 0;
 }
 
 void

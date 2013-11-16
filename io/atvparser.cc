@@ -156,7 +156,7 @@ TATVParser::getWhatName() const
   static const char * whatname[] = {
     "ATV_START", "ATV_VALUE", "ATV_GROUP",  "ATV_FINISHED"
   };
-  if (what < 0 || what >= (sizeof(whatname)/sizeof(*whatname)))
+  if (what < 0 || what >= 4)
     return "(TATVParser.what out of range)";
   return whatname[what];
 }

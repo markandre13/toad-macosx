@@ -121,10 +121,10 @@ class TMouseEvent
   TMouseEvent(NSEvent *ne, NSView *view, TWindow *window);
   TMouseEvent(TWindow *w, float x, float y, unsigned m) {
     nsevent = 0;
-    window = window;
+    window = w;
     this->x = x;
     this->y = y;
-    // this->m = m;
+    this->_modifier = m;
   };
 
   enum EType {

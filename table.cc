@@ -333,7 +333,7 @@ TSelectionModel::iterator::iterator(TRegion *r, bool begin)
   rgn = r;
   n = rgn->getNumRects();
   if (n==0) {
-    n==EMPTY;
+    n=EMPTY;
     x = y = 0;
     return;
   }
@@ -545,7 +545,7 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
   string str;
   const char *txt = 0;
   TFigure *fig = 0;
-  int x, y;
+  int x=0, y;
   if (idx<figures.size() && figures[idx]) {
     fig = figures[idx];
     TRectangle r;

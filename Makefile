@@ -10,7 +10,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
            treemodel.cc treeadapter.cc htmlview.cc messagebox.cc \
            layout.cc pointer.cc connect.cc rectangle.cc font.cc eventfilter.cc \
 	   arrowbutton.cc scrollbar.cc utf8.cc undo.cc undomanager.cc model.cc \
-	   integermodel.cc textmodel.cc action.cc bitmap.cc \
+	   integermodel.cc floatmodel.cc textmodel.cc action.cc bitmap.cc \
 	   io/atvparser.cc io/binstream.cc io/serializable.cc io/urlstream.cc \
 	   gauge.cc colordialog.cc dragndrop.cc rgbmodel.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
@@ -27,7 +27,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 
 SRC=$(SRC_FISH) $(SRC_SHARED) $(SRC_COCOA)
 CXX=g++
-CXXFLAGS=-g -O0 -frtti
+CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration
 
 OBJS    = $(SRC:.cc=.o)
 
@@ -80,18 +80,18 @@ fischland/draw.o: include/toad/penbase.hh include/toad/font.hh
 fischland/draw.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 fischland/draw.o: include/toad/scrollpane.hh include/toad/undo.hh
 fischland/draw.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-fischland/draw.o: include/toad/integermodel.hh include/toad/table.hh
-fischland/draw.o: include/toad/pen.hh fischland/colorpalette.hh
-fischland/draw.o: include/toad/combobox.hh include/toad/textfield.hh
-fischland/draw.o: include/toad/textarea.hh include/toad/core.hh
-fischland/draw.o: include/toad/control.hh include/toad/scrollbar.hh
-fischland/draw.o: include/toad/dnd/color.hh include/toad/dragndrop.hh
-fischland/draw.o: fischland/lineal.hh fischland/page.hh
-fischland/draw.o: include/toad/treeadapter.hh include/toad/treemodel.hh
-fischland/draw.o: fischland/config.h include/toad/menubar.hh
-fischland/draw.o: include/toad/menuhelper.hh include/toad/undomanager.hh
-fischland/draw.o: include/toad/action.hh include/toad/command.hh
-fischland/draw.o: include/toad/fatradiobutton.hh
+fischland/draw.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+fischland/draw.o: include/toad/table.hh include/toad/pen.hh
+fischland/draw.o: fischland/colorpalette.hh include/toad/combobox.hh
+fischland/draw.o: include/toad/textfield.hh include/toad/textarea.hh
+fischland/draw.o: include/toad/core.hh include/toad/control.hh
+fischland/draw.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
+fischland/draw.o: include/toad/dragndrop.hh fischland/lineal.hh
+fischland/draw.o: fischland/page.hh include/toad/treeadapter.hh
+fischland/draw.o: include/toad/treemodel.hh fischland/config.h
+fischland/draw.o: include/toad/menubar.hh include/toad/menuhelper.hh
+fischland/draw.o: include/toad/undomanager.hh include/toad/action.hh
+fischland/draw.o: include/toad/command.hh include/toad/fatradiobutton.hh
 fischland/draw.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 fischland/draw.o: include/toad/labelowner.hh include/toad/pushbutton.hh
 fischland/draw.o: include/toad/colorselector.hh include/toad/filedialog.hh
@@ -114,6 +114,7 @@ fischland/colorpalette.o: include/toad/core.hh include/toad/bitmap.hh
 fischland/colorpalette.o: include/toad/control.hh include/toad/textmodel.hh
 fischland/colorpalette.o: include/toad/undo.hh include/toad/scrollbar.hh
 fischland/colorpalette.o: include/toad/integermodel.hh
+fischland/colorpalette.o: include/toad/numbermodel.hh
 fischland/colorpalette.o: include/toad/dnd/color.hh include/toad/dragndrop.hh
 fischland/colorpalette.o: include/toad/figureeditor.hh include/toad/figure.hh
 fischland/colorpalette.o: include/toad/figuremodel.hh
@@ -141,12 +142,12 @@ fischland/fpath.o: include/toad/cursor.hh include/toad/region.hh
 fischland/fpath.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 fischland/fpath.o: include/toad/model.hh include/toad/connect.hh
 fischland/fpath.o: include/toad/boolmodel.hh include/toad/integermodel.hh
-fischland/fpath.o: include/toad/textmodel.hh include/toad/undo.hh
-fischland/fpath.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-fischland/fpath.o: include/toad/pen.hh include/toad/action.hh
-fischland/fpath.o: include/toad/popupmenu.hh include/toad/menuhelper.hh
-fischland/fpath.o: include/toad/layout.hh include/toad/eventfilter.hh
-fischland/fpath.o: fischland/fischland.hh
+fischland/fpath.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+fischland/fpath.o: include/toad/undo.hh include/toad/figureeditor.hh
+fischland/fpath.o: include/toad/scrollpane.hh include/toad/pen.hh
+fischland/fpath.o: include/toad/action.hh include/toad/popupmenu.hh
+fischland/fpath.o: include/toad/menuhelper.hh include/toad/layout.hh
+fischland/fpath.o: include/toad/eventfilter.hh fischland/fischland.hh
 fischland/lineal.o: fischland/lineal.hh include/toad/figureeditor.hh
 fischland/lineal.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/lineal.o: include/toad/color.hh include/toad/types.hh
@@ -159,7 +160,7 @@ fischland/lineal.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 fischland/lineal.o: include/toad/model.hh include/toad/connect.hh
 fischland/lineal.o: include/toad/scrollpane.hh include/toad/undo.hh
 fischland/lineal.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-fischland/lineal.o: include/toad/integermodel.hh
+fischland/lineal.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 fischland/page.o: fischland/page.hh include/toad/core.hh
 fischland/page.o: include/toad/window.hh include/toad/interactor.hh
 fischland/page.o: include/toad/types.hh include/toad/cursor.hh
@@ -178,7 +179,7 @@ fischland/page.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 fischland/page.o: include/toad/control.hh include/toad/textfield.hh
 fischland/page.o: include/toad/textarea.hh include/toad/textmodel.hh
 fischland/page.o: include/toad/undo.hh include/toad/scrollbar.hh
-fischland/page.o: include/toad/integermodel.hh
+fischland/page.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 fischland/toolbox.o: fischland/toolbox.hh include/toad/dialog.hh
 fischland/toolbox.o: include/toad/window.hh include/toad/interactor.hh
 fischland/toolbox.o: include/toad/types.hh include/toad/cursor.hh
@@ -192,23 +193,24 @@ fischland/toolbox.o: include/toad/penbase.hh include/toad/font.hh
 fischland/toolbox.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 fischland/toolbox.o: include/toad/scrollpane.hh include/toad/undo.hh
 fischland/toolbox.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-fischland/toolbox.o: include/toad/integermodel.hh include/toad/table.hh
-fischland/toolbox.o: include/toad/pen.hh fischland/colorpalette.hh
-fischland/toolbox.o: include/toad/combobox.hh include/toad/textfield.hh
-fischland/toolbox.o: include/toad/textarea.hh include/toad/core.hh
-fischland/toolbox.o: include/toad/control.hh include/toad/scrollbar.hh
-fischland/toolbox.o: include/toad/dnd/color.hh include/toad/dragndrop.hh
-fischland/toolbox.o: fischland/fischland.hh fischland/cairo.hh
-fischland/toolbox.o: fischland/config.h include/toad/pushbutton.hh
-fischland/toolbox.o: include/toad/buttonbase.hh include/toad/labelowner.hh
+fischland/toolbox.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+fischland/toolbox.o: include/toad/table.hh include/toad/pen.hh
+fischland/toolbox.o: fischland/colorpalette.hh include/toad/combobox.hh
+fischland/toolbox.o: include/toad/textfield.hh include/toad/textarea.hh
+fischland/toolbox.o: include/toad/core.hh include/toad/control.hh
+fischland/toolbox.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
+fischland/toolbox.o: include/toad/dragndrop.hh fischland/fischland.hh
+fischland/toolbox.o: fischland/cairo.hh fischland/config.h
+fischland/toolbox.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
+fischland/toolbox.o: include/toad/labelowner.hh
 fischland/toolbox.o: include/toad/fatradiobutton.hh
 fischland/toolbox.o: include/toad/radiobuttonbase.hh
 fischland/toolbox.o: include/toad/fatcheckbutton.hh
 fischland/toolbox.o: include/toad/colorselector.hh
 fischland/toolbox.o: include/toad/colordialog.hh include/toad/rgbmodel.hh
-fischland/toolbox.o: include/toad/gauge.hh include/toad/arrowbutton.hh
-fischland/toolbox.o: include/toad/messagebox.hh fischland/fontdialog.hh
-fischland/toolbox.o: fischland/fpath.hh
+fischland/toolbox.o: include/toad/floatmodel.hh include/toad/gauge.hh
+fischland/toolbox.o: include/toad/arrowbutton.hh include/toad/messagebox.hh
+fischland/toolbox.o: fischland/fontdialog.hh fischland/fpath.hh
 interactor.o: include/toad/interactor.hh include/toad/types.hh
 control.o: include/toad/control.hh include/toad/window.hh
 control.o: include/toad/interactor.hh include/toad/types.hh
@@ -269,8 +271,9 @@ textarea.o: include/toad/bitmap.hh include/toad/connect.hh
 textarea.o: include/toad/control.hh include/toad/textmodel.hh
 textarea.o: include/toad/model.hh include/toad/undo.hh
 textarea.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-textarea.o: include/toad/simpletimer.hh include/toad/undomanager.hh
-textarea.o: include/toad/action.hh include/toad/utf8.hh
+textarea.o: include/toad/numbermodel.hh include/toad/simpletimer.hh
+textarea.o: include/toad/undomanager.hh include/toad/action.hh
+textarea.o: include/toad/utf8.hh
 textfield.o: include/toad/textfield.hh include/toad/textarea.hh
 textfield.o: include/toad/core.hh include/toad/window.hh
 textfield.o: include/toad/interactor.hh include/toad/types.hh
@@ -283,16 +286,18 @@ textfield.o: include/toad/bitmap.hh include/toad/connect.hh
 textfield.o: include/toad/control.hh include/toad/textmodel.hh
 textfield.o: include/toad/model.hh include/toad/undo.hh
 textfield.o: include/toad/scrollbar.hh include/toad/integermodel.hh
+textfield.o: include/toad/numbermodel.hh
 scrollpane.o: include/toad/scrollpane.hh include/toad/window.hh
 scrollpane.o: include/toad/interactor.hh include/toad/types.hh
 scrollpane.o: include/toad/cursor.hh include/toad/color.hh
 scrollpane.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 scrollpane.o: include/toad/region.hh include/toad/scrollbar.hh
 scrollpane.o: include/toad/control.hh include/toad/integermodel.hh
-scrollpane.o: include/toad/textmodel.hh include/toad/model.hh
+scrollpane.o: include/toad/numbermodel.hh include/toad/model.hh
 scrollpane.o: include/toad/pointer.hh include/toad/connect.hh
-scrollpane.o: include/toad/undo.hh include/toad/penbase.hh
-scrollpane.o: include/toad/font.hh include/toad/matrix2d.hh
+scrollpane.o: include/toad/textmodel.hh include/toad/undo.hh
+scrollpane.o: include/toad/penbase.hh include/toad/font.hh
+scrollpane.o: include/toad/matrix2d.hh
 table.o: include/toad/table.hh include/toad/pen.hh include/toad/penbase.hh
 table.o: include/toad/color.hh include/toad/types.hh
 table.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -338,7 +343,8 @@ menubar.o: include/toad/pointer.hh include/toad/matrix2d.hh
 menubar.o: include/toad/bitmap.hh include/toad/textmodel.hh
 menubar.o: include/toad/model.hh include/toad/undo.hh
 menubar.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-menubar.o: include/toad/action.hh include/toad/utf8.hh
+menubar.o: include/toad/numbermodel.hh include/toad/action.hh
+menubar.o: include/toad/utf8.hh
 popup.o: include/toad/popup.hh include/toad/menuhelper.hh
 popup.o: include/toad/window.hh include/toad/interactor.hh
 popup.o: include/toad/types.hh include/toad/cursor.hh include/toad/color.hh
@@ -371,14 +377,14 @@ dialog.o: include/toad/dialogeditor.hh include/toad/figure.hh
 dialog.o: include/toad/bitmap.hh include/toad/labelowner.hh
 dialog.o: include/toad/io/urlstream.hh include/toad/focusmanager.hh
 dialog.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-dialog.o: include/toad/textmodel.hh include/toad/undo.hh
-dialog.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
-dialog.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
-dialog.o: include/toad/textfield.hh include/toad/textarea.hh
-dialog.o: include/toad/core.hh include/toad/figureeditor.hh
-dialog.o: include/toad/scrollpane.hh include/toad/boolmodel.hh
-dialog.o: include/toad/colorselector.hh include/toad/dnd/color.hh
-dialog.o: include/toad/dragndrop.hh
+dialog.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+dialog.o: include/toad/undo.hh include/toad/pushbutton.hh
+dialog.o: include/toad/buttonbase.hh include/toad/fatradiobutton.hh
+dialog.o: include/toad/radiobuttonbase.hh include/toad/textfield.hh
+dialog.o: include/toad/textarea.hh include/toad/core.hh
+dialog.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
+dialog.o: include/toad/boolmodel.hh include/toad/colorselector.hh
+dialog.o: include/toad/dnd/color.hh include/toad/dragndrop.hh
 dialogeditor.o: include/toad/dialogeditor.hh include/toad/dialog.hh
 dialogeditor.o: include/toad/window.hh include/toad/interactor.hh
 dialogeditor.o: include/toad/types.hh include/toad/cursor.hh
@@ -404,9 +410,10 @@ colorselector.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 colorselector.o: include/toad/model.hh include/toad/scrollpane.hh
 colorselector.o: include/toad/undo.hh include/toad/boolmodel.hh
 colorselector.o: include/toad/textmodel.hh include/toad/integermodel.hh
-colorselector.o: include/toad/colordialog.hh include/toad/dialog.hh
-colorselector.o: include/toad/layout.hh include/toad/eventfilter.hh
-colorselector.o: include/toad/rgbmodel.hh include/toad/textarea.hh
+colorselector.o: include/toad/numbermodel.hh include/toad/colordialog.hh
+colorselector.o: include/toad/dialog.hh include/toad/layout.hh
+colorselector.o: include/toad/eventfilter.hh include/toad/rgbmodel.hh
+colorselector.o: include/toad/floatmodel.hh include/toad/textarea.hh
 colorselector.o: include/toad/core.hh include/toad/pen.hh
 colorselector.o: include/toad/control.hh include/toad/scrollbar.hh
 colorselector.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
@@ -479,8 +486,9 @@ filedialog.o: include/toad/control.hh include/toad/stl/vector.hh
 filedialog.o: include/toad/textfield.hh include/toad/textarea.hh
 filedialog.o: include/toad/core.hh include/toad/bitmap.hh
 filedialog.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-filedialog.o: include/toad/combobox.hh include/toad/checkbox.hh
-filedialog.o: include/toad/messagebox.hh include/toad/stl/deque.hh
+filedialog.o: include/toad/numbermodel.hh include/toad/combobox.hh
+filedialog.o: include/toad/checkbox.hh include/toad/messagebox.hh
+filedialog.o: include/toad/stl/deque.hh
 cursor.o: include/toad/pen.hh include/toad/penbase.hh include/toad/color.hh
 cursor.o: include/toad/types.hh include/toad/io/serializable.hh
 cursor.o: include/toad/io/atvparser.hh include/toad/font.hh
@@ -510,7 +518,8 @@ core.o: include/toad/eventfilter.hh include/toad/textfield.hh
 core.o: include/toad/textarea.hh include/toad/control.hh
 core.o: include/toad/textmodel.hh include/toad/undo.hh
 core.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-core.o: include/toad/table.hh include/toad/scrollpane.hh
+core.o: include/toad/numbermodel.hh include/toad/table.hh
+core.o: include/toad/scrollpane.hh
 figure.o: include/toad/figure.hh include/toad/penbase.hh
 figure.o: include/toad/color.hh include/toad/types.hh
 figure.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -522,9 +531,10 @@ figure.o: include/toad/figuremodel.hh include/toad/model.hh
 figure.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure.o: include/toad/integermodel.hh include/toad/dialog.hh
-figure.o: include/toad/layout.hh include/toad/eventfilter.hh
-figure.o: include/toad/menuhelper.hh include/toad/springlayout.hh
+figure.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure.o: include/toad/dialog.hh include/toad/layout.hh
+figure.o: include/toad/eventfilter.hh include/toad/menuhelper.hh
+figure.o: include/toad/springlayout.hh
 figuremodel.o: include/toad/figure.hh include/toad/penbase.hh
 figuremodel.o: include/toad/color.hh include/toad/types.hh
 figuremodel.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -536,8 +546,9 @@ figuremodel.o: include/toad/figuremodel.hh include/toad/model.hh
 figuremodel.o: include/toad/connect.hh include/toad/figureeditor.hh
 figuremodel.o: include/toad/scrollpane.hh include/toad/undo.hh
 figuremodel.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figuremodel.o: include/toad/integermodel.hh include/toad/undomanager.hh
-figuremodel.o: include/toad/action.hh include/toad/io/binstream.hh
+figuremodel.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figuremodel.o: include/toad/undomanager.hh include/toad/action.hh
+figuremodel.o: include/toad/io/binstream.hh
 figureeditor.o: include/toad/figureeditor.hh include/toad/figure.hh
 figureeditor.o: include/toad/penbase.hh include/toad/color.hh
 figureeditor.o: include/toad/types.hh include/toad/io/serializable.hh
@@ -549,9 +560,10 @@ figureeditor.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 figureeditor.o: include/toad/model.hh include/toad/connect.hh
 figureeditor.o: include/toad/scrollpane.hh include/toad/undo.hh
 figureeditor.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figureeditor.o: include/toad/integermodel.hh include/toad/colordialog.hh
-figureeditor.o: include/toad/dialog.hh include/toad/layout.hh
-figureeditor.o: include/toad/eventfilter.hh include/toad/rgbmodel.hh
+figureeditor.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figureeditor.o: include/toad/colordialog.hh include/toad/dialog.hh
+figureeditor.o: include/toad/layout.hh include/toad/eventfilter.hh
+figureeditor.o: include/toad/rgbmodel.hh include/toad/floatmodel.hh
 figureeditor.o: include/toad/textarea.hh include/toad/core.hh
 figureeditor.o: include/toad/pen.hh include/toad/control.hh
 figureeditor.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
@@ -580,7 +592,8 @@ combobox.o: include/toad/cursor.hh include/toad/model.hh
 combobox.o: include/toad/connect.hh include/toad/buttonbase.hh
 combobox.o: include/toad/labelowner.hh include/toad/control.hh
 combobox.o: include/toad/scrollbar.hh include/toad/integermodel.hh
-combobox.o: include/toad/textmodel.hh include/toad/undo.hh
+combobox.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+combobox.o: include/toad/undo.hh
 treemodel.o: include/toad/treemodel.hh include/toad/table.hh
 treemodel.o: include/toad/pen.hh include/toad/penbase.hh
 treemodel.o: include/toad/color.hh include/toad/types.hh
@@ -606,19 +619,20 @@ htmlview.o: include/toad/types.hh include/toad/cursor.hh
 htmlview.o: include/toad/color.hh include/toad/io/serializable.hh
 htmlview.o: include/toad/io/atvparser.hh include/toad/region.hh
 htmlview.o: include/toad/scrollbar.hh include/toad/control.hh
-htmlview.o: include/toad/integermodel.hh include/toad/textmodel.hh
+htmlview.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 htmlview.o: include/toad/model.hh include/toad/pointer.hh
-htmlview.o: include/toad/connect.hh include/toad/undo.hh
-htmlview.o: include/toad/io/urlstream.hh include/toad/action.hh
-htmlview.o: include/toad/filedialog.hh include/toad/dialog.hh
-htmlview.o: include/toad/layout.hh include/toad/eventfilter.hh
-htmlview.o: include/toad/figuremodel.hh include/toad/boolmodel.hh
-htmlview.o: include/toad/table.hh include/toad/pen.hh include/toad/penbase.hh
-htmlview.o: include/toad/font.hh include/toad/matrix2d.hh
-htmlview.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
-htmlview.o: include/toad/labelowner.hh include/toad/stl/vector.hh
-htmlview.o: include/toad/undomanager.hh include/toad/messagebox.hh
-htmlview.o: include/toad/bitmap.hh include/toad/utf8.hh
+htmlview.o: include/toad/connect.hh include/toad/textmodel.hh
+htmlview.o: include/toad/undo.hh include/toad/io/urlstream.hh
+htmlview.o: include/toad/action.hh include/toad/filedialog.hh
+htmlview.o: include/toad/dialog.hh include/toad/layout.hh
+htmlview.o: include/toad/eventfilter.hh include/toad/figuremodel.hh
+htmlview.o: include/toad/boolmodel.hh include/toad/table.hh
+htmlview.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
+htmlview.o: include/toad/matrix2d.hh include/toad/pushbutton.hh
+htmlview.o: include/toad/buttonbase.hh include/toad/labelowner.hh
+htmlview.o: include/toad/stl/vector.hh include/toad/undomanager.hh
+htmlview.o: include/toad/messagebox.hh include/toad/bitmap.hh
+htmlview.o: include/toad/utf8.hh
 messagebox.o: include/toad/pen.hh include/toad/penbase.hh
 messagebox.o: include/toad/color.hh include/toad/types.hh
 messagebox.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -652,13 +666,13 @@ scrollbar.o: include/toad/window.hh include/toad/interactor.hh
 scrollbar.o: include/toad/types.hh include/toad/cursor.hh
 scrollbar.o: include/toad/color.hh include/toad/io/serializable.hh
 scrollbar.o: include/toad/io/atvparser.hh include/toad/region.hh
-scrollbar.o: include/toad/integermodel.hh include/toad/textmodel.hh
+scrollbar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 scrollbar.o: include/toad/model.hh include/toad/pointer.hh
-scrollbar.o: include/toad/connect.hh include/toad/undo.hh include/toad/pen.hh
-scrollbar.o: include/toad/penbase.hh include/toad/font.hh
-scrollbar.o: include/toad/matrix2d.hh include/toad/arrowbutton.hh
-scrollbar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
-scrollbar.o: include/toad/labelowner.hh
+scrollbar.o: include/toad/connect.hh include/toad/textmodel.hh
+scrollbar.o: include/toad/undo.hh include/toad/pen.hh include/toad/penbase.hh
+scrollbar.o: include/toad/font.hh include/toad/matrix2d.hh
+scrollbar.o: include/toad/arrowbutton.hh include/toad/pushbutton.hh
+scrollbar.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 utf8.o: include/toad/utf8.hh
 undo.o: include/toad/undo.hh
 undomanager.o: include/toad/undomanager.hh include/toad/interactor.hh
@@ -675,10 +689,16 @@ model.o: include/toad/action.hh include/toad/window.hh include/toad/cursor.hh
 model.o: include/toad/color.hh include/toad/io/serializable.hh
 model.o: include/toad/io/atvparser.hh include/toad/region.hh
 model.o: include/toad/undo.hh
-integermodel.o: include/toad/integermodel.hh include/toad/textmodel.hh
+integermodel.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 integermodel.o: include/toad/model.hh include/toad/pointer.hh
-integermodel.o: include/toad/connect.hh include/toad/undo.hh
-integermodel.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+integermodel.o: include/toad/connect.hh include/toad/textmodel.hh
+integermodel.o: include/toad/undo.hh include/toad/io/serializable.hh
+integermodel.o: include/toad/io/atvparser.hh
+floatmodel.o: include/toad/floatmodel.hh include/toad/numbermodel.hh
+floatmodel.o: include/toad/model.hh include/toad/pointer.hh
+floatmodel.o: include/toad/connect.hh include/toad/textmodel.hh
+floatmodel.o: include/toad/undo.hh include/toad/io/serializable.hh
+floatmodel.o: include/toad/io/atvparser.hh
 textmodel.o: include/toad/textmodel.hh include/toad/model.hh
 textmodel.o: include/toad/pointer.hh include/toad/connect.hh
 textmodel.o: include/toad/undo.hh include/toad/io/serializable.hh
@@ -710,8 +730,9 @@ gauge.o: include/toad/interactor.hh include/toad/types.hh
 gauge.o: include/toad/cursor.hh include/toad/color.hh
 gauge.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 gauge.o: include/toad/region.hh include/toad/integermodel.hh
-gauge.o: include/toad/textmodel.hh include/toad/model.hh
-gauge.o: include/toad/pointer.hh include/toad/undo.hh
+gauge.o: include/toad/numbermodel.hh include/toad/model.hh
+gauge.o: include/toad/pointer.hh include/toad/textmodel.hh
+gauge.o: include/toad/undo.hh
 colordialog.o: include/toad/colordialog.hh include/toad/dialog.hh
 colordialog.o: include/toad/window.hh include/toad/interactor.hh
 colordialog.o: include/toad/types.hh include/toad/cursor.hh
@@ -720,13 +741,14 @@ colordialog.o: include/toad/io/atvparser.hh include/toad/region.hh
 colordialog.o: include/toad/layout.hh include/toad/eventfilter.hh
 colordialog.o: include/toad/figuremodel.hh include/toad/model.hh
 colordialog.o: include/toad/pointer.hh include/toad/connect.hh
-colordialog.o: include/toad/rgbmodel.hh include/toad/integermodel.hh
-colordialog.o: include/toad/textmodel.hh include/toad/undo.hh
-colordialog.o: include/toad/textarea.hh include/toad/core.hh
-colordialog.o: include/toad/pen.hh include/toad/penbase.hh
-colordialog.o: include/toad/font.hh include/toad/matrix2d.hh
-colordialog.o: include/toad/bitmap.hh include/toad/control.hh
-colordialog.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
+colordialog.o: include/toad/rgbmodel.hh include/toad/floatmodel.hh
+colordialog.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+colordialog.o: include/toad/undo.hh include/toad/textarea.hh
+colordialog.o: include/toad/core.hh include/toad/pen.hh
+colordialog.o: include/toad/penbase.hh include/toad/font.hh
+colordialog.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+colordialog.o: include/toad/control.hh include/toad/scrollbar.hh
+colordialog.o: include/toad/integermodel.hh include/toad/dnd/color.hh
 colordialog.o: include/toad/dragndrop.hh include/toad/pushbutton.hh
 colordialog.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 colordialog.o: include/toad/textfield.hh include/toad/gauge.hh
@@ -739,16 +761,17 @@ dragndrop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 dragndrop.o: include/toad/region.hh
 rgbmodel.o: include/toad/rgbmodel.hh include/toad/model.hh
 rgbmodel.o: include/toad/pointer.hh include/toad/connect.hh
-rgbmodel.o: include/toad/integermodel.hh include/toad/textmodel.hh
-rgbmodel.o: include/toad/undo.hh include/toad/io/serializable.hh
-rgbmodel.o: include/toad/io/atvparser.hh include/toad/textarea.hh
-rgbmodel.o: include/toad/core.hh include/toad/window.hh
-rgbmodel.o: include/toad/interactor.hh include/toad/types.hh
-rgbmodel.o: include/toad/cursor.hh include/toad/color.hh
-rgbmodel.o: include/toad/region.hh include/toad/pen.hh
+rgbmodel.o: include/toad/floatmodel.hh include/toad/numbermodel.hh
+rgbmodel.o: include/toad/textmodel.hh include/toad/undo.hh
+rgbmodel.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+rgbmodel.o: include/toad/textarea.hh include/toad/core.hh
+rgbmodel.o: include/toad/window.hh include/toad/interactor.hh
+rgbmodel.o: include/toad/types.hh include/toad/cursor.hh
+rgbmodel.o: include/toad/color.hh include/toad/region.hh include/toad/pen.hh
 rgbmodel.o: include/toad/penbase.hh include/toad/font.hh
 rgbmodel.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 rgbmodel.o: include/toad/control.hh include/toad/scrollbar.hh
+rgbmodel.o: include/toad/integermodel.hh
 dnd/dropobject.o: include/toad/dnd/dropobject.hh include/toad/dragndrop.hh
 dnd/dropobject.o: include/toad/types.hh include/toad/pointer.hh
 dnd/dropobject.o: include/toad/connect.hh
@@ -776,10 +799,10 @@ figure/bezier.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/bezier.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/bezier.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/bezier.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/bezier.o: include/toad/integermodel.hh include/toad/action.hh
-figure/bezier.o: include/toad/popupmenu.hh include/toad/menuhelper.hh
-figure/bezier.o: include/toad/layout.hh include/toad/eventfilter.hh
-figure/bezier.o: include/toad/pen.hh
+figure/bezier.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/bezier.o: include/toad/action.hh include/toad/popupmenu.hh
+figure/bezier.o: include/toad/menuhelper.hh include/toad/layout.hh
+figure/bezier.o: include/toad/eventfilter.hh include/toad/pen.hh
 figure/frame.o: include/toad/figure.hh include/toad/penbase.hh
 figure/frame.o: include/toad/color.hh include/toad/types.hh
 figure/frame.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -791,7 +814,7 @@ figure/frame.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/frame.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/frame.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/frame.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/frame.o: include/toad/integermodel.hh
+figure/frame.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/image.o: include/toad/figure.hh include/toad/penbase.hh
 figure/image.o: include/toad/color.hh include/toad/types.hh
 figure/image.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -803,12 +826,13 @@ figure/image.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/image.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/image.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/image.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/image.o: include/toad/integermodel.hh include/toad/filedialog.hh
-figure/image.o: include/toad/dialog.hh include/toad/layout.hh
-figure/image.o: include/toad/eventfilter.hh include/toad/table.hh
-figure/image.o: include/toad/pen.hh include/toad/pushbutton.hh
-figure/image.o: include/toad/buttonbase.hh include/toad/labelowner.hh
-figure/image.o: include/toad/control.hh include/toad/stl/vector.hh
+figure/image.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/image.o: include/toad/filedialog.hh include/toad/dialog.hh
+figure/image.o: include/toad/layout.hh include/toad/eventfilter.hh
+figure/image.o: include/toad/table.hh include/toad/pen.hh
+figure/image.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
+figure/image.o: include/toad/labelowner.hh include/toad/control.hh
+figure/image.o: include/toad/stl/vector.hh
 figure/polygon.o: include/toad/figure.hh include/toad/penbase.hh
 figure/polygon.o: include/toad/color.hh include/toad/types.hh
 figure/polygon.o: include/toad/io/serializable.hh
@@ -821,9 +845,9 @@ figure/polygon.o: include/toad/model.hh include/toad/connect.hh
 figure/polygon.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 figure/polygon.o: include/toad/undo.hh include/toad/boolmodel.hh
 figure/polygon.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/polygon.o: include/toad/action.hh include/toad/popupmenu.hh
-figure/polygon.o: include/toad/menuhelper.hh include/toad/layout.hh
-figure/polygon.o: include/toad/eventfilter.hh
+figure/polygon.o: include/toad/numbermodel.hh include/toad/action.hh
+figure/polygon.o: include/toad/popupmenu.hh include/toad/menuhelper.hh
+figure/polygon.o: include/toad/layout.hh include/toad/eventfilter.hh
 figure/text.o: include/toad/figure.hh include/toad/penbase.hh
 figure/text.o: include/toad/color.hh include/toad/types.hh
 figure/text.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -835,7 +859,7 @@ figure/text.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/text.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/text.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/text.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/text.o: include/toad/integermodel.hh
+figure/text.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/circle.o: include/toad/figure.hh include/toad/penbase.hh
 figure/circle.o: include/toad/color.hh include/toad/types.hh
 figure/circle.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -847,7 +871,7 @@ figure/circle.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/circle.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/circle.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/circle.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/circle.o: include/toad/integermodel.hh
+figure/circle.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/group.o: include/toad/figure.hh include/toad/penbase.hh
 figure/group.o: include/toad/color.hh include/toad/types.hh
 figure/group.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -859,7 +883,7 @@ figure/group.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/group.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/group.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/group.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/group.o: include/toad/integermodel.hh
+figure/group.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/line.o: include/toad/figure.hh include/toad/penbase.hh
 figure/line.o: include/toad/color.hh include/toad/types.hh
 figure/line.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -871,7 +895,7 @@ figure/line.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/line.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/line.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/line.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/line.o: include/toad/integermodel.hh
+figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/rectangle.o: include/toad/figure.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh
@@ -884,6 +908,7 @@ figure/rectangle.o: include/toad/model.hh include/toad/connect.hh
 figure/rectangle.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 figure/rectangle.o: include/toad/undo.hh include/toad/boolmodel.hh
 figure/rectangle.o: include/toad/textmodel.hh include/toad/integermodel.hh
+figure/rectangle.o: include/toad/numbermodel.hh
 figure/window.o: include/toad/figure.hh include/toad/penbase.hh
 figure/window.o: include/toad/color.hh include/toad/types.hh
 figure/window.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -895,8 +920,8 @@ figure/window.o: include/toad/figuremodel.hh include/toad/model.hh
 figure/window.o: include/toad/connect.hh include/toad/figureeditor.hh
 figure/window.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/window.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/window.o: include/toad/integermodel.hh include/toad/labelowner.hh
-figure/window.o: include/toad/control.hh
+figure/window.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/window.o: include/toad/labelowner.hh include/toad/control.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

@@ -42,7 +42,7 @@ TTextModel::setValue(const string &d)
   offset = 0;
   _data = d;
   length = _data.size();
-  lines = (size_t)-1;   // all lines have changed
+  lines = (unsigned)-1;   // all lines have changed
 
   nlines = 0;
   size_t pos = 0;
@@ -69,7 +69,7 @@ TTextModel::clear()
   offset = 0;
   _data.clear();
   length = 0;
-  lines = (size_t)-1;   // all lines have changed
+  lines = (unsigned)-1;   // all lines have changed
 
   nlines = 0;
   size_t pos = 0;
@@ -98,7 +98,7 @@ TTextModel::setValue(const char *d, size_t len)
   offset = 0;
   length = len;
   _data.assign(d, len);
-  lines = (size_t)-1;   // all lines have changed
+  lines = (unsigned)-1;   // all lines have changed
 
   nlines = 0;
   size_t pos = 0;
@@ -266,12 +266,14 @@ bool
 TTextModel::TUndoRemove::getUndoName(string *name) const
 {
   *name = "Undo: Remove";
+  return true;
 }
 
 bool
 TTextModel::TUndoRemove::getRedoName(string *name) const
 {
   *name = "Redo: Insert";
+  return true;
 }
 
 void

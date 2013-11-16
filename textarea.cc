@@ -43,7 +43,7 @@ toad::createTextModel(TTextModel *m)
 }
 
 static void setSelection(const string&) {}
-static string getSelection() {}
+static string getSelection() { return string();}
 
 /**
  * \ingroup control

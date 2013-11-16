@@ -83,11 +83,11 @@ class TColor {
 
 struct TRGB
 {
-    byte r,g,b;
+    TCoord r,g,b;
     TRGB() {
       r=g=b=0;
     }
-    TRGB(byte ir, byte ig, byte ib) {
+    TRGB(TCoord ir, TCoord ig, TCoord ib) {
       r=ir; g=ig; b=ib;
     }
 
@@ -97,10 +97,10 @@ struct TRGB
     bool operator !=(const TRGB &c) const {
       return (r!=c.r || g!=c.g || b!=c.b);
     }
-    void operator() (byte rn,byte gn,byte bn) {
+    void operator() (TCoord rn, TCoord gn, TCoord bn) {
       r=rn;g=gn;b=bn;
     }
-    void set(byte rn,byte gn,byte bn) {
+    void set(TCoord rn, TCoord gn, TCoord bn) {
       r=rn;g=gn;b=bn;
     }
     void set(TColor::EColor c) {
@@ -123,7 +123,7 @@ struct TSerializableRGB:
 
     TSerializableRGB() {}
  
-    TSerializableRGB(byte ir, byte ig, byte ib) {
+    TSerializableRGB(TCoord ir, TCoord ig, TCoord ib) {
       r=ir; g=ig; b=ib;
     }
     TSerializableRGB& operator= (const TRGB &c) {

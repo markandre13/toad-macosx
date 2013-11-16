@@ -492,13 +492,12 @@ TWindow::destroyParentless()
   if (!twindow)
     return;
 
-#if 0
   {
   TPen pen(twindow);
   pen.setColor(twindow->_bg.r/255.0, twindow->_bg.g/255.0, twindow->_bg.b/255.0);
   pen.fillRectangle(0,0,twindow->w,twindow->h);
   }
-#endif
+
   twindow->paint();
 }
 

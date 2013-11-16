@@ -92,20 +92,28 @@ toad::restore(atv::TInObjectStream &p, toad::TSerializableRGB *value)
 void
 TSerializableRGB::store(TOutObjectStream &out) const
 {
-  ::store(out, r);
-  ::store(out, g);
-  ::store(out, b); 
+  ::store(out, (int)(r*255));
+  ::store(out, (int)(g*255));
+  ::store(out, (int)(b*255)); 
 }
 
 bool
 TSerializableRGB::restore(TInObjectStream &in)
 {
+  int ir=0, ig=0, ib=0;
+
   if (
-    ::restore(in, 0, &r) ||
-    ::restore(in, 1, &g) ||
-    ::restore(in, 2, &b) ||
+    ::restore(in, 0, &ir) ||
+    ::restore(in, 1, &ig) ||
+    ::restore(in, 2, &ib) ||
     super::restore(in)
-    ) return true;
+    )
+  {
+    r = ir / 255.0;
+    g = ig / 255.0;
+    b = ib / 255.0;
+    return true;
+  }
   ATV_FAILED(in) 
   return false;
 }

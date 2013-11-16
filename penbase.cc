@@ -22,6 +22,10 @@
 
 using namespace toad;
 
+TPenBase::~TPenBase()
+{
+}
+
 void
 TPenBase::drawRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {

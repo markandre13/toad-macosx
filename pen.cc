@@ -25,12 +25,14 @@ using namespace toad;
 
 TPen::TPen(TWindow *w)
 {
-  [[NSGraphicsContext currentContext] saveGraphicsState];
-  [[NSGraphicsContext currentContext] setShouldAntialias: NO];
+//  [[NSGraphicsContext currentContext] saveGraphicsState];
+//  [[NSGraphicsContext currentContext] setShouldAntialias: NO];
+
   font = new TFont;
   setColor(0,0,0);
   linestyle = SOLID;
   window = w;
+
 /*
   According to the manual, Cocoa already sets up a clip path during [NSView
   drawRect: <rect>], hence there shouldn't be a need to do this.
@@ -55,7 +57,8 @@ TPen::TPen(TBitmap *)
 TPen::~TPen()
 {
   [NSBezierPath setDefaultLineWidth: 1];
-  [[NSGraphicsContext currentContext] restoreGraphicsState];
+//  [[NSGraphicsContext currentContext] restoreGraphicsState];
+
   // [clipPath release];
 }
 

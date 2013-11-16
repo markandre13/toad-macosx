@@ -37,6 +37,7 @@ class TKeyEvent;
 class TEventFilter
 {
   public:
+    virtual ~TEventFilter();
     virtual bool windowEvent(TWindowEvent&);
     virtual bool mouseEvent(TMouseEvent&);  
     virtual bool keyEvent(TKeyEvent&);
