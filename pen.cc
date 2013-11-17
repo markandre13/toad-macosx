@@ -270,7 +270,7 @@ TPen::getAlpha() const
 
 void
 TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
-  NSRect r = NSMakeRect(x+0.5,y+0.5,w,h);
+  NSRect r = NSMakeRect(x,y,w,h);
   if (linestyle==SOLID) {
     [NSBezierPath strokeRect: r];
     return;
@@ -313,20 +313,20 @@ TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
 
 void
 TPen::vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
-  NSRect r = NSMakeRect(x+0.5,y+0.5,w,h);
+  NSRect r = NSMakeRect(x,y,w,h);
   [NSBezierPath fillRect: r];
 }
 
 void
 TPen::vdrawCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
-  NSRect r = NSMakeRect(x+0.5,y+0.5,w,h);
+  NSRect r = NSMakeRect(x,y,w,h);
   NSBezierPath *path = [NSBezierPath bezierPathWithOvalInRect: r];
   [path stroke];
 }
 
 void
 TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
-  NSRect r = NSMakeRect(x+0.5,y+0.5,w,h);
+  NSRect r = NSMakeRect(x,y,w,h);
   NSBezierPath *path = [NSBezierPath bezierPathWithOvalInRect: r];
   [path fill];
 }
@@ -391,11 +391,11 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
                               alpha: 1.0]
       forKey: NSForegroundColorAttributeName];
   [[NSString stringWithUTF8String: t?t:text]
-    drawAtPoint: NSMakePoint(x+0.5, y+0.5-getDescent())
+    drawAtPoint: NSMakePoint(x, y-getDescent())
     withAttributes: textAttributes];
 /*
   [[NSString stringWithUTF8String: text]
-    drawAtPoint: NSMakePoint(x+0.5, y+0.5)
+    drawAtPoint: NSMakePoint(x, y)
     withAttributes: [[NSGraphicsContext currentContext] attributes]];
 */
   if (t)
@@ -447,9 +447,9 @@ TPen::drawLines(TPoint const *p, size_t n)
   if (n<2)
     return;
   NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x+0.5, p[0].y+0.5)];
+  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
   for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x+0.5, p[i].y+0.5)];
+    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
   [path stroke];
 }
 
@@ -471,9 +471,9 @@ TPen::drawPolygon(const TPoint *p, size_t n)
   if (n<2)
     return;
   NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x+0.5, p[0].y+0.5)];
+  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
   for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x+0.5, p[i].y+0.5)];
+    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
   [path closePath];
   [path stroke];
 }
@@ -484,9 +484,9 @@ TPen::fillPolygon(TPoint const *p, size_t n)
   if (n<2)
     return;
   NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x+0.5, p[0].y+0.5)];
+  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
   for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x+0.5, p[i].y+0.5)];
+    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
   [path closePath];
   [path fill];
 }

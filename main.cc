@@ -132,7 +132,7 @@ TMyWindow::paint()
   TCoord x,y,w,h;
   x=5; y=20; w=50; h=10;
 
-  NSRect r = NSMakeRect(x+0.5,y+0.5,w,h);
+  NSRect r = NSMakeRect(x,y,w,h);
   [NSBezierPath strokeRect: r];
               
 #else

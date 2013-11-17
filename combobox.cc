@@ -114,7 +114,7 @@ cout << "  call adapter for paint" << endl;
     pen.setColor(0,0,0);
     pen.setLineStyle(TPen::SOLID);
     pen.setLineWidth(1);
-    pen.drawRectanglePC(0,0, getWidth()-4-btn->getWidth(), getHeight()-4);
+    pen.fillRectanglePC(0,0, getWidth()-4-btn->getWidth(), getHeight()-4);
   }
 }
 
@@ -271,12 +271,12 @@ TComboBox::TComboButton::paint()
   TPoint p[3];
   p[0].set(cx-4,cy-2);
   p[1].set(cx+4,cy-2);
-  p[2].set(cx,  cy+2);
+  p[2].set(cx ,  cy+3);
 
   pen.setColor(TColor::BTNTEXT);
   pen.fillPolygon(p,3);
   
-  pen.drawRectanglePC(cx-4, cy+4, 9, 2);
+  pen.fillRectanglePC(cx-4, cy+4, 9, 3);
 }
 
 void
