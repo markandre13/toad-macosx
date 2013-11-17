@@ -57,7 +57,7 @@ run:
 	fischland.app/Contents/MacOS/fischland fischland/example.fish
 
 gdb:
-	gdb fischland.app/Contents/MacOS/fischland
+	lldb fischland.app/Contents/MacOS/fischland
 
 .SUFFIXES: .cc .M .o
 
