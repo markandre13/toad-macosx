@@ -270,6 +270,15 @@ TPen::getAlpha() const
 
 void
 TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
+  if (w<0) {
+    x += w;
+    w = -w;
+  }
+  if (h<0) {
+    y += h;
+    h = -h;
+  }
+
   NSRect r = NSMakeRect(x,y,w,h);
   if (linestyle==SOLID) {
     [NSBezierPath strokeRect: r];
@@ -313,6 +322,14 @@ TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
 
 void
 TPen::vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
+  if (w<0) {
+    x += w;
+    w = -w;
+  }
+  if (h<0) {
+    y += h;
+    h = -h;
+  }
   NSRect r = NSMakeRect(x,y,w,h);
   [NSBezierPath fillRect: r];
 }
