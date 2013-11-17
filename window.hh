@@ -192,6 +192,7 @@ class TWindow:
   public:
     bool _inside:1; // helper to emulate mouseEnter, mouseLeave on Cocoa
     bool _mapped:1;
+    bool _allMouseMoveEvents:1;
     void _down(TMouseEvent::EType type, NSEvent *theEvent);
     void _up(TMouseEvent::EType type, NSEvent *theEvent);
 
@@ -246,7 +247,7 @@ class TWindow:
     void _setFocus(bool);
     void _setFocusHelper(TInteractor *parent, bool b);
 
-    void setAllMouseMoveEvents(bool);
+    void setAllMouseMoveEvents(bool all) { _allMouseMoveEvents = all; }
 
     void grabMouse(bool allmove=true, TWindow *confine=0, TCursor::EType type=TCursor::DEFAULT);
     void grabPopupMouse(bool allmove=true, TCursor::EType type=TCursor::DEFAULT);

@@ -203,14 +203,6 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
   }
 }
 
-
-void
-TWindow::setAllMouseMoveEvents(bool b)
-{
-//  if (nsview)
-//    [nsview setAcceptsMouseMovedEvents: b];
-}
-
 /**
  * I am not quite sure why I did add this method... [MAH]
  */
@@ -680,6 +672,8 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 
 - (void) mouseMoved:(NSEvent*)theEvent
 {
+  if (!twindow->_allMouseMoveEvents)
+    return;
 //printf("%s: %s _inside=%i\n",__FUNCTION__, twindow->getTitle().c_str(),twindow->_inside);
   TMouseEvent me(theEvent, self, twindow);
   TRectangle r(0,0,twindow->w,twindow->h);
@@ -737,6 +731,7 @@ TWindow::TWindow(TWindow *parent, const string &title):
   flagTabKey = false;
   _inside = false;
   _mapped = true;
+  _allMouseMoveEvents = false;
   _bOwnsFocus = false;
   flagNoFocus = false;
   flagPopup = false;
