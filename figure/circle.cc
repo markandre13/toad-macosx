@@ -48,7 +48,7 @@ TFCircle::paint(TPenBase &pen, EPaintType)
   }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
-  pen.setAlpha(255);
+  pen.setAlpha(1);
 }
 
 double 

@@ -29,7 +29,7 @@
 #include <toad/boolmodel.hh>
 #include <toad/textmodel.hh>
 #include <toad/integermodel.hh>
-
+#include <toad/floatmodel.hh>
 
 namespace toad {
 
@@ -188,7 +188,7 @@ class TFigureAttributes:
     TBoolModel filled;
     TRGB linecolor;
     TRGB fillcolor;
-    TIntegerModel alpha;
+    TFloatModel alpha;
     TTextModel fontname;
     TFont font;
     TRGB background_color;

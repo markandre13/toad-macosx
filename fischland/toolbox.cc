@@ -1016,15 +1016,19 @@ serialize.registerObject(new TFPath());
   TComboBox *cb;
   y+=28+28-16+5;
   
-  TTextField *tf = new TTextField(this, "alpha", &me->alpha);
+  TTextField *tf = new TTextField(this, "alpha", &alpha);
   tf->setToolTip("alpha");
   tf->setPosition(4,y);
   tf->setSize(28+28-16, 20);
   
-  TGauge *gg = new TGauge(this, "alphag", &me->alpha);
+  TGauge *gg = new TGauge(this, "alphag", &alpha);
   gg->setToolTip("alpha");
   gg->setPosition(4+28+28-16,y);
   gg->setSize(16,20);
+
+  TCLOSURE1(alpha.sigChanged,
+            _this, this,
+            _this->preferences->alpha = _this->alpha / 255.0; )
   
 //  connect(cb->sigSelection, setLineWidth, cb);
   y+=20+5;

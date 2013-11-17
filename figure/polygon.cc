@@ -45,7 +45,7 @@ TFPolygon::paint(TPenBase &pen, EPaintType)
     pen.setFillColor(fill_color);
     pen.fillPolygon(polygon);
   }
-  pen.setAlpha(255);
+  pen.setAlpha(1);
 }
 
 double 

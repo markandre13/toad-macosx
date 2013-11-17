@@ -58,7 +58,7 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
   }
   pen.setLineStyle(TPenBase::SOLID);
   pen.setLineWidth(0);
-  pen.setAlpha(255);
+  pen.setAlpha(1);
 }
 
 double 

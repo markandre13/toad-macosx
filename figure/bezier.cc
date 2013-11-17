@@ -91,7 +91,7 @@ TFBezierline::paint(TPenBase &pen, EPaintType type)
   pen.drawPolyBezier(polygon);
 
   if (arrowmode == NONE) {
-    pen.setAlpha(255);
+    pen.setAlpha(1);
     return;
   }
   pen.setLineStyle(TPen::SOLID);
@@ -103,7 +103,7 @@ TFBezierline::paint(TPenBase &pen, EPaintType type)
     drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-2], line_color, fill_color, aw, ah, arrowtype);
   if (arrowmode == TAIL || arrowmode == BOTH)
     drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
-  pen.setAlpha(255);
+  pen.setAlpha(1);
 }
 
 /**
@@ -691,7 +691,7 @@ TFBezier::paint(TPenBase &pen, EPaintType type)
     pen.fillPolyBezier(polygon);
   }
 
-  pen.setAlpha(255);  
+  pen.setAlpha(1);  
   
   if (type==EDIT || type==SELECT) {
     paintSelectionLines(pen);

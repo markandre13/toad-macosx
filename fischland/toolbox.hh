@@ -24,6 +24,7 @@
 #include <toad/dialog.hh>
 #include <toad/figureeditor.hh>
 #include <toad/table.hh>
+#include <toad/integermodel.hh>
 
 namespace fischland {
 
@@ -34,6 +35,7 @@ class TToolBox:
 {
     typedef TDialog super;
     TBitmap bmp;
+    TIntegerModel alpha;
   public:
     TToolBox(TWindow *p, const std::string &t);
     void paint();
