@@ -398,6 +398,18 @@ TWindow::destroyParentless()
 //  printf("%s\n", __FUNCTION__);
   TFocusManager::domainToWindow(0);
 }
+
+- (BOOL)canBecomeMainWindow
+{
+  return twindow->flagParentlessAssistant ? NO : YES;
+}
+
+/*
+- (BOOL)canBecomeKeyWindow
+{
+  return twindow->flagParentlessAssistant ? NO : YES;
+}
+*/
 /*
 - (void)becomeMainWindow {
   printf("%s\n", __FUNCTION__);
@@ -447,9 +459,11 @@ TWindow::destroyParentless()
   }
   [super dealloc];
 }
+
 - (void)setWindow: (TWindow*)aWindow {
   twindow = aWindow;
 }
+
 - (void) initTrackAll:(NSRect)frame {
   trackAll = [self addTrackingRect: frame
               owner: self
@@ -484,6 +498,7 @@ TWindow::destroyParentless()
   twindow->h = newSize.height;
   twindow->doResize();
 }
+
 - (void) drawRect:(NSRect)rect
 {
   // [self inLiveResize]
@@ -499,6 +514,12 @@ TWindow::destroyParentless()
   }
 
   twindow->paint();
+}
+
+// We always return YES here to simulate FocusFollowsMouse behaviour.
+- (BOOL)acceptsFirstMouse:(NSEvent *)theEvent
+{
+  return YES;
 }
 
 /*
@@ -540,6 +561,7 @@ TWindow::destroyParentless()
   TFocusManager::handleEvent(ke);
   executeMessages();
 }
+
 - (void) keyUp:(NSEvent*)theEvent
 {
 //printf("key up\n");
@@ -559,6 +581,7 @@ TWindow::destroyParentless()
   twindow->mouseEvent(me);
   executeMessages();
 }
+
 - (void) mouseExited:(NSEvent*)theEvent
 {
 //printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
@@ -575,16 +598,19 @@ cout << "mouse down in " << twindow->getTitle() << endl;
   TMouseEvent::_modifier |= MK_LBUTTON;
   twindow->_down(TMouseEvent::LDOWN, theEvent);
 }
+
 - (void) rightMouseDown:(NSEvent*)theEvent
 {
   TMouseEvent::_modifier |= MK_RBUTTON;
   twindow->_down(TMouseEvent::RDOWN, theEvent);
 }
+
 - (void) otherMouseDown:(NSEvent*)theEvent
 {
   TMouseEvent::_modifier |= MK_MBUTTON;
   twindow->_down(TMouseEvent::MDOWN, theEvent);
 }
+
 void
 TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 {
@@ -775,13 +801,19 @@ TWindow::createWindow()
     [nswindow setReleasedWhenClosed: YES];
     nswindow->twindow = this;
     unsigned int styleMask = 0;
-    if (!flagPopup) {
-      styleMask |= NSTitledWindowMask 
+    if (flagPopup) {
+      styleMask = NSBorderlessWindowMask;
+    } else
+    if (flagParentlessAssistant) {
+      styleMask = NSTitledWindowMask
+                | NSResizableWindowMask
+                ;
+                
+    } else {
+      styleMask = NSTitledWindowMask 
                 | NSMiniaturizableWindowMask
                 | NSClosableWindowMask
                 | NSResizableWindowMask;
-    } else {
-      styleMask |= NSBorderlessWindowMask;
     }
     [nswindow initWithContentRect: NSMakeRect(x, y, w, h)
          styleMask: styleMask
