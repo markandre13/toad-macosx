@@ -47,7 +47,7 @@
 
 
 #define FINAL_FILEDIALOG
-#define RESOURCE(file) "file://tresource/" file
+#define RESOURCE(file) file
 //#define RESOURCE(file) "memory://toad/" file
 
 using namespace toad;
