@@ -606,8 +606,8 @@ cout << "mouse down in " << twindow->getTitle() << endl;
 void
 TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 {
-//printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
   TMouseEvent me(theEvent, nsview, this);
+printf("%s: %s: %f, %f\n",__FUNCTION__, getTitle().c_str(), me.x, me.y);
   if (!_inside) {
 //printf("  flip inside\n");
     _inside = true;
@@ -695,6 +695,7 @@ TMouseEvent::TMouseEvent(NSEvent *ne, NSView *view, TWindow *w) {
   NSPoint pt = [view convertPoint:[ne locationInWindow] fromView:nil];
   x = pt.x;
   y = pt.y;
+cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<w->getOriginX()<<","<<w->getOriginY()<<")\n";
   x -= w->getOriginX();
   y -= w->getOriginY();
   window = w;

@@ -22,6 +22,40 @@
 
 using namespace toad;
 
+/**
+ * \class toad::TPenBase
+ * 
+ * The base class for all drawing objects.
+ *
+ * Screen coordinates are floating point based and to draw a line which
+ * fills the pixels marked with the X in the figure below one has to use
+ * the coordinates (1.5, 1.5) to (3.5, 1.5) of width 1.
+ *
+ * Drawing a line from (1,1) to (3,1) will cause anti-aliasing effects.
+ * (At least with Apple's Cocoa libary. X11's Cairo should be similar,
+ * X11 uses the same logic but because the rasterisation is pixel based,
+ * one can't see it there.)
+ *
+ * \pre
+ *   0   1   2   3   4
+ * 0 +---+---+---+---+---+
+ *   |   |   |   |   |   |
+ * 1 +---+---+---+---+---+
+ *   |   | X | X | X |   |
+ * 2 +---+---+---+---+---+
+ *   |   |   |   |   |   |
+ * 3 +---+---+---+---+---+
+ *   |   |   |   |   |   |
+ * 4 +---+---+---+---+---+
+ *   |   |   |   |   |   |
+ * 5 +---+---+---+---+---+
+ * \endpre
+ *
+ * For those more comfortable with integer numbers *PC(...)
+ *
+ *
+ */
+
 TPenBase::~TPenBase()
 {
 }
@@ -29,13 +63,13 @@ TPenBase::~TPenBase()
 void
 TPenBase::drawRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vdrawRectangle(x,y,w-1,h-1);
+  vdrawRectangle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void
 TPenBase::fillRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vfillRectangle(x,y,w-1,h-1);
+  vfillRectangle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void

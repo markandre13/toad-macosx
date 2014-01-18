@@ -36,9 +36,12 @@ class TPen:
   public TPenBase
 {
     TWindow *window;
+    CGContextRef ctx; // Quartz2D Graphics Context
+
     NSBezierPath *clipPath;
     
-    typedef vector<NSAffineTransform*> mstack_t;
+    TMatrix2D windowmatrix; // Cocoa's initial matrix for the window.
+    typedef vector<TMatrix2D> mstack_t;
     mstack_t mstack;
     ELineStyle linestyle;
     
@@ -57,6 +60,7 @@ class TPen:
     void pop();
     void multiply(const TMatrix2D*);
     void setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty);
+    void setMatrix(const TMatrix2D&);
     const TMatrix2D* getMatrix() const;
 
     void getClipBox(TRectangle*) const;

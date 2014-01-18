@@ -400,8 +400,8 @@ class TFigureEditor:
     void mouseRDown(int, int, unsigned);
     void keyDown(TKey, char*, unsigned);
 
-    virtual void mouse2sheet(int mx, int my, int *sx, int *sy);
-    virtual void sheet2grid(int sx, int sy, int *gx, int *gy);
+    virtual void mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy);
+    virtual void sheet2grid(TCoord sx, TCoord sy, TCoord *gx, TCoord *gy);
     
     bool restore(TInObjectStream&);
     void store(TOutObjectStream&) const;

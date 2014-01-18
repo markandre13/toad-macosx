@@ -326,6 +326,8 @@ TFischEditor::paint()
     cout << __PRETTY_FUNCTION__ << ": no window" << endl;
     return;
   }
+
+
   if (update_scrollbars) {
     // cout << "paint: update_scrollbars" << endl;
     updateScrollbars();
@@ -354,15 +356,41 @@ r = *window; //  scr.getClipBox(&r);
 //  pen = new TPen(&bmp);
 //#error "creating this pen causes the shift of all origins..."
 
+#if 0
+{
+TPen *pen = new TPen(window);
+pen->translate(1, 1);
+pen->setColor(1,0,0);
+pen->drawRectangle(0,0,10,10);
+delete pen;
+return;
+}
+#endif
+
   pen = new TPen(window);
+
+  paintDecoration(*pen); // method in TFigureEditor
+
   pen->identity();
 
   pen->setColor(window->getBackground());
-  pen->fillRectangle(0,0,r.w, r.h);
+  pen->fillRectangle(visible);
+
+#if 0
+  // this translate by the position of the window itself
+  // dunno why, but under Cocoa this is wrong and it also should be
+  // under X11
   pen->translate(window->getOriginX()+visible.x-r.x,
-                window->getOriginY()+visible.y-r.y);
+                 window->getOriginY()+visible.y-r.y);
+#else
+  // this fails when we start to scroll
+  pen->translate(window->getOriginX()+visible.x,
+                 window->getOriginY()+visible.y);
+#endif
+
   if (mat)
     pen->multiply(mat);
+
 //TRectangle r0;
 //pen->getClipBox(&r0);
 //cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
@@ -371,7 +399,6 @@ r = *window; //  scr.getClipBox(&r);
 //cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
 
   [[NSGraphicsContext currentContext] setShouldAntialias: true];
-
 
   unsigned total = 0, painted = 0, skipped = 0;
 
@@ -429,7 +456,6 @@ r = *window; //  scr.getClipBox(&r);
 
 //  scr.drawBitmap(r.x,r.y, &bmp);   
 //  paintDecoration(scr);
-  paintDecoration(*pen);
   delete pen;
 }
 
@@ -1360,7 +1386,7 @@ TCursor *fischland::cursor[16];
 void
 foo(){exit(0);}
 
-#define TEST05 1
+#define TEST06 1
 
 #ifdef TEST01
 
@@ -1420,10 +1446,90 @@ class TMyWindow:
 };
 #endif
 
+#ifdef TEST06
+
+class TMyWindow:
+  public TWindow
+{
+  public:
+    TMyWindow(TWindow *p, const string &t): TWindow(p, t) {
+      setBackground(0,0.5,0);
+    }
+    
+    void paint() {
+      cout << "TMyWindow::paint()" << endl;
+      TPen pen(this);
+      
+      pen.identity();
+      
+      NSAffineTransform* xform;
+
+      pen.setColor(1.0, 0.5, 0);
+      pen.drawRectanglePC(0,0,100,50);
+
+      pen.translate(100,50);
+
+      pen.setColor(1,1,0);
+      pen.drawRectanglePC(0,0,100,50);
+
+      pen.rotate(2.0*M_PI / 360.0 * 20.0);
+
+      pen.setColor(0.5,1,0.5);
+      pen.drawRectanglePC(0,0,100,50);
+
+      pen.rotate(2.0*M_PI / 360.0 * 20.0);
+
+      pen.setColor(0,1,1);
+      pen.drawRectanglePC(0,0,100,50);
+
+      pen.push();
+
+      pen.translate(100,50);
+
+      pen.setColor(0,0.5,1);
+      pen.drawRectanglePC(0,0,100,50);
+
+      pen.rotate(2.0*M_PI / 360.0 * 20.0);
+
+      pen.setColor(0,0,1);
+      pen.drawRectanglePC(0,0,100,50);
+      
+      pen.pop();
+      
+      pen.setColor(1,1,1);
+      pen.drawRectanglePC(5,5,90,40);
+      
+      const TMatrix2D *m = pen.getMatrix();
+      pen.setMatrix(*m);
+      
+      pen.drawRectanglePC(10,10,80,30);
+      
+      pen.identity();
+      
+      pen.translate(0.5, 0.5);
+      
+      pen.setLineStyle(TPen::DASH);
+      
+      pen.drawRectanglePC(5,5, 90, 40);
+      
+      pen.setLineStyle(TPen::SOLID);
+      pen.drawRectangle(10,10,80,30);
+
+      pen.setFillColor(1,0.5,0);
+
+      pen.fillRectangle(10,60,20,20);
+      pen.drawRectangle(10,60,20,20);
+
+      pen.fillCircle(35,60,20,20);
+      pen.drawCircle(35,60,20,20);
+    }
+};
+#endif
+
 int 
 main(int argc, char **argv, char **envv)
 {
-#if 0
+#if 1
 
 #ifdef TEST01
   toad::initialize(argc, argv);
@@ -1575,7 +1681,14 @@ main(int argc, char **argv, char **envv)
 
 #ifdef TEST05
   toad::initialize(argc, argv);
-  TWindow *w0 = new TTextArea(0, "TEST01");
+  TWindow *w0 = new TTextArea(0, "TEST05");
+  toad::mainLoop();
+  toad::terminate();
+#endif
+
+#ifdef TEST06
+  toad::initialize(argc, argv);
+  TWindow *w0 = new TMyWindow(0, "TEST06");
   toad::mainLoop();
   toad::terminate();
 #endif

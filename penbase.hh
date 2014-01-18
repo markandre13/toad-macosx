@@ -125,7 +125,7 @@ class TPenBase
     void drawRectanglePC(TCoord x,TCoord y,TCoord w,TCoord h);
     void drawRectanglePC(const TRectangle &r) { drawRectanglePC(r.x,r.y,r.w,r.h); }
     void drawRectanglePC(const TRectangle *r) { drawRectanglePC(r->x,r->y,r->w,r->h); }
-    void drawRectanglePC(const TPoint &a, const TPoint &b) { vdrawRectangle(a.x, a.y, b.x-a.x, b.y-a.y); }
+    void drawRectanglePC(const TPoint &a, const TPoint &b) { vdrawRectangle(a.x+0.5, a.y+0.5, b.x-a.x+1, b.y-a.y+1); }
 
     void drawRectangle(TCoord x,TCoord y,TCoord w,TCoord h) { vdrawRectangle(x, y, w, h); } 
     void drawRectangle(const TRectangle &r) { vdrawRectangle(r.x,r.y,r.w,r.h); }

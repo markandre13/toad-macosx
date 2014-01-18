@@ -137,10 +137,10 @@ class TMouseEvent
   
   NSEvent *nsevent;
   TWindow *window;
-  float x, y;
-  float pressure();
-  float rotation();
-  float tilt();
+  TCoord x, y;
+  TCoord pressure();
+  TCoord rotation();
+  TCoord tilt();
   unsigned modifier() const;
   enum EPointingDeviceType {
     // unknown, pen, cursor, eraser

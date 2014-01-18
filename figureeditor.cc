@@ -483,9 +483,9 @@ TFigureEditor::paintGrid(TPenBase &pen)
   if (preferences->drawgrid && preferences->gridsize) {
     const TRGB &background_color = window->getBackground();
     pen.setColor(
-      background_color.r > 128 ? background_color.r-64 : background_color.r+64,
-      background_color.g > 128 ? background_color.g-64 : background_color.g+64,
-      background_color.b > 128 ? background_color.b-64 : background_color.b+64
+      background_color.r > 0.5 ? background_color.r-0.5 : background_color.r+0.5,
+      background_color.g > 0.5 ? background_color.g-0.5 : background_color.g+0.5,
+      background_color.b > 0.5 ? background_color.b-0.5 : background_color.b+0.5
     );
     int x1, x2, y1, y2;
     int g = preferences->gridsize;
@@ -1290,7 +1290,7 @@ redo:
   }
 }
 void
-TFigureEditor::mouse2sheet(int mx, int my, int *sx, int *sy)
+TFigureEditor::mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy)
 {
   mx-=visible.x;
   my-=visible.y;
@@ -1374,21 +1374,25 @@ TFigureEditorHeaderRenderer::mouseEvent(TMouseEvent &me)
 {
 }
 
+/**
+ * Return the closest point to (inX, inY) on the grid in (outX, outY)
+ */
 void
-TFigureEditor::sheet2grid(int sx, int sy, int *gx, int *gy)
+TFigureEditor::sheet2grid(TCoord inX, TCoord inY, TCoord *outX, TCoord *outY)
 {
   if (!preferences->drawgrid) {
-    *gx = sx;
-    *gy = sy;
+    *outX = inX;
+    *outY = inY;
     return;
   }
   if (state!=STATE_ROTATE && state!=STATE_MOVE_ROTATE) {
     int g = preferences->gridsize;
-    *gx = ((sx+g/2)/g)*g;
-    *gy = ((sy+g/2)/g)*g;
+    // FIXME: after switching to TCoord and round(), +g/2 might be useless
+    *outX = round((inX+g/2)/g)*g;
+    *outY = round((inY+g/2)/g)*g;
   } else {
-    *gx = sx;
-    *gy = sy;
+    *outX = inX;
+    *outY = inY;
   }
 }
 

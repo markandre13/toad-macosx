@@ -25,6 +25,7 @@
 #include <vector>
 
 #import <CoreGraphics/CGBase.h>
+#import <CoreGraphics/CGGeometry.h>
 
 typedef unsigned long ulong;
 typedef unsigned char ubyte;
@@ -37,33 +38,25 @@ typedef CGFloat TCoord; // cocoa
 
 using namespace std;
 
-struct TPoint {
-  TPoint() {x=y=0;}
-  TPoint(int a, int b):x(a),y(b){}
-  int x,y;
-  void set(int a,int b) { x=a;y=b; }
+struct TPoint:
+  public CGPoint
+{
+  TPoint() { x = y = 0; }
+  TPoint(TCoord inX, int inY) { x=inX; y=inY; }
+  void set(TCoord a, TCoord b) { x=a;y=b; }
 };
 
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }
 
-struct TDPoint {
-  TDPoint() {x=y=0;}
-  TDPoint(TCoord a, TCoord b):x(a),y(b){}
-  TCoord x,y;
-  void set(TCoord a, TCoord b) { x=a;y=b; }
-};
-
-inline ostream& operator<<(ostream &s, const TDPoint& p) {
-  return s<<'('<<p.x<<','<<p.y<<')';
-}
+typedef TPoint TDPoint;
 
 struct TRectangle;
 
 struct Box 
 {
-  int  x1, x2, y1, y2;
+  TCoord  x1, x2, y1, y2;
   
   Box() { set(0, 0, 0, 0); }
   Box(const Box &box) { set(box.x1, box.y1, box.x2, box.y2); }

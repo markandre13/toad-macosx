@@ -21,36 +21,27 @@
 #include <toad/matrix2d.hh>
 #include <cmath>
 
-// missing in mingw
-#ifndef M_PI
-#define M_PI 3.14159265358979323846  /* pi */
-#endif
-
 using namespace toad;
 using namespace std;
 
 TMatrix2D::TMatrix2D()
 {
   identity();
-  next = 0;  
 }
 
 TMatrix2D::TMatrix2D(const TMatrix2D &m)
 {
   *this = m;
-  next = 0;  
+}
+
+TMatrix2D::~TMatrix2D()
+{
 }
 
 TMatrix2D&
-TMatrix2D::operator=(const TMatrix2D &m)
+TMatrix2D::operator=(const TMatrix2D &in)
 {
-  a11 = m.a11;
-  a12 = m.a12;
-  a21 = m.a21;
-  a22 = m.a22;
-  tx  = m.tx;
-  ty  = m.ty;
-  _identity = m._identity;
+  *static_cast<CGAffineTransform*>(this) = in;
   return *this;
 }
 
@@ -62,13 +53,22 @@ TMatrix2D::operator=(const TMatrix2D &m)
    |  a21 a22  ty  | := |  0.0 1.0 0.0  |
     \ 0.0 0.0 1.0 /      \ 0.0 0.0 1.0 /
    \endpre
+ 
+ * Hmpf... Quartz says that their matrices are
+ 
+   a  b  0
+   c  d  0
+   tx ty 1
+   
+   but then concat operates like this:
+   
+   new := a * old
+
  */
 void
 TMatrix2D::identity()
 {
-  a11 = a22 = 1.0;
-  a21 = a12 = tx = ty = 0.0;
-  _identity = true;
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformIdentity;
 }
  
 /**
@@ -82,27 +82,18 @@ TMatrix2D::identity()
   |  a21 a22  ty  | :=  |  a21 a22  ty  | * |  r21 r22 0.0  |
    \ 0.0 0.0 1.0 /       \ 0.0 0.0 1.0 /     \ 0.0 0.0 1.0 / 
    \endpre
+   
+  Quartz says
+  
+    cos sin  0
+    -sin cos 0
+    0   0    1
+   
  */
 void
 TMatrix2D::rotate(TCoord radiant)
 {
-  TCoord r11, r12, r21, r22;
-  r11 = r22 = cos(radiant);
-  r21 = sin(radiant);
-  r12 = -r21;  
-
-  TCoord n11 = a11 * r11 + a12 * r21;
-  TCoord n21 = a21 * r11 + a22 * r21;
-
-  TCoord n12 = a11 * r12 + a12 * r22;
-  TCoord n22 = a21 * r12 + a22 * r22;
-
-  a11 = n11;
-  a21 = n21;
-  a12 = n12;
-  a22 = n22;
-  
-  _identity = false;
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformRotate(*this, radiant);
 }
 
 /**
@@ -112,16 +103,15 @@ TMatrix2D::rotate(TCoord radiant)
  * \pre
   M' := M * T
  
-   / a11 a12  tx \      / a11 a12  tx \     / 1.0 0.0   x \
-  |  a21 a22  ty  | := |  a21 a22  ty  | * |  0.0 1.0   y  |
-   \ 0.0 0.0 1.0 /      \ 0.0 0.0 1.0 /     \ 0.0 0.0 1.0 / 
+   / a11 a12  tx \      / a11 a12 0 \     / 1 0 0 \
+  |  a21 a22  ty  | := |  a21 a22 0  | * |  0 1 0  |
+   \ 0.0 0.0 1.0 /      \  tx  ty 1 /     \ x y 1 / 
    \endpre
  */
 void
 TMatrix2D::translate(TCoord x, TCoord y)
 {
-  tx += a11 * x + a12 * y;
-  ty += a21 * x + a22 * y;
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformTranslate(*this, x, y);
 }
 
 /**
@@ -134,6 +124,7 @@ TMatrix2D::translate(TCoord x, TCoord y)
 void
 TMatrix2D::rotateAt(TCoord x, TCoord y, TCoord radiant)
 {
+#if 0
   TCoord r11, r12, r21, r22;
   r11 = r22 = cos(radiant);
   r21 = sin(radiant);
@@ -155,6 +146,7 @@ TMatrix2D::rotateAt(TCoord x, TCoord y, TCoord radiant)
   ty = nty; 
   
   _identity = false;
+#endif
 }
 
 /**
@@ -163,12 +155,14 @@ TMatrix2D::rotateAt(TCoord x, TCoord y, TCoord radiant)
 void
 TMatrix2D::scale(TCoord xfactor, TCoord yfactor)
 {
-  a11 *= xfactor;
-  a12 *= xfactor;
-  a21 *= yfactor;
-  a22 *= yfactor;
+#if 0
+  m.m11 *= xfactor;
+  m.m12 *= xfactor;
+  m.m21 *= yfactor;
+  m.m22 *= yfactor;
   
   _identity = false;
+#endif
 }
 
 void
@@ -179,47 +173,26 @@ TMatrix2D::shear(TCoord, TCoord)
 /**
  *
  * \pre
-   / a11 a12  tx \       / a11 a12  tx \     / r11 r12  rx \
-  |  a21 a22  ty  | :=  |  a21 a22  ty  | * |  r21 r22  ry  |
-   \ 0.0 0.0 1.0 /       \ 0.0 0.0 1.0 /     \ 0.0 0.0 1.0 / 
+
+  Cocoa/Quartz2D & Cairo style Matrix
+
+   / a11 a21 0.0 \       / a11 a21 0.0 \     / b11 b21 0.0  \
+  |  a12 a22 0.0  | :=  |  a12 a22 0.0  | * |  b12 b22 0.0  |
+   \  tX  tY 1.0 /       \ atX atY 1.0 /     \ btX btY 1.0 / 
+
    \endpre
  */
 void
-TMatrix2D::multiply(const TMatrix2D *m)
+TMatrix2D::multiply(const TMatrix2D *p)
 {
-  TCoord n11 = a11 * m->a11 + a12 * m->a21;
-  TCoord n21 = a21 * m->a11 + a22 * m->a21;
-
-  TCoord n12 = a11 * m->a12 + a12 * m->a22;
-  TCoord n22 = a21 * m->a12 + a22 * m->a22;
-
-  TCoord ntx = a11 * m->tx + a12 * m->ty + tx;
-  TCoord nty = a21 * m->tx + a22 * m->ty + ty;
-
-  a11 = n11;
-  a21 = n21;
-  a12 = n12;
-  a22 = n22;
-  tx = ntx; 
-  ty = nty; 
-  
-  _identity = false;
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformConcat(*this, *p);
 }
 
 TMatrix2D
-TMatrix2D::operator*(const TMatrix2D &m) const
+TMatrix2D::operator*(const TMatrix2D &p) const
 {
-  TMatrix2D r;
-  r.a11 = a11 * m.a11 + a12 * m.a21;
-  r.a21 = a21 * m.a11 + a22 * m.a21;
-
-  r.a12 = a11 * m.a12 + a12 * m.a22;
-  r.a22 = a21 * m.a12 + a22 * m.a22;
-
-  r.tx = a11 * m.tx + a12 * m.ty + tx;
-  r.ty = a21 * m.tx + a22 * m.ty + ty;
-  
-  r._identity = false;
+  TMatrix2D r(*this);
+  r.multiply(&p);
   return r;
 }
  
@@ -233,46 +206,56 @@ TMatrix2D::operator*(const TMatrix2D &m) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, short int *outX, short int *outY) const
 {
+/*
   TCoord x, y;
   x = inX; y=inY;
-  *outX = static_cast<short int>(lround(a11 * x + a12 * y + tx));
-  *outY = static_cast<short int>(lround(a21 * x + a22 * y + ty));
+  *outX = static_cast<short int>(lround(m.m11 * x + m.m21 * y + m.tX));
+  *outY = static_cast<short int>(lround(m.m12 * x + m.m22 * y + m.tY));
+*/
 }
 
 void
 TMatrix2D::map(TCoord inX, TCoord inY, int *outX, int *outY) const
 {
+/*
   TCoord x, y;
   x = inX; y=inY;
-  *outX = static_cast<int>(lround(a11 * x + a12 * y + tx));
-  *outY = static_cast<int>(lround(a21 * x + a22 * y + ty));
+  *outX = static_cast<int>(lround(m.m11 * x + m.m21 * y + m.tX));
+  *outY = static_cast<int>(lround(m.m12 * x + m.m22 * y + m.tY));
+*/
 }
 
 void
 TMatrix2D::map(TCoord inX, TCoord inY, long *outX, long *outY) const
 {
+/*
   TCoord x, y;
   x = inX; y=inY;
-  *outX = lround(a11 * x + a12 * y + tx);
-  *outY = lround(a21 * x + a22 * y + ty);
+  *outX = lround(m.m11 * x + m.m12 * y + m.tX);
+  *outY = lround(m.m21 * x + m.m22 * y + m.tY);
+*/
 }
 
 void
 TMatrix2D::map(TCoord inX, TCoord inY, float *outX, float *outY) const
 {
+/*
   TCoord x, y;
   x = inX; y=inY;
-  *outX = a11 * x + a12 * y + tx;
-  *outY = a21 * x + a22 * y + ty;
+  *outX = m.m11 * x + m.m12 * y + m.tX;
+  *outY = m.m21 * x + m.m22 * y + m.tY;
+*/
 }
 
 void
 TMatrix2D::map(TCoord inX, TCoord inY, double *outX, double *outY) const
 {
+/*
   TCoord x, y;
   x = inX; y=inY;
-  *outX = a11 * x + a12 * y + tx;
-  *outY = a21 * x + a22 * y + ty;
+  *outX = m.m11 * x + m.m12 * y + m.tX;
+  *outY = m.m21 * x + m.m22 * y + m.tY;
+*/
 }
 
 /**
@@ -286,30 +269,16 @@ TMatrix2D::map(TCoord inX, TCoord inY, double *outX, double *outY) const
 void
 TMatrix2D::invert()
 {
-  TCoord d = 1.0 / (a11 * a22 - a12 * a21);
-  TCoord n11 = d * a22;
-  TCoord n21 = d * -a21;
-  TCoord n12 = d * -a12;
-  TCoord n22 = d * a11;
-  TCoord nx  = d * (a12 * ty - a22 * tx);
-  TCoord ny  = d * (a21 * tx - a11 * ty);
-  
-  a11 = n11;
-  a21 = n21;
-  a12 = n12;
-  a22 = n22;
-  tx  = nx;
-  ty  = ny;
-  _identity = false;
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformInvert(*this);
 }
 
 void
 TMatrix2D::store(TOutObjectStream &out) const
 {
-  ::store(out, a11);
-  ::store(out, a21);
-  ::store(out, a12);
-  ::store(out, a22);
+  ::store(out, a);
+  ::store(out, b);
+  ::store(out, c);
+  ::store(out, d);
   ::store(out, tx);
   ::store(out, ty);
 }
@@ -317,12 +286,11 @@ TMatrix2D::store(TOutObjectStream &out) const
 bool
 TMatrix2D::restore(TInObjectStream &in)
 {
-  _identity = false;
   if (
-    ::restore(in, 0, &a11) ||
-    ::restore(in, 1, &a21) ||
-    ::restore(in, 2, &a12) ||
-    ::restore(in, 3, &a22) ||
+    ::restore(in, 0, &a) ||
+    ::restore(in, 1, &b) ||
+    ::restore(in, 2, &c) ||
+    ::restore(in, 3, &d) ||
     ::restore(in, 4, &tx) ||
     ::restore(in, 5, &ty) ||
     super::restore(in)

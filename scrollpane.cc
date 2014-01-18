@@ -26,6 +26,16 @@
 
 /**
  * \class toad::TScrollPane
+ *
+ * A window with two scrollbars by which the window contents can be scrolled.
+ *
+ * 'pane' is the area managed by TScrollPane
+ * 'visible' is the visible part of the 'pane'
+ *
+ * When visible.x or visible.y are not 0, then the area left/above to 0 will
+ * be scrolled also/still be scrolled. This is to be used for horizontal and
+ * vertical headers.
+ *
  */
 
 using namespace toad;
@@ -50,9 +60,14 @@ TScrollPane::resetScrollPane()
     hscroll->setValue(0);
 }
 
+/**
+ * The method being invoked by the scrollbars
+ */
 void
 TScrollPane::_scrolled()
 {
+  // calculate delta (dx, dy) between last position (lx, ly) and new one
+  // and store a new last position in (lx, ly)
   int dx, dy;
   dx = dy = 0;
   if (hscroll) {
@@ -65,8 +80,12 @@ TScrollPane::_scrolled()
     dy = ly - n;
     ly = n;
   }
+
+  // scroll screen
   scrollRectangle(visible, dx, dy, true);
   
+  // IMPROVE: the two scroll rectangle commands could be merged into the
+  // above scroll screen command
   if (visible.x) {
     TRectangle r(0,visible.y,visible.x,visible.h);
     scrollRectangle(r, 0, dy, true);
@@ -258,6 +277,10 @@ TScrollPane::paintCorner(TPenBase &pen)
 #endif
 }
 
+/**
+ *
+ * IMPROVE: we have pointer here! drop the 'setall' flag
+ */
 void
 TScrollPane::getPanePos(int *x, int *y, bool setall) const {
   if (setall) {

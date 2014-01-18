@@ -21,32 +21,46 @@
 #ifndef _TOAD_MATRIX2D_HH
 #define _TOAD_MATRIX2D_HH 1
 
+//#import <AppKit/NSAffineTransform.h>
+#include "CoreGraphics/CGAffineTransform.h"
+
 #include <toad/types.hh>
 #include <toad/io/serializable.hh>
 
 namespace toad {
 
 class TMatrix2D:
-  public TSerializable
+  public CGAffineTransform, public TSerializable
 {
     typedef TSerializable super;
-    bool _identity;
   public:
     TMatrix2D();
+    virtual ~TMatrix2D();
     TMatrix2D(const TMatrix2D&);
+    TMatrix2D(const CGAffineTransform &m) {
+      *static_cast<CGAffineTransform*>(this) = m;
+    }
+    TMatrix2D(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty) {
+      a = a11;
+      b = a21;
+      c = a12;
+      d = a22;
+      this->tx  = tx;
+      this->ty  = ty;
+    }
     TMatrix2D& operator=(const TMatrix2D&);
+    TMatrix2D& operator=(const CGAffineTransform &m) {
+      *static_cast<CGAffineTransform*>(this) = m;
+      return *this;
+    }
     TMatrix2D& operator*=(const TMatrix2D &m) {
       multiply(&m);
       return *this;
     }
     TMatrix2D operator*(const TMatrix2D &m) const;
   
-    TCoord a11, a12;
-    TCoord a21, a22;
-    TCoord tx, ty;
-
     void identity();
-    bool isIdentity() const { return _identity; }
+    bool isIdentity() const;
     void rotate(TCoord radiant);
     void rotateAt(TCoord x, TCoord y, TCoord radiant);
     void translate(TCoord dx, TCoord dy);
@@ -58,10 +72,10 @@ class TMatrix2D:
     void invert();
 
     void set(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty) {
-      this->a11 = a11;
-      this->a21 = a21;
-      this->a12 = a12;
-      this->a22 = a22;
+      a = a11;
+      b = a21;
+      c = a12;
+      d = a22;
       this->tx  = tx;
       this->ty  = ty;
     }
@@ -72,8 +86,6 @@ class TMatrix2D:
     void map(TCoord inX, TCoord inY, float *outX, float *outY) const;
     void map(TCoord inX, TCoord inY, double *outX, double *outY) const;
  
-    TMatrix2D *next;
-    
     SERIALIZABLE_INTERFACE(toad::, TMatrix2D);
 };
 

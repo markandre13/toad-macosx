@@ -319,11 +319,11 @@ class TSelectionTool:
     bool grab;                // grabbed selection for moving
     bool hndl;                // grabbed handle
     unsigned handle;
-    int rx0, ry0, rx1, ry1;   // rectangle for rectangle selection
-    int x0, y0, x1, y1;       // bounding rectangle
-    int ox0, oy0, ox1, oy1;   // bounding rectangle before resizing it
-    int last_x, last_y;       // last mouse position in figure coordinates when moving selection
-    int last_sx, last_sy;     // last mouse position in screen coordinates when moving selection
+    TCoord rx0, ry0, rx1, ry1;   // rectangle for rectangle selection
+    TCoord x0, y0, x1, y1;       // bounding rectangle
+    TCoord ox0, oy0, ox1, oy1;   // bounding rectangle before resizing it
+    TCoord last_x, last_y;       // last mouse position in figure coordinates when moving selection
+    TCoord last_sx, last_sy;     // last mouse position in screen coordinates when moving selection
     TFigureSet selection;
     vector<TMatrix2D> oldmat;
   public:
@@ -366,7 +366,7 @@ void
 TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
 {
   TFigure *figure;
-  int x, y;
+  TCoord x, y;
   TRectangle r;
   
   switch(me.type) {
@@ -377,8 +377,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
       }
       if (!fe->selection.empty()) {
         // origin is already applied by scroll pane?
-        int x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-        int y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+        TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+        TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
 //        cout << "down at " << x << ", " << y << endl;
         for(unsigned i=0; i<8; ++i) {
           getBoundingHandle(i, &r);
@@ -463,7 +463,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
       } else {
         // mouse is holding a handle, scale the selection
         invalidateBounding(fe);
-        int x, y;
+        TCoord x, y;
         x = me.x - fe->getVisible().x;
         y = me.y - fe->getVisible().y;
         switch(handle) {
@@ -497,9 +497,9 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
             break;
         }
 
-        double sx = (double)(x1-x0)/(ox1 - ox0);
-        double sy = (double)(y1-y0)/(oy1 - oy0);
-        double X0, OX0, Y0, OY0;
+        TCoord sx = (x1-x0)/(ox1 - ox0);
+        TCoord sy = (y1-y0)/(oy1 - oy0);
+        TCoord X0, OX0, Y0, OY0;
         if (fe->getMatrix()) {
           TMatrix2D m(*fe->getMatrix());
           m.invert();
@@ -538,11 +538,11 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
         break;
       }
       if (grab) {
-        int x, y;
+        TCoord x, y;
         fe->mouse2sheet(me.x, me.y, &x, &y);
         fe->sheet2grid(x, y, &x, &y);
-        int dx = x-last_x;
-        int dy = y-last_y;
+        TCoord dx = x-last_x;
+        TCoord dy = y-last_y;
         last_x=x;
         last_y=y;
         
@@ -819,7 +819,7 @@ TColorPickTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
   if (me.type!=TMouseEvent::LDOWN)
     return;
     
-  int x, y;
+  TCoord x, y;
   fe->mouse2sheet(me.x, me.y, &x, &y);
   TFigure *f = fe->findFigureAt(x, y);
   cout << "found figure " << f << endl;

@@ -25,29 +25,13 @@ using namespace toad;
 
 TPen::TPen(TWindow *w)
 {
-//  [[NSGraphicsContext currentContext] saveGraphicsState];
-//  [[NSGraphicsContext currentContext] setShouldAntialias: NO];
-
   font = new TFont;
-  setColor(0,0,0);
   linestyle = SOLID;
   window = w;
-
-/*
-  According to the manual, Cocoa already sets up a clip path during [NSView
-  drawRect: <rect>], hence there shouldn't be a need to do this.
-  
-  clipPath = [NSBezierPath bezierPath];
-  [clipPath appendBezierPathWithRect: NSMakeRect(0, 0, w->w, w->h)];
-  [clipPath setClip];
- */ 
-  mstack.push_back([NSAffineTransform transform]);
-
-  NSAffineTransform* xform = [NSAffineTransform transform];
-  int x, y;
-  w->getOrigin(&x, &y);
-  [xform translateXBy: x yBy: y];
-  [xform concat];
+  ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  windowmatrix = CGContextGetCTM(ctx);
+  setColor(0,0,0);
+  setAlpha(1);
 }
 
 TPen::TPen(TBitmap *)
@@ -56,86 +40,88 @@ TPen::TPen(TBitmap *)
 
 TPen::~TPen()
 {
-  [NSBezierPath setDefaultLineWidth: 1];
-//  [[NSGraphicsContext currentContext] restoreGraphicsState];
-
-  // [clipPath release];
 }
 
 void
 TPen::identity()
 {
   NSAffineTransform* xform = [NSAffineTransform transform];
-  for(mstack_t::const_iterator p = mstack.begin();
-      p != mstack.end();
-      ++p)
-  {
-    [xform appendTransform: *p];
-  }
-  [xform invert];
-  [xform concat];
-  [mstack.back() appendTransform: xform];
+  NSAffineTransformStruct m;
+  m.m11 = windowmatrix.a;
+  m.m12 = windowmatrix.b;
+  m.m21 = windowmatrix.c;
+  m.m22 = windowmatrix.d;
+  m.tX  = windowmatrix.tx;
+  m.tY  = windowmatrix.ty;
+  [xform setTransformStruct: m];
+  [xform set];
 }
 
 void
 TPen::translate(TCoord dx, TCoord dy)
 {
-  NSAffineTransform* xform = [NSAffineTransform transform];
-  [xform translateXBy: dx yBy: dy];
-  [xform concat];
-  [mstack.back() appendTransform: xform];
+  CGContextTranslateCTM(ctx, dx, dy);
 }
 
 void
 TPen::scale(TCoord sx, TCoord sy)
 {
-  NSAffineTransform* xform = [NSAffineTransform transform];
-  [xform scaleXBy: sx yBy: sy];
-  [xform concat];
-  [mstack.back() appendTransform: xform];
+  CGContextScaleCTM(ctx, sx, sy);
 }
 
 void
 TPen::rotate(TCoord radians)
 {
-  NSAffineTransform* xform = [NSAffineTransform transform];
-  [xform rotateByRadians: radians];
-  [xform concat];
-  [mstack.back() appendTransform: xform];
+  CGContextRotateCTM(ctx, radians);
 }
 
 void
 TPen::multiply(const TMatrix2D *m)
 {
-  NSAffineTransform* xform = [NSAffineTransform transform];
-  NSAffineTransformStruct m0;
-  m0.m11 = m->a11;
-  m0.m12 = m->a12;
-  m0.m21 = m->a21;
-  m0.m22 = m->a22;
-  m0.tX  = m->tx;
-  m0.tY  = m->ty;
-  [xform setTransformStruct: m0];
-  [xform concat];
-  [mstack.back() appendTransform: xform];
+  CGContextConcatCTM(ctx, *m);
 }
 
 void
 TPen::push()
 {
-  mstack.push_back([NSAffineTransform transform]);
+#if 1
+  CGContextSaveGState(ctx);
+#else
+  mstack.push_back(CGContextGetCTM(ctx));
+#endif
 }
 
 void
 TPen::pop()
 {
-  [mstack.back() invert];
-  [mstack.back() concat];
+#if 1
+  CGContextRestoreGState(ctx);
+#else
+  if (mstack.empty())
+    return;
+  NSAffineTransform* xform = [NSAffineTransform transform];
+  const TMatrix2D &a = mstack.back();
+  NSAffineTransformStruct m;
+  m.m11 = a.a;
+  m.m12 = a.b;
+  m.m21 = a.c;
+  m.m22 = a.d;
+  m.tX  = a.tx;
+  m.tY  = a.ty;
+  [xform setTransformStruct: m];
+  [xform set];
   mstack.pop_back();
+#endif
 }
 
 void
-TPen::setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty)
+TPen::setMatrix(const TMatrix2D &m)
+{
+  setMatrix(m.a, m.b, m.c, m.d, m.tx, m.ty);
+}
+
+void
+TPen::setMatrix(TCoord a11, TCoord a12, TCoord a21, TCoord a22, TCoord tx, TCoord ty)
 {
   identity();
   NSAffineTransform* xform = [NSAffineTransform transform];
@@ -148,24 +134,16 @@ TPen::setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoor
   m0.tY  = ty;
   [xform setTransformStruct: m0];
   [xform concat];
-  [mstack.back() appendTransform: xform];
 }
 
+/* could've returned NULL in the original TOAD... was that a good idea? */
 const TMatrix2D*
 TPen::getMatrix() const
 {
-  static TMatrix2D m0;
-  m0.identity();
-  for(mstack_t::const_iterator p = mstack.begin();
-      p != mstack.end();
-      ++p)
-  {
-    TMatrix2D m1;
-    NSAffineTransformStruct m2 = [*p transformStruct];
-    m1.set(m2.m11, m2.m12, m2.m21, m2.m22, m2.tX, m2.tY);
-    m0*=m1;
-  }
-  return &m0;
+  CGAffineTransform m0 = CGAffineTransformInvert(windowmatrix);
+  CGAffineTransform m1 = CGContextGetCTM(ctx);
+  static TMatrix2D m = CGAffineTransformConcat(m1, m0);
+  return &m;
 }
 
 void
@@ -235,7 +213,10 @@ TPen::vsetColor(TCoord r, TCoord g, TCoord b) {
   stroke.r = fill.r = r;
   stroke.g = fill.g = g;
   stroke.b = fill.b = b;
-  [[NSColor colorWithDeviceRed: r green: g blue: b alpha: stroke.a] set];
+  if (!ctx)
+    return;
+  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
+  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
 }
 
 void
@@ -243,7 +224,7 @@ TPen::vsetLineColor(TCoord r, TCoord g, TCoord b) {
   stroke.r = r;
   stroke.g = g;
   stroke.b = b;
-  [[NSColor colorWithDeviceRed: r green: g blue: b alpha: stroke.a] setStroke];
+  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
 }
 
 void
@@ -251,14 +232,14 @@ TPen::vsetFillColor(TCoord r, TCoord g, TCoord b) {
   fill.r = r;
   fill.g = g;
   fill.b = b;
-  [[NSColor colorWithDeviceRed: r green: g blue: b alpha: fill.a] setFill];
+  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
 }
 
 void
 TPen::setAlpha(TCoord a) {
   stroke.a = fill.a = a;
-  [[NSColor colorWithDeviceRed: stroke.r green: stroke.g blue: stroke.b alpha: stroke.a] setStroke];
-  [[NSColor colorWithDeviceRed: fill.r green: fill.g blue: fill.b alpha: fill.a] setFill];
+  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
+  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
 }
 
 TCoord
@@ -270,54 +251,9 @@ TPen::getAlpha() const
 
 void
 TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
-  if (w<0) {
-    x += w;
-    w = -w;
-  }
-  if (h<0) {
-    y += h;
-    h = -h;
-  }
-
-  NSRect r = NSMakeRect(x,y,w,h);
-  if (linestyle==SOLID) {
-    [NSBezierPath strokeRect: r];
-    return;
-  }
-
-  NSBezierPath *path = [NSBezierPath bezierPathWithRect: r];
-  CGFloat f[6];
-  switch(linestyle) {
-    case SOLID:  
-      break;     
-    case DASH:   
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
-      [path setLineDash: f count: 2 phase: 0.0];
-      break;     
-    case DOT:  
-      f[0] = 1.0; // painted
-      f[1] = 1.0; // gap
-      [path setLineDash: f count: 2 phase: 0.0];
-      break;  
-    case DASHDOT:
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
-      f[2] = 1.0; // painted
-      f[3] = 1.0; // gap
-      [path setLineDash: f count: 4 phase: 0.0];
-      break;
-    case DASHDOTDOT:
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
-      f[2] = 1.0; // painted
-      f[3] = 1.0; // gap
-      f[4] = 1.0; // painted
-      f[5] = 1.0; // gap
-      [path setLineDash: f count: 6 phase: 0.0];
-      break;
-  }
-  [path stroke];
+  CGContextAddRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathStroke);
+//  CGContextStrokePath(ctx);
 }
 
 void
@@ -330,22 +266,20 @@ TPen::vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
     y += h;
     h = -h;
   }
-  NSRect r = NSMakeRect(x,y,w,h);
-  [NSBezierPath fillRect: r];
+  CGContextAddRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathFill);
 }
 
 void
 TPen::vdrawCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
-  NSRect r = NSMakeRect(x,y,w,h);
-  NSBezierPath *path = [NSBezierPath bezierPathWithOvalInRect: r];
-  [path stroke];
+  CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
-  NSRect r = NSMakeRect(x,y,w,h);
-  NSBezierPath *path = [NSBezierPath bezierPathWithOvalInRect: r];
-  [path fill];
+  CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathFill);
 }
 
 void
@@ -423,19 +357,38 @@ void
 TPen::setLineStyle(ELineStyle style)
 {
   this->linestyle = style;
-  switch(style) {
+  CGFloat f[6];
+  switch(linestyle) {
     case SOLID:
-      break;
-    case DASH:
-      break;
-    case DOT:
-      break;
+      CGContextSetLineDash(ctx, 0, f, 0);
+      break;     
+    case DASH:   
+      f[0] = 3.0; // painted
+      f[1] = 1.0; // gap
+      CGContextSetLineDash(ctx, 0, f, 2);
+      break;     
+    case DOT:  
+      f[0] = 1.0; // painted
+      f[1] = 1.0; // gap
+      CGContextSetLineDash(ctx, 0, f, 2);
+      break;  
     case DASHDOT:
+      f[0] = 3.0; // painted
+      f[1] = 1.0; // gap
+      f[2] = 1.0; // painted
+      f[3] = 1.0; // gap
+      CGContextSetLineDash(ctx, 0, f, 4);
       break;
     case DASHDOTDOT:
+      f[0] = 3.0; // painted
+      f[1] = 1.0; // gap
+      f[2] = 1.0; // painted
+      f[3] = 1.0; // gap
+      f[4] = 1.0; // painted
+      f[5] = 1.0; // gap
+      CGContextSetLineDash(ctx, 0, f, 6);
       break;
   }
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void

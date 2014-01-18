@@ -99,12 +99,12 @@ TScrollBar::_drawSlider(TPen &pen, TRectangle &r)
   // draw slider face
   //------------------
   pen.setColor(TColor::SLIDER_FACE);
-  pen.fillRectanglePC(r.x+3, r.y+3, r.w-6, r.h-6);
+  pen.fillRectangle(r.x+3, r.y+3, r.w-6, r.h-6);
 
   // draw border
   //-------------
   pen.setColor(0,0,0);
-  pen.drawRectanglePC(r.x, r.y, r.w, r.h);
+  pen.drawRectangle(r.x, r.y, r.w, r.h);
   
   // draw shadow(s)
   //----------------
@@ -113,10 +113,10 @@ TScrollBar::_drawSlider(TPen &pen, TRectangle &r)
   if (bVertical)
   {
     c = r.y+(r.h>>1)-2;
-    pen.fillRectanglePC(r.x+5, c+1, r.w-8, 5);
+    pen.fillRectangle(r.x+5, c+1, r.w-8, 5);
   } else {
     c = r.x+(r.w>>1)-2;
-    pen.fillRectanglePC(c+1, r.y+5, 5, r.h-8);
+    pen.fillRectangle(c+1, r.y+5, 5, r.h-8);
   }
 
   p[0].set(r.x+1    , r.y+r.h-2);
