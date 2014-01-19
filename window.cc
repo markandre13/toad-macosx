@@ -193,11 +193,13 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
       break;
     case PLACE_CORNER_MOUSE_POINTER:
       break;
-    case PLACE_PULLDOWN:
-      parent->getRootPos(&x, &y);
+    case PLACE_PULLDOWN: {
+      int rx, ry;
+      parent->getRootPos(&rx, &ry);
+      x=rx; y=ry;
       y-=parent->h; // below parent
       y-=h;
-      break;
+    } break;
     case PLACE_TOOLTIP:
       break;
   }

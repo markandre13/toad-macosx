@@ -157,7 +157,7 @@ TMenuButton::paint()
     }
   }
 
-  int x, y;
+  TCoord x, y;
   if (master->vertical) {
     x = 3;
     y = 1;
@@ -181,7 +181,7 @@ TMenuButton::paint()
   if (node->type==TMenuHelper::TNode::SEPARATOR) {
 //    pen.setColor(TColor::MENU);
 //    pen.fillRectanglePC(0,0,getWidth(), getHeight());
-    int y = getHeight()/2;
+    TCoord y = getHeight()/2;
     pen.setColor(TColor::BTNSHADOW);
     pen.drawLine(0, y, getWidth(), y);
     pen.setColor(TColor::BTNLIGHT);
@@ -190,9 +190,9 @@ TMenuButton::paint()
     return;
   }
 
-  int x_icon = x;
-  int x_text = x_icon + master->menu_width_icon+8;
-  int x_short= x_text + master->menu_width_text+8;
+  TCoord x_icon = x;
+  TCoord x_text = x_icon + master->menu_width_icon+8;
+  TCoord x_short= x_text + master->menu_width_text+8;
   
   if (node->isEnabled()) {
 #if 1
@@ -233,7 +233,7 @@ TMenuButton::paint()
       )
     )
   {
-    int y=h>>1;
+    TCoord y=h/2;
     TPoint tri[3];
     tri[0].x=w-7; tri[0].y=y-4;
     tri[1].x=w-3; tri[1].y=y;

@@ -221,8 +221,6 @@ class TPenBase
 
     static void poly2Bezier(const TPoint *src, size_t n, TPolygon &dst);
     static void poly2Bezier(const TPolygon &p, TPolygon &d);
-    static void poly2Bezier(const TDPoint *src, size_t n, TDPolygon &dst);
-    static void poly2Bezier(const TDPolygon &p, TDPolygon &d);
 
     virtual void showPage();
 };

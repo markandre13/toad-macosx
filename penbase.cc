@@ -302,188 +302,15 @@ TPenBase::textRatio(TCoord x,TCoord y,const string &str, unsigned width, TFont *
   return y+font->getHeight();
 }
 
+static void curve(TPolygon&,TCoord,TCoord,TCoord,TCoord,TCoord,TCoord,TCoord,TCoord);
 
-
-
-static void curve(TPolygon&,double,double,double,double,double,double,double,double);
-static void fcurve(TDPolygon&,double,double,double,double,double,double,double,double);
-
-#if 0
-static bool
-points2list(TMatrix2D *mat, const TPoint *p, int n)
-{
-  if (n<4)
-    return false;
-
-  lst.clear();
-  int x, y;
-  if (!mat) {
-    lst.push(p[0].x, p[0].y);
-  } else {
-    mat->map(p[0].x, p[0].y, &x, &y);
-    lst.push(x, y);
-  }
-
-  while(n>=4) {
-    if (!mat) {
-      xcurve(lst,
-             p->x, p->y,
-             (p+1)->x, (p+1)->y,
-             (p+2)->x, (p+2)->y,
-             (p+3)->x, (p+3)->y);
-      p+=3;
-    } else {
-      int px[4], py[4];
-      for(int j=1; j<4; ++j) {
-        ++p;
-        mat->map(p->x, p->y, &px[j], &py[j]);
-      }
-      xcurve(lst,
-             x,     y,
-             px[1], py[1],
-             px[2], py[2],
-             px[3], py[3]);
-      x=px[3]; y=py[3];
-    }
-    n-=3;
-  }
-  return true;
-}
-
-static bool
-points2list(TMatrix2D *mat, const TDPoint *p, int n)
-{
-  if (n<4)
-    return false;
-
-  lst.clear();
-  double x, y;
-  if (!mat) {
-    lst.push(p[0].x, p[0].y);
-  } else {
-    mat->map(p[0].x, p[0].y, &x, &y);
-    lst.push(x, y);
-  }
-
-  while(n>=4) {
-    if (!mat) {
-      xcurve(lst,
-             p->x, p->y,
-             (p+1)->x, (p+1)->y,
-             (p+2)->x, (p+2)->y,
-             (p+3)->x, (p+3)->y);
-      p+=3;
-    } else {
-      double px[4], py[4];
-      for(int j=1; j<4; ++j) {
-        ++p;
-        mat->map(p->x, p->y, &px[j], &py[j]);
-      }
-      xcurve(lst,
-             x,     y,
-             px[1], py[1],
-             px[2], py[2],
-             px[3], py[3]);
-      x=px[3]; y=py[3];
-    }
-    n-=3;
-  }
-  return true;
-}
-
-static bool
-polygon2list(TMatrix2D *mat, const TPolygon &polygon)
-{
-  unsigned n = polygon.size();
-  if (n<4)
-    return false;
-
-  lst.clear();
-  int x, y;
-  if (!mat) {
-    lst.push(polygon[0].x, polygon[0].y);
-  } else {
-    mat->map(polygon[0].x, polygon[0].y, &x, &y);
-    lst.push(x, y);
-  }
-
-  TPolygon::const_iterator p(polygon.begin());
-  while(n>=4) {
-    if (!mat) {
-      xcurve(lst,
-             p->x, p->y,
-             (p+1)->x, (p+1)->y,
-             (p+2)->x, (p+2)->y,
-             (p+3)->x, (p+3)->y);
-      p+=3;
-    } else {
-      int px[4], py[4];
-      for(int j=1; j<4; ++j) {
-        ++p;
-        mat->map(p->x, p->y, &px[j], &py[j]);
-      }
-      xcurve(lst,
-             x,     y,
-             px[1], py[1],
-             px[2], py[2],
-             px[3], py[3]);
-      x=px[3]; y=py[3];
-    }
-    n-=3;
-  }
-  return true;
-}
-
-static bool
-polygon2list(TMatrix2D *mat, const TDPolygon &polygon)
-{
-  unsigned n = polygon.size();
-  if (n<4)
-    return false;
-
-  lst.clear();
-  double x, y;
-  if (!mat) {
-    lst.push(polygon[0].x, polygon[0].y);
-  } else {
-    mat->map(polygon[0].x, polygon[0].y, &x, &y);
-    lst.push(x, y);
-  }
-
-  TDPolygon::const_iterator p(polygon.begin());
-  while(n>=4) {
-    if (!mat) {
-      xcurve(lst,
-             p->x, p->y,
-             (p+1)->x, (p+1)->y,
-             (p+2)->x, (p+2)->y,
-             (p+3)->x, (p+3)->y);
-      p+=3;
-    } else {
-      double px[4], py[4];
-      for(int j=1; j<4; ++j) {
-        ++p;
-        mat->map(p->x, p->y, &px[j], &py[j]);
-      }
-      xcurve(lst,
-             x,     y,
-             px[1], py[1],
-             px[2], py[2],
-             px[3], py[3]);
-      x=px[3]; y=py[3];
-    }
-    n-=3;
-  }
-  return true;
-}
-#endif
 void 
 TPenBase::poly2Bezier(const TPoint* src, size_t n, TPolygon &dst)
 {
   dst.erase(dst.begin(), dst.end());
   dst.push_back(TPoint(src[0].x, src[0].y));
   n-=3;
-  int i=0;
+  size_t i=0;
   while(i<=n) {
     curve(dst,
           src[i].x,   src[i].y,
@@ -499,9 +326,9 @@ TPenBase::poly2Bezier(const TPolygon &src, TPolygon &dst)
 {
   dst.erase(dst.begin(), dst.end());
   dst.addPoint(src[0]);
-  unsigned n = src.size();
+  size_t n = src.size();
   n-=3;
-  unsigned i=0;
+  size_t i=0;
   while(i<=n) {
     curve(dst,
           src[i].x,   src[i].y,
@@ -512,168 +339,57 @@ TPenBase::poly2Bezier(const TPolygon &src, TPolygon &dst)
   }
 }
 
-void 
-TPenBase::poly2Bezier(const TDPoint* src, size_t n, TDPolygon &dst)
-{
-  dst.erase(dst.begin(), dst.end());
-  dst.push_back(TDPoint(src[0].x, src[0].y));
-  n-=3;
-  int i=0;
-  while(i<=n) {
-    fcurve(dst,
-          src[i].x,   src[i].y,
-          src[i+1].x, src[i+1].y,
-          src[i+2].x, src[i+2].y,
-          src[i+3].x, src[i+3].y);
-    i+=3;
-  }
-}
-
-inline double
-mid(double a, double b)
+static inline TCoord
+mid(TCoord a, TCoord b)
 {
   return (a + b) / 2.0;
 }
 
 #define WEIGHT 4.0
 
-#if 0
-static void xcurve(
-  TXPoints &poly,
-  double x0, double y0, 
-  double x1, double y1,
-  double x2, double y2,
-  double x3, double y3)
-{
-  double vx0 = x1-x0;
-  double vx1 = x2-x1;
-  double vx2 = x3-x2;
-  double vy0 = y1-y0;
-  double vy1 = y2-y1;
-  double vy2 = y3-y2;
-  double vx3 = x2-x0;
-  double vx4 = x3-x0;
-  double vy3 = y2-y0;
-  double vy4 = y3-y0;
-
-  double w0 = vx0 * vy1 - vy0 * vx1;
-  double w1 = vx1 * vy2 - vy1 * vx2;
-  double w2 = vx3 * vy4 - vy3 * vx4;
-  double w3 = vx0 * vy4 - vy0 * vx4;
-
-  if (fabs(w0)+fabs(w1)+fabs(w2)+fabs(w3)<WEIGHT) {
-    poly.push(x0, y0);
-    poly.push(x1, y1);
-    poly.push(x2, y2);
-    poly.push(x3, y3);
-  } else {
-    double xx  = mid(x1, x2);
-    double yy  = mid(y1, y2);
-    double x11 = mid(x0, x1);
-    double y11 = mid(y0, y1);
-    double x22 = mid(x2, x3);
-    double y22 = mid(y2, y3);
-    double x12 = mid(x11, xx);
-    double y12 = mid(y11, yy);
-    double x21 = mid(xx, x22);
-    double y21 = mid(yy, y22);
-    double cx  = mid(x12, x21);
-    double cy  = mid(y12, y21);
-    xcurve(poly, x0, y0, x11, y11, x12, y12, cx, cy);
-    xcurve(poly, cx, cy, x21, y21, x22, y22, x3, y3);
-  }
-}
-#endif
-
 static void curve(
   TPolygon &poly,
-  double x0, double y0, 
-  double x1, double y1,
-  double x2, double y2,
-  double x3, double y3)
+  TCoord x0, TCoord y0, 
+  TCoord x1, TCoord y1,
+  TCoord x2, TCoord y2,
+  TCoord x3, TCoord y3)
 {
-  double vx0 = x1-x0;
-  double vx1 = x2-x1;
-  double vx2 = x3-x2;
-  double vy0 = y1-y0;
-  double vy1 = y2-y1;
-  double vy2 = y3-y2;
-  double vx3 = x2-x0;
-  double vx4 = x3-x0;
-  double vy3 = y2-y0;
-  double vy4 = y3-y0;
+  TCoord vx0 = x1-x0;
+  TCoord vx1 = x2-x1;
+  TCoord vx2 = x3-x2;
+  TCoord vy0 = y1-y0;
+  TCoord vy1 = y2-y1;
+  TCoord vy2 = y3-y2;
+  TCoord vx3 = x2-x0;
+  TCoord vx4 = x3-x0;
+  TCoord vy3 = y2-y0;
+  TCoord vy4 = y3-y0;
 
-  double w0 = vx0 * vy1 - vy0 * vx1;
-  double w1 = vx1 * vy2 - vy1 * vx2;
-  double w2 = vx3 * vy4 - vy3 * vx4;
-  double w3 = vx0 * vy4 - vy0 * vx4;
+  TCoord w0 = vx0 * vy1 - vy0 * vx1;
+  TCoord w1 = vx1 * vy2 - vy1 * vx2;
+  TCoord w2 = vx3 * vy4 - vy3 * vx4;
+  TCoord w3 = vx0 * vy4 - vy0 * vx4;
 
   if (fabs(w0)+fabs(w1)+fabs(w2)+fabs(w3)<WEIGHT) {
-    poly.push_back(TPoint(lround(x0), lround(y0)));
-    poly.push_back(TPoint(lround(x1), lround(y1)));
-    poly.push_back(TPoint(lround(x2), lround(y2)));
-    poly.push_back(TPoint(lround(x3), lround(y3)));
+    poly.push_back(TPoint(x0, y0));
+    poly.push_back(TPoint(x1, y1));
+    poly.push_back(TPoint(x2, y2));
+    poly.push_back(TPoint(x3, y3));
   } else {
-    double xx  = mid(x1, x2);
-    double yy  = mid(y1, y2);
-    double x11 = mid(x0, x1);
-    double y11 = mid(y0, y1);
-    double x22 = mid(x2, x3);
-    double y22 = mid(y2, y3);
-    double x12 = mid(x11, xx);
-    double y12 = mid(y11, yy);
-    double x21 = mid(xx, x22);
-    double y21 = mid(yy, y22);
-    double cx  = mid(x12, x21);
-    double cy  = mid(y12, y21);
+    TCoord xx  = mid(x1, x2);
+    TCoord yy  = mid(y1, y2);
+    TCoord x11 = mid(x0, x1);
+    TCoord y11 = mid(y0, y1);
+    TCoord x22 = mid(x2, x3);
+    TCoord y22 = mid(y2, y3);
+    TCoord x12 = mid(x11, xx);
+    TCoord y12 = mid(y11, yy);
+    TCoord x21 = mid(xx, x22);
+    TCoord y21 = mid(yy, y22);
+    TCoord cx  = mid(x12, x21);
+    TCoord cy  = mid(y12, y21);
     curve(poly, x0, y0, x11, y11, x12, y12, cx, cy);
     curve(poly, cx, cy, x21, y21, x22, y22, x3, y3);
-  }
-}
-
-static void fcurve(
-  TDPolygon &poly,
-  double x0, double y0, 
-  double x1, double y1,
-  double x2, double y2,
-  double x3, double y3)
-{
-  double vx0 = x1-x0;
-  double vx1 = x2-x1;
-  double vx2 = x3-x2;
-  double vy0 = y1-y0;
-  double vy1 = y2-y1;
-  double vy2 = y3-y2;
-  double vx3 = x2-x0;
-  double vx4 = x3-x0;
-  double vy3 = y2-y0;
-  double vy4 = y3-y0;
-
-  double w0 = vx0 * vy1 - vy0 * vx1;
-  double w1 = vx1 * vy2 - vy1 * vx2;
-  double w2 = vx3 * vy4 - vy3 * vx4;
-  double w3 = vx0 * vy4 - vy0 * vx4;
-
-  if (fabs(w0)+fabs(w1)+fabs(w2)+fabs(w3)<WEIGHT) {
-    poly.push_back(TDPoint(x0, y0));
-    poly.push_back(TDPoint(x1, y1));
-    poly.push_back(TDPoint(x2, y2));
-    poly.push_back(TDPoint(x3, y3));
-  } else {
-    double xx  = mid(x1, x2);
-    double yy  = mid(y1, y2);
-    double x11 = mid(x0, x1);
-    double y11 = mid(y0, y1);
-    double x22 = mid(x2, x3);
-    double y22 = mid(y2, y3);
-    double x12 = mid(x11, xx);
-    double y12 = mid(y11, yy);
-    double x21 = mid(xx, x22);
-    double y21 = mid(yy, y22);
-    double cx  = mid(x12, x21);
-    double cy  = mid(y12, y21);
-    fcurve(poly, x0, y0, x11, y11, x12, y12, cx, cy);
-    fcurve(poly, cx, cy, x21, y21, x22, y22, x3, y3);
   }
 }
 

@@ -50,8 +50,6 @@ inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }
 
-typedef TPoint TDPoint;
-
 struct TRectangle;
 
 struct Box 
@@ -60,9 +58,9 @@ struct Box
   
   Box() { set(0, 0, 0, 0); }
   Box(const Box &box) { set(box.x1, box.y1, box.x2, box.y2); }
-  Box(int left, int top, int right, int bottom) { set(left, top, right, bottom); }
+  Box(TCoord left, TCoord top, TCoord right, TCoord bottom) { set(left, top, right, bottom); }
   Box(const TRectangle &rectangle);
-  void set(int left, int top, int right, int bottom) {
+  void set(TCoord left, TCoord top, TCoord right, TCoord bottom) {
     this->x1 = left;
     this->y1 = top;
     this->x2 = right;
@@ -71,25 +69,25 @@ struct Box
   
   void set(const TRectangle &rectangle);
 
-  bool isInside(int x, int y) const { return x >= x1 && x < x2 && y >= y1 && y < y2; }
+  bool isInside(TCoord x, TCoord y) const { return x >= x1 && x < x2 && y >= y1 && y < y2; }
   bool isInsideOf(const Box &box) const { return x1 >= box.x1 && y1 >= box.y1 && x2 <= box.x2 && y2 <= box.y2; }
   bool isOverlapping(const Box &box) const { return x2 > box.x1 && y2 > box.y1 && x1 < box.x2 && y1 < box.y2; }
   bool isOverlapping(const TRectangle &rectangle) const;
-  void translate(int dx, int dy) { x1 += dx; y1 += dy; x2 += dx; y2 += dy; }
+  void translate(TCoord dx, TCoord dy) { x1 += dx; y1 += dy; x2 += dx; y2 += dy; }
 };
 
 struct TRectangle
 {
-  int x, y, h, w;
+  TCoord x, y, h, w;
   TRectangle() { set(0, 0, 0, 0); }
-  TRectangle(int x, int y, int w, int h) { set(x, y, w, h); }
+  TRectangle(TCoord x, TCoord y, TCoord w, TCoord h) { set(x, y, w, h); }
   TRectangle(const TPoint &p1, const TPoint &p2){ set(p1,p2); }
   TRectangle(const Box &b) { set(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1); }
   bool operator==(const TRectangle &r) const { return x==r.x && y==r.y && w==r.w && h==r.h; }
   bool isEmpty() const { return w<=0 || h<=0; }
-  void set(int x, int y, int w, int h); // { this->x=x; this->y=y; this->w=w; this->h=h; }
+  void set(TCoord x, TCoord y, TCoord w, TCoord h); // { this->x=x; this->y=y; this->w=w; this->h=h; }
   void set(const TPoint&, const TPoint&);
-  bool isInside(int px,int py) const { return x<=px && px<=x+w && y<=py && py<=y+h; }
+  bool isInside(TCoord px, TCoord py) const { return x<=px && px<=x+w && y<=py && py<=y+h; }
   bool intersects(const TRectangle &r) const;
 };
 
@@ -106,17 +104,9 @@ class TPolygon:
 {
   public:
     void addPoint(const TPoint &p) { push_back(p); }
-    void addPoint(int x, int y) { push_back(TPoint(x,y)); }
-    bool isInside(int x, int y) const;
+    void addPoint(TCoord x, TCoord y) { push_back(TPoint(x,y)); }
+    bool isInside(TCoord x, TCoord y) const;
     bool getShape(TRectangle *r) const;
-};
-
-class TDPolygon: 
-  public std::vector<TDPoint>
-{
-  public:
-    void addPoint(const TDPoint &p) { push_back(p); }
-    void addPoint(TCoord x, TCoord y) { push_back(TDPoint(x,y)); }
 };
 
 } // namespace toad

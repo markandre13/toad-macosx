@@ -32,29 +32,29 @@ TArrowButton::paint()
 
   int n=bDown && bInside ? 1:0;
 
-  const int d=4;
+  const TCoord d=4;
   TPoint p[3];
   
   switch(direction)
   {
     case ARROW_DOWN:
-      p[0].set(n+(w>>1), n+h-d-2);
+      p[0].set(n+w/2, n+h-d-2);
       p[1].set(n+w-d   , n+d-1+2);
       p[2].set(n+d-1   , n+d-1+2);
       break;
     case ARROW_UP:
       p[2].set(n+w-d   , n+h-d-2);
       p[1].set(n+d-1   , n+h-d-2);
-      p[0].set(n+(w>>1), n+d-1+2);
+      p[0].set(n+w/2, n+d-1+2);
       break;
     case ARROW_LEFT:
-      p[0].set(n+d-1+2 , n+(h>>1));
+      p[0].set(n+d-1+2 , n+h/2);
       p[1].set(n+w-d-2 , n+d-1);
       p[2].set(n+w-d-2 , n+h-d);
       break;
     case ARROW_RIGHT:
       p[0].set(n+d-1+2 , n+d-1);
-      p[1].set(n+w-d-2 , n+(h>>1));
+      p[1].set(n+w-d-2 , n+h/2);
       p[2].set(n+d-1+2 , n+h-d);
       break;
   }

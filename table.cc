@@ -545,13 +545,13 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
   string str;
   const char *txt = 0;
   TFigure *fig = 0;
-  int x=0, y;
+  TCoord x=0, y;
   if (idx<figures.size() && figures[idx]) {
     fig = figures[idx];
     TRectangle r;
     fig->getShape(&r);
-    x = (w - r.w)>>1;
-    y = (h - r.h)>>1;
+    x = (w - r.w)/2;
+    y = (h - r.h)/2;
   } else
   if (numeric) {
     snprintf(buffer, 15, "%zu", idx+1);

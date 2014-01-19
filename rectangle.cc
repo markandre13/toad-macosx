@@ -22,15 +22,15 @@
 
 using namespace toad;
 
-void TRectangle::set(int x, int y, int w, int h)
+void TRectangle::set(TCoord x, TCoord y, TCoord w, TCoord h)
 {
   if (w<0) {
     w=-w;
-    x-=w-1;
+    x-=w;
   }
   if (h<0) {
     h=-h;
-    y-=h-1;
+    y-=h;
   }
   this->x = x;
   this->y = y;
@@ -61,30 +61,30 @@ bool
 TRectangle::intersects(const TRectangle &r) const
 {
   unsigned f0, f1;
-  int a;
-  int x00, x01, x10, x11;
-  int y00, y01, y10, y11;
+  TCoord a;
+  TCoord x00, x01, x10, x11;
+  TCoord y00, y01, y10, y11;
   
   x00=x;
-  x01=x+w-1;
+  x01=x+w;
   if (x00>x01) {
     a=x00; x00=x01; x01=a;
   }
 
   x10=r.x;
-  x11=r.x+r.w-1;
+  x11=r.x+r.w;
   if (x10>x11) {
     a=x10; x10=x11; x11=a;
   }
 
   y00=y;
-  y01=y+h-1;
+  y01=y+h;
   if (y00>y01) {
     a=y00; y00=y01; y01=a;
   }
 
   y10=r.y;
-  y11=r.y+r.h-1;
+  y11=r.y+r.h;
   if (y10>y11) {
     a=y10; y10=y11; y11=a;
   }
