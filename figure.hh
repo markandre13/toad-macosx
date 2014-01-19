@@ -158,7 +158,7 @@ class TFigure:
     static const int NO_HANDLE = -1;
     virtual bool getHandle(unsigned n, TPoint *p);
     virtual bool startTranslateHandle();
-    virtual void translateHandle(unsigned handle, int x, int y, unsigned modifier);
+    virtual void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     virtual void endTranslateHandle();
 
     // stage 4: in place editing
@@ -170,10 +170,10 @@ class TFigure:
     // editor related stuff for manipulation & creation
     //--------------------------------------------------
     virtual void startCreate();
-    virtual unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
-    virtual unsigned mouseMove(TFigureEditor*, int, int, unsigned);
-    virtual unsigned mouseLUp(TFigureEditor*, int, int, unsigned);
-    virtual unsigned mouseRDown(TFigureEditor*, int, int, unsigned);
+    virtual unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    virtual unsigned mouseMove(TFigureEditor*, TMouseEvent &);
+    virtual unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
+    virtual unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
 
     // editor related stuff for all gadgets
     //--------------------------------------
@@ -259,16 +259,16 @@ class TFRectangle:
     double distance(int x, int y);
     void translate(int dx, int dy);
     bool getHandle(unsigned n, TPoint *p);
-    void translateHandle(unsigned handle, int mx, int my, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
 
     SERIALIZABLE_INTERFACE(toad::, TFRectangle);    
     
   protected:
     TPoint p1, p2;
 
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
-    unsigned mouseMove(TFigureEditor*, int, int, unsigned);
-    unsigned mouseLUp(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
+    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
 };
 
 /**
@@ -284,16 +284,16 @@ class TFPolygon:
     void getShape(TRectangle*);
     void translate(int dx, int dy);
     bool getHandle(unsigned n, TPoint *p);
-    void translateHandle(unsigned handle, int mx, int my, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     TPolygon polygon;
     
     SERIALIZABLE_INTERFACE(toad::, TFPolygon);
   protected:
     // polygon creation
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
-    unsigned mouseMove(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
     unsigned keyDown(TFigureEditor *editor, TKey key, char *str, unsigned);
-    unsigned mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier);
+    unsigned mouseRDown(TFigureEditor *editor, TMouseEvent &);
     virtual void _insertPointNear(int, int, bool filled);
   public:
     virtual void insertPointNear(int, int);
@@ -341,7 +341,7 @@ class TFLine:
     
     virtual void insertPointNear(int, int);
   protected:
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
     SERIALIZABLE_INTERFACE(toad::, TFLine);
 };
 
@@ -354,9 +354,9 @@ class TFBezierline:
   protected:
     void paintSelectionLines(TPenBase &pen);
   public:
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
-    unsigned mouseLUp(TFigureEditor*, int, int, unsigned);
-    unsigned mouseMove(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
 
     void insertPointNear(int x, int y);
     void deletePoint(unsigned i);
@@ -365,9 +365,9 @@ class TFBezierline:
     void paintSelection(TPenBase &pen, int handle);
     void _paintSelection(TPenBase &pen, int handle, bool filled);
     double _distance(TFigureEditor *fe, int x, int y);
-    void translateHandle(unsigned handle, int mx, int my, unsigned);
-    void _translateHandle(unsigned handle, int mx, int my, unsigned, bool filled);
-    unsigned mouseRDown(TFigureEditor*, int, int, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
+    void _translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned, bool filled);
+    unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
     
     TCloneable* clone() const { return new TFBezierline(*this); }
     const char * getClassName() const { return "toad::TFBezierline"; }
@@ -381,12 +381,12 @@ class TFBezier:
 {
     typedef TFBezier super;
   public:
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
 
     void paint(TPenBase &, EPaintType);
     void paintSelection(TPenBase &pen, int handle);
     double _distance(TFigureEditor *fe, int x, int y);
-    void translateHandle(unsigned handle, int x, int y, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     void setAttributes(const TFigureAttributes*);
     
     TCloneable* clone() const { return new TFBezier(*this); }
@@ -452,9 +452,9 @@ class TFText:
     unsigned stop(TFigureEditor*);
 
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
-    unsigned mouseLDown(TFigureEditor*, int, int, unsigned);
-    unsigned mouseMove(TFigureEditor*, int, int, unsigned);
-    unsigned mouseLUp(TFigureEditor*, int, int, unsigned);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
+    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
 
     TCloneable* clone() const { return new TFText(*this); }
 
@@ -489,9 +489,9 @@ class TFFrame:
     unsigned stop(TFigureEditor*);
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
     bool getHandle(unsigned n, TPoint *p);
-    unsigned mouseLDown(TFigureEditor *e, int x, int y, unsigned m);
-    unsigned mouseMove(TFigureEditor *e, int x, int y, unsigned m);
-    unsigned mouseLUp(TFigureEditor *e, int x, int y, unsigned m);
+    unsigned mouseLDown(TFigureEditor *e, TMouseEvent &);
+    unsigned mouseMove(TFigureEditor *e, TMouseEvent &);
+    unsigned mouseLUp(TFigureEditor *e, TMouseEvent &);
     
     TCloneable* clone() const { return new TFFrame(*this); }
     const char * getClassName() const { return "toad::TFFrame"; } 
@@ -512,7 +512,7 @@ class TFWindow:
     void paint(TPenBase&, EPaintType);
     double distance(int x, int y);
     void translate(int dx, int dy);
-    void translateHandle(unsigned handle, int x, int y, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     
     TCloneable* clone() const { return new TFWindow(*this); }
     const char * getClassName() const { return "toad::TFWindow"; }
@@ -540,7 +540,7 @@ class TFGroup:
     double _distance(TFigureEditor *fe, int x, int y);
     bool getHandle(unsigned n, TPoint *p);
     bool startTranslateHandle();
-    void translateHandle(unsigned handle, int dx, int dy, unsigned);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     void endTranslateHandle();
     
     void drop() {

@@ -346,7 +346,7 @@ TFigure::endTranslateHandle()
  * Set handle <I>handle</I> to position (x,y).
  */
 void
-TFigure::translateHandle(unsigned handle, int x, int y, unsigned)
+TFigure::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier)
 {
 }
 
@@ -374,25 +374,25 @@ TFigure::startCreate()
 }
 
 unsigned
-TFigure::mouseLDown(TFigureEditor*, int, int, unsigned)
+TFigure::mouseLDown(TFigureEditor*, TMouseEvent &)
 {
   return STOP;
 }
 
 unsigned
-TFigure::mouseMove(TFigureEditor*, int, int, unsigned)
+TFigure::mouseMove(TFigureEditor*, TMouseEvent &)
 {
   return CONTINUE;
 }
 
 unsigned 
-TFigure::mouseLUp(TFigureEditor*, int, int, unsigned)
+TFigure::mouseLUp(TFigureEditor*, TMouseEvent &)
 {
   return CONTINUE;
 }
 
 unsigned
-TFigure::mouseRDown(TFigureEditor*, int, int, unsigned)
+TFigure::mouseRDown(TFigureEditor*, TMouseEvent &)
 {
   return CONTINUE;
 }

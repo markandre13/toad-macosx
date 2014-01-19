@@ -45,10 +45,10 @@ class TButtonBase:
     TSignal sigClicked;
     TSignal sigArm, sigDisarm;
     
-    void mouseLDown(int,int,unsigned);
-    void mouseLUp(int,int,unsigned);
-    void mouseEnter(int,int,unsigned);
-    void mouseLeave(int,int,unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
+    void mouseEnter(TMouseEvent &);
+    void mouseLeave(TMouseEvent &);
     void keyDown(TKey,char*,unsigned);
 
   protected:

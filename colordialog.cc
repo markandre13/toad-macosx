@@ -242,17 +242,17 @@ TColorDialog::createBitmaps()
 }
 
 void
-TColorDialog::mouseLDown(int mx, int my, unsigned)
+TColorDialog::mouseLDown(TMouseEvent &m)
 {
-  if (mx>=8 && mx<=8+256 &&
-      my>=8 && my<=8+256) 
+  if (m.x>=8 && m.x<=8+256 &&
+      m.y>=8 && m.y<=8+256) 
   {
-    double x = (double)mx - 8.0 - 128.0;
-    double y = (double)my - 8.0 - 128.0;
-    double s = hypot(x, y);
+    TCoord x = m.x - 8.0 - 128.0;
+    TCoord y = m.y - 8.0 - 128.0;
+    TCoord s = hypot(x, y);
     if (s>128.0)
       s=128.0;
-    double h = (atan2(y, x) + M_PI) / (2*M_PI) * 360.0;
+    TCoord h = (atan2(y, x) + M_PI) / (2*M_PI) * 360.0;
     lock = true;
     saturation = (int)s * 100 / 128;
     hue = (int)h;
@@ -260,27 +260,27 @@ TColorDialog::mouseLDown(int mx, int my, unsigned)
     hsv2rgb();
   } else
   
-  if (mx>=8+256+8 && mx<=8+256+8+16 &&
-      my>=8 && my<=8+256)
+  if (m.x>=8+256+8 && m.x<=8+256+8+16 &&
+      m.y>=8 && m.y<=8+256)
   {
-    value = (8 + 256 - my) * 100 / 255;
+    value = (8 + 256 - m.y) * 100 / 255;
   }
 }
 
 void
-TColorDialog::mouseMove(int x, int y, unsigned m)
+TColorDialog::mouseMove(TMouseEvent &me)
 {
-  mouseLDown(x, y, m);
+  mouseLDown(me);
 }
 
 
 void
-TColorDialog::mouseMDown(int x, int y, unsigned modifier)
+TColorDialog::mouseMDown(TMouseEvent &m)
 {
-  if (ORIGCOLOR_X+64 <= x && x <= ORIGCOLOR_X+64 + ORIGCOLOR_W &&
-      ORIGCOLOR_Y    <= y && y <= ORIGCOLOR_Y + ORIGCOLOR_H )
+  if (ORIGCOLOR_X+64 <= m.x && m.x <= ORIGCOLOR_X+64 + ORIGCOLOR_W &&
+      ORIGCOLOR_Y    <= m.y && m.y <= ORIGCOLOR_Y + ORIGCOLOR_H )
   {
-    startDrag(new TDnDColor(rgb), modifier);
+    startDrag(new TDnDColor(rgb), m.modifier());
   }
 }
 

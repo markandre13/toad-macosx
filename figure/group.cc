@@ -204,9 +204,9 @@ TFGroup::endTranslateHandle()
 }
 
 void
-TFGroup::translateHandle(unsigned handle, int x, int y, unsigned m)
+TFGroup::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
-  double w0, w1, h0, h1;
+  TCoord w0, w1, h0, h1;
 #if 1
 //cout << "TFGroup::translateHandle("<<handle<<", "<<x<<", "<<y<<",m)"<<endl;
   switch(handle) {

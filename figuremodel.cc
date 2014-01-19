@@ -333,9 +333,9 @@ class TUndoTranslate:
 {
     TFigureModel *model;
     TFigureSet figures;
-    int dx, dy;
+    TCoord dx, dy;
   public:
-    TUndoTranslate(TFigureModel *model, const TFigureSet &set, int dx, int dy) {
+    TUndoTranslate(TFigureModel *model, const TFigureSet &set, TCoord dx, TCoord dy) {
       this->model = model;
       this->figures.insert(set.begin(), set.end());
       this->dx = dx;
@@ -362,10 +362,10 @@ class TUndoTranslateHandle:
     TFigureModel *model;
     TFigure* figure;
     unsigned handle;
-    int dx, dy;
+    TCoord dx, dy;
     unsigned m;
   public:
-    TUndoTranslateHandle(TFigureModel *model, TFigure *figure, unsigned handle, int dx, int dy, unsigned m) {
+    TUndoTranslateHandle(TFigureModel *model, TFigure *figure, unsigned handle, TCoord dx, TCoord dy, unsigned m) {
       this->model = model;
       this->figure = figure;
       this->handle = handle;
@@ -402,7 +402,7 @@ class TUndoTranslateHandle:
  *   vertical translation to be added to the figures position
  */
 void
-TFigureModel::translate(const TFigureSet &set, int dx, int dy)
+TFigureModel::translate(const TFigureSet &set, TCoord dx, TCoord dy)
 {
   if (set.empty())
     return;
@@ -454,9 +454,13 @@ TFigureModel::translate(const TFigureSet &set, int dx, int dy)
  *   horizontal position of the figures handle
  * \param y
  *   vertical position of the figures handle
+ *
+ * NOTE: Not using a TMouseEvent for (x, y, modifier) is intentional as only these values
+ *       are required for handle modification (by now) and that TUndoTranslateHandle only
+ *       stores these values (by now).
  */
 void
-TFigureModel::translateHandle(TFigure *figure, unsigned handle, int x, int y, unsigned m)
+TFigureModel::translateHandle(TFigure *figure, unsigned handle, TCoord x, TCoord y, unsigned modifier)
 {
   if (x==0 && y==0)
     return;
@@ -470,12 +474,12 @@ TFigureModel::translateHandle(TFigure *figure, unsigned handle, int x, int y, un
   TPoint p;
   figure->getHandle(handle, &p);
   
-  figure->translateHandle(handle, x, y, m);
+  figure->translateHandle(handle, x, y, modifier);
   
   type = MODIFIED;
   sigChanged();
   
-  TUndoTranslateHandle *undo = new TUndoTranslateHandle(this, figure, handle, p.x, p.y, m);
+  TUndoTranslateHandle *undo = new TUndoTranslateHandle(this, figure, handle, x, y, modifier);
   TUndoManager::registerUndo(this, undo);
 }
 

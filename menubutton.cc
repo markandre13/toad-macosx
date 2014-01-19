@@ -479,7 +479,7 @@ const char * statename(EMenuHelperState n) {
 }
 
 void 
-TMenuButton::mouseLDown(int,int,unsigned)
+TMenuButton::mouseLDown(TMouseEvent &)
 {
   stopat = this;
   DBM(cerr << "+ mouseLDown " << this << ": state " << statename(master->state) << endl;)
@@ -504,7 +504,7 @@ TMenuButton::mouseLDown(int,int,unsigned)
 }
 
 void 
-TMenuButton::mouseLUp(int,int,unsigned)
+TMenuButton::mouseLUp(TMouseEvent &)
 {
   stopat = 0;
   DBM(cerr << "+ mouseLUp " << this << ": state " << statename(master->state) << endl;)
@@ -577,9 +577,9 @@ else
  * the right mouse button.
  */
 void 
-TMenuButton::mouseRDown(int x, int y, unsigned m)
+TMenuButton::mouseRDown(TMouseEvent &m)
 {
-  mouseLDown(x, y, m);
+  mouseLDown(m);
 }
 
 /**
@@ -587,13 +587,13 @@ TMenuButton::mouseRDown(int x, int y, unsigned m)
  * the right mouse button.
  */
 void 
-TMenuButton::mouseRUp(int x, int y, unsigned m)
+TMenuButton::mouseRUp(TMouseEvent &m)
 {
-  mouseLUp(x, y, m);
+  mouseLUp(m);
 }
 
 void 
-TMenuButton::mouseLeave(int,int,unsigned m)
+TMenuButton::mouseLeave(TMouseEvent &m)
 {
   inside = 0;
   DBM(cerr << "+ mouseLeave " << this << ": state " << statename(master->state) << endl;)
@@ -614,7 +614,7 @@ TMenuButton::mouseLeave(int,int,unsigned m)
   DBM(cerr << "- mouseLeave " << this << ": state " << statename(master->state) << endl;)
 }
 
-void TMenuButton::mouseEnter(int,int,unsigned m)
+void TMenuButton::mouseEnter(TMouseEvent &m)
 {
   inside = this;
   DBM(cerr << "+ mouseEnter " << this << ": state " << statename(master->state) << endl;)
@@ -623,7 +623,7 @@ void TMenuButton::mouseEnter(int,int,unsigned m)
     case MHS_UP_N_HOLD:
     case MHS_DOWN_N_OUTSIDE:
     case MHS_DOWN_N_HOLD:
-      if (m&(MK_LBUTTON|MK_RBUTTON) && node->isEnabled()) {
+      if (m.modifier()&(MK_LBUTTON|MK_RBUTTON) && node->isEnabled()) {
         stopat = this;
         if (master->active) {
           #warning "here is a dirty hack to avoid an unwanted close in deactivate"

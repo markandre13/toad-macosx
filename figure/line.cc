@@ -197,17 +197,17 @@ TFLine::distance(int mx, int my)
  * 2 points instead of 3.
  */
 unsigned 
-TFLine::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
+TFLine::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   if (editor->state == TFigureEditor::STATE_CREATE &&
-      m & MK_DOUBLE) 
+      m.modifier() & MK_DOUBLE) 
   {
     if (polygon.size()<3)
       return STOP|DELETE;
     polygon.erase(--polygon.end());
     return STOP;
   }
-  return super::mouseLDown(editor, mx, my, m);
+  return super::mouseLDown(editor, m);
 }
 
 void

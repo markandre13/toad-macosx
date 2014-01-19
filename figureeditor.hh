@@ -394,10 +394,10 @@ class TFigureEditor:
     void mouseEvent(TMouseEvent&);
     void keyEvent(TKeyEvent&);
     
-    void mouseLDown(int,int,unsigned);
-    void mouseMove(int,int,unsigned);
-    void mouseLUp(int,int,unsigned);
-    void mouseRDown(int, int, unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseMove(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
+    void mouseRDown(TMouseEvent &);
     void keyDown(TKey, char*, unsigned);
 
     virtual void mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy);

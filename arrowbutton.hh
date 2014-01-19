@@ -39,8 +39,8 @@ class TArrowButton:
     void setType(EArrowType type) { direction = type; }
       
   protected:
-    void mouseLDown(int,int,unsigned);
-    void mouseLUp(int,int,unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
     void tick();
     void paint();
 

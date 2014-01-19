@@ -1529,7 +1529,7 @@ class TMyWindow:
 int 
 main(int argc, char **argv, char **envv)
 {
-#if 1
+#if 0
 
 #ifdef TEST01
   toad::initialize(argc, argv);

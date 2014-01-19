@@ -403,22 +403,22 @@ DBM(cout << "LEAVE keyDown" << endl;
 }
 
 void
-TTextArea::mouseLDown(int x, int y, unsigned)
+TTextArea::mouseLDown(TMouseEvent &m)
 {
   if (!isEnabled())
     return;
-  _goto_pixel(x, y);
+  _goto_pixel(m.x, m.y);
   _bos = _eos = _pos;
   blink.visible=true;
   setFocus();
 }
 
 void
-TTextArea::mouseMove(int x, int y, unsigned)
+TTextArea::mouseMove(TMouseEvent &m)
 {
   if (!isEnabled())
     return;
-  _goto_pixel(x, y);
+  _goto_pixel(m.x, m.y);
   if (_eos != _pos) {
     _eos = _pos;
     invalidateWindow(true);
@@ -427,7 +427,7 @@ TTextArea::mouseMove(int x, int y, unsigned)
 }
 
 void
-TTextArea::mouseLUp(int x, int y, unsigned)
+TTextArea::mouseLUp(TMouseEvent &)
 {
 }
 
@@ -1259,7 +1259,7 @@ TTextArea::_delete_current_line()
 }
 
 void
-TTextArea::mouseMDown(int,int,unsigned)
+TTextArea::mouseMDown(TMouseEvent &)
 {
   if (!isEnabled())
     return;

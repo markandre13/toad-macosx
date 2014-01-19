@@ -2004,7 +2004,7 @@ if (state.newline && state.getBottom() > h) {
 }
 
 void
-THTMLView::mouseLDown(int x,int y, unsigned modifier)
+THTMLView::mouseLDown(TMouseEvent &m)
 {
   if (!anchors) {
     return;
@@ -2013,7 +2013,7 @@ THTMLView::mouseLDown(int x,int y, unsigned modifier)
   p = anchors->begin();
   e = anchors->end();
   while(p!=e) {
-    if ((*p)->polygon.isInside(x, y)) {
+    if ((*p)->polygon.isInside(m.x, m.y)) {
       setCursor(TCursor::DEFAULT);
 //      cerr << "goto: '" << (*p)->href << "'\n";
       if ( !(*p)->href.empty()) {
@@ -2031,7 +2031,7 @@ cerr << __FILE__ << ":" << __LINE__ << ": not adding undo object" << endl;
 }
 
 void
-THTMLView::mouseMove(int x,int y, unsigned modifier)
+THTMLView::mouseMove(TMouseEvent &m)
 {
   if (!anchors) {
     return;
@@ -2040,7 +2040,7 @@ THTMLView::mouseMove(int x,int y, unsigned modifier)
   p = anchors->begin();
   e = anchors->end();
   while(p!=e) {
-    if ((*p)->polygon.isInside(x, y)) {
+    if ((*p)->polygon.isInside(m.x, m.y)) {
       setCursor(TCursor::HAND);
       return;
     }

@@ -250,51 +250,51 @@ TWindow::mouseEvent(TMouseEvent &me)
 
   switch(me.type) {
     case TMouseEvent::MOVE:
-      mouseMove(me.x, me.y, me.modifier());
+      mouseMove(me);
       break;
     case TMouseEvent::ENTER:
-      mouseEnter(me.x, me.y, me.modifier());
+      mouseEnter(me);
       break;
     case TMouseEvent::LEAVE:
-      mouseLeave(me.x, me.y, me.modifier());
+      mouseLeave(me);
       break;
     case TMouseEvent::LDOWN:
-      mouseLDown(me.x, me.y, me.modifier());
+      mouseLDown(me);
       break;
     case TMouseEvent::MDOWN:
-      mouseMDown(me.x, me.y, me.modifier());
+      mouseMDown(me);
       break;
     case TMouseEvent::RDOWN:
-      mouseRDown(me.x, me.y, me.modifier());
+      mouseRDown(me);
       break;
     case TMouseEvent::LUP:
-      mouseLUp(me.x, me.y, me.modifier());
+      mouseLUp(me);
       break;
     case TMouseEvent::MUP:
-      mouseMUp(me.x, me.y, me.modifier());
+      mouseMUp(me);
       break;
     case TMouseEvent::RUP:
-      mouseRUp(me.x, me.y, me.modifier());
+      mouseRUp(me);
       break;
   }
 }  
 
 //! See etMouseMoveMessages' when you need mouseMove.
-void TWindow::mouseMove(int,int,unsigned){}
-void TWindow::mouseEnter(int,int,unsigned){}
-void TWindow::mouseLeave(int,int,unsigned){}
+void TWindow::mouseMove(TMouseEvent &){}
+void TWindow::mouseEnter(TMouseEvent &){}
+void TWindow::mouseLeave(TMouseEvent &){}
 
 //! Called when the left mouse button is pressed. Since X11 performs an
 //! automatic mouse grab you will receive a mouseLUp message afterwards
 //! unless you call UngrabMouse().
-void TWindow::mouseLDown(int,int,unsigned){}
+void TWindow::mouseLDown(TMouseEvent &){}
 //! Same as mouseLDown for the middle mouse button.
-void TWindow::mouseMDown(int,int,unsigned){}
+void TWindow::mouseMDown(TMouseEvent &){}
 //! Same as mouseLDown for the right mouse button.
-void TWindow::mouseRDown(int,int,unsigned){}
-void TWindow::mouseLUp(int,int,unsigned){}
-void TWindow::mouseMUp(int,int,unsigned){}
-void TWindow::mouseRUp(int,int,unsigned){}
+void TWindow::mouseRDown(TMouseEvent &){}
+void TWindow::mouseLUp(TMouseEvent &){}
+void TWindow::mouseMUp(TMouseEvent &){}
+void TWindow::mouseRUp(TMouseEvent &){}
                                                                                                                                                                                                  
 unsigned
 TWindow::getParentlessCount()
@@ -690,15 +690,15 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 }
 @end
 
-TMouseEvent::TMouseEvent(NSEvent *ne, NSView *view, TWindow *w) {
-  nsevent = ne;
-  NSPoint pt = [view convertPoint:[ne locationInWindow] fromView:nil];
+TMouseEvent::TMouseEvent(NSEvent *anEvent, NSView *aView, TWindow *aWindow) {
+  nsevent = anEvent;
+  NSPoint pt = [aView convertPoint:[anEvent locationInWindow] fromView:nil];
   x = pt.x;
   y = pt.y;
-cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<w->getOriginX()<<","<<w->getOriginY()<<")\n";
-  x -= w->getOriginX();
-  y -= w->getOriginY();
-  window = w;
+cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
+  x -= aWindow->getOriginX();
+  y -= aWindow->getOriginY();
+  window = aWindow;
   dblClick = false;
 }
 
@@ -1045,6 +1045,13 @@ TWindow::setOrigin(int x,int y)
 }
 void
 TWindow::getOrigin(int *x, int *y) const
+{
+  *x = origin.x;
+  *y = origin.y;
+}
+
+void
+TWindow::getOrigin(TCoord *x, TCoord *y) const
 {
   *x = origin.x;
   *y = origin.y;

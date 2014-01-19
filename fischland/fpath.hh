@@ -20,9 +20,9 @@ class TFPath:
 
     void translate(int dx, int dy);
     bool getHandle(unsigned handle, TPoint *p);
-    void translateHandle(unsigned handle, int x, int y, unsigned m);
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     double _distance(TFigureEditor *fe, int x, int y);
-    unsigned mouseRDown(TFigureEditor*, int, int, unsigned);
+    unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
     
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
     void addPoint(int x, int y) { polygon.addPoint(x,y); }

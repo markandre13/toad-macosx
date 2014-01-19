@@ -342,16 +342,16 @@ TScrollBar::mouseEvent(TMouseEvent &me)
 }
 
 void
-TScrollBar::mouseLDown(int x,int y,unsigned)
+TScrollBar::mouseLDown(TMouseEvent &m)
 {
   setFocus();
-  int v = model->getValue();
+  TCoord v = model->getValue();
   
-  if (!rectSlider.isInside(x,y)) {
+  if (!rectSlider.isInside(m.x, m.y)) {
     // move by a page
     int e = model->getExtent();
     if (e<1) e=1; else e--;
-    if (bVertical ? y<rectSlider.y : x<rectSlider.x) {
+    if (bVertical ? m.y<rectSlider.y : m.x<rectSlider.x) {
       model->setValue(v-e);
     } else {
       model->setValue(v+e);
@@ -363,27 +363,27 @@ TScrollBar::mouseLDown(int x,int y,unsigned)
     _drawSlider(pen, rectSlider);
 */
     invalidateWindow();
-    nMouseDown = bVertical ? y-rectSlider.y : x-rectSlider.x;
+    nMouseDown = bVertical ? m.y-rectSlider.y : m.x-rectSlider.x;
     // model->setValueIsAdjusting(true);
   }
 }
 
 void
-TScrollBar::mouseMove(int x,int y,unsigned)
+TScrollBar::mouseMove(TMouseEvent &m)
 {
 //printf("scrollbar mouseMove: x=%i,y=%i,nMouseDown=%i\n",x,y,nMouseDown);
   if (nMouseDown!=-1) {
     TRectangle rectOld;
     rectOld = rectSlider;
     if (bVertical)
-      _moveSliderTo(y - nMouseDown);
+      _moveSliderTo(m.y - nMouseDown);
     else
-      _moveSliderTo(x - nMouseDown);
+      _moveSliderTo(m.x - nMouseDown);
   }
 }
 
 void
-TScrollBar::mouseLUp(int,int,unsigned)
+TScrollBar::mouseLUp(TMouseEvent &)
 {
   if (nMouseDown!=-1) {
     nMouseDown = -1;

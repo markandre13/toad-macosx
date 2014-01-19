@@ -97,8 +97,8 @@ class TFigureModel:
     
     void insert(TFigureAtDepthList &store);
 
-    void translate(const TFigureSet&, int dx, int dy);
-    void translateHandle(TFigure *figure, unsigned handle, int dx, int dy, unsigned);
+    void translate(const TFigureSet&, TCoord dx, TCoord dy);
+    void translateHandle(TFigure *figure, unsigned handle, TCoord x, TCoord y, unsigned modifier);
     bool startInPlace(TFigure *figure, TFigureEditor *fe = 0);
     TFigure* group(TFigureSet &);
     void _undoGroup(TFGroup*, TFigureAtDepthList &figures);

@@ -515,9 +515,9 @@ class TTable:
     void mouseEvent(TMouseEvent &me);
     void keyEvent(TKeyEvent &ke);
     
-    void mouseLDown(int x,int y, unsigned modifier);
-    void mouseMove(int x,int y, unsigned modifier);
-    void mouseLUp(int x,int y, unsigned modifier);
+    void mouseLDown(TMouseEvent &);
+    void mouseMove(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
 
     void keyDown(TKey key, char *string, unsigned modifier);
     void keyUp(TKey key, char *string, unsigned modifier);

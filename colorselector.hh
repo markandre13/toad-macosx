@@ -51,8 +51,8 @@ class TColorSelector:
   protected:
     void resize();
     void paint();
-    void mouseLDown(int, int, unsigned);
-    void mouseMDown(int, int, unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseMDown(TMouseEvent &);
 
     void dropColor(const PDnDColor&);
     void openColorDialog();

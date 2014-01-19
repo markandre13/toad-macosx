@@ -257,9 +257,9 @@ TColorPalette::paint()
 }
 
 void
-TColorPalette::mouseLDown(int mx, int my, unsigned modifier)
+TColorPalette::mouseLDown(TMouseEvent &m)
 {
-  TNamedColor *color = mouse2color(mx, my);
+  TNamedColor *color = mouse2color(m.x, m.y);
   if (!color)
     return;
   colorname = color->name;
@@ -272,12 +272,12 @@ TColorPalette::mouseLDown(int mx, int my, unsigned modifier)
 }
 
 void
-TColorPalette::mouseMDown(int mx, int my, unsigned modifier)
+TColorPalette::mouseMDown(TMouseEvent &m)
 {
-  TNamedColor *color = mouse2color(mx, my);
+  TNamedColor *color = mouse2color(m.x, m.y);
   if (!color)
     return;  
-  startDrag(new TDnDColor(*color), modifier);
+  startDrag(new TDnDColor(*color), m.modifier());
 }
 
 void

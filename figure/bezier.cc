@@ -233,16 +233,16 @@ TFBezierline::_distance(TFigureEditor *fe, int x, int y)
 bool flag0 = false;
 
 unsigned
-TFBezierline::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
+TFBezierline::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
 cout << "mouseLDown, polygon.size()=" << polygon.size() << endl;
   if (polygon.size()>3) {
     TPolygon::iterator p(polygon.end());
     --p;
 #if 1
-    if (p->x == mx && p->y == my) {
+    if (p->x == m.x && p->y == m.y) {
       --p;
-      if (p->x == mx && p->y == my) {
+      if (p->x == m.x && p->y == m.y) {
         flag0 = true;
         cout << "flag 0" << endl;
       }
@@ -251,14 +251,14 @@ cout << "mouseLDown, polygon.size()=" << polygon.size() << endl;
   }
 
   if (polygon.size()==0)
-    polygon.addPoint(mx, my);
-  polygon.addPoint(mx, my);
+    polygon.addPoint(m.x, m.y);
+  polygon.addPoint(m.x, m.y);
     // editor->getWindow()->setMouseMoveMessages(TWindow::TMMM_ALL);
   return CONTINUE;
 }
 
 unsigned
-TFBezierline::mouseMove(TFigureEditor *editor, int mx, int my, unsigned m)
+TFBezierline::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
 cout << "mouseMove" << endl;
   if (polygon.size()<2)
@@ -269,13 +269,13 @@ cout << "mouseMove" << endl;
     editor->invalidateFigure(this);
     TPolygon::iterator p(polygon.end());
     --p;
-    p->set(mx, my);
+    p->set(m.x, m.y);
     if (!flag0 && polygon.size()>=3) {
       --p;
       TPolygon::iterator p0 = p;
       --p;
-      p->set( p0->x - (mx - p0->x),
-              p0->y - (my - p0->y) );
+      p->set( p0->x - (m.x - p0->x),
+              p0->y - (m.y - p0->y) );
     }
     editor->invalidateFigure(this);
   }
@@ -283,46 +283,46 @@ cout << "mouseMove" << endl;
     editor->invalidateFigure(this);
     TPolygon::iterator p(polygon.end());
     --p;
-    p->set(mx, my);
+    p->set(m.x, m.y);
     --p;
-    p->set(mx, my);
+    p->set(m.x, m.y);
     editor->invalidateFigure(this);
   }
   return CONTINUE;
 }
 
 unsigned
-TFBezierline::mouseLUp(TFigureEditor *editor, int mx, int my, unsigned m)
+TFBezierline::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
 {
 cout << "mouseLUp" << endl;
   flag0 = false;
 //  if (polygon.size()==2) {
 cout << "add 2,3" << endl;
-    polygon.addPoint(mx, my);
-    polygon.addPoint(mx, my);
+    polygon.addPoint(m.x, m.y);
+    polygon.addPoint(m.x, m.y);
     editor->invalidateFigure(this);
 //  }
   return CONTINUE;
 }
 
 void 
-TFBezierline::translateHandle(unsigned handle, int x, int y, unsigned m)
+TFBezierline::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
   _translateHandle(handle, x, y, m, false);
 }
 
 void
-TFBezier::translateHandle(unsigned handle, int x, int y, unsigned m)
+TFBezier::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
   _translateHandle(handle, x, y, m, true);
 }
 
 void 
-TFBezierline::_translateHandle(unsigned h0, int x, int y, unsigned m, bool filled)
+TFBezierline::_translateHandle(unsigned h0, TCoord x, TCoord y, unsigned m, bool filled)
 {
   if ((h0%3)==0) {
-    int dx = x - polygon[h0].x;
-    int dy = y - polygon[h0].y;
+    TCoord dx = x - polygon[h0].x;
+    TCoord dy = y - polygon[h0].y;
     polygon[h0].x = x;
     polygon[h0].y = y;
     if (filled && h0==0 && polygon.size()>3) {
@@ -384,11 +384,11 @@ TFBezierline::_translateHandle(unsigned h0, int x, int y, unsigned m, bool fille
       } else
       if (m & MK_CONTROL) {
         // on a line
-        double dy = polygon[h1].y - polygon[h2].y;
-        double dx = polygon[h1].x - polygon[h2].x;
-        double d = atan2((double)polygon[h1].y - polygon[h0].y,
-                         (double)polygon[h1].x - polygon[h0].x);
-        double n = sqrt(dx*dx+dy*dy);
+        TCoord dy = polygon[h1].y - polygon[h2].y;
+        TCoord dx = polygon[h1].x - polygon[h2].x;
+        TCoord d = atan2((TCoord)polygon[h1].y - polygon[h0].y,
+                         (TCoord)polygon[h1].x - polygon[h0].x);
+        TCoord n = sqrt(dx*dx+dy*dy);
         polygon[h2].x = polygon[h1].x + cos(d)*n;
         polygon[h2].y = polygon[h1].y + sin(d)*n;
       }
@@ -423,7 +423,7 @@ class TMyPopupMenu:
 }
 
 unsigned
-TFBezierline::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
+TFBezierline::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 {
 //  cerr << "TFBezierline::mouseRDown" << endl;
 //cerr << " at (" << x << ", " << y << ")\n";
@@ -436,8 +436,8 @@ TFBezierline::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       p!=polygon.end();
       ++p, ++i)
   {
-    if (p->x-editor->fuzziness<=x && x<=p->x+editor->fuzziness && 
-        p->y-editor->fuzziness<=y && y<=p->y+editor->fuzziness) 
+    if (p->x-editor->fuzziness<=m.x && m.x<=p->x+editor->fuzziness && 
+        p->y-editor->fuzziness<=m.y && m.y<=p->y+editor->fuzziness) 
     {
       // cerr << "found handle " << i << endl;
       found = true;
@@ -457,8 +457,8 @@ TFBezierline::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       action->sigClicked,
       figure, this,
       edit, editor,
-      _x, x,
-      _y, y,
+      _x, m.x,
+      _y, m.y,
       edit->invalidateFigure(figure);
       figure->insertPointNear(_x, _y);
       edit->invalidateFigure(figure);
@@ -487,7 +487,7 @@ TFBezierline::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
   menu = new TMyPopupMenu(editor, "popup");
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
-  menu->open(x, y, modifier);
+  menu->open(m.x, m.y, m.modifier());
   return NOTHING;
 }
 
@@ -755,14 +755,14 @@ TFBezier::_distance(TFigureEditor *fe, int x, int y)
 }
 
 unsigned
-TFBezier::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
+TFBezier::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
-      polygon.addPoint(mx, my);
+      polygon.addPoint(m.x, m.y);
       editor->setAllMouseMoveEvents(true);
     case TFigureEditor::STATE_CREATE: {
-      if (m & MK_DOUBLE) {
+      if (m.modifier() & MK_DOUBLE) {
 //cerr << "end at: n=" << polygon.size() << ", n%3=" << (polygon.size()%3) << endl;
         if (polygon.size()<=4) {
           return STOP|DELETE;
@@ -791,9 +791,9 @@ TFBezier::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
       }
       if ((polygon.size()%3)==2) {
 //cerr << "add point 2 and 3" << endl;
-        polygon.addPoint(mx, my);
+        polygon.addPoint(m.x, m.y);
       }
-      polygon.addPoint(mx, my);
+      polygon.addPoint(m.x, m.y);
 //cerr << "after add: n=" << polygon.size() << ", n%3=" << (polygon.size()%3) << endl;
       editor->invalidateFigure(this);
       } break;

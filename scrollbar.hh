@@ -79,9 +79,9 @@ class TScrollBar:
     void modelChanged();
 
     void mouseEvent(TMouseEvent&);
-    void mouseLDown(int,int,unsigned);
-    void mouseLUp(int,int,unsigned);
-    void mouseMove(int,int,unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
+    void mouseMove(TMouseEvent &);
     void keyDown(TKey,char*,unsigned);
 
     void _drawSlider(TPen &pen, TRectangle &r);

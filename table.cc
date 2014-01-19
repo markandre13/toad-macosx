@@ -1341,19 +1341,19 @@ TTable::mouseEvent(TMouseEvent &me)
 //#warning "mouseLDown must not change the selection, only mouseLUp should"
 //#warning "do this!"
 void
-TTable::mouseLDown(int mx, int my, unsigned modifier)
+TTable::mouseLDown(TMouseEvent &m)
 {
   setFocus();
 
   size_t x, y;   // field
   int fx, fy; // mouse within field
-  if (!mouse2field(mx, my, &x, &y, &fx, &fy)) {
+  if (!mouse2field(m.x, m.y, &x, &y, &fx, &fy)) {
     return;
   }
 
   // invoke adapter mouseEvent (ie. for tree widgets, check boxes, etc.)
   if (adapter) {
-    TMouseEvent me(this, fx, fy, modifier);
+    TMouseEvent me(m, fx, fy);
     TTableEvent te;
     te.mouse = &me;
     // this should also contain a pointer to this adapter, in case
@@ -1386,7 +1386,7 @@ TTable::mouseLDown(int mx, int my, unsigned modifier)
 
   selecting = start_selecting = false;
   bool justcursor = true;
-  if (modifier&MK_SHIFT) {
+  if (m.modifier()&MK_SHIFT) {
     if (mode != TAbstractSelectionModel::SINGLE) {
       // start selecting an area from the previous cursor position
 //      cout << "  start selecting area" << endl;
@@ -1408,7 +1408,7 @@ TTable::mouseLDown(int mx, int my, unsigned modifier)
 
   if (!justcursor && selection) {
     if (mode == TAbstractSelectionModel::SINGLE) {
-      if (!(modifier&MK_CONTROL)) {
+      if (!(m.modifier()&MK_CONTROL)) {
         if (!selection->isSelected(x, y)) {
           selection->clear();
           _setSXSY(x, y);
@@ -1420,7 +1420,7 @@ TTable::mouseLDown(int mx, int my, unsigned modifier)
         selection->toggle(sx, sy);
       }
     } else {
-      if (!(modifier&MK_CONTROL)) {
+      if (!(m.modifier()&MK_CONTROL)) {
         selection->clear();
         if (mode != TAbstractSelectionModel::SINGLE) {
           selecting = true;
@@ -1443,13 +1443,13 @@ TTable::mouseLDown(int mx, int my, unsigned modifier)
 }
 
 void
-TTable::mouseMove(int mx, int my, unsigned modifier)
+TTable::mouseMove(TMouseEvent &m)
 {
-  if (!(modifier&MK_LBUTTON))
+  if (!(m.modifier()&MK_LBUTTON))
     return;
 
   size_t x, y;
-  if (!mouse2field(mx, my, &x, &y)) {
+  if (!mouse2field(m.x, m.y, &x, &y)) {
     DBM2(cerr << "  mouse2field failed" << endl;
     cout << "leave mouseMove" << endl << endl;)
     return;
@@ -1466,7 +1466,7 @@ TTable::mouseMove(int mx, int my, unsigned modifier)
     start_selecting = false;
     selecting = true;
   } else
-  if (!selecting && (modifier&MK_SHIFT)) {
+  if (!selecting && (m.modifier()&MK_SHIFT)) {
     TAbstractSelectionModel::ESelectionMode mode;
     mode = selection ? selection->getMode() : TAbstractSelectionModel::SINGLE;
     if (mode != TAbstractSelectionModel::SINGLE) {
@@ -1475,7 +1475,7 @@ TTable::mouseMove(int mx, int my, unsigned modifier)
       _setSXSY(cx, cy);
       selecting = true;
 
-      if (!(modifier&MK_CONTROL)) {
+      if (!(m.modifier()&MK_CONTROL)) {
         selection->clear();
       }
 
@@ -1491,7 +1491,7 @@ TTable::mouseMove(int mx, int my, unsigned modifier)
   TAbstractSelectionModel::ESelectionMode mode;
   mode = selection ? selection->getMode() : TAbstractSelectionModel::SINGLE;
 
-  if (selectionFollowsMouse || modifier & MK_SHIFT) {
+  if (selectionFollowsMouse || m.modifier() & MK_SHIFT) {
     invalidateChangedArea(sx,sy,cx,cy,cx,cy);
     cx = x; cy = y;
     if (!selecting) {
@@ -1512,11 +1512,11 @@ TTable::mouseMove(int mx, int my, unsigned modifier)
 }
 
 void
-TTable::mouseLUp(int mx, int my, unsigned modifier)
+TTable::mouseLUp(TMouseEvent &m)
 {
 DBM2(cerr << "enter mouseLUp" << endl;)
   size_t x, y;
-  if (!mouse2field(mx, my, &x, &y)) {
+  if (!mouse2field(m.x, m.y, &x, &y)) {
     x = cx;
     y = cy;
   }
@@ -1535,7 +1535,7 @@ DBM2(cerr << "enter mouseLUp" << endl;)
     invalidateWindow();
   }
   
-  if (modifier & MK_DOUBLE)
+  if (m.modifier() & MK_DOUBLE)
     sigDoubleClicked();
   else  
     sigClicked();

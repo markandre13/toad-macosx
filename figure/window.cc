@@ -62,7 +62,7 @@ TFWindow::translate(int dx, int dy)
 }
 
 void
-TFWindow::translateHandle(unsigned handle, int mx, int my, unsigned m)
+TFWindow::translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned m)
 {
   if (window==NULL) {
     cerr << "toad warning: TFWindow.window==NULL : " << title << endl;

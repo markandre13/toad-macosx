@@ -98,33 +98,32 @@ TFPolygon::getHandle(unsigned handle, TPoint *p)
 }
 
 void
-TFPolygon::translateHandle(unsigned handle, int x, int y, unsigned m)
+TFPolygon::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
-  TPoint p(x, y);
-  polygon[handle]=p;
+  polygon[handle]=TPoint(x, y);
 }
 
 // polygon creation
 //---------------------------------------------------------------------------
 unsigned 
-TFPolygon::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
+TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
-      polygon.addPoint(mx, my);
-      polygon.addPoint(mx, my);
+      polygon.addPoint(m.x, m.y);
+      polygon.addPoint(m.x, m.y);
       editor->setAllMouseMoveEvents(true);
       break;
     case TFigureEditor::STATE_CREATE: {
-      if (m & MK_DOUBLE) {
+      if (m.modifier() & MK_DOUBLE) {
         if (polygon.size()<4)
           return STOP|DELETE;
         polygon.erase(--polygon.end());
         return STOP;
       }
       TPolygon::iterator p(polygon.end()-2);
-      if (p->x != mx || p->y != my) {
-        polygon.addPoint(mx, my);
+      if (p->x != m.x || p->y != m.y) {
+        polygon.addPoint(m.x, m.y);
         editor->invalidateFigure(this);
       }
     } break;
@@ -135,11 +134,11 @@ TFPolygon::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned m)
 }
 
 unsigned 
-TFPolygon::mouseMove(TFigureEditor *editor, int mx, int my, unsigned)
+TFPolygon::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
   TPolygon::iterator p(--polygon.end());
   editor->invalidateFigure(this);
-  p->set(mx, my);
+  p->set(m.x, m.y);
   editor->invalidateFigure(this);
   return CONTINUE;
 }
@@ -186,7 +185,7 @@ class TMyPopupMenu:
 };
 
 unsigned
-TFPolygon::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
+TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 {
   if (editor->state != TFigureEditor::STATE_NONE) {
     return NOTHING;
@@ -198,8 +197,8 @@ TFPolygon::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       p!=polygon.end();
       ++p, ++i)
   {
-    if (p->x-editor->fuzziness<=x && x<=p->x+editor->fuzziness && 
-        p->y-editor->fuzziness<=y && y<=p->y+editor->fuzziness) 
+    if (p->x-editor->fuzziness<=m.x && m.x<=p->x+editor->fuzziness && 
+        p->y-editor->fuzziness<=m.y && m.y<=p->y+editor->fuzziness)
     {
       // cerr << "found handle " << i << endl;
       found = true;
@@ -216,8 +215,8 @@ TFPolygon::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       action->sigClicked,
       figure, this,
       edit, editor,
-      _x, x,
-      _y, y,
+      _x, m.x,
+      _y, m.y,
       edit->invalidateFigure(figure);
       figure->insertPointNear(_x, _y);
       edit->invalidateFigure(figure);
@@ -242,7 +241,7 @@ TFPolygon::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
   menu = new TMyPopupMenu(editor, "popup");
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
-  menu->open(x, y, modifier);
+  menu->open(m.x, m.y, m.modifier());
   return NOTHING;
 }
 

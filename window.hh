@@ -117,36 +117,39 @@ class TLayout;
 
 class TMouseEvent
 {
+  protected:
+    NSEvent *nsevent;
   public:
-  TMouseEvent(NSEvent *ne, NSView *view, TWindow *window);
-  TMouseEvent(TWindow *w, float x, float y, unsigned m) {
-    nsevent = 0;
-    window = w;
-    this->x = x;
-    this->y = y;
-    this->_modifier = m;
-  };
+    TMouseEvent(): nsevent(0), window(0) {}
+    TMouseEvent(NSEvent *ne, NSView *view, TWindow *window);
 
-  enum EType {
-    MOVE, ENTER, LEAVE,
-    LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
-    ROLL_UP, ROLL_UP_END,
-    ROLL_DOWN, ROLL_DOWN_END
-  };
-  EType type;  
+    TMouseEvent(TMouseEvent &me, TCoord x, TCoord y) {
+      nsevent = me.nsevent;
+      this->x = x;
+      this->y = y;
+      _modifier = me._modifier;
+      window = me.window;
+    };
+
+    enum EType {
+      MOVE, ENTER, LEAVE,
+      LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
+      ROLL_UP, ROLL_UP_END,
+      ROLL_DOWN, ROLL_DOWN_END
+    };
+    EType type;  
   
-  NSEvent *nsevent;
-  TWindow *window;
-  TCoord x, y;
-  TCoord pressure();
-  TCoord rotation();
-  TCoord tilt();
-  unsigned modifier() const;
-  enum EPointingDeviceType {
-    // unknown, pen, cursor, eraser
-  };
-  bool dblClick;
-  static unsigned _modifier;
+    TWindow *window; // information for the mouse event filter
+    TCoord x, y;
+    TCoord pressure();
+    TCoord rotation();
+    TCoord tilt();
+    unsigned modifier() const;
+    enum EPointingDeviceType {
+      // unknown, pen, cursor, eraser
+    };
+    bool dblClick;
+    static unsigned _modifier;
 };
 
 class TKeyEvent {
@@ -188,6 +191,7 @@ class TWindowEvent {
 class TWindow:
   public TInteractor, public TRectangle
 {
+    // FIXME?: the origin is nice for scrolling but fails for rotation... can we live with that?
     TPoint origin;
   public:
     bool _inside:1; // helper to emulate mouseEnter, mouseLeave on Cocoa
@@ -267,15 +271,15 @@ class TWindow:
     void placeWindow(EWindowPlacement how, TWindow *parent=NULL);
     void windowEvent(TWindowEvent &we);
     void mouseEvent(TMouseEvent &);
-    virtual void mouseMove(int x,int y, unsigned modifier);
-    virtual void mouseEnter(int x,int y, unsigned modifier);
-    virtual void mouseLeave(int x,int y, unsigned modifier);
-    virtual void mouseLDown(int x,int y, unsigned modifier);
-    virtual void mouseMDown(int x,int y, unsigned modifier);
-    virtual void mouseRDown(int x,int y, unsigned modifier);
-    virtual void mouseLUp(int x,int y, unsigned modifier);  
-    virtual void mouseMUp(int x,int y, unsigned modifier);  
-    virtual void mouseRUp(int x,int y, unsigned modifier);  
+    virtual void mouseMove(TMouseEvent &);
+    virtual void mouseEnter(TMouseEvent &);
+    virtual void mouseLeave(TMouseEvent &);
+    virtual void mouseLDown(TMouseEvent &);
+    virtual void mouseMDown(TMouseEvent &);
+    virtual void mouseRDown(TMouseEvent &);
+    virtual void mouseLUp(TMouseEvent &);
+    virtual void mouseMUp(TMouseEvent &);
+    virtual void mouseRUp(TMouseEvent &);  
 
     enum EChildNotify {
       TCHILD_TITLE, TCHILD_POSITION, TCHILD_RESIZE, TCHILD_ADD,
@@ -310,6 +314,7 @@ class TWindow:
     void scrollTo(int x, int y);
     void setOrigin(int x,int y);
     void getOrigin(int *x, int *y) const;
+    void getOrigin(TCoord *x, TCoord *y) const;
     int getOriginX() const { return 0; }
     int getOriginY() const { return 0; }
     

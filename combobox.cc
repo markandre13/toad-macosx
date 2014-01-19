@@ -36,10 +36,10 @@ class TComboBox::TComboButton:
 
   protected:
     void paint();
-    void mouseLDown(int,int,unsigned);
-    void mouseLUp(int,int,unsigned);
-    void mouseEnter(int,int,unsigned);
-    void mouseLeave(int,int,unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
+    void mouseEnter(TMouseEvent &);
+    void mouseLeave(TMouseEvent &);
 };   
 
 TComboBox::TComboBox(TWindow * parent, const string &title):
@@ -280,22 +280,22 @@ TComboBox::TComboButton::paint()
 }
 
 void
-TComboBox::TComboButton::mouseLDown(int,int,unsigned)
+TComboBox::TComboButton::mouseLDown(TMouseEvent &)
 {
   setDown(!isDown());
 }
 
 void
-TComboBox::TComboButton::mouseLUp(int,int,unsigned)
+TComboBox::TComboButton::mouseLUp(TMouseEvent &)
 {
 }
 
 void
-TComboBox::TComboButton::mouseEnter(int,int,unsigned)
+TComboBox::TComboButton::mouseEnter(TMouseEvent &)
 {
 }
 
 void
-TComboBox::TComboButton::mouseLeave(int,int,unsigned)
+TComboBox::TComboButton::mouseLeave(TMouseEvent &)
 {
 }

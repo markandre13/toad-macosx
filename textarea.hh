@@ -119,10 +119,10 @@ class TTextArea:
     ~TTextArea();
 
     void keyDown(TKey, char*, unsigned);
-    void mouseLDown(int, int, unsigned);
-    void mouseMove(int, int, unsigned);
-    void mouseLUp(int, int, unsigned);
-    void mouseMDown(int, int, unsigned);
+    void mouseLDown(TMouseEvent &);
+    void mouseMove(TMouseEvent &);
+    void mouseLUp(TMouseEvent &);
+    void mouseMDown(TMouseEvent &);
     void focus(bool);
 
     /**

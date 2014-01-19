@@ -1309,7 +1309,7 @@ TFigureEditor::mouseEvent(TMouseEvent &me)
   if (!model)
     return;
 
-  int x, y;
+  TCoord x, y;
   getOrigin(&x, &y);
   x += me.x;
   y += me.y;
@@ -1401,7 +1401,7 @@ namespace {
 }
 
 void
-TFigureEditor::mouseLDown(int mx, int my, unsigned m)
+TFigureEditor::mouseLDown(TMouseEvent &me)
 {
   #if VERBOSE
     cout << __PRETTY_FUNCTION__ << endl;
@@ -1414,8 +1414,10 @@ TFigureEditor::mouseLDown(int mx, int my, unsigned m)
   if (preferences)
     preferences->setCurrent(this);
 
-  mouse2sheet(mx, my, &mx, &my);
-  int x, y;
+  TCoord mx, my;
+  unsigned m = me.modifier();
+  mouse2sheet(me.x, me.y, &mx, &my);
+  TCoord x, y;
   sheet2grid(mx, my, &x, &y);
 
 //cerr << "mouse down at " << mx << ", " << my << endl;
@@ -1448,7 +1450,7 @@ redo:
                 ++p)
             {
               // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-              int x, y;
+              TCoord x, y;
               if ((*p)->mat) {
                 TMatrix2D m(*(*p)->mat);
                 m.invert();
@@ -1639,7 +1641,8 @@ redo:
       else
         cout << "  STATE_EDIT" << endl;
       #endif
-      unsigned r = gadget->mouseLDown(this,x,y,m);
+      TMouseEvent me2(me, x, y);
+      unsigned r = gadget->mouseLDown(this, me2);
       if (r & TFigure::DELETE) {
         #if VERBOSE
           cout << "    delete gadget" << endl;
@@ -1667,7 +1670,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseMove(int mx, int my, unsigned m)
+TFigureEditor::mouseMove(TMouseEvent &me)
 {
 //cout << "mouseMove for window " << window->getTitle() << endl;
   #if VERBOSE
@@ -1677,8 +1680,10 @@ TFigureEditor::mouseMove(int mx, int my, unsigned m)
   if (!window || !model)
     return;
 
-  mouse2sheet(mx, my, &mx, &my);
-  int x, y;
+  TCoord mx, my;
+  unsigned m = me.modifier();
+  mouse2sheet(me.x, me.y, &mx, &my);
+  TCoord x, y;
   sheet2grid(mx, my, &x, &y);
 
 redo:
@@ -1693,7 +1698,8 @@ redo:
           cout << "  STATE_EDIT => mouseMove to gadget" << endl;
       #endif
       assert(gadget!=NULL);
-      unsigned r = gadget->mouseMove(this,x,y,m);
+      TMouseEvent me2(me, x, y);
+      unsigned r = gadget->mouseMove(this, me2);
       if (r & TFigure::DELETE) {
         #if VERBOSE
           cout << "    delete gadget" << endl;
@@ -1820,7 +1826,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseLUp(int mx, int my, unsigned m)
+TFigureEditor::mouseLUp(TMouseEvent &me)
 {
 #if VERBOSE
   cout << __PRETTY_FUNCTION__ << endl;
@@ -1829,8 +1835,10 @@ TFigureEditor::mouseLUp(int mx, int my, unsigned m)
   if (!window || !model)
     return;
 
-  mouse2sheet(mx, my, &mx, &my);
-  int x, y;
+  TCoord mx, my;
+  unsigned m = me.modifier();
+  mouse2sheet(me.x, me.y, &mx, &my);
+  TCoord x, y;
   sheet2grid(mx, my, &x, &y);
 
 redo:
@@ -1839,7 +1847,8 @@ redo:
     case STATE_CREATE:
     case STATE_EDIT: {
       assert(gadget!=NULL);
-      unsigned r = gadget->mouseLUp(this,x,y,m);
+      TMouseEvent me2(me, x, y);
+      unsigned r = gadget->mouseLUp(this, me2);
       if (r & TFigure::DELETE) {
         #if VERBOSE
           cout << "    delete gadget" << endl;
@@ -1993,7 +2002,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseRDown(int mx, int my, unsigned modifier)
+TFigureEditor::mouseRDown(TMouseEvent &me)
 {
   if (!window || !model)
     return;
@@ -2001,7 +2010,8 @@ TFigureEditor::mouseRDown(int mx, int my, unsigned modifier)
 //  stopOperation();
 //  clearSelection();
   setFocus();
-  mouse2sheet(mx, my, &mx, &my);
+  TCoord mx, my;
+  mouse2sheet(me.x, me.y, &mx, &my);
   TFigure *f = findFigureAt(mx, my);
   if (f) {
     if (state==STATE_NONE) {
@@ -2009,7 +2019,8 @@ TFigureEditor::mouseRDown(int mx, int my, unsigned modifier)
       selection.insert(f);
       invalidateFigure(f);
     }
-    unsigned op = f->mouseRDown(this, mx, my, modifier);
+    TMouseEvent me2(me, mx, my);
+    unsigned op = f->mouseRDown(this, me2);
     if (op & TFigure::STOP) {
       stopOperation();
       clearSelection();
@@ -2362,7 +2373,7 @@ void
 TFCreateTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
 {
 //cout << "TFCreateTool::mouseEvent" << endl;
-  int x0, y0, x1, y1;
+  TCoord x0, y0, x1, y1;
   unsigned r;
 
 redo:
@@ -2370,7 +2381,7 @@ redo:
   switch(fe->state) {
     case TFigureEditor::STATE_NONE:
       switch(me.type) {
-        case TMouseEvent::LDOWN:
+        case TMouseEvent::LDOWN: {
 //          cout << "TFCreateTool: LDOWN" << endl;
 //          cout << "TFCreateTool: start create" << endl;
           fe->mouse2sheet(me.x, me.y, &x0, &y0);
@@ -2384,7 +2395,8 @@ redo:
           figure->setAttributes(fe->getAttributes());
           figure->startCreate();
           fe->state = TFigureEditor::STATE_START_CREATE;
-          r = figure->mouseLDown(fe, x1, y1, me.modifier());
+          TMouseEvent me2(me, x1, y1);
+          r = figure->mouseLDown(fe, me2);
           fe->state = TFigureEditor::STATE_CREATE;
           if (r & TFigure::DELETE) {
 //            cout << "  delete" << endl;
@@ -2409,7 +2421,7 @@ redo:
 //            cout << "  repeat" << endl;
             goto redo;
           }
-          break;
+        } break;
         default:
 //          cout << "TFCreateTool: unhandled mouse event in state 0" << endl;
           break;
@@ -2419,23 +2431,23 @@ redo:
     case TFigureEditor::STATE_CREATE:
       fe->mouse2sheet(me.x, me.y, &x0, &y0);
       fe->sheet2grid(x0, y0, &x1, &y1);
-
+      TMouseEvent me2(me, x1, y1);
       switch(me.type) {
         case TMouseEvent::LDOWN:
 //          cout << "TFCreateTool: mouseLDown during create" << endl;
-          r = figure->mouseLDown(fe, x1, y1, me.modifier());
+          r = figure->mouseLDown(fe, me2);
           break;
         case TMouseEvent::MOVE:
 //          cout << "TFCreateTool: mouseMove during create" << endl;
-          r = figure->mouseMove(fe, x1, y1, me.modifier());
+          r = figure->mouseMove(fe, me2);
           break;
         case TMouseEvent::LUP:
 //          cout << "TFCreateTool: mouseLUp during create" << endl;
-          r = figure->mouseLUp(fe, x1, y1, me.modifier());
+          r = figure->mouseLUp(fe, me2);
           break;
         case TMouseEvent::RDOWN:
 //          cout << "TFCreateTool: mouseRDown during create" << endl;
-          r = figure->mouseRDown(fe, x1, y1, me.modifier());
+          r = figure->mouseRDown(fe, me2);
           break;
         default:
 //          cout << "TFCreateTool: unhandled mouse event in state 1" << endl;

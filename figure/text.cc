@@ -215,13 +215,13 @@ TFText::keyDown(TFigureEditor *editor, TKey key, char *str, unsigned)
 }
 
 unsigned 
-TFText::mouseLDown(TFigureEditor *editor, int x, int y, unsigned)
+TFText::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
       cx = 0;
-      p1.x = x;
-      p1.y = y;
+      p1.x = m.x;
+      p1.y = m.y;
       calcSize();
       editor->invalidateFigure(this);
       startInPlace();
@@ -229,7 +229,7 @@ TFText::mouseLDown(TFigureEditor *editor, int x, int y, unsigned)
       
     case TFigureEditor::STATE_CREATE:
     case TFigureEditor::STATE_EDIT:
-      if (distance(x,y)>RANGE) {
+      if (distance(m.x,m.y)>RANGE) {
         editor->invalidateFigure(this);
         if (text.empty())
           return STOP|DELETE|REPEAT;
@@ -244,13 +244,13 @@ TFText::mouseLDown(TFigureEditor *editor, int x, int y, unsigned)
 }
 
 unsigned
-TFText::mouseMove(TFigureEditor*, int x, int y, unsigned)
+TFText::mouseMove(TFigureEditor*, TMouseEvent &)
 {
   return CONTINUE;
 }
 
 unsigned 
-TFText::mouseLUp(TFigureEditor*, int, int, unsigned)
+TFText::mouseLUp(TFigureEditor*, TMouseEvent &)
 {
   return CONTINUE;
 }

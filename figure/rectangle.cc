@@ -129,7 +129,7 @@ TFRectangle::getHandle(unsigned handle, TPoint *p)
 }
 
 void 
-TFRectangle::translateHandle(unsigned handle, int x, int y, unsigned)
+TFRectangle::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned)
 {
   switch(handle) {
     case 0:
@@ -152,12 +152,12 @@ TFRectangle::translateHandle(unsigned handle, int x, int y, unsigned)
 }
 
 unsigned 
-TFRectangle::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned)
+TFRectangle::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
-      p1.x = p2.x = mx;
-      p1.y = p2.y = my;
+      p1.x = p2.x = m.x;
+      p1.y = p2.y = m.y;
       editor->invalidateFigure(this);
       break;
     default:
@@ -167,13 +167,13 @@ TFRectangle::mouseLDown(TFigureEditor *editor, int mx, int my, unsigned)
 }
 
 unsigned 
-TFRectangle::mouseMove(TFigureEditor *editor, int mx, int my, unsigned)
+TFRectangle::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_CREATE:
       editor->invalidateFigure(this);
-      p2.x = mx;
-      p2.y = my;
+      p2.x = m.x;
+      p2.y = m.y;
       editor->invalidateFigure(this);
       break;
     default:
@@ -183,11 +183,11 @@ TFRectangle::mouseMove(TFigureEditor *editor, int mx, int my, unsigned)
 }
 
 unsigned 
-TFRectangle::mouseLUp(TFigureEditor *editor, int mx, int my, unsigned)
+TFRectangle::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_CREATE:
-      mouseMove(editor,mx,my,0);
+      mouseMove(editor, m);
       if (p1.x==p2.x && p1.y==p2.y)
         return STOP|DELETE;
       return STOP;

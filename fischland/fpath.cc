@@ -33,7 +33,7 @@ TFPath::getHandle(unsigned handle, TPoint *p)
 }
 
 void
-TFPath::translateHandle(unsigned handle, int x, int y, unsigned m)
+TFPath::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier)
 {
   // 0 0  1 1 1  2 2 2  3 3 3
   // 0 1  2 3 4  5 6 7  8 9 10
@@ -129,8 +129,7 @@ TFPath::translateHandle(unsigned handle, int x, int y, unsigned m)
       break;
   }
   
-  TPoint p(x, y);
-  polygon[handle]=p;
+  polygon[handle]=TPoint(x, y);
 }
 
 void
@@ -349,7 +348,7 @@ class TMyPopupMenu:
 }
 
 unsigned
-TFPath::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
+TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 {
 //  cerr << "TFBezierline::mouseRDown" << endl;
 //cerr << " at (" << x << ", " << y << ")\n";
@@ -362,8 +361,8 @@ TFPath::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       p!=polygon.end();
       ++p, ++i)
   {
-    if (p->x-editor->fuzziness<=x && x<=p->x+editor->fuzziness &&
-        p->y-editor->fuzziness<=y && y<=p->y+editor->fuzziness)
+    if (p->x-editor->fuzziness<=m.x && m.x<=p->x+editor->fuzziness &&
+        p->y-editor->fuzziness<=m.y && m.y<=p->y+editor->fuzziness)
     {
 //      cerr << "found handle " << i << endl;
       found = true;
@@ -383,8 +382,8 @@ TFPath::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
       action->sigClicked,
       figure, this,
       edit, editor,
-      _x, x,
-      _y, y,
+      _x, m.x,
+      _y, m.y,
       edit->invalidateFigure(figure);
       figure->insertPointNear(_x, _y);
       edit->invalidateFigure(figure); 
@@ -413,7 +412,7 @@ TFPath::mouseRDown(TFigureEditor *editor, int x, int y, unsigned modifier)
   menu = new TMyPopupMenu(editor, "popup");
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
-  menu->open(x, y, modifier);
+  menu->open(m.x, m.y, m.modifier());
   return NOTHING;
 }
  
@@ -722,7 +721,7 @@ cout << "---------------" << endl;
 void
 TPenTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
 {
-  int x, y;
+  TCoord x, y;
   fe->mouse2sheet(me.x, me.y, &x, &y);
 
   switch(me.type) {
@@ -771,7 +770,7 @@ TPenTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
         }
         p0 = p1 = path->polygon.begin();
         ++p0;
-        int x1 = p1->x, y1 = p1->y;
+        TCoord x1 = p1->x, y1 = p1->y;
         path->polygon.addPoint(p1->x - ( p0->x - p1->x ),
                                p1->y - ( p0->y - p1->y ));
         path->polygon.addPoint(x1, y1);
@@ -982,7 +981,7 @@ TPencilTool::keyEvent(TFigureEditor *fe, TKeyEvent &ke)
 void 
 TPencilTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
 {
-  int x, y;
+  TCoord x, y;
   fe->mouse2sheet(me.x, me.y, &x, &y);
 
   switch(me.type) {
