@@ -6,7 +6,7 @@
 
 using namespace toad;
 
-@interface MyDelegate : NSObject
+@interface ToadDelegate : NSObject
 {
 }
 - (void) createWindow;
@@ -15,7 +15,7 @@ using namespace toad;
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
 @end
 
-@implementation MyDelegate : NSObject
+@implementation ToadDelegate : NSObject
 - (void) dealloc
 {
   [super dealloc];
@@ -30,7 +30,6 @@ using namespace toad;
 // this one creates a simple custom menu without NIB files
 - (void) createMenu
 {
-  printf("createMenu: create simple NSMenu\n");
   NSMenu *m0, *m1;
 
   // menu = AUTORELEASE ([NSMenu new]);
@@ -74,23 +73,11 @@ toad::initialize(int argc, char *argv[])
 
   pool = [NSAutoreleasePool new];
 
-  printf("Application started.\n");
   // setup NSApp
   [NSApplication sharedApplication];
 
-  // add a delegat to NSApp to customize the application
-  [NSApp setDelegate: [MyDelegate new]];
-
-//  TWindow wnd0(NULL, "Cocoa TOAD Button Test: Gemüse");
-//  TPushButton wnd(NULL, "Cocoa TOAD Button Test: Äpfel");
-//  TMyWindow wnd(0, "Cocoa TOAD Test");
-/*
-  TWindow wnd(0, "Cocoa TOAD Test");
-  // wnd.setSize(340,240);
-  TWindow *w = new TMyWindow2(&wnd, "clip");
-  w->setShape(10,10,300,180);
-*/
-//  connect(wnd.sigClicked, &foo);
+  // add a delegate to NSApp to customize the application
+  [NSApp setDelegate: [ToadDelegate new]];
 }
 
 bool
