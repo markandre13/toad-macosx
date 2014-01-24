@@ -71,7 +71,7 @@ class TPenBase
     virtual void operator|=(const TRectangle&) = 0;
     
     virtual void setMode(EMode) = 0;
-    virtual void setLineWidth(int) = 0;
+    virtual void setLineWidth(TCoord) = 0;
     virtual void setLineStyle(ELineStyle) = 0;
     //virtual void setColorMode(TColor::EDitherMode) = 0;
     //virtual void setClipChildren(bool) = 0;

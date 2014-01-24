@@ -124,6 +124,7 @@ TMatrix2D::translate(TCoord x, TCoord y)
 void
 TMatrix2D::rotateAt(TCoord x, TCoord y, TCoord radiant)
 {
+  cerr << "TMatrix2D::rotateAt not implemented" << endl;
 #if 0
   TCoord r11, r12, r21, r22;
   r11 = r22 = cos(radiant);
@@ -153,16 +154,9 @@ TMatrix2D::rotateAt(TCoord x, TCoord y, TCoord radiant)
  *
  */
 void
-TMatrix2D::scale(TCoord xfactor, TCoord yfactor)
+TMatrix2D::scale(TCoord x, TCoord y)
 {
-#if 0
-  m.m11 *= xfactor;
-  m.m12 *= xfactor;
-  m.m21 *= yfactor;
-  m.m22 *= yfactor;
-  
-  _identity = false;
-#endif
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformScale(*this, x, y);
 }
 
 void
@@ -206,6 +200,10 @@ TMatrix2D::operator*(const TMatrix2D &p) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, short int *outX, short int *outY) const
 {
+  CGPoint p = { inX, inY };
+  p = CGPointApplyAffineTransform(p, *this);
+  *outX = p.x;
+  *outY = p.y;
 /*
   TCoord x, y;
   x = inX; y=inY;
@@ -217,6 +215,10 @@ TMatrix2D::map(TCoord inX, TCoord inY, short int *outX, short int *outY) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, int *outX, int *outY) const
 {
+  CGPoint p = { inX, inY };
+  p = CGPointApplyAffineTransform(p, *this);
+  *outX = p.x;
+  *outY = p.y;
 /*
   TCoord x, y;
   x = inX; y=inY;
@@ -228,6 +230,10 @@ TMatrix2D::map(TCoord inX, TCoord inY, int *outX, int *outY) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, long *outX, long *outY) const
 {
+  CGPoint p = { inX, inY };
+  p = CGPointApplyAffineTransform(p, *this);
+  *outX = p.x;
+  *outY = p.y;
 /*
   TCoord x, y;
   x = inX; y=inY;
@@ -239,6 +245,10 @@ TMatrix2D::map(TCoord inX, TCoord inY, long *outX, long *outY) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, float *outX, float *outY) const
 {
+  CGPoint p = { inX, inY };
+  p = CGPointApplyAffineTransform(p, *this);
+  *outX = p.x;
+  *outY = p.y;
 /*
   TCoord x, y;
   x = inX; y=inY;
@@ -250,6 +260,10 @@ TMatrix2D::map(TCoord inX, TCoord inY, float *outX, float *outY) const
 void
 TMatrix2D::map(TCoord inX, TCoord inY, double *outX, double *outY) const
 {
+  CGPoint p = { inX, inY };
+  p = CGPointApplyAffineTransform(p, *this);
+  *outX = p.x;
+  *outY = p.y;
 /*
   TCoord x, y;
   x = inX; y=inY;

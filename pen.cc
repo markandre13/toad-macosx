@@ -18,7 +18,9 @@
  * MA  02111-1307,  USA
  */
 
-#import <AppKit/NSAttributedString.h>
+// #import <AppKit/NSAttributedString.h>
+// #include "CoreText/CoreText.h"
+#include "CoreText/CTFontDescriptor.h"
 #include <toad/core.hh>
 
 using namespace toad;
@@ -268,6 +270,8 @@ TPen::vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
   }
   CGContextAddRect(ctx, CGRectMake(x, y, w, h));
   CGContextDrawPath(ctx, kCGPathFill);
+  CGContextAddRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
@@ -280,6 +284,8 @@ void
 TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
   CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
   CGContextDrawPath(ctx, kCGPathFill);
+  CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
@@ -317,11 +323,43 @@ NSImage* newImage = [[NSImage alloc] initWithSize: [myImage size]];
 }
 
 void
-TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparent)
+TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transparent)
 {
+#if 0
+  CFStringRef fontname = CFSTR("Helvetica");
+  CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithNameAndSize(fontname, 1.2);
+//  CFRelease(fontname);
+  CTFontRef font = CTFontCreateWithFontDescriptor(descriptor, 0.0, NULL);
+  CFRelease(descriptor);
+
+  CFStringRef text = CFStringCreateWithCString(NULL, aText, kCFStringEncodingUTF8);
+
+  // Initialize the string, font, and context
+  CFStringRef keys[] = { kCTFontAttributeName };
+  CFTypeRef values[] = { font };
+
+  CFDictionaryRef attributes =
+    CFDictionaryCreate(kCFAllocatorDefault, (const void**)&keys,
+        (const void**)&values, sizeof(keys) / sizeof(keys[0]),
+        &kCFTypeDictionaryKeyCallBacks,
+        &kCFTypeDictionaryValueCallBacks);
+
+  CFAttributedStringRef attrString = CFAttributedStringCreate(kCFAllocatorDefault, text, attributes);
+  CFRelease(text);
+  CFRelease(attributes);
+  CTLineRef line = CTLineCreateWithAttributedString(attrString);
+
+  // Set text position and draw the line into the graphics context
+  CGContextSetTextPosition(ctx, x, y);
+  CTLineDraw(line, ctx);
+  CFRelease(line);
+
+  CFRelease(font);
+
+#else
   char *t = 0;
-  if (strlen(text)!=len) {
-    t = strdup(text);
+  if (strlen(aText)!=len) {
+    t = strdup(aText);
     t[len] = 0;
   }
 //cerr<<"vdrawString("<<x<<","<<y<<",\""<<text<<"\","<<len<<","<<transparent<<")\n";
@@ -329,7 +367,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
 //cerr << "  not transparent" << endl;
     TRGBA stroke2 = stroke, fill2 = fill;
     setColor(fill2.r, fill2.g, fill2.b);    
-    fillRectanglePC(x,y,getTextWidth(t?t:text),getHeight());
+    fillRectanglePC(x,y,getTextWidth(t?t:aText),getHeight());
     setLineColor(stroke2.r, stroke2.g, stroke2.b);
     setFillColor(fill2.r, fill2.g, fill2.b);
   }
@@ -341,7 +379,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
                               blue:  stroke.b
                               alpha: 1.0]
       forKey: NSForegroundColorAttributeName];
-  [[NSString stringWithUTF8String: t?t:text]
+  [[NSString stringWithUTF8String: t?t:aText]
     drawAtPoint: NSMakePoint(x, y-getDescent())
     withAttributes: textAttributes];
 /*
@@ -351,6 +389,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
 */
   if (t)
     free(t);
+#endif
 }
 
 void
@@ -392,17 +431,27 @@ TPen::setLineStyle(ELineStyle style)
 }
 
 void
-TPen::setLineWidth(int w)
+TPen::setLineWidth(TCoord w)
 {
   if (w<0)
     w = -w;
-  [NSBezierPath setDefaultLineWidth: w];
+  CGContextSetLineWidth(ctx, w);
 }
 
 void
-TPen::setMode(EMode)
+TPen::setMode(EMode mode)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  switch(mode) {
+    case NORMAL:
+      CGContextSetBlendMode(ctx, kCGBlendModeNormal);
+      break;
+    case XOR:
+      CGContextSetBlendMode(ctx, kCGBlendModeXOR);
+      break;
+    case INVERT:
+      CGContextSetBlendMode(ctx, kCGBlendModeDifference);
+      break;
+  }
 }
 
 void
@@ -414,185 +463,96 @@ TPen::drawPoint(TCoord x, TCoord y)
 void
 TPen::drawLines(TPoint const *p, size_t n)
 {
-  if (n<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
-  for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
-  [path stroke];
+  CGContextAddLines(ctx, p, n);
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::drawLines(TPolygon const &p)
 {
-  if (p.size()<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
-  for(size_t i=1; i<p.size(); ++i)
-    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
-  [path stroke];
+  CGContextAddLines(ctx, p.data(), p.size());
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::drawPolygon(const TPoint *p, size_t n)
 {
-  if (n<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
-  for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
-  [path closePath];
-  [path stroke];
+  CGContextAddLines(ctx, p, n);
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::fillPolygon(TPoint const *p, size_t n)
 {
-  if (n<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  [path moveToPoint: NSMakePoint(p[0].x, p[0].y)];
-  for(size_t i=1; i<n; ++i)
-    [path lineToPoint: NSMakePoint(p[i].x, p[i].y)];
-  [path closePath];
-  [path fill];
+  CGContextAddLines(ctx, p, n);
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, kCGPathFill);
+  CGContextAddLines(ctx, p, n);
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::drawPolygon(const TPolygon &polygon)
 {
-  if (polygon.size()<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[polygon.size()];
-  NSPoint *q = np;
-  for(TPolygon::const_iterator p = polygon.begin();
-      p != polygon.end();
-      ++p, ++q)
-  {
-    q->x = p->x;
-    q->y = p->y;
-  }
-  [path appendBezierPathWithPoints: np count:polygon.size()];
-  [path closePath];
-  [path stroke];
+  CGContextAddLines(ctx, polygon.data(), polygon.size());
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::fillPolygon(const TPolygon &polygon)
 {
-  if (polygon.size()<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[polygon.size()];
-  NSPoint *q = np;
-  for(TPolygon::const_iterator p = polygon.begin();
-      p != polygon.end();
-      ++p, ++q)
-  {
-    q->x = p->x;
-    q->y = p->y;
-  }
-  [path appendBezierPathWithPoints: np count:polygon.size()];
-  [path closePath];
-  [path fill];
+  CGContextAddLines(ctx, polygon.data(), polygon.size());
+  CGContextClosePath(ctx);
+  CGContextDrawPath(ctx, kCGPathFill);
 }
 
 void
 TPen::drawPolyBezier(const TPolygon &polygon)
 {
-  if (polygon.size()<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[3];
-  
-  np[0].x = polygon[0].x;
-  np[0].y = polygon[0].y;
-  [path moveToPoint: np[0]];
-  
-  TPolygon::const_iterator p = polygon.begin();
-  while(true) {
-    ++p;
-    if (p==polygon.end())
-      break;
-    np[1].x = p->x;
-    np[1].y = p->y;
-    ++p;
-    if (p==polygon.end())
-      break;
-    np[2].x = p->x;
-    np[2].y = p->y;
-    ++p;
-    if (p==polygon.end())
-      break;
-    np[0].x = p->x;
-    np[0].y = p->y;
-    [path curveToPoint: np[0] controlPoint1: np[1] controlPoint2: np[2]];
-  }
-#if 0
-  [path appendBezierPathWithPoints: np count:polygon.size()];
-#endif
-  // [path closePath];
-  [path stroke];
+  drawPolyBezier(polygon.data(), polygon.size());
 }
 
 void
 TPen::fillPolyBezier(const TPolygon &polygon)
 {
-  if (polygon.size()<2)
-    return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[polygon.size()];
-  NSPoint *q = np;
-  for(TPolygon::const_iterator p = polygon.begin();
-      p != polygon.end();
-      ++p, ++q)
-  {
-    q->x = p->x;
-    q->y = p->y;
-  }
-  [path appendBezierPathWithPoints: np count:polygon.size()];
-  [path closePath];
-  [path fill];
+  fillPolyBezier(polygon.data(), polygon.size());
 }
 
 void
 TPen::drawPolyBezier(const TPoint *p, size_t n)
 {
-  if (n<2)
+  if (n<4)
     return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[n];
-  NSPoint *q = np;
-  const TPoint *e = p+n;
-  for(; p!=e; ++p, ++q)
-  {
-    q->x = p->x;
-    q->y = p->y;
+  
+  CGContextMoveToPoint(ctx, p[0].x, p[0].y);
+  ++p;
+  --n;
+
+  while(n>=3) {
+    CGContextAddCurveToPoint(ctx, p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y);
+    p+=3;
+    n-=3;
   }
-  [path appendBezierPathWithPoints: np count:n];
-  [path closePath];
-  [path stroke];
+  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
 TPen::fillPolyBezier(const TPoint *p, size_t n)
 {
-  if (n<2)
+  if (n<4)
     return;
-  NSBezierPath *path = [NSBezierPath bezierPath];
-  NSPoint np[n];
-  NSPoint *q = np;
-  const TPoint *e = p+n;
-  for(; p!=e; ++p, ++q)
-  {
-    q->x = p->x;
-    q->y = p->y;
+  
+  CGContextMoveToPoint(ctx, p[0].x, p[0].y);
+  ++p;
+  --n;
+
+  while(n>=3) {
+    CGContextAddCurveToPoint(ctx, p[0].x, p[0].y, p[1].x, p[1].y, p[2].x, p[2].y);
+    p+=3;
+    n-=3;
   }
-  [path appendBezierPathWithPoints: np count:n];
-  [path closePath];
-  [path fill];
+  CGContextDrawPath(ctx, kCGPathFill);
 }

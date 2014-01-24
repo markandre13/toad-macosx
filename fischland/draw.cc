@@ -327,7 +327,6 @@ TFischEditor::paint()
     return;
   }
 
-
   if (update_scrollbars) {
     // cout << "paint: update_scrollbars" << endl;
     updateScrollbars();
@@ -388,8 +387,15 @@ return;
                  window->getOriginY()+visible.y);
 #endif
 
+//pen->setColor(1,0.5,0);
+//pen->fillRectangle(100,100,200,100);
+
   if (mat)
     pen->multiply(mat);
+
+//pen->setColor(1,0,0);
+//TCoord f=96.0;
+//pen->fillRectangle(100*f,100*f,200*f,100*f);
 
 //TRectangle r0;
 //pen->getClipBox(&r0);
@@ -814,8 +820,8 @@ TMainWindow::load(const string &filename)
 {    
   ifstream fin(filename.c_str());
   TInObjectStream in(&fin);
-  //  oin.setVerbose(true);
-  //  oin.setDebug(true);
+//  in.setVerbose(true);
+//  in.setDebug(true);
 
   TSerializable *s = in.restore();
   if (!in || !s) {
@@ -1453,9 +1459,8 @@ class TMyWindow:
 {
   public:
     TMyWindow(TWindow *p, const string &t): TWindow(p, t) {
-      setBackground(0,0.5,0);
+      setBackground(0,0,0);
     }
-    
     void paint() {
       cout << "TMyWindow::paint()" << endl;
       TPen pen(this);
@@ -1522,6 +1527,17 @@ class TMyWindow:
 
       pen.fillCircle(35,60,20,20);
       pen.drawCircle(35,60,20,20);
+      
+      TPolygon p;
+      p.addPoint(10,145);
+      p.addPoint(10,85);
+      p.addPoint(70,85);
+      p.addPoint(80,145);
+      
+      pen.fillPolyBezier(p);
+      pen.drawLines(p);
+      
+      pen.drawString(10,150, "Hä");
     }
 };
 #endif

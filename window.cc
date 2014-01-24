@@ -37,6 +37,12 @@
 
 using namespace toad;
 
+typedef vector<TWindow*> TVectorParentless;
+static TVectorParentless parentless;
+
+typedef map<TWindow*,string> TTextMap;
+static TTextMap tooltipmap;
+
 TWindow*
 TWindow::getParent() const
 {
@@ -51,8 +57,6 @@ TWindow::getParent() const
 }
 
 
-typedef vector<TWindow*> TVectorParentless;
-static TVectorParentless parentless;
 
 void TWindow::paint()
 {
@@ -495,7 +499,12 @@ TWindow::destroyParentless()
 
 - (void) drawRect:(NSRect)rect
 {
-  // [self inLiveResize]
+/*
+  if ([self inLiveResize]) {
+    drawQuick()...
+    return;
+  }
+*/
 //printf("print draw rect (%f,%f,%f,%f)\n",rect.origin.x,rect.origin.y,
 //                                         rect.size.width,rect.size.height);
   if (!twindow)
@@ -503,7 +512,7 @@ TWindow::destroyParentless()
 
   {
   TPen pen(twindow);
-  pen.setColor(twindow->_bg.r/255.0, twindow->_bg.g/255.0, twindow->_bg.b/255.0);
+  pen.setColor(twindow->_bg.r, twindow->_bg.g, twindow->_bg.b);
   pen.fillRectangle(0,0,twindow->w,twindow->h);
   }
 
@@ -697,7 +706,7 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, NSView *aView, TWindow *aWindow) {
   NSPoint pt = [aView convertPoint:[anEvent locationInWindow] fromView:nil];
   x = pt.x;
   y = pt.y;
-cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
+// cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
   x -= aWindow->getOriginX();
   y -= aWindow->getOriginY();
   window = aWindow;
@@ -736,6 +745,7 @@ TWindow::TWindow(TWindow *parent, const string &title):
   _mapped = true;
   _allMouseMoveEvents = false;
   _bOwnsFocus = false;
+  _bToolTipAvailable = false;
   flagNoFocus = false;
   flagPopup = false;
 
@@ -779,6 +789,9 @@ TWindow::~TWindow()
       [NSApp terminate: nil];
     }
   }
+
+  setToolTip("");
+
 //cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
 }
 
@@ -843,6 +856,9 @@ TWindow::createWindow()
       p->createWindow();
     ptr = getNextSibling(ptr);
   }
+  
+  if (_bToolTipAvailable)
+    [nsview setToolTip: [NSString stringWithUTF8String: tooltipmap[this].c_str()]];
 
   doResize();
 }
@@ -1099,9 +1115,21 @@ TWindow::setCursor(const TCursor*)
 #endif
 
 void
-TWindow::setToolTip(const string &s)
+TWindow::setToolTip(const string &text)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  if (!text.empty()) {
+    tooltipmap[this] = text;
+    _bToolTipAvailable = true;
+  } else {
+    if (_bToolTipAvailable) {
+      TTextMap::iterator p = tooltipmap.find(this);
+      tooltipmap.erase(p);
+    }
+    _bToolTipAvailable = false;
+  }
+  
+  if (nsview)
+    [nsview setToolTip: text.empty() ? nil : [NSString stringWithUTF8String: text.c_str()]];
 }
 
 void

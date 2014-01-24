@@ -31,6 +31,7 @@ void TFRectangle::getShape(TRectangle *r)
 void 
 TFRectangle::paint(TPenBase &pen, EPaintType)
 {
+  pen.push();
   pen.setLineColor(line_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
@@ -56,9 +57,7 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
       pen.fillPolygon(p, 4);
     }
   }
-  pen.setLineStyle(TPenBase::SOLID);
-  pen.setLineWidth(0);
-  pen.setAlpha(1);
+  pen.pop();
 }
 
 double 

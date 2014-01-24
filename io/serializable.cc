@@ -392,14 +392,17 @@ store(TOutObjectStream &out, const double &value)
 bool
 restore(TInObjectStream &in, double *value)
 {
-  if (in.what != ATV_VALUE)
+  if (in.what != ATV_VALUE) {
     return false;
-#if 1
+  }
+#if 0
+  // broken for some reason...
   istringstream vs(in.value);
   vs.imbue(locale("C"));
   vs >> *value;
-  if (static_cast<unsigned>(vs.tellg()) != in.value.size())
+  if (static_cast<unsigned>(vs.tellg()) != in.value.size()) {
     return false;
+  }
 #else
   char *endptr;
   setlocale(LC_NUMERIC, "C");

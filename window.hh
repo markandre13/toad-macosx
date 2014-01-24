@@ -215,6 +215,7 @@ class TWindow:
     
     bool flag_wm_resize:1;
     bool _bOwnsFocus:1;
+    bool _bToolTipAvailable:1;
 
     int _b; // border
     TRGB _bg;

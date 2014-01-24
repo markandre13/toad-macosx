@@ -18,8 +18,7 @@ fischland::TDocument {
       show = true
       print = true
       toad::TFRectangle {
-        trans =
-        toad::TMatrix2D { 1 0 0 1 -768 -384 }
+        trans = toad::TMatrix2D { 1 0 0 1 -768 -384 }
         linecolor ={ 0 0 0 }
         fillcolor ={ 0 76 170 }
         linewidth = 48

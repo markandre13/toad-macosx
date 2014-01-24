@@ -70,7 +70,7 @@ class TPen:
     void operator|=(const TRegion&);
 
     void setMode(EMode);
-    void setLineWidth(int);
+    void setLineWidth(TCoord);
     void setLineStyle(ELineStyle);
 
     void vsetColor(TCoord r, TCoord g, TCoord b);
