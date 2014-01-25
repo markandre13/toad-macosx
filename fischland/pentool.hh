@@ -18,38 +18,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _FISCHLAND_FPATH_HH
-#define _FISCHLAND_FPATH_HH 1
-#include <toad/figure.hh>
+#ifndef _FISCHLAND_PENTOOL_HH
+#define _FISCHLAND_PENTOOL_HH 1
+
+#include "fpath.hh"
+#include <toad/figureeditor.hh>
 
 using namespace toad;
 
-class TFPath:
-  public TColoredFigure
+class TPenTool:
+  public TFigureTool
 {
-    SERIALIZABLE_INTERFACE(toad::, TFPath);
+    TFPath *path;
+    bool down;
   public:
-    TFPath() {
-      closed = false;
+    TPenTool() {
+      down = false;
+      path = 0;
     }
-    void paint(TPenBase&, EPaintType);
-    void paintSelection(TPenBase &pen, int handle);
-    void getShape(toad::TRectangle *r);
-
-    void translate(int dx, int dy);
-    bool getHandle(unsigned handle, TPoint *p);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    double _distance(TFigureEditor *fe, int x, int y);
-    unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
-    
-    void addPoint(const TPoint &p) { polygon.addPoint(p); }
-    void addPoint(int x, int y) { polygon.addPoint(x,y); }
-    void insertPointNear(int x, int y);
-    void deletePoint(unsigned i);
-
-    bool closed;
-    TPolygon polygon;
-    vector<byte> corner;
+    static TPenTool* getTool();
+    void cursor(TFigureEditor *fe, int x, int y);
+    void mouseEvent(TFigureEditor *fe, TMouseEvent &me);
+    void keyEvent(TFigureEditor *fe, TKeyEvent &ke);
+    void paintSelection(TFigureEditor *fe, TPenBase &pen);
+    void stop(TFigureEditor*);
 };
 
 #endif

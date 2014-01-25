@@ -138,7 +138,7 @@ TPen::setMatrix(TCoord a11, TCoord a12, TCoord a21, TCoord a22, TCoord tx, TCoor
   [xform concat];
 }
 
-/* could've returned NULL in the original TOAD... was that a good idea? */
+// FIXME: could've returned NULL in the original TOAD... was that a good idea?
 const TMatrix2D*
 TPen::getMatrix() const
 {
@@ -151,19 +151,22 @@ TPen::getMatrix() const
 void
 TPen::getClipBox(TRectangle *r) const
 {
+  // FIXME: must be the rectangle given by NSView drawRect:
   if (window) {
     r->x = 0;
     r->y = 0;
     r->w = window->w;
     r->h = window->h;
   }
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
+
+// FIXME: clipping not implemented, be carefull with that or you'll break TTable when using headers
 void
 TPen::operator&=(const TRectangle &r)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
@@ -176,11 +179,11 @@ void
 TPen::operator|=(const TRectangle &r)
 {
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-
+/*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
   [clipPath addClip];
-
+*/
 }
 
 void

@@ -604,7 +604,7 @@ TWindow::destroyParentless()
 
 - (void) mouseDown:(NSEvent*)theEvent
 {
-cout << "mouse down in " << twindow->getTitle() << endl;
+//cout << "mouse down in " << twindow->getTitle() << endl;
   TMouseEvent::_modifier |= MK_LBUTTON;
   twindow->_down(TMouseEvent::LDOWN, theEvent);
 }
@@ -625,7 +625,7 @@ void
 TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 {
   TMouseEvent me(theEvent, nsview, this);
-printf("%s: %s: %f, %f\n",__FUNCTION__, getTitle().c_str(), me.x, me.y);
+//printf("%s: %s: %f, %f\n",__FUNCTION__, getTitle().c_str(), me.x, me.y);
   if (!_inside) {
 //printf("  flip inside\n");
     _inside = true;
@@ -1049,18 +1049,36 @@ TWindow::getUpdateRegion() const
 }
 
 void
-TWindow::scrollRectangle(const TRectangle &rect, int x,int y, bool bClrBG)
+TWindow::scrollRectangle(const TRectangle &r, int x,int y, bool bClrBG)
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-  invalidateWindow();
+//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+//  invalidateWindow();
+  CGRect cgr = CGRectMake(r.x, r.y, r.w, r.h);
+  
+  [nsview scrollRect: cgr by: NSMakeSize(x, y)];
+  // note: his overlaps with the destination of the scroll
+  //       toad's x11 implementation took more care of this
+  [nsview setNeedsDisplayInRect: cgr];
 }
 
+/**
+ * Set the origin for all drawing operations and scroll the windows content
+ * to the new position.
+ */
 void
-TWindow::scrollTo(int x, int y)
+TWindow::scrollTo(int nx, int ny)
 {
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-  setOrigin(x,y);
-  invalidateWindow();
+  
+  
+  TCoord dx = nx - origin.x;
+  TCoord dy = ny - origin.y;
+  CGRect cgr = CGRectMake(0,0,w,h);
+  [nsview scrollRect: cgr by: NSMakeSize(dx, dy)];
+  origin.set(nx, ny);
+  // note: his overlaps with the destination of the scroll
+  //       toad's x11 implementation took more care of this
+  [nsview setNeedsDisplayInRect: cgr];
 }
 
 void

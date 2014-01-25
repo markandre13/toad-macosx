@@ -1551,9 +1551,27 @@ class TMyWindow:
 };
 #endif
 
+void test_table();
+void test_scroll();
+
 int 
 main(int argc, char **argv, char **envv)
 {
+  if (argc==2) {
+    if (strcmp(argv[1], "--test-table")==0) {
+      toad::initialize(argc, argv);
+      test_table();
+      toad::terminate();
+      return 0;
+    } else
+    if (strcmp(argv[1], "--test-scroll")==0) {
+      toad::initialize(argc, argv);
+      test_scroll();
+      toad::terminate();
+      return 0;
+    }
+  }
+
 #if 0
 
 #ifdef TEST01
