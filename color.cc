@@ -100,18 +100,19 @@ TSerializableRGB::store(TOutObjectStream &out) const
 bool
 TSerializableRGB::restore(TInObjectStream &in)
 {
-  int ir=0, ig=0, ib=0;
-
-  if (
-    ::restore(in, 0, &ir) ||
-    ::restore(in, 1, &ig) ||
-    ::restore(in, 2, &ib) ||
-    super::restore(in)
-    )
-  {
-    r = ir / 255.0;
-    g = ig / 255.0;
-    b = ib / 255.0;
+  int i;
+  if (super::restore(in))
+    return true;
+  if (::restore(in, 0, &i)) {
+    r = i / 255.0;
+    return true;
+  }
+  if (::restore(in, 1, &i)) {
+    g = i / 255.0;
+    return true;
+  }
+  if (::restore(in, 2, &i)) {
+    b = i / 255.0;
     return true;
   }
   ATV_FAILED(in) 

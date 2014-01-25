@@ -192,7 +192,7 @@ TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
     case TTableEvent::PAINT:
 // cout << "paint " << te.col << ", " << te.row << endl;
       if (te.focus && edit==this && te.col == col && te.row == row) {
-        te.pen->setColor(255,255,192);
+        te.pen->setColor(1,1,0.75);
         te.pen->fillRectanglePC(0,0,te.w,te.h);
         te.pen->setColor(0,0,0);
         te.pen->drawString(offx+2, 2, *s);

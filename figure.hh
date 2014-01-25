@@ -207,8 +207,6 @@ class TColoredFigure:
     typedef TFigure super;
   protected:
     TColoredFigure();
-    TSerializableRGB line_color;
-    TSerializableRGB fill_color;
     TCoord alpha;
     bool filled:1;        // true when filled
     TPenBase::ELineStyle line_style;
@@ -218,6 +216,8 @@ class TColoredFigure:
     bool restore(TInObjectStream &in);
 
   public:
+    TSerializableRGB line_color;
+    TSerializableRGB fill_color;
     virtual void setAttributes(const TFigureAttributes*);
     virtual void getAttributes(TFigureAttributes*) const;
 

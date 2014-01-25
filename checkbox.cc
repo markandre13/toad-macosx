@@ -77,7 +77,7 @@ TCheckBox::paint()
   TPen pen(this);
   int height;
 
-  pen.setColor(255,255,255);
+  pen.setColor(1,1,1);
   if (isEnabled()) {
     pen.fillRectanglePC(2,2,9,9);
   }

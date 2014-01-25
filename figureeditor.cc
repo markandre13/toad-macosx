@@ -109,7 +109,7 @@ foobar(TFigureAttributes *p, TFigureAttributes::EReason reason) {
 TFigureAttributes::TFigureAttributes()
 {
   linecolor.set(0,0,0);
-  fillcolor.set(255,255,255);
+  fillcolor.set(1,1,1);
   alpha.setRangeProperties(255,0,0,255);
   connect(alpha.sigChanged, foobar, this, ALPHA);
   filled = false;

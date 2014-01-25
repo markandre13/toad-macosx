@@ -164,6 +164,7 @@ void
 TPen::operator&=(const TRectangle &r)
 {
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+//      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
@@ -174,18 +175,18 @@ TPen::operator&=(const TRectangle &r)
 void
 TPen::operator|=(const TRectangle &r)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-/*
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
   [clipPath addClip];
-*/
+
 }
 
 void
 TPen::operator&=(const TRegion &r)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
@@ -196,7 +197,7 @@ TPen::operator&=(const TRegion &r)
 void
 TPen::operator|=(const TRegion &r)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
@@ -326,37 +327,41 @@ void
 TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transparent)
 {
 #if 0
+  // create font descriptor
+  CTFontRef font;
   CFStringRef fontname = CFSTR("Helvetica");
   CTFontDescriptorRef descriptor = CTFontDescriptorCreateWithNameAndSize(fontname, 1.2);
-//  CFRelease(fontname);
-  CTFontRef font = CTFontCreateWithFontDescriptor(descriptor, 0.0, NULL);
+  font = CTFontCreateWithFontDescriptor(descriptor, 0.0, NULL);
   CFRelease(descriptor);
 
-  CFStringRef text = CFStringCreateWithCString(NULL, aText, kCFStringEncodingUTF8);
-
-  // Initialize the string, font, and context
+  // create attributes from the font
   CFStringRef keys[] = { kCTFontAttributeName };
   CFTypeRef values[] = { font };
 
   CFDictionaryRef attributes =
     CFDictionaryCreate(kCFAllocatorDefault, (const void**)&keys,
-        (const void**)&values, sizeof(keys) / sizeof(keys[0]),
+        (const void**)&values, 0,
         &kCFTypeDictionaryKeyCallBacks,
         &kCFTypeDictionaryValueCallBacks);
 
+  // create and attributed string from the attributes and the text
+  CFStringRef text = CFStringCreateWithCString(NULL, aText, kCFStringEncodingUTF8);
   CFAttributedStringRef attrString = CFAttributedStringCreate(kCFAllocatorDefault, text, attributes);
   CFRelease(text);
   CFRelease(attributes);
+
+  // create a line from the attributed string
   CTLineRef line = CTLineCreateWithAttributedString(attrString);
 
-  // Set text position and draw the line into the graphics context
+  // draw
   CGContextSetTextPosition(ctx, x, y);
   CTLineDraw(line, ctx);
   CFRelease(line);
 
   CFRelease(font);
-
-#else
+#endif
+#if 1
+  // Cocoa
   char *t = 0;
   if (strlen(aText)!=len) {
     t = strdup(aText);

@@ -875,7 +875,7 @@ DBM2(cerr << "enter paint" << endl;)
   TPen pen(this);
 
 DBSCROLL({
-  pen.setColor(255,0,0);
+  pen.setColor(1,0,0);
   TRegion *rgn = getUpdateRegion();
   TRectangle r;
   long n = rgn->getNumRects();
@@ -1071,7 +1071,7 @@ DBSCROLL({
         }
 
 DBSCROLL(
-  pen.setColor(255,255,255);
+  pen.setColor(1,1,1);
   pen.fillRectanglePC(0,0,col_info[x].size, row_info[y].size);
   pen.setColor(0,0,0);
 )

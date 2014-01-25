@@ -184,7 +184,7 @@ TColoredFigure::TColoredFigure()
   filled = false;
   line_color.set(0,0,0);
   fill_color.set(0,0,0);
-  alpha = 255;
+  alpha = 1.0;
   line_style = TPenBase::SOLID;
   line_width = 0;
 }
@@ -444,8 +444,8 @@ TColoredFigure::store(TOutObjectStream &out) const
       }
     }
   }
-  if (alpha!=255) {
-    ::store(out, "alpha", alpha);
+  if (alpha!=1) {
+    ::store(out, "alpha", static_cast<int>(alpha*255));
   }
 }
 
@@ -488,14 +488,13 @@ TColoredFigure::restore(TInObjectStream &in)
 
   int a;
   if (::restore(in, "alpha", &a)) {
-    alpha = a;
+    alpha = a/255.0;
     return true;
   }
   
   if (
     ::restore(in, "linecolor", &line_color) ||
     ::restore(in, "linewidth", &line_width) ||
-    ::restore(in, "alpha", &alpha) ||
     super::restore(in)
   ) return true;
   ATV_FAILED(in)

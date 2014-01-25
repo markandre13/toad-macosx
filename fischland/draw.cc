@@ -888,11 +888,11 @@ TMainWindow::load(const string &filename)
     goto done;
   }
 
-  delete s;
   msg = programname + " can't load objects of type '" +
         s->getClassName() + "'.\n\n"
         "I've expected either 'fischland::TDocument', 'fischland::TCollection' or "
         "'toad::TFigureModel'.";
+  delete s;
   messageBox(0, "Failed to load file", msg,
              TMessageBox::ICON_STOP | TMessageBox::OK);
   return;
@@ -1459,16 +1459,24 @@ class TMyWindow:
 {
   public:
     TMyWindow(TWindow *p, const string &t): TWindow(p, t) {
-      setBackground(0,0,0);
+//      setBackground(0,0,0);
+        setSize(640,480);
     }
     void paint() {
-      cout << "TMyWindow::paint()" << endl;
       TPen pen(this);
+      pen.setColor(1,0,0);
+      pen.drawRectangle(100.5,100.5,49,99);
       
+//      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
+      pen &= TRectangle(101,101,48,98);
+      
+      pen.setColor(0,0,1);
+      pen.fillRectangle(50,50,100,200);
+      
+//      pen.drawString(20,20, "Ärgerlich");
+#if 0      
       pen.identity();
       
-      NSAffineTransform* xform;
-
       pen.setColor(1.0, 0.5, 0);
       pen.drawRectanglePC(0,0,100,50);
 
@@ -1538,6 +1546,7 @@ class TMyWindow:
       pen.drawLines(p);
       
       pen.drawString(10,150, "Hä");
+#endif
     }
 };
 #endif

@@ -505,15 +505,22 @@ TWindow::destroyParentless()
     return;
   }
 */
+/*
+  // rect is the union of all clipping rects, which can be retrieved with this:
+  const NSRect *rects;
+  int count;
+  [self getRectsBeingDrawn:&rects count:&count];
+*/
 //printf("print draw rect (%f,%f,%f,%f)\n",rect.origin.x,rect.origin.y,
 //                                         rect.size.width,rect.size.height);
   if (!twindow)
     return;
 
-  {
-  TPen pen(twindow);
-  pen.setColor(twindow->_bg.r, twindow->_bg.g, twindow->_bg.b);
-  pen.fillRectangle(0,0,twindow->w,twindow->h);
+  if (!twindow->flagNoBackground) {
+    CGContextRef ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    CGContextSetRGBFillColor(ctx, twindow->_bg.r, twindow->_bg.g, twindow->_bg.b, 1);
+    CGContextAddRect(ctx, NSRectToCGRect(rect));
+    CGContextDrawPath(ctx, kCGPathFill);
   }
 
   twindow->paint();
@@ -736,11 +743,12 @@ TWindow::TWindow(TWindow *parent, const string &title):
   x = y = 0;
   w = 320;
   h = 200;
-  _bg.set(255,255,255);
+  _bg.set(1, 1, 1);
   layout = 0;
   
   flagExplicitCreate = false;
   flagTabKey = false;
+  flagNoBackground = false;
   _inside = false;
   _mapped = true;
   _allMouseMoveEvents = false;

@@ -269,7 +269,7 @@ TPen *pen;
     void addElement(int width, int height) {
 /*
 if (pen) {
-  pen->setColor(0,0,255);
+  pen->setColor(0,0,1);
   pen->drawRectangle(x, y, width, height);
   pen->setColor(0,0,0);
 }
@@ -323,7 +323,7 @@ if (pen) {
       }
 /*
 if (pen) {
-  pen->setColor(255,0,0);
+  pen->setColor(1,0,0);
   pen->drawRectangle(left, y, x-left, bottom-y);
   pen->setColor(0,0,0);
 }
@@ -1091,12 +1091,12 @@ TETable::render(TPen &pen, TState &s) {
           case NONE:
             break;
           case COLOR:
-            pen.setColor(255,128,0);
+            pen.setColor(1,0.5,0);
             pen.fillRectanglePC(x+(border?1:0),
                                 y+(border?1:0),
                                 pc->width  + cellpadding * 2,
                                 pr->height + cellpadding * 2);
-            pen.setColor(192,192,255);
+            pen.setColor(0.75,0.75,1);
             pen.fillRectanglePC(x+(border?1:0)+cellpadding,
                                 y+(border?1:0)+cellpadding,
                                 pc->width,
@@ -1201,7 +1201,7 @@ TState::endAnchor()
   p.addPoint(x2,y2);
 /*
 if (pen) {
-  pen->setColor(0,255,0);
+  pen->setColor(0,1,0);
   pen->drawPolygon(p);
 }
 */

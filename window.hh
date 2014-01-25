@@ -320,7 +320,10 @@ class TWindow:
     int getOriginY() const { return 0; }
     
     void setBackground(TColor::EColor c) {
-      _bg = *TColor::lookup(c);
+      const TRGB *a = TColor::lookup(c);
+      _bg.r = a->r / 255.0;
+      _bg.g = a->g / 255.0;
+      _bg.b = a->b / 255.0;
       invalidateWindow();
     }
     void setBackground(TCoord r, TCoord g, TCoord b) {
