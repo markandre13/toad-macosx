@@ -30,10 +30,10 @@ SRC_COCOA=window.cc pen.cc
 
 SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
-	 fischland/toolbox.cc fischland/selectiontool.cc fischland/pentool.cc \
-	 fischland/penciltool.cc
+	 fischland/toolbox.cc fischland/selectiontool.cc fischland/directselectiontool.cc \
+	 fischland/pentool.cc fischland/penciltool.cc \
+	 fischland/filltool.cc fischland/filltoolutil.cc
 	 
-# fischland/filltool.cc fischland/filltoolutil.cc
 #fischland/fontdialog.cc
 
 SRC=$(SRC_FISH) $(SRC_SHARED) $(SRC_COCOA)

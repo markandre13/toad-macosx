@@ -52,7 +52,7 @@
 using namespace toad;
 using namespace fischland;
 
-#define DEBUG_PDF 1
+//#define DEBUG_PDF 1
 
 #ifdef DEBUG_PDF
 #include <sstream>
@@ -61,7 +61,6 @@ static TPenBase *pen = 0;
 
 #define TEST07 1
 
-#ifdef DEBUG_PDF
 static void
 bez2point(const TFPath *path, TCoord u, TPoint *p)
 {
@@ -77,7 +76,6 @@ bez2point(const TFPath *path, TCoord u, TPoint *p)
     p->y += path->polygon[i+j].y * b;
   }
 }
-#endif
 
 using namespace fischland;
 
@@ -100,7 +98,7 @@ TFillTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     case TMouseEvent::LDOWN:
       fe->mouse2sheet(me.x, me.y, &x, &y);
       fe->getWindow()->setCursor(TCursor::WAIT);
-      toad::flush();
+//      toad::flush();
       path = floodfill(*fe->getModel(), x, y);
       fe->getWindow()->setCursor(TCursor::DEFAULT);
       if (path) {

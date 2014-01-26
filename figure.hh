@@ -208,7 +208,10 @@ class TColoredFigure:
   protected:
     TColoredFigure();
     TCoord alpha;
+  public:
     bool filled:1;        // true when filled
+    bool closed:1;        // true when closed
+  protected:
     TPenBase::ELineStyle line_style;
     unsigned line_width;
 
@@ -231,6 +234,7 @@ class TColoredFigure:
     void unsetFillColor() {
       filled = false;
     }
+    bool isFilled() const { return filled && closed; }
 //    virtual void setFont(const string&);
 };
 

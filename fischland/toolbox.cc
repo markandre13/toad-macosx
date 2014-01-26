@@ -20,9 +20,10 @@
 
 #include "toolbox.hh"
 #include "selectiontool.hh"
-#include "directselectiontool.hh"
+#include "filltool.hh"
 #include "pentool.hh"
 #include "penciltool.hh"
+#include "directselectiontool.hh"
 #include "colorpalette.hh"
 #include "fischland.hh"
 #include "cairo.hh"
@@ -419,7 +420,7 @@ serialize.registerObject(new TFPath());
         wnd = rb = new TFatRadioButton(this, "floodfill", state);
         wnd->setToolTip("Flood Fill");
         rb->loadBitmap(RESOURCE("tool_floodfill.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TFillTool::getTool());
+        CONNECT(rb->sigClicked, me, setTool, TFillTool::getTool());
         break;
       case 6:
         wnd = rb = new TFatRadioButton(this, "text", state);

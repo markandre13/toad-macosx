@@ -182,6 +182,7 @@ TFigure::translate(TCoord dx, TCoord dy)
 TColoredFigure::TColoredFigure()
 {
   filled = false;
+  closed = false;
   line_color.set(0,0,0);
   fill_color.set(0,0,0);
   alpha = 1.0;
