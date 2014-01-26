@@ -80,7 +80,7 @@ TWindow::doResize()
 
 void TWindow::resize() {}
 void
-TWindow::keyEvent(TKeyEvent &ke)
+TWindow::keyEvent(const TKeyEvent &ke)
 {
   switch(ke.type) {
     case TKeyEvent::DOWN:
@@ -213,7 +213,7 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
  * I am not quite sure why I did add this method... [MAH]
  */
 void
-TWindow::windowEvent(TWindowEvent &we)
+TWindow::windowEvent(const TWindowEvent &we)
 {
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
   switch(we.type) {
@@ -249,11 +249,8 @@ TWindow::windowEvent(TWindowEvent &we)
 }  
 
 void
-TWindow::mouseEvent(TMouseEvent &me)
+TWindow::mouseEvent(const TMouseEvent &me)
 {
-  if (layout && layout->mouseEvent(me))
-    return;
-
   switch(me.type) {
     case TMouseEvent::MOVE:
       mouseMove(me);
@@ -286,21 +283,21 @@ TWindow::mouseEvent(TMouseEvent &me)
 }  
 
 //! See etMouseMoveMessages' when you need mouseMove.
-void TWindow::mouseMove(TMouseEvent &){}
-void TWindow::mouseEnter(TMouseEvent &){}
-void TWindow::mouseLeave(TMouseEvent &){}
+void TWindow::mouseMove(const TMouseEvent &){}
+void TWindow::mouseEnter(const TMouseEvent &){}
+void TWindow::mouseLeave(const TMouseEvent &){}
 
 //! Called when the left mouse button is pressed. Since X11 performs an
 //! automatic mouse grab you will receive a mouseLUp message afterwards
 //! unless you call UngrabMouse().
-void TWindow::mouseLDown(TMouseEvent &){}
+void TWindow::mouseLDown(const TMouseEvent &){}
 //! Same as mouseLDown for the middle mouse button.
-void TWindow::mouseMDown(TMouseEvent &){}
+void TWindow::mouseMDown(const TMouseEvent &){}
 //! Same as mouseLDown for the right mouse button.
-void TWindow::mouseRDown(TMouseEvent &){}
-void TWindow::mouseLUp(TMouseEvent &){}
-void TWindow::mouseMUp(TMouseEvent &){}
-void TWindow::mouseRUp(TMouseEvent &){}
+void TWindow::mouseRDown(const TMouseEvent &){}
+void TWindow::mouseLUp(const TMouseEvent &){}
+void TWindow::mouseMUp(const TMouseEvent &){}
+void TWindow::mouseRUp(const TMouseEvent &){}
                                                                                                                                                                                                  
 unsigned
 TWindow::getParentlessCount()
@@ -582,13 +579,20 @@ TWindow::destroyParentless()
   executeMessages();
 }
 
+static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
+{
+  if (twindow->layout && twindow->layout->mouseEvent(me))
+    return;
+  twindow->mouseEvent(me);
+}
+
 - (void) mouseEntered:(NSEvent*)theEvent
 {
 //printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
   twindow->_inside = true;
   TMouseEvent me(theEvent, self, twindow);
   me.type = TMouseEvent::ENTER;
-  twindow->mouseEvent(me);
+  _doMouse(twindow, me);
   executeMessages();
 }
 
@@ -598,7 +602,7 @@ TWindow::destroyParentless()
   twindow->_inside = false;
   TMouseEvent me(theEvent, self, twindow);
   me.type = TMouseEvent::LEAVE;
-  twindow->mouseEvent(me);
+  _doMouse(twindow, me);
   executeMessages();
 }
 
@@ -624,19 +628,17 @@ TWindow::destroyParentless()
 void
 TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 {
-  TMouseEvent me(theEvent, nsview, this);
-//printf("%s: %s: %f, %f\n",__FUNCTION__, getTitle().c_str(), me.x, me.y);
   if (!_inside) {
-//printf("  flip inside\n");
     _inside = true;
     TMouseEvent me(theEvent, nsview, this);
     me.type = TMouseEvent::ENTER;
-    mouseEvent(me);
+    _doMouse(this, me);
   }
+  TMouseEvent me(theEvent, nsview, this);
   me.type = type;
   me.dblClick = [theEvent clickCount]==2;
   _inside = true;
-  mouseEvent(me);
+  _doMouse(this, me);
   executeMessages();
 }
 
@@ -658,19 +660,18 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 void
 TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 {
-//printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
-  TMouseEvent me(theEvent, nsview, this);
   if (!_inside) {
-//printf("  flip outside\n");
     _inside = false;
     TMouseEvent me(theEvent, nsview, this);
     me.type = TMouseEvent::LEAVE;
-    mouseEvent(me);
+    _doMouse(this, me);
   }
+  TMouseEvent me(theEvent, nsview, this);
   me.type = type;
-  mouseEvent(me);
+  _doMouse(this, me);
   executeMessages();
 }
+
 - (void) mouseDragged:(NSEvent*)theEvent
 {
 //printf("%s: %s _inside=%i\n",__FUNCTION__, twindow->getTitle().c_str(),twindow->_inside);
@@ -681,10 +682,10 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
     twindow->_inside = !twindow->_inside;
     TMouseEvent me(theEvent, self, twindow);
     me.type = twindow->_inside ? TMouseEvent::ENTER : TMouseEvent::LEAVE;
-    twindow->mouseEvent(me);
+    _doMouse(twindow, me);
   }
   me.type = TMouseEvent::MOVE;
-  twindow->mouseEvent(me);
+  _doMouse(twindow, me);
   executeMessages();
 }
 
@@ -700,10 +701,10 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
     twindow->_inside = !twindow->_inside;
     TMouseEvent me(theEvent, self, twindow);
     me.type = twindow->_inside ? TMouseEvent::ENTER : TMouseEvent::LEAVE;
-    twindow->mouseEvent(me);
+    _doMouse(twindow, me);
   }
   me.type = TMouseEvent::MOVE;
-  twindow->mouseEvent(me);
+  _doMouse(twindow, me);
   executeMessages();
 }
 @end
@@ -1040,12 +1041,22 @@ TWindow::invalidateWindow(const TRectangle&, bool clearbg)
   invalidateWindow();
 }
 
-TRegion
+/*
+ * Returns the region to be updated during paint.
+ */
+TRegion*
 TWindow::getUpdateRegion() const
 {
-  TRegion r;
-  r |= TRectangle(0,0,w,h);
-  return r;
+  if (!nsview)
+    return NULL;
+  static TRegion r;
+  r.clear();
+  const NSRect *rects;
+  NSInteger count;
+  [nsview getRectsBeingDrawn:&rects count:&count];
+  for(int i=0; i<count; ++i)
+    r|=TRectangle(rects[i].origin.x, rects[i].origin.y, rects[i].size.width, rects[i].size.height);
+  return &r;
 }
 
 void

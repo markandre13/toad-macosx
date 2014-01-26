@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2010 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -20,6 +20,8 @@
 
 #include <toad/table.hh>
 #include <toad/utf8.hh>
+#include <toad/dragndrop.hh>
+#include <ctype.h>
 
 using namespace toad;
 
@@ -57,14 +59,15 @@ void
 TTableAdapter::modelChanged()
 {
   TTableModel *model = getModel();
-  if (!model) {
-    cerr << "TTableAdapter::modelChanged: received modelChanged but no model is set" << endl;
-    return;
+  if (model) {
+    reason = model->reason;
+    where  = model->where;
+    size   = model->size;
+  } else {
+    reason = TTableModel::CHANGED;
+    where  = 0;
+    size   = 0;
   }
-  
-  reason = model->reason;
-  where  = model->where;
-  size   = model->size;
 /*
 cout << "TTableAdapter::modelChanged propagates ";
 switch(reason) { 
@@ -77,6 +80,26 @@ switch(reason) {
 */
   sigChanged();
 };
+
+/**
+ * This virtual method should return 'true' when the table adapter
+ * supports drag'n drop. The default is 'false'.
+ */
+bool
+TTableAdapter::canDrag() const
+{
+  return false;
+}
+
+void
+TTableAdapter::dropRequest(TDnDObject &obj)
+{
+}
+
+void
+TTableAdapter::drop(TDnDObject &obj)
+{
+}
 
 void
 TTableAdapter::renderBackground(TTableEvent &te)  
@@ -173,14 +196,130 @@ TTableAdapter::handleCheckBox(TTableEvent &te, bool *value)
 }
 
 void
+TTableAdapter::handleInteger(TTableEvent &te, int *s, int offx, int step, int min, int max)
+{
+  if (te.type==TTableEvent::MOUSE) {
+    int old = *s;
+    switch(te.mouse->type) {
+      case TMouseEvent::ROLL_UP:
+        *s += step;
+        break;
+      case TMouseEvent::ROLL_DOWN:
+        *s -= step;
+    }
+    if (old != *s) {
+      if (*s < min)
+        *s = min;
+      else
+      if (*s > max)
+        *s = max;
+      if (old != *s) {
+        reason = TTableModel::CONTENT;
+        sigChanged();
+      }
+      return;
+    }
+  }
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "%i", *s);
+
+  string value = buffer;
+
+  string oldvalue = value;
+  handleStringHelper(te, &value, offx);
+  
+  if (value!=oldvalue) {
+    sscanf(value.c_str(), "%i", s);
+  }
+
+  bool changed=false;
+  if (*s < min) { *s = min; changed = true; } else
+  if (*s > max) { *s = max; changed = true; }
+  if (changed) {
+    snprintf(buffer, sizeof(buffer), "%i", *s);
+    string value = buffer;
+    te.type = TTableEvent::PAINT;
+    handleStringHelper(te, &value, offx);
+  }
+}
+
+void
+TTableAdapter::handleDouble(TTableEvent &te, double *s, int offx, double step, double min, double max)
+{
+  if (te.type==TTableEvent::MOUSE) {
+    double old = *s;
+    switch(te.mouse->type) {
+      case TMouseEvent::ROLL_UP:
+        *s += step;
+        break;
+      case TMouseEvent::ROLL_DOWN:
+        *s -= step;
+    }
+    if (old != *s) {
+      if (*s < min)
+        *s = min;
+      else
+      if (*s > max)
+        *s = max;
+      if (old != *s) {
+        reason = TTableModel::CONTENT;
+        sigChanged();
+      }
+      return;
+    }
+  }
+
+  char buffer[1024];
+  snprintf(buffer, sizeof(buffer), "%f", *s);
+  char *p = buffer+strlen(buffer)-1;
+  while(*p=='0') {
+    *p=0;
+    --p;
+  }
+  if (!isdigit(*p)) {
+    ++p;
+    *p='0';
+  }
+
+  string value = buffer;
+
+  string oldvalue = value;
+  handleStringHelper(te, &value, offx);
+  
+  if (value!=oldvalue) {
+    sscanf(value.c_str(), "%lf", s);
+  }
+  
+  bool changed=false;
+  if (*s < min) { *s = min; changed = true; } else
+  if (*s > max) { *s = max; changed = true; }
+  if (changed) {
+    snprintf(buffer, sizeof(buffer), "%f", *s);
+    char *p = buffer+strlen(buffer)-1;
+    while(*p=='0') { *p=0; --p; }
+    if (!isdigit(*p)) { ++p; *p='0'; }
+    string value = buffer;
+    te.type = TTableEvent::PAINT;
+    handleStringHelper(te, &value, offx);
+  }
+}
+
+void
 TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
+{
+  handleStringHelper(te, s, offx);
+}
+
+void
+TTableAdapter::handleStringHelper(TTableEvent &te, string *s, int offx)
 {
   static TTableAdapter *edit = 0;
   static size_t cx;
   static size_t col, row;
 
   int x0;
-  const char *str;
+  string str;
 
   switch(te.type) {
     case TTableEvent::GET_COL_SIZE:
@@ -192,7 +331,7 @@ TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
     case TTableEvent::PAINT:
 // cout << "paint " << te.col << ", " << te.row << endl;
       if (te.focus && edit==this && te.col == col && te.row == row) {
-        te.pen->setColor(1,1,0.75);
+        te.pen->setColor(1,1, 0.75);
         te.pen->fillRectanglePC(0,0,te.w,te.h);
         te.pen->setColor(0,0,0);
         te.pen->drawString(offx+2, 2, *s);
@@ -204,6 +343,28 @@ TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
         te.pen->drawString(2+offx, 2, *s);
       }
       renderCursor(te);
+      break;
+    case TTableEvent::MOUSE:
+      if (edit && 
+          te.mouse->type == TMouseEvent::LDOWN &&
+          ( te.col != col || te.row != row ))
+      {
+        edit = 0;
+      }
+      if (edit!=this &&
+          te.mouse->type == TMouseEvent::LDOWN &&
+          te.mouse->dblClick)
+      {
+            if (edit!=0) {
+              edit->reason = TTableModel::CONTENT;
+              edit->sigChanged();
+            }
+            edit = this;
+            cx = 0;
+            row = te.row;
+            col = te.col;
+            te.flag = true;
+      }
       break;
     case TTableEvent::KEY:
 //cout << "keyEvent" << endl;
@@ -280,6 +441,8 @@ TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
               }
               break;
             default:
+              if (!te.key)
+                break;
               str = te.key->getString();
               if ( (unsigned char)str[0]>=32 ||
                    (str[0]!=0 && str[1]!=0) )

@@ -36,10 +36,10 @@ class TComboBox::TComboButton:
 
   protected:
     void paint();
-    void mouseLDown(TMouseEvent &);
-    void mouseLUp(TMouseEvent &);
-    void mouseEnter(TMouseEvent &);
-    void mouseLeave(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseLUp(const TMouseEvent &);
+    void mouseEnter(const TMouseEvent &);
+    void mouseLeave(const TMouseEvent &);
 };   
 
 TComboBox::TComboBox(TWindow * parent, const string &title):
@@ -170,7 +170,7 @@ cout << "*** TComboBox::button: is up" << endl;
 }
 
 void
-TComboBox::mouseEvent(TMouseEvent &me)
+TComboBox::mouseEvent(const TMouseEvent &me)
 {
   switch(me.type) {
     case TMouseEvent::LDOWN:
@@ -280,22 +280,22 @@ TComboBox::TComboButton::paint()
 }
 
 void
-TComboBox::TComboButton::mouseLDown(TMouseEvent &)
+TComboBox::TComboButton::mouseLDown(const TMouseEvent &)
 {
   setDown(!isDown());
 }
 
 void
-TComboBox::TComboButton::mouseLUp(TMouseEvent &)
+TComboBox::TComboButton::mouseLUp(const TMouseEvent &)
 {
 }
 
 void
-TComboBox::TComboButton::mouseEnter(TMouseEvent &)
+TComboBox::TComboButton::mouseEnter(const TMouseEvent &)
 {
 }
 
 void
-TComboBox::TComboButton::mouseLeave(TMouseEvent &)
+TComboBox::TComboButton::mouseLeave(const TMouseEvent &)
 {
 }

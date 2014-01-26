@@ -53,9 +53,9 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
 
   if (type==EDIT) {
     pen.setColor(line_color);
-    int fh = getDefaultFont().getHeight();
+    TCoord fh = getDefaultFont().getHeight();
     unsigned dx = pen.getTextWidth(text.substr(0, cx))+5;
-    int yp = r.y-fh/2;
+    TCoord yp = r.y-fh/2;
     pen.drawLine(r.x+dx,yp,r.x+dx,yp+pen.getHeight());
   }
 }
@@ -64,21 +64,21 @@ void
 TFFrame::getShape(TRectangle *r)
 {
   PFont font = new TFont(fontname);
-  int a = font->getHeight()/2;
+  TCoord a = font->getHeight()/2;
   TFRectangle::getShape(r);
   r->y-=a;
   r->h+=a;
 }
 
-double
-TFFrame::distance(int mx, int my)
+TCoord
+TFFrame::distance(TCoord mx, TCoord my)
 {
 //  cout << __PRETTY_FUNCTION__ << endl;
 #if 1
   if (!text.empty()) {
     PFont font = new TFont(fontname);
-    int fh = font->getHeight();
-    int tw = font->getTextWidth(text);
+    TCoord fh = font->getHeight();
+    TCoord tw = font->getTextWidth(text);
     TRectangle r(min(p1.x,p2.x)+5-1, min(p1.y,p2.y)-fh/2, tw+2, fh);
     if (r.isInside(mx, my))
       return INSIDE;

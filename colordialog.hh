@@ -47,9 +47,9 @@ class TColorDialog:
     TColorDialog(TWindow *parent, const string &title, TRGB *color);
     ~TColorDialog();
     void paint();
-    void mouseLDown(TMouseEvent &);
-    void mouseMDown(TMouseEvent &);
-    void mouseMove(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseMDown(const TMouseEvent &);
+    void mouseMove(const TMouseEvent &);
     void dropColor(const PDnDColor&);
     
     void done(bool apply);

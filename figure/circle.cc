@@ -51,25 +51,25 @@ TFCircle::paint(TPenBase &pen, EPaintType)
   pen.setAlpha(1);
 }
 
-double 
-TFCircle::distance(int mx, int my)
+TCoord
+TFCircle::distance(TCoord mx, TCoord my)
 {
   TRectangle r;
   getShape(&r);
-  double rx = 0.5*(r.w);
-  double ry = 0.5*(r.h);
-  double cx = (double)r.x+rx;
-  double cy = (double)r.y+ry;
-  double dx = (double)mx - cx;
-  double dy = (double)my - cy;
+  TCoord rx = 0.5*(r.w);
+  TCoord ry = 0.5*(r.h);
+  TCoord cx = (double)r.x+rx;
+  TCoord cy = (double)r.y+ry;
+  TCoord dx = (double)mx - cx;
+  TCoord dy = (double)my - cy;
   
-  double phi = atan( (dy*rx) / (dx*ry) );
+  TCoord phi = atan( (dy*rx) / (dx*ry) );
   if (dx<0.0)
     phi=phi+M_PI;
-  double ex = rx*cos(phi);
-  double ey = ry*sin(phi);
+  TCoord ex = rx*cos(phi);
+  TCoord ey = ry*sin(phi);
   if (filled) {
-    double d = sqrt(dx*dx+dy*dy)-sqrt(ex*ex+ey*ey);
+    TCoord d = sqrt(dx*dx+dy*dy)-sqrt(ex*ex+ey*ey);
     if (d<0.0)
       return INSIDE;
     return d;

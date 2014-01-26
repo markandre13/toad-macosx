@@ -57,7 +57,7 @@ class TTextField:
       setSize(320, preferences->font.getHeight()+4);
     }
   protected:
-    void mouseEvent(TMouseEvent&);
+    void mouseEvent(const TMouseEvent&);
 };
 
 } // namespace toad

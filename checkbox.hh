@@ -60,7 +60,7 @@ class TCheckBox:
   private:
     void valueChanged();
     void keyDown(TKey,char*,unsigned);
-    void mouseLDown(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
     void paint();
 
     void _init(TBoolModel *);

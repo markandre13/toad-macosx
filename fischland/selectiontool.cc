@@ -40,7 +40,7 @@ TSelectionTool::stop(TFigureEditor *fe)
 }
 
 void
-TSelectionTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
+TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   TFigure *figure;
   TCoord x, y;

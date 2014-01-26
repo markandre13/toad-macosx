@@ -120,14 +120,13 @@ class TMouseEvent
   protected:
     NSEvent *nsevent;
   public:
-    TMouseEvent(): nsevent(0), window(0) {}
     TMouseEvent(NSEvent *ne, NSView *view, TWindow *window);
-
-    TMouseEvent(TMouseEvent &me, TCoord x, TCoord y) {
+    TMouseEvent(const TMouseEvent &me, TCoord x, TCoord y) {
       nsevent = me.nsevent;
       this->x = x;
       this->y = y;
       _modifier = me._modifier;
+      dblClick = me.dblClick;
       window = me.window;
     };
 
@@ -148,6 +147,7 @@ class TMouseEvent
     enum EPointingDeviceType {
       // unknown, pen, cursor, eraser
     };
+    // true when double click
     bool dblClick;
     static unsigned _modifier;
 };
@@ -243,7 +243,7 @@ class TWindow:
     bool isMapped() const;
     void raiseWindow();
 
-    void keyEvent(TKeyEvent&);
+    void keyEvent(const TKeyEvent&);
     virtual void keyDown(TKey key, char *string, unsigned modifier);
     virtual void keyUp(TKey key, char *string, unsigned modifier);
 
@@ -270,17 +270,17 @@ class TWindow:
       PLACE_TOOLTIP
     };
     void placeWindow(EWindowPlacement how, TWindow *parent=NULL);
-    void windowEvent(TWindowEvent &we);
-    void mouseEvent(TMouseEvent &);
-    virtual void mouseMove(TMouseEvent &);
-    virtual void mouseEnter(TMouseEvent &);
-    virtual void mouseLeave(TMouseEvent &);
-    virtual void mouseLDown(TMouseEvent &);
-    virtual void mouseMDown(TMouseEvent &);
-    virtual void mouseRDown(TMouseEvent &);
-    virtual void mouseLUp(TMouseEvent &);
-    virtual void mouseMUp(TMouseEvent &);
-    virtual void mouseRUp(TMouseEvent &);  
+    void windowEvent(const TWindowEvent &we);
+    void mouseEvent(const TMouseEvent &);
+    virtual void mouseMove(const TMouseEvent &);
+    virtual void mouseEnter(const TMouseEvent &);
+    virtual void mouseLeave(const TMouseEvent &);
+    virtual void mouseLDown(const TMouseEvent &);
+    virtual void mouseMDown(const TMouseEvent &);
+    virtual void mouseRDown(const TMouseEvent &);
+    virtual void mouseLUp(const TMouseEvent &);
+    virtual void mouseMUp(const TMouseEvent &);
+    virtual void mouseRUp(const TMouseEvent &);  
 
     enum EChildNotify {
       TCHILD_TITLE, TCHILD_POSITION, TCHILD_RESIZE, TCHILD_ADD,
@@ -308,7 +308,7 @@ class TWindow:
     void invalidateWindow(int,int,int,int, bool clearbg=true);
     void invalidateWindow(const TRectangle&, bool clearbg=true);
     void invalidateWindow(const TRegion&, bool clearbg=true);
-    TRegion getUpdateRegion() const;
+    TRegion* getUpdateRegion() const;
     
     void scrollWindow(int x,int y, bool bClrBG=true);
     void scrollRectangle(const TRectangle &rect, int x,int y, bool bClrBG=true);

@@ -33,6 +33,7 @@ class TPencilTool:
 {
     TPolygon polygon;
     bool closed;
+    TFPath *back, *front;
     
     TIntegerModel fidelity;
     TIntegerModel smoothness;
@@ -42,10 +43,13 @@ class TPencilTool:
     TIntegerModel withinPixels;
     
   public:
+    TPencilTool();
     static TPencilTool* getTool();
-    void mouseEvent(TFigureEditor *fe, TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, TKeyEvent &ke);
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
+    void paintSelection(TFigureEditor *fe, TPenBase &pen);
     void stop(TFigureEditor*);
+    TWindow* createEditor(TWindow *inWindow);
 };
 
 #endif

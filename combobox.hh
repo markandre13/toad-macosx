@@ -81,7 +81,7 @@ class TComboBox:
     void paint();
     void closeRequest();
     void focus(bool);
-    void mouseEvent(TMouseEvent&);
+    void mouseEvent(const TMouseEvent&);
     void keyDown(TKey, char*, unsigned);
     void button();
     void selected();

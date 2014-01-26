@@ -60,14 +60,14 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
   pen.pop();
 }
 
-double 
-TFRectangle::distance(int mx, int my)
+TCoord 
+TFRectangle::distance(TCoord mx, TCoord my)
 {
   if (filled && TRectangle(p1, p2).isInside(mx, my))
     return INSIDE;
 
-  int x1,y1,x2,y2;
-  double min = OUT_OF_RANGE, d;
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
   
   for(int i=0; i<4; i++) {
     switch(i) {
@@ -92,7 +92,7 @@ TFRectangle::distance(int mx, int my)
 }
 
 void 
-TFRectangle::translate(int dx, int dy)
+TFRectangle::translate(TCoord dx, TCoord dy)
 {
   p1.x+=dx;
   p1.y+=dy;

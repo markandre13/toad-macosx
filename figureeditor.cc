@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2007 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -126,6 +126,7 @@ TFigureAttributes::TFigureAttributes()
   arrowtype = TFLine::EMPTY;
   
   current = 0;
+  tool = 0;
 }
 
 TFigureAttributes::~TFigureAttributes()
@@ -147,10 +148,11 @@ TFigureAttributes::setCreate(TFigure *figure)
 #endif
 
 void
-TFigureAttributes::setTool(TFigureTool *tool)
+TFigureAttributes::setTool(TFigureTool *aTool)
 {
-  this->tool = tool;
-//  if (current) current->setTool(tool);
+  if (tool==aTool)
+    return;
+  tool = aTool;
   reason = TOOL;
   sigChanged();
 }
@@ -208,16 +210,15 @@ TFigureAttributes::applyAll()
 TFigureEditor::TFigureEditor():
   super(NULL, "(TFigureEditor: no window)")
 {
-  window = 0;
   init(NULL);
   flagExplicitCreate = true; // don't create, see TWindow::createParentless()
+  window = NULL;
   row_header_renderer = col_header_renderer = 0;
 }
 
 TFigureEditor::TFigureEditor(TWindow *p, const string &t, TFigureModel *m):
   super(p, t)
 {
-  window = 0;
   init(m);
   flagNoBackground = true;
   window = this;
@@ -250,10 +251,11 @@ TFigureEditor::setWindow(TWindow *w)
 void
 TFigureEditor::init(TFigureModel *m)
 {
+  quick = false;
+  quickready = false;
   modified = false;
   preferences = 0;
   tool = 0;
-  setAttributes(new TFigureAttributes);
   fuzziness = 2;
 
   handle = -1;
@@ -264,12 +266,14 @@ TFigureEditor::init(TFigureModel *m)
   mat = 0;
 //  vscroll = NULL;
 //  hscroll = NULL;
+  window = 0;
   model = 0;
-  if (!m)
-    m=new TFigureModel();
-  setModel(m);
   x1=y1=x2=y2=0;
   update_scrollbars = false;
+  if (!m)
+    m=new TFigureModel();
+  setAttributes(new TFigureAttributes);
+  setModel(m);
 
   TAction *action;
 
@@ -282,6 +286,20 @@ TFigureEditor::init(TFigureModel *m)
 
   action = new TAction(this, "edit|delete");
   CONNECT(action->sigClicked, this, deleteSelection);
+
+  action = new TAction(this, "object|order|top");
+  CONNECT(action->sigClicked, this, selection2Top);
+  action = new TAction(this, "object|order|up");
+  CONNECT(action->sigClicked, this, selectionUp);
+  action = new TAction(this, "object|order|down");
+  CONNECT(action->sigClicked, this, selectionDown);
+  action = new TAction(this, "object|order|bottom");
+  CONNECT(action->sigClicked, this, selection2Bottom);
+
+  action = new TAction(this, "object|group");
+  CONNECT(action->sigClicked, this, group);
+  action = new TAction(this, "object|ungroup");
+  CONNECT(action->sigClicked, this, ungroup);
 }
 
 bool
@@ -315,6 +333,7 @@ TFigureEditor::identity()
   if (mat) {
     mat->identity();
     updateScrollbars();
+    quickready = false;
   }
 }
 
@@ -326,6 +345,7 @@ void TFigureEditor::rotate(double d)
     mat = new TMatrix2D();
   mat->rotate(d);
   updateScrollbars();
+  quickready = false;
   invalidateWindow();
 }
 
@@ -337,17 +357,19 @@ void TFigureEditor::rotateAt(double x, double y, double radiants)
     mat = new TMatrix2D();
   mat->rotateAt(x, y, radiants);
   updateScrollbars();
+  quickready = false;
   invalidateWindow();
 }
 
 /**
  */
-void TFigureEditor::translate(double x, double y)
+void TFigureEditor::translate(TCoord x, TCoord y)
 {
   if (!mat)
     mat = new TMatrix2D();
   mat->translate(x, y);
   updateScrollbars();
+  quickready = false;
   invalidateWindow();
 }
 
@@ -363,7 +385,7 @@ void TFigureEditor::scale(double sx, double sy)
 // better: create 2 points, transform 'em and calculate the
 // distance
   fuzziness = static_cast<int>(2.0 / sx);
-  
+  quickready = false;
   updateScrollbars();
   invalidateWindow();
 }
@@ -376,6 +398,7 @@ void TFigureEditor::shear(double x, double y)
   if (!mat)
     mat = new TMatrix2D();
   mat->shear(x, y);
+  quickready = false;
   updateScrollbars();
   invalidateWindow();
 }
@@ -389,6 +412,7 @@ void TFigureEditor::multiply(const TMatrix2D *m)
     mat = new TMatrix2D(*m);
   else
     mat->multiply(m);
+  quickready = false;
   updateScrollbars();
   invalidateWindow();
 }
@@ -410,6 +434,7 @@ TFigureEditor::enableGrid(bool b)
 {
   if (b==preferences->drawgrid)
     return;
+  quickready = false;
   preferences->drawgrid = b;
   invalidateWindow(visible);
 }
@@ -418,10 +443,11 @@ TFigureEditor::enableGrid(bool b)
  * Set the size of the grid.
  */
 void
-TFigureEditor::setGrid(int gridsize) {
+TFigureEditor::setGrid(TCoord gridsize) {
   if (gridsize<0)
     gridsize=0;
   preferences->gridsize = gridsize;
+  quickready = false;
   invalidateWindow(visible);
 }
 
@@ -451,14 +477,14 @@ TFigureEditor::paint()
     updateScrollbars();
     update_scrollbars = false;
   }
+  TPen pen(window);
+
   if (!model) {
-    TPen pen(window);
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
     return;
   }
 
-  TPen pen(window);
   pen.setColor(window->getBackground());
   int x, y;
   window->getOrigin(&x, &y);
@@ -470,6 +496,8 @@ TFigureEditor::paint()
   paintGrid(pen);
   print(pen, model, true);
   paintSelection(pen);
+  
+  paintDecoration(pen);
 }
 
 /**
@@ -487,8 +515,8 @@ TFigureEditor::paintGrid(TPenBase &pen)
       background_color.g > 0.5 ? background_color.g-0.5 : background_color.g+0.5,
       background_color.b > 0.5 ? background_color.b-0.5 : background_color.b+0.5
     );
-    int x1, x2, y1, y2;
-    int g = preferences->gridsize;
+    TCoord x1, x2, y1, y2;
+    TCoord g = preferences->gridsize;
   
     TRectangle r;
     pen.getClipBox(&r);
@@ -499,7 +527,7 @@ TFigureEditor::paintGrid(TPenBase &pen)
 
     const TMatrix2D *mat = pen.getMatrix();
     if (mat) {
-      int gx0, gx, gy0, gy;
+      TCoord gx0, gx, gy0, gy;
       TMatrix2D m(*mat);   
       m.map(0, 0, &gx0, &gy0);
       m.map(preferences->gridsize, preferences->gridsize, &gx, &gy);
@@ -517,23 +545,23 @@ TFigureEditor::paintGrid(TPenBase &pen)
         m.map(x1, y1, &x1, &y1);
         m.map(x2, y2, &x2, &y2);
         if (x1>x2) {
-          int a = x1; x1 = x2; x2 = a;
+          TCoord a = x1; x1 = x2; x2 = a;
         }
         if (y1>y2) {
-          int a = y1; y1 = y2; y2 = a;
+          TCoord a = y1; y1 = y2; y2 = a;
         }
       }
     }
 
     // justify to grid
-    x1 -= x1 % g;
-    y1 -= y1 % g;
+    x1 -= fmod(x1, g);
+    y1 -= fmod(y1, g);
 
 //    cerr << "draw grid from (" << x1 << ", " << y1 << ") to ("
 //         << x2 << ", " << y2 << ")" << endl;
 
-    for(int y=y1; y<=y2; y+=g) {
-      for(int x=x1; x<=x2; x+=g) {
+    for(TCoord y=y1; y<=y2; y+=g) {
+      for(TCoord x=x1; x<=x2; x+=g) {
         pen.drawPoint(x, y);
       }
     }
@@ -546,6 +574,11 @@ TFigureEditor::paintGrid(TPenBase &pen)
 void
 TFigureEditor::paintSelection(TPenBase &pen)
 {
+  if (tool) {
+    tool->paintSelection(this, pen);
+    return;
+  }
+
   // draw the selection marks over all figures
   for(TFigureSet::iterator sp = selection.begin();
       sp != selection.end();
@@ -573,7 +606,7 @@ TFigureEditor::paintSelection(TPenBase &pen)
       pen.setColor(0,0,0);
       pen.setLineStyle(TPen::DOT);
       pen.setLineWidth(1.0);
-      int x0, y0, x1, y1;
+      TCoord x0, y0, x1, y1;
       mat->map(down_x, down_y, &x0, &y0);
       mat->map(select_x, select_y, &x1, &y1);
       pen.drawRectanglePC(x0, y0, x1-x0, y1-y0);
@@ -590,7 +623,7 @@ TFigureEditor::paintSelection(TPenBase &pen)
   if (gadget && operation==OP_ROTATE) {
 
     // draw center of rotation
-    int x, y;
+    TCoord x, y;
     if (pen.getMatrix()) {
       pen.getMatrix()->map(rotx, roty, &x, &y);
       pen.push();
@@ -647,9 +680,6 @@ TFigureEditor::paintSelection(TPenBase &pen)
     pen.pop();
   }
 
-  if (tool) {
-    tool->paintSelection(this, pen);
-  }
 }
 
 /**
@@ -668,10 +698,8 @@ TFigureEditor::paintDecoration(TPenBase &scr)
     scr.identity();
     scr|=dummy;
     scr&=clip;
-    int x, y;
-    window->getOrigin(&x, &y);
-    scr.translate(0, visible.y+y);
-    row_header_renderer->render(scr, -y, visible.h, mat);
+    scr.translate(0, visible.y+window->getOriginY());
+    row_header_renderer->render(scr, -window->getOriginY(), visible.h, mat);
   }
 
   if (col_header_renderer) {
@@ -680,10 +708,8 @@ TFigureEditor::paintDecoration(TPenBase &scr)
     scr.identity();
     scr|=dummy;
     scr&=clip;
-    int x, y;
-    window->getOrigin(&x, &y);
-    scr.translate(visible.x+x, 0);
-    col_header_renderer->render(scr, -x, visible.w, mat);
+    scr.translate(visible.x+window->getOriginX(), 0);
+    col_header_renderer->render(scr, -window->getOriginX(), visible.w, mat);
   }
 }
 
@@ -696,20 +722,23 @@ TFigureEditor::paintDecoration(TPenBase &scr)
  *
  * \param pen
  *   The pen to be used, ie. TPen for the screen or TPrinter for the printer.
+ * \param model
+ *   The figuremodel to be drawn
  * \param withSelection
  *   When set to 'true', the method will call the paint method of all
  *   selected figures with TFigure::SELECT as 2nd parameter. The figure
  *   TFText uses this to draw the text caret when in edit mode.
+ * \param justSelection
+ *   Only draw figures which are part of the selection
  *
  *   Handles to move, resize and rotate figures are drawn by the paint
  *   method itself.
  */  
 void
-TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection)
+TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection, bool justSelection)
 {
   if (!model)
     return;
-    
   TRectangle cb, r;
   cb.set(0,0,getWidth(),getHeight());
   pen.getClipBox(&cb);
@@ -744,10 +773,19 @@ TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection)
       pen.multiply( (*p)->mat );
     }
     
-    if (withSelection && gadget!=*p && selection.find(*p)!=selection.end()) {
-      pt = TFigure::SELECT;
+    bool skip = false;
+    if (withSelection || justSelection) {
+      if (gadget==*p || selection.find(*p)!=selection.end()) {
+        if (withSelection)
+          pt = TFigure::SELECT;
+      } else {
+        if (justSelection)
+          skip = true;
+      }
     }
-    (*p)->paint(pen, pt);
+    if (!skip) {
+      (*p)->paint(pen, pt);
+    }
     while(pushs) {
       pen.pop();
       pushs--;
@@ -765,6 +803,7 @@ TFigureEditor::setAttributes(TFigureAttributes *p) {
   preferences = p;
   if (preferences) {
     preferences->setCurrent(this);
+    setTool(preferences->getTool());
     connect(preferences->sigChanged, this, &TThis::preferencesChanged);
   }
 }
@@ -774,7 +813,7 @@ TFigureEditor::preferencesChanged()
 {
   if (!preferences)
     return;
-
+  quickready=false;
   if (preferences->reason == TFigureAttributes::TOOL) {
     setTool(preferences->getTool());
     return;
@@ -784,10 +823,15 @@ TFigureEditor::preferencesChanged()
     invalidateWindow(visible);
     return;
   }
+  
+  if (preferences->reason == TFigureAttributes::ALL) {
+    setTool(preferences->getTool());
+    invalidateWindow(visible);
+  }
 
   if (tool)
     tool->setAttributes(preferences);
-    
+  
   model->setAttributes(selection, preferences);
 //  invalidateWindow(visible); 
 }
@@ -823,6 +867,10 @@ void
 TFigureEditor::modelChanged()
 {
   modified = true;
+  quickready = false; // force a view update when quick mode is enabled
+  if (tool) {
+    tool->modelChanged(this);
+  }
   switch(model->type) {
     case TFigureModel::MODIFY:
     case TFigureModel::MODIFIED:
@@ -915,7 +963,6 @@ void
 TFigureEditor::deleteSelection()
 {
 //cout << "delete selection" << endl;
-
   if (gadget && selection.find(gadget)!=selection.end()) {
     gadget = 0;
   }
@@ -931,6 +978,7 @@ TFigureEditor::selectAll()
   {
     selection.insert(*p);
   }
+  quickready = false;
   invalidateWindow(visible);
 }
 
@@ -977,7 +1025,7 @@ TFigureEditor::selection2Top()
       break;
     --p;
   }
-  
+  quickready = false;
   window->invalidateWindow(visible);
 }
 
@@ -1009,6 +1057,7 @@ TFigureEditor::selection2Bottom()
     }
     ++p;
   }
+  quickready = false;
   window->invalidateWindow(visible);
 }
 
@@ -1035,6 +1084,7 @@ TFigureEditor::selectionUp()
       break;
     --p;
   }
+  quickready = false;
   window->invalidateWindow(visible);
 }
 
@@ -1057,6 +1107,7 @@ TFigureEditor::selectionDown()
     }
     ++p;
   }
+  quickready = false;
   window->invalidateWindow(visible);
 }
 
@@ -1112,16 +1163,25 @@ TFigureEditor::setOperation(unsigned op)
     window->setFocus();
   operation = op;
   tool = 0;
+  setTool(0);
 }
 
 void
-TFigureEditor::setTool(TFigureTool *tool)
+TFigureEditor::setTool(TFigureTool *aTool)
 {
   stopOperation();
   clearSelection();
-  this->tool = tool;
+  if (tool!=aTool) {
+    tool = aTool;
+    toolChanged(aTool);
+  }
   if (window)
     window->setFocus();
+}
+
+void
+TFigureEditor::toolChanged(TFigureTool*)
+{
 }
 
 void
@@ -1211,7 +1271,7 @@ TFigureEditor::selectionPaste()
 }
 
 void
-TFigureEditor::keyEvent(TKeyEvent &ke)
+TFigureEditor::keyEvent(const TKeyEvent &ke)
 {
   if (!model)
     return;
@@ -1304,7 +1364,7 @@ TFigureEditor::mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy)
 }
 
 void
-TFigureEditor::mouseEvent(TMouseEvent &me)
+TFigureEditor::mouseEvent(const TMouseEvent &me)
 {
   if (!model)
     return;
@@ -1329,15 +1389,15 @@ TFigureEditor::mouseEvent(TMouseEvent &me)
           x < visible.x &&
           y >= visible.y ) 
       {
-        me.x = x;
-        row_header_renderer->mouseEvent(me);
+        TMouseEvent me2(me, x, me.y);
+        row_header_renderer->mouseEvent(me2);
       } else
       if (col_header_renderer &&
           x >= visible.x &&
           y < visible.y ) 
       {
-        me.y = y;
-        row_header_renderer->mouseEvent(me);
+        TMouseEvent me2(me, me.x, y);
+        row_header_renderer->mouseEvent(me2);
       } else {
         if (!tool) {
           super::mouseEvent(me);
@@ -1370,7 +1430,7 @@ TFigureEditor::mouseEvent(TMouseEvent &me)
 }
 
 void
-TFigureEditorHeaderRenderer::mouseEvent(TMouseEvent &me)
+TFigureEditorHeaderRenderer::mouseEvent(const TMouseEvent &me)
 {
 }
 
@@ -1401,7 +1461,7 @@ namespace {
 }
 
 void
-TFigureEditor::mouseLDown(TMouseEvent &me)
+TFigureEditor::mouseLDown(const TMouseEvent &me)
 {
   #if VERBOSE
     cout << __PRETTY_FUNCTION__ << endl;
@@ -1670,7 +1730,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseMove(TMouseEvent &me)
+TFigureEditor::mouseMove(const TMouseEvent &me)
 {
 //cout << "mouseMove for window " << window->getTitle() << endl;
   #if VERBOSE
@@ -1725,8 +1785,8 @@ redo:
 #if VERBOSE
       cout << "  STATE_MOVE => moving selection" << endl;
 #endif
-      int dx = x-down_x; down_x=x;
-      int dy = y-down_y; down_y=y;
+      TCoord dx = x-down_x; down_x=x;
+      TCoord dy = y-down_y; down_y=y;
       memo_x+=dx;
       memo_y+=dy;
       model->translate(selection, dx, dy);
@@ -1746,7 +1806,7 @@ redo:
 
       if (mouseMoved) {
         /* copied from findFigureAt */
-        int x2, y2;
+        TCoord x2, y2;
         if (tht && gadget->mat) {
           TMatrix2D m(*gadget->mat);
           m.invert();
@@ -1765,8 +1825,8 @@ redo:
       // selected and the mouse was only moved a little bit due to a
       // shacky hand
       if (selection.begin() != selection.end()) {
-        int dx = down_x - x;
-        int dy = down_y - y;
+        TCoord dx = down_x - x;
+        TCoord dy = down_y - y;
         if (dx<0) dx=-dx;
         if (dy<0) dy=-dy;
         if (dx<2 || dy<2)
@@ -1826,7 +1886,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseLUp(TMouseEvent &me)
+TFigureEditor::mouseLUp(const TMouseEvent &me)
 {
 #if VERBOSE
   cout << __PRETTY_FUNCTION__ << endl;
@@ -1886,7 +1946,7 @@ redo:
 
       if (mouseMoved) {      
         /* copied from findFigureAt */            
-        int x2, y2;
+        TCoord x2, y2;
         if (tht && gadget->mat) {
           TMatrix2D m(*gadget->mat);
           m.invert();
@@ -1938,8 +1998,8 @@ redo:
 
       bool selecting = true;
       if (selection.begin() != selection.end()) {
-        int dx = down_x - x;
-        int dy = down_y - y;
+        TCoord dx = down_x - x;
+        TCoord dy = down_y - y;
         if (dx<0) dx=-dx;
         if (dy<0) dy=-dy;
         if (dx<2 || dy<2)
@@ -2002,7 +2062,7 @@ redo:
 }
 
 void
-TFigureEditor::mouseRDown(TMouseEvent &me)
+TFigureEditor::mouseRDown(const TMouseEvent &me)
 {
   if (!window || !model)
     return;
@@ -2043,12 +2103,12 @@ TFigureEditor::invalidateFigure(TFigure* figure)
   r.x+=window->getOriginX() + visible.x;
   r.y+=window->getOriginY() + visible.y;
   if (r.x < visible.x ) {
-    int d = visible.x - r.x;
+    TCoord d = visible.x - r.x;
     r.x += d;
     r.w -= d;
   }
   if (r.y < visible.y ) {
-    int d = visible.y - r.y;
+    TCoord d = visible.y - r.y;
     r.y += d;
     r.h -= d;
   }
@@ -2087,8 +2147,8 @@ TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *m
     if (figure->cmat)
       m.multiply(figure->cmat);
       
-    int x1, x2, y1, y2;
-    int x, y;
+    TCoord x1, x2, y1, y2;
+    TCoord x, y;
     m.map(r->x, r->y, &x, &y);
     x1 = x2 = x;
     y1 = y2 = y;
@@ -2132,7 +2192,7 @@ TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *m
  * This method doesn't find gadgets which are currently created or edited.
  */
 TFigure*
-TFigureEditor::findFigureAt(int mx, int my)
+TFigureEditor::findFigureAt(TCoord mx, TCoord my)
 {
 #if VERBOSE
   cerr << "TFigureEditor::findFigureAt(" << mx << ", " << my << ")\n";
@@ -2149,7 +2209,7 @@ TFigureEditor::findFigureAt(int mx, int my)
   while(p!=b && !stop) {
     --p;
     if (*p!=gadget) {
-      int x, y;
+      TCoord x, y;
       if ((*p)->mat || (*p)->cmat) {
         if ( (*p)->mat )
           stack.multiply((*p)->mat);
@@ -2207,6 +2267,13 @@ TFigureEditor::adjustPane()
 }
 
 void
+TFigureEditor::minimalAreaSize(TCoord *x1, TCoord *y1, TCoord *x2, TCoord *y2)
+{
+  *x1 = *y1 = INT_MAX;
+  *x2 = *y2 = INT_MIN;
+}
+
+void
 TFigureEditor::updateScrollbars()
 {
   if (!window || !use_scrollbars)
@@ -2215,41 +2282,64 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
 
   // determine area size
   //-----------------------------------------------------------------
-  int x1, y1; // upper, left corner
-  int x2, y2; // lower, right corner
-
-  x1 = y1 = INT_MAX;
-  x2 = y2 = INT_MIN;
+  TCoord x1, y1; // upper, left corner
+  TCoord x2, y2; // lower, right corner
+  
+  minimalAreaSize(&x1, &y1, &x2, &y2);
 
   if (model) {
-
-  TRectangle r;
-  for(TFigureModel::iterator p = model->begin();
-      p != model->end();
-      ++p)
-  {
-    int ax1, ay1, ax2, ay2;
-    (*p)->getShape(&r);
-    ax1=r.x;
-    ay1=r.y;
-    ax2=r.x+r.w-1;
-    ay2=r.y+r.h-1;
+    TRectangle r;
+    for(TFigureModel::iterator p = model->begin();
+        p != model->end();
+        ++p)
+    {
+      TCoord ax1, ay1, ax2, ay2;
+      (*p)->getShape(&r);
+      ax1=r.x;
+      ay1=r.y;
+      ax2=r.x+r.w-1;
+      ay2=r.y+r.h-1;
     
-    if ( (*p)->mat) {
-      (*p)->mat->map(ax1, ay2, &ax1, &ay1);
-      (*p)->mat->map(ax2, r.y, &ax2, &ay2);
+      if ((*p)->mat) {
+        (*p)->mat->map(ax1, ay2, &ax1, &ay1);
+        (*p)->mat->map(ax2, r.y, &ax2, &ay2);
 
 //printf("lower left  (%i, %i)\n"
 //       "upper right (%i, %i)\n", ax1, ay1, ax2, ay2);
       
-      if (ax1>ax2) {
-        int a = ax1; ax1 = ax2; ax2 = a;
-      }
-      if (ay1>ay2) {
-        int a = ay1; ay1 = ay2; ay2 = a;
+        if (ax1>ax2) {
+          TCoord a = ax1; ax1 = ax2; ax2 = a;
+        }
+        if (ay1>ay2) {
+          TCoord a = ay1; ay1 = ay2; ay2 = a;
+        }
+      
+        if (ax1<x1)
+          x1=ax1;
+        if (ax2>x2)
+          x2=ax2;
+        if (ay1<y1)
+          y1=ay1;
+        if (ay2>y2)
+          y2=ay2;
+
+        ax1=r.x;
+        ay1=r.y;
+        ax2=r.x+r.w-1;
+        ay2=r.y+r.h-1;
+
+        (*p)->mat->map(ax1, ay1, &ax1, &ay1);
+        (*p)->mat->map(ax2, ay2, &ax2, &ay2);
+        //printf("upper left  (%i, %i)\n"
+        //       "lower right (%i, %i)\n\n", ax1, ay1, ax2, ay2);
+        if (ax1>ax2) {
+          TCoord a = ax1; ax1 = ax2; ax2 = a;
+        }
+        if (ay1>ay2) {
+          TCoord a = ay1; ay1 = ay2; ay2 = a;
+        }
       }
 
-      
       if (ax1<x1)
         x1=ax1;
       if (ax2>x2)
@@ -2258,34 +2348,8 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
         y1=ay1;
       if (ay2>y2)
         y2=ay2;
-
-      ax1=r.x;
-      ay1=r.y;
-      ax2=r.x+r.w-1;
-      ay2=r.y+r.h-1;
-
-      (*p)->mat->map(ax1, ay1, &ax1, &ay1);
-      (*p)->mat->map(ax2, ay2, &ax2, &ay2);
-//printf("upper left  (%i, %i)\n"
-//       "lower right (%i, %i)\n\n", ax1, ay1, ax2, ay2);
-      if (ax1>ax2) {
-        int a = ax1; ax1 = ax2; ax2 = a;
-      }
-      if (ay1>ay2) {
-        int a = ay1; ay1 = ay2; ay2 = a;
-      }
+      //cout << "area size: (" << x1 << ", " << y1 << ") - (" << x2 << ", " << y2 << ")\n";
     }
-
-    if (ax1<x1)
-      x1=ax1;
-    if (ax2>x2)
-      x2=ax2;
-    if (ay1<y1)
-      y1=ay1;
-    if (ay2>y2)
-      y2=ay2;
-//cout << "area size: (" << x1 << ", " << y1 << ") - (" << x2 << ", " << y2 << ")\n";
-  }
 
   }
   
@@ -2302,22 +2366,23 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
     pane.w = x2-x1+1;
     pane.h = y2-y1+1;
   } else {
-    double dx1, dy1, dx2, dy2;
+    TCoord dx1, dy1, dx2, dy2;
     mat->map(x1, y1, &dx1, &dy1);
     mat->map(x2+1, y2+1, &dx2, &dy2);
-    pane.x = static_cast<int>(dx1);
-    pane.y = static_cast<int>(dy1);
-    pane.w = static_cast<int>(dx2-dx1);
-    pane.h = static_cast<int>(dy2-dy1);
+    pane.x = dx1;
+    pane.y = dy1;
+    pane.w = dx2-dx1;
+    pane.h = dy2-dy1;
   }
   doLayout();
 DBM(cout << __PRETTY_FUNCTION__ << ": exit" << endl << endl;)
 }
 
 void
-TFigureEditor::scrolled(int dx, int dy)
+TFigureEditor::scrolled(TCoord dx, TCoord dy)
 {
-  int x, y;
+  quickready = false;
+  TCoord x, y;
   getPanePos(&x, &y);
   // window->scrollTo(-x, -y);
   window->setOrigin(-x, -y);
@@ -2333,12 +2398,12 @@ TFigureTool::stop(TFigureEditor*)
 }
 
 void
-TFigureTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
+TFigureTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 }
 
 void
-TFigureTool::keyEvent(TFigureEditor *fe, TKeyEvent &ke)
+TFigureTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 {
 }
 
@@ -2350,6 +2415,25 @@ TFigureTool::setAttributes(TFigureAttributes *p)
 void
 TFigureTool::paintSelection(TFigureEditor *fe, TPenBase &)
 {
+}
+
+/**
+ * This virtual method is called each time TFigureEditor's TFigureModel
+ * reported a change.
+ */
+void
+TFigureTool::modelChanged(TFigureEditor *fe)
+{
+}
+
+/**
+ * Create a window to configure additional tool options while the tool is
+ * active.
+ */
+TWindow*
+TFigureTool::createEditor(TWindow *inWindow)
+{
+  return 0;
 }
 
 void
@@ -2370,7 +2454,7 @@ TFCreateTool::stop(TFigureEditor *fe)
 }
 
 void
-TFCreateTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
+TFCreateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 //cout << "TFCreateTool::mouseEvent" << endl;
   TCoord x0, y0, x1, y1;
@@ -2485,7 +2569,7 @@ redo:
 }
 
 void
-TFCreateTool::keyEvent(TFigureEditor *fe, TKeyEvent &ke)
+TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 {
   if (fe->state == TFigureEditor::STATE_NONE && ke.type == TKeyEvent::DOWN) {
     fe->clearSelection();

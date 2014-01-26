@@ -48,15 +48,15 @@ TFPolygon::paint(TPenBase &pen, EPaintType)
   pen.setAlpha(1);
 }
 
-double 
-TFPolygon::distance(int mx, int my)
+TCoord
+TFPolygon::distance(TCoord mx, TCoord my)
 {
   if (filled && polygon.isInside(mx, my))
     return INSIDE;
 
   TPolygon::const_iterator p(polygon.begin()), e(polygon.end());
-  int x1,y1,x2,y2;
-  double min = OUT_OF_RANGE, d;
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
 
   assert(p!=e);
   --e;
@@ -78,7 +78,7 @@ TFPolygon::distance(int mx, int my)
 }
 
 void 
-TFPolygon::translate(int dx, int dy)
+TFPolygon::translate(TCoord dx, TCoord dy)
 {
   TPolygon::iterator p(polygon.begin()), e(polygon.end());
   while(p!=e) {
@@ -246,19 +246,19 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 }
 
 void
-TFPolygon::insertPointNear(int x, int y)
+TFPolygon::insertPointNear(TCoord x, TCoord y)
 {
   _insertPointNear(x, y, true);
 }
 
 void
-TFPolygon::_insertPointNear(int x, int y, bool filled)
+TFPolygon::_insertPointNear(TCoord x, TCoord y, bool filled)
 {
   unsigned i=0;
-  double min;
+  TCoord min;
 
   for(unsigned j=0; j < polygon.size(); j++) {
-    double d;
+    TCoord d;
     if (j+1<polygon.size()) {
       d = distance2Line(x, y,
                         polygon[j  ].x, polygon[j  ].y,

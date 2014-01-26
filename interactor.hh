@@ -59,9 +59,9 @@ class TInteractor
     bool flagNoFocus:1;
     bool before_create:1;
 
-    virtual void windowEvent(TWindowEvent&);
-    virtual void mouseEvent(TMouseEvent&);
-    virtual void keyEvent(TKeyEvent&);
+    virtual void windowEvent(const TWindowEvent&);
+    virtual void mouseEvent(const TMouseEvent&);
+    virtual void keyEvent(const TKeyEvent&);
     
     virtual bool isRealized() const;
     virtual bool setFocus();

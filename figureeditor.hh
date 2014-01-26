@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2007 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,7 @@
  */
 
 #ifndef _TOAD_FIGUREEDITOR
-#define _TOAD_FIGUREEDITOR
+#define _TOAD_FIGUREEDITOR 1
 
 #include <toad/figure.hh>
 #include <toad/figuremodel.hh>
@@ -42,7 +42,7 @@ class TFigureEditorHeaderRenderer
   public:
     virtual void render(TPenBase &pen, int pos, int size, TMatrix2D *mat) = 0;
     virtual int getSize() = 0;
-    virtual void mouseEvent(TMouseEvent&);
+    virtual void mouseEvent(const TMouseEvent&);
 };
 
 class TFigureTool
@@ -50,10 +50,12 @@ class TFigureTool
   public:
     virtual ~TFigureTool();
     virtual void stop(TFigureEditor*);
-    virtual void mouseEvent(TFigureEditor *fe, TMouseEvent &me);
-    virtual void keyEvent(TFigureEditor *fe, TKeyEvent &ke);
+    virtual void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    virtual void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     virtual void setAttributes(TFigureAttributes *p);
     virtual void paintSelection(TFigureEditor *fe, TPenBase &pen);
+    virtual void modelChanged(TFigureEditor *fe);
+    virtual TWindow* createEditor(TWindow *inWindow);
 };
 
 /**
@@ -82,8 +84,8 @@ class TFCreateTool:
     }
   protected:    
     void stop(TFigureEditor*);
-    void mouseEvent(TFigureEditor *fe, TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, TKeyEvent &ke);
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     void setAttributes(TFigureAttributes *p);
     void paintSelection(TFigureEditor *fe, TPenBase &pen);
 };
@@ -132,15 +134,15 @@ class TFigureAttributes:
       /**
        * All parameters have changed or, apply all parameters.
        */
-      ALLCHANGED,
+      ALLCHANGED=0, ALL=0,
       /**
        * Where going to edit another object.
        */
-      CURRENTCHANGED,
+      CURRENTCHANGED=1, CURRENT=1,
       /**
        * Drawing properties have changed.
        */
-      GRID,
+      GRID=2,
       LINECOLOR,
       FILLCOLOR,
       UNSETFILLCOLOR,
@@ -217,10 +219,13 @@ class TFigureEditor:
     PFigureModel model;
     TFigureTool *tool;
   public:
+    bool quick:1;     // active TFigureTool wants quick drawing method
+    bool quickready:1;// TFigureEditor is prepared for quick drawing mode
     
     TFigureEditor();
     void setWindow(TWindow*);
     TWindow* getWindow() const { return window; }
+    TFigureTool* getTool() const { return tool; }
 
     TFigureEditor(TWindow*, const string &title, TFigureModel *model=0);
     ~TFigureEditor();
@@ -234,7 +239,7 @@ class TFigureEditor:
 
     void enableScroll(bool);
     void enableGrid(bool);
-    void setGrid(int gridsize);
+    void setGrid(TCoord gridsize);
 
     void setRowHeaderRenderer(TFigureEditorHeaderRenderer *r) {
       row_header_renderer = r;
@@ -283,12 +288,13 @@ class TFigureEditor:
       setTool(new TFCreateTool(figure));
     }
     void setTool(TFigureTool*);
+    virtual void toolChanged(TFigureTool*);
     
     // not all these methods work now, but the first 4 should do
     void identity();
     void rotate(double);
     void rotateAt(double x, double y, double radiants);
-    void translate(double, double);
+    void translate(TCoord, TCoord);
     void scale(double sx, double sy);
     void shear(double, double);
     void multiply(const TMatrix2D*);
@@ -305,7 +311,7 @@ class TFigureEditor:
       if (window) 
         window->invalidateWindow(b); 
     }
-    void invalidateWindow(int x, int y, int w, int h, bool b=true) {
+    void invalidateWindow(TCoord x, TCoord y, TCoord w, TCoord h, bool b=true) {
       if (window)
         window->invalidateWindow(x, y, w, h, b);
     }
@@ -352,7 +358,7 @@ class TFigureEditor:
     void group();
     void ungroup();
     
-    TFigure* findFigureAt(int x, int y);
+    TFigure* findFigureAt(TCoord x, TCoord y);
 
     static const unsigned STATE_NONE = 0;
     
@@ -368,13 +374,13 @@ class TFigureEditor:
     static const unsigned STATE_START_CREATE = 20;   // set during `startCreate' and first `mouseLDown'
     static const unsigned STATE_CREATE = 21;
     
-    int fuzziness; // fuzziness to catch handles
+    TCoord fuzziness; // fuzziness to catch handles
     unsigned state;
     
-    int down_x, down_y;                             // last mouseXDown postion
+    TCoord down_x, down_y;                             // last mouseXDown postion
 
     // undo stuff:
-    int memo_x, memo_y;
+    TCoord memo_x, memo_y;
     unsigned memo_n;
     TPoint memo_pt;
 
@@ -388,25 +394,27 @@ class TFigureEditor:
     void paintGrid(TPenBase &pen);
     void paintSelection(TPenBase &pen);
     void paintDecoration(TPenBase &pen);
-    virtual void print(TPenBase &pen, TFigureModel *model, bool withSelection=false);
+    virtual void print(TPenBase &pen, TFigureModel *model, bool withSelection=false, bool justSelection=false);
     
     void resize();
-    void mouseEvent(TMouseEvent&);
-    void keyEvent(TKeyEvent&);
+    void mouseEvent(const TMouseEvent&);
+    void keyEvent(const TKeyEvent&);
     
-    void mouseLDown(TMouseEvent &);
-    void mouseMove(TMouseEvent &);
-    void mouseLUp(TMouseEvent &);
-    void mouseRDown(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseMove(const TMouseEvent &);
+    void mouseLUp(const TMouseEvent &);
+    void mouseRDown(const TMouseEvent &);
     void keyDown(TKey, char*, unsigned);
 
     virtual void mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy);
     virtual void sheet2grid(TCoord sx, TCoord sy, TCoord *gx, TCoord *gy);
+    virtual void minimalAreaSize(TCoord *x1, TCoord *y1, TCoord *x2, TCoord *y2);
     
     bool restore(TInObjectStream&);
     void store(TOutObjectStream&) const;
 
     void setCurrent(TFigure *f) { gadget = f; }
+    TFigure* getCurrent() const { return gadget; }
 
   protected:
     void init(TFigureModel *m);
@@ -419,10 +427,10 @@ class TFigureEditor:
     bool tht; // translate handle transform?
     
     bool use_scrollbars;
-    int x1,x2, y1,y2;
+    TCoord x1,x2, y1,y2;
     bool update_scrollbars; // checked during paint
     void updateScrollbars();
-    void scrolled(int dx, int dy);
+    void scrolled(TCoord dx, TCoord dy);
     
     void adjustPane();
 

@@ -357,8 +357,8 @@ CurveFitObject::initialise(const TPolygon &polygon, TPolygon *out)
 		// It is about 250 times faster on a machine without FPU
 
 		// find the difference between the last 2 points
-		dx = abs(PathArray[i].x - PathArray[i-1].x);
-		dy = abs(PathArray[i].y - PathArray[i-1].y);
+		dx = fabs(PathArray[i].x - PathArray[i-1].x);
+		dy = fabs(PathArray[i].y - PathArray[i-1].y);
 
 		// Find out half the smallest of dx and dy
 		if (dx>dy)
@@ -821,9 +821,10 @@ CurveFitObject::generateBezier(int FirstPoint, int LastPoint,
 }
 
 void
-fitCurve(const TPolygon &in, TPolygon *out)
+fitCurve(const TPolygon &in, TPolygon *out, int smoothness)
 {
   CurveFitObject c;
+  c.Error = smoothness;
   if (c.initialise(in, out)) {
     c.fitCurve();
   }

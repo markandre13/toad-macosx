@@ -1971,7 +1971,7 @@ THTMLView::paint()
   TElementStorage::iterator p, e;
 
 #ifdef SPEEDUP_KLUDGE
-int x, y, h;
+TCoord x, y, h;
 getPanePos(&x, &y);
 h = getHeight() + y;
 int flag=0;
@@ -2004,7 +2004,7 @@ if (state.newline && state.getBottom() > h) {
 }
 
 void
-THTMLView::mouseLDown(TMouseEvent &m)
+THTMLView::mouseLDown(const TMouseEvent &m)
 {
   if (!anchors) {
     return;
@@ -2031,7 +2031,7 @@ cerr << __FILE__ << ":" << __LINE__ << ": not adding undo object" << endl;
 }
 
 void
-THTMLView::mouseMove(TMouseEvent &m)
+THTMLView::mouseMove(const TMouseEvent &m)
 {
   if (!anchors) {
     return;

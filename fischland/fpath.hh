@@ -36,15 +36,16 @@ class TFPath:
     void paintSelection(TPenBase &pen, int handle);
     void getShape(toad::TRectangle *r);
 
-    void translate(int dx, int dy);
+    void translate(TCoord dx, TCoord dy);
     bool getHandle(unsigned handle, TPoint *p);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    double _distance(TFigureEditor *fe, int x, int y);
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
     unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
     
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
-    void addPoint(int x, int y) { polygon.addPoint(x,y); }
-    void insertPointNear(int x, int y);
+    void addPoint(TCoord x, TCoord y) { polygon.addPoint(x,y); }
+    TCoord findPointNear(TCoord inX, TCoord inY, TCoord *outX, TCoord *outY, TCoord *outF=0) const;
+    void insertPointNear(TCoord x, TCoord y);
     void deletePoint(unsigned i);
 
     bool closed;

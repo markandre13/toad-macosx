@@ -99,8 +99,8 @@ class TColorPalette:
     int fw, fh;
     
     void paint();
-    void mouseLDown(TMouseEvent &);
-    void mouseMDown(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseMDown(const TMouseEvent &);
 
     TNamedColor* mouse2color(int mx, int my);
     void dropColor(const PDnDColor&);

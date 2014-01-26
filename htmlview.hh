@@ -48,8 +48,8 @@ class THTMLView:
     void adjustPane();
     void paint();
     void parse(istream &in);
-    void mouseLDown(TMouseEvent &);
-    void mouseMove(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseMove(const TMouseEvent &);
 };
 
 } // namespace toad

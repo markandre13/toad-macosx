@@ -41,13 +41,13 @@ TFBezierline::paintSelectionLines(TPenBase &pen)
       pen.setLineWidth(1);
       while(true) {
         if (n>=2) {
-          int x0, y0, x1, y1;
+          TCoord x0, y0, x1, y1;
           mat->map(p->x, p->y, &x0, &y0);
           mat->map((p+1)->x, (p+1)->y, &x1, &y1);
           pen.drawLine(x0, y0, x1, y1);
         }
         if (n>=4) {
-          int x0, y0, x1, y1;
+          TCoord x0, y0, x1, y1;
           mat->map((p+2)->x, (p+2)->y, &x0, &y0);
           mat->map((p+3)->x, (p+3)->y, &x1, &y1);
           pen.drawLine(x0, y0, x1, y1);
@@ -88,7 +88,7 @@ TFBezierline::paint(TPenBase &pen, EPaintType type)
   pen.setColor(line_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
-  pen.drawPolyBezier(polygon);
+  pen.drawBezier(polygon);
 
   if (arrowmode == NONE) {
     pen.setAlpha(1);
@@ -96,8 +96,8 @@ TFBezierline::paint(TPenBase &pen, EPaintType type)
   }
   pen.setLineStyle(TPen::SOLID);
 
-  int aw = arrowwidth * line_width;
-  int ah = arrowheight * line_width;
+  TCoord aw = arrowwidth * line_width;
+  TCoord ah = arrowheight * line_width;
 
   if (arrowmode == HEAD || arrowmode == BOTH)
     drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-2], line_color, fill_color, aw, ah, arrowtype);
@@ -132,7 +132,7 @@ TFBezierline::_paintSelection(TPenBase &pen, int handle, bool filled)
   while(true) {
     if ( !getHandle(h, &pt) )
       break;
-    int x, y;
+    TCoord x, y;
     if (pen.getMatrix()) {
       pen.getMatrix()->map(pt.x, pt.y, &x, &y);
       pen.push();
@@ -182,12 +182,12 @@ TFBezierline::_paintSelection(TPenBase &pen, int handle, bool filled)
   }
 }    
 
-double
-TFBezierline::_distance(TFigureEditor *fe, int x, int y)
+TCoord
+TFBezierline::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 {
   if (!polygon.isInside(x, y)) {
-    int x1,y1,x2,y2;
-    double min = OUT_OF_RANGE;
+    TCoord x1,y1,x2,y2;
+    TCoord min = OUT_OF_RANGE;
     TPolygon::const_iterator p(polygon.begin());
     x2=p->x;
     y2=p->y;
@@ -197,7 +197,7 @@ TFBezierline::_distance(TFigureEditor *fe, int x, int y)
       y1=y2;
       x2=p->x;
       y2=p->y;
-      double d = distance2Line(x,y, x1,y1, x2,y2);
+      TCoord d = distance2Line(x,y, x1,y1, x2,y2);
       if (d<min)
         min = d;
       ++p;
@@ -210,8 +210,8 @@ TFBezierline::_distance(TFigureEditor *fe, int x, int y)
   TPenBase::poly2Bezier(polygon, p2);
   
   TPolygon::const_iterator p(p2.begin()), e(p2.end());
-  int x1,y1,x2,y2;
-  double min = OUT_OF_RANGE, d;
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
   assert(p!=e);
   x2=p->x;
   y2=p->y;
@@ -493,50 +493,50 @@ TFBezierline::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 
 namespace {
 
-inline double
-mid(double a, double b)
+inline TCoord
+mid(TCoord a, TCoord b)
 {
   return (a + b) / 2.0;
 }
 
-inline double
-distance(double x, double y, double x1, double y1)
+inline TCoord
+distance(TCoord x, TCoord y, TCoord x1, TCoord y1)
 {
-  double ax = x-x1;
-  double ay = y-y1;
+  TCoord ax = x-x1;
+  TCoord ay = y-y1;
   return sqrt(ax*ax+ay*ay);
 }
 
-double
+TCoord
 bezpoint(
-  double px, double py,
-  double x0, double y0,
-  double x1, double y1,
-  double x2, double y2,
-  double x3, double y3,
-  double min=0.0, double max=1.0,
-  double *dist = 0)
+  TCoord px, TCoord py,
+  TCoord x0, TCoord y0,
+  TCoord x1, TCoord y1,
+  TCoord x2, TCoord y2,
+  TCoord x3, TCoord y3,
+  TCoord min=0.0, TCoord max=1.0,
+  TCoord *dist = 0)
 {
-  double vx0 = x1-x0;
-  double vx1 = x2-x1;
-  double vx2 = x3-x2;
-  double vy0 = y1-y0;
-  double vy1 = y2-y1;
-  double vy2 = y3-y2;
+  TCoord vx0 = x1-x0;
+  TCoord vx1 = x2-x1;
+  TCoord vx2 = x3-x2;
+  TCoord vy0 = y1-y0;
+  TCoord vy1 = y2-y1;
+  TCoord vy2 = y3-y2;
 
-  double w0 = vx0 * vy1 - vy0 * vx1;
-  double w1 = vx1 * vy2 - vy1 * vx2;
+  TCoord w0 = vx0 * vy1 - vy0 * vx1;
+  TCoord w1 = vx1 * vy2 - vy1 * vx2;
   
-  double vx3 = x2 - x0;
-  double vx4 = x3 - x0;
-  double vy3 = y2 - y0;
-  double vy4 = y3 - y0;
+  TCoord vx3 = x2 - x0;
+  TCoord vx4 = x3 - x0;
+  TCoord vy3 = y2 - y0;
+  TCoord vy4 = y3 - y0;
   
-  double w2 = vx3 * vy4 - vy3 * vx4;
-  double w3 = vx0 * vy4 - vy0 * vx4;
+  TCoord w2 = vx3 * vy4 - vy3 * vx4;
+  TCoord w3 = vx0 * vy4 - vy0 * vx4;
 
   if (fabs(w0)+fabs(w1)+fabs(w2)+fabs(w3)<1.0) {
-    double mind, d, f;
+    TCoord mind, d, f;
     mind = distance(px, py, x0, y0);
     f = 0.0;
     d = distance(px, py, x1, y1);
@@ -560,19 +560,19 @@ bezpoint(
     return min + (max-min)*f/3.0;
   }
    
-  double xx  = mid(x1, x2);
-  double yy  = mid(y1, y2);
-  double x11 = mid(x0, x1);
-  double y11 = mid(y0, y1);
-  double x22 = mid(x2, x3);
-  double y22 = mid(y2, y3);
-  double x12 = mid(x11, xx);
-  double y12 = mid(y11, yy);
-  double x21 = mid(xx, x22);
-  double y21 = mid(yy, y22);
-  double cx  = mid(x12, x21);
-  double cy  = mid(y12, y21);
-  double d1, d2, t1, t2;
+  TCoord xx  = mid(x1, x2);
+  TCoord yy  = mid(y1, y2);
+  TCoord x11 = mid(x0, x1);
+  TCoord y11 = mid(y0, y1);
+  TCoord x22 = mid(x2, x3);
+  TCoord y22 = mid(y2, y3);
+  TCoord x12 = mid(x11, xx);
+  TCoord y12 = mid(y11, yy);
+  TCoord x21 = mid(xx, x22);
+  TCoord y21 = mid(yy, y22);
+  TCoord cx  = mid(x12, x21);
+  TCoord cy  = mid(y12, y21);
+  TCoord d1, d2, t1, t2;
   t1 = bezpoint(px, py, x0, y0, x11, y11, x12, y12, cx, cy, min, min+(max-min)/2.0, &d1);
   t2 = bezpoint(px, py, cx, cy, x21, y21, x22, y22, x3, y3, min+(max-min)/2.0, max, &d2);
   if (dist) {
@@ -587,15 +587,15 @@ bezpoint(
  * Insert an additional point near the point given by x, y.
  */
 void
-TFBezierline::insertPointNear(int x, int y)
+TFBezierline::insertPointNear(TCoord x, TCoord y)
 {
 //  cerr << "add point near " << x << ", " << y << endl;
 
   unsigned i=0;
-  double f, min;
+  TCoord f, min;
 
   for(unsigned j=0; j+3 <= polygon.size(); j+=3) {
-    double u, d;
+    TCoord u, d;
     u = bezpoint(x, y,
                  polygon[j  ].x, polygon[j  ].y,
                  polygon[j+1].x, polygon[j+1].y,
@@ -615,20 +615,20 @@ TFBezierline::insertPointNear(int x, int y)
     }
   }
 
-  int x0 = f*(polygon[i+1].x-polygon[i+0].x) + polygon[i+0].x;
-  int y0 = f*(polygon[i+1].y-polygon[i+0].y) + polygon[i+0].y;
-  int x1 = f*(polygon[i+2].x-polygon[i+1].x) + polygon[i+1].x;
-  int y1 = f*(polygon[i+2].y-polygon[i+1].y) + polygon[i+1].y;
-  int x2 = f*(polygon[i+3].x-polygon[i+2].x) + polygon[i+2].x;
-  int y2 = f*(polygon[i+3].y-polygon[i+2].y) + polygon[i+2].y;
+  TCoord x0 = f*(polygon[i+1].x-polygon[i+0].x) + polygon[i+0].x;
+  TCoord y0 = f*(polygon[i+1].y-polygon[i+0].y) + polygon[i+0].y;
+  TCoord x1 = f*(polygon[i+2].x-polygon[i+1].x) + polygon[i+1].x;
+  TCoord y1 = f*(polygon[i+2].y-polygon[i+1].y) + polygon[i+1].y;
+  TCoord x2 = f*(polygon[i+3].x-polygon[i+2].x) + polygon[i+2].x;
+  TCoord y2 = f*(polygon[i+3].y-polygon[i+2].y) + polygon[i+2].y;
 
-  int x3 = f*(x1-x0) + x0;
-  int y3 = f*(y1-y0) + y0;
-  int x4 = f*(x2-x1) + x1;
-  int y4 = f*(y2-y1) + y1;
+  TCoord x3 = f*(x1-x0) + x0;
+  TCoord y3 = f*(y1-y0) + y0;
+  TCoord x4 = f*(x2-x1) + x1;
+  TCoord y4 = f*(y2-y1) + y1;
 
-  int x5 = f*(x4-x3) + x3;
-  int y5 = f*(y4-y3) + y3;
+  TCoord x5 = f*(x4-x3) + x3;
+  TCoord y5 = f*(y4-y3) + y3;
 
   polygon[i+1].set(x0,y0);
   polygon.insert(polygon.begin()+i+2, TPoint(x3,y3));
@@ -685,10 +685,10 @@ TFBezier::paint(TPenBase &pen, EPaintType type)
   pen.setLineWidth(line_width);
   
   if (!filled) {
-    pen.drawPolyBezier(polygon);
+    pen.drawBezier(polygon);
   } else {
     pen.setFillColor(fill_color);
-    pen.fillPolyBezier(polygon);
+    pen.fillBezier(polygon);
   }
 
   pen.setAlpha(1);  
@@ -720,8 +720,8 @@ TFBezier::paint(TPenBase &pen, EPaintType type)
   }
 }
 
-double
-TFBezier::_distance(TFigureEditor *fe, int x, int y)
+TCoord
+TFBezier::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 {
   if (!polygon.isInside(x, y))
     return OUT_OF_RANGE;
@@ -732,8 +732,8 @@ TFBezier::_distance(TFigureEditor *fe, int x, int y)
     return INSIDE;
   
   TPolygon::const_iterator p(p2.begin()), e(p2.end());
-  int x1,y1,x2,y2;
-  double min = OUT_OF_RANGE, d;
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
   assert(p!=e);
   --e;
   assert(p!=e);

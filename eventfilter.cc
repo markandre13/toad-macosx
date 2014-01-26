@@ -23,6 +23,15 @@
 using namespace toad;
 
 TEventFilter::~TEventFilter() {}
+/**
+ * \return 'true' when the event had been filtered and must not be processed any more
+ */
 bool TEventFilter::windowEvent(TWindowEvent&) { return false; }
+/**
+ * \return 'true' when the event had been filtered and must not be processed any more
+ */
 bool TEventFilter::mouseEvent(TMouseEvent&) { return false; }
+/**
+ * \return 'true' when the event had been filtered and must not be processed any more
+ */
 bool TEventFilter::keyEvent(TKeyEvent&) { return false; }

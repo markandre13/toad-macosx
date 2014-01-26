@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2007 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,7 @@
 
 #include <toad/scrollpane.hh>
 #include <toad/scrollbar.hh>
-#include <toad/penbase.hh>
+#include <toad/region.hh>
 
 #define DBM(X)
 
@@ -35,7 +35,7 @@
  * When visible.x or visible.y are not 0, then the area left/above to 0 will
  * be scrolled also/still be scrolled. This is to be used for horizontal and
  * vertical headers.
- *
+ * 
  */
 
 using namespace toad;
@@ -48,6 +48,20 @@ TScrollPane::TScrollPane(TWindow *p, const string &t):
   vscroll = hscroll = 0;
   uix = uiy = 1;
   resetScrollPane();
+}
+
+void
+TScrollPane::mouseEvent(const TMouseEvent &me)
+{
+  if (vscroll && (
+        me.type == TMouseEvent::ROLL_UP ||
+        me.type == TMouseEvent::ROLL_UP_END ||
+        me.type == TMouseEvent::ROLL_DOWN ||
+        me.type == TMouseEvent::ROLL_DOWN_END) )
+  {
+    vscroll->mouseEvent(me);
+    return;
+  }
 }
 
 void
@@ -68,19 +82,18 @@ TScrollPane::_scrolled()
 {
   // calculate delta (dx, dy) between last position (lx, ly) and new one
   // and store a new last position in (lx, ly)
-  int dx, dy;
+  TCoord dx, dy;
   dx = dy = 0;
   if (hscroll) {
-    int n = hscroll->getValue();
+    TCoord n = hscroll->getValue();
     dx = lx - n;
     lx = n;
   }
   if (vscroll) {
-    int n = vscroll->getValue();  
+    TCoord n = vscroll->getValue();  
     dy = ly - n;
     ly = n;
   }
-
   // scroll screen
   scrollRectangle(visible, dx, dy, true);
   
@@ -117,9 +130,9 @@ TScrollPane::_scrolled()
  *   delta movement on y-axis
  */
 void
-TScrollPane::scrolled(int dx, int dy)
+TScrollPane::scrolled(TCoord dx, TCoord dy)
 {
-  int x, y;
+  TCoord x, y;
   getPanePos(&x, &y);
   setOrigin(-x, -y);
 }
@@ -277,12 +290,12 @@ TScrollPane::paintCorner(TPenBase &pen)
 #endif
 }
 
-/**
+/** 
  *
  * IMPROVE: we have pointer here! drop the 'setall' flag
  */
 void
-TScrollPane::getPanePos(int *x, int *y, bool setall) const {
+TScrollPane::getPanePos(TCoord *x, TCoord *y, bool setall) const {
   if (setall) {
     *x = *y = 0;
   }
@@ -291,13 +304,13 @@ TScrollPane::getPanePos(int *x, int *y, bool setall) const {
 }
 
 void
-TScrollPane::setPanePos(int x, int y) {
+TScrollPane::setPanePos(TCoord x, TCoord y) {
   if (hscroll) hscroll->setValue(x);
   if (vscroll) vscroll->setValue(y);
 }
 
 void
-TScrollPane::setUnitIncrement(int uix, int uiy)
+TScrollPane::setUnitIncrement(TCoord uix, TCoord uiy)
 {
   this->uix = uix;
   this->uiy = uiy;

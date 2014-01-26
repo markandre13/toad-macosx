@@ -63,6 +63,7 @@ class TPen:
     void setMatrix(const TMatrix2D&);
     const TMatrix2D* getMatrix() const;
 
+    void setClipRect(const TRectangle&);
     void getClipBox(TRectangle*) const;
     void operator&=(const TRectangle&);
     void operator|=(const TRectangle&);
@@ -96,10 +97,10 @@ class TPen:
     void fillPolygon(const TPoint *points, size_t n); 
     void fillPolygon(const TPolygon &p);
 
-    void drawPolyBezier(const TPoint *points, size_t n);
-    void drawPolyBezier(const TPolygon &p);
-    void fillPolyBezier(const TPoint *points, size_t n);
-    void fillPolyBezier(const TPolygon &p);
+    void drawBezier(const TPoint *points, size_t n);
+    void drawBezier(const TPolygon &p);
+    void fillBezier(const TPoint *points, size_t n);
+    void fillBezier(const TPolygon &p);
 };
 
 }

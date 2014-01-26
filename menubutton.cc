@@ -479,7 +479,7 @@ const char * statename(EMenuHelperState n) {
 }
 
 void 
-TMenuButton::mouseLDown(TMouseEvent &)
+TMenuButton::mouseLDown(const TMouseEvent &)
 {
   stopat = this;
   DBM(cerr << "+ mouseLDown " << this << ": state " << statename(master->state) << endl;)
@@ -504,7 +504,7 @@ TMenuButton::mouseLDown(TMouseEvent &)
 }
 
 void 
-TMenuButton::mouseLUp(TMouseEvent &)
+TMenuButton::mouseLUp(const TMouseEvent &)
 {
   stopat = 0;
   DBM(cerr << "+ mouseLUp " << this << ": state " << statename(master->state) << endl;)
@@ -577,7 +577,7 @@ else
  * the right mouse button.
  */
 void 
-TMenuButton::mouseRDown(TMouseEvent &m)
+TMenuButton::mouseRDown(const TMouseEvent &m)
 {
   mouseLDown(m);
 }
@@ -587,13 +587,13 @@ TMenuButton::mouseRDown(TMouseEvent &m)
  * the right mouse button.
  */
 void 
-TMenuButton::mouseRUp(TMouseEvent &m)
+TMenuButton::mouseRUp(const TMouseEvent &m)
 {
   mouseLUp(m);
 }
 
 void 
-TMenuButton::mouseLeave(TMouseEvent &m)
+TMenuButton::mouseLeave(const TMouseEvent &m)
 {
   inside = 0;
   DBM(cerr << "+ mouseLeave " << this << ": state " << statename(master->state) << endl;)
@@ -614,7 +614,7 @@ TMenuButton::mouseLeave(TMouseEvent &m)
   DBM(cerr << "- mouseLeave " << this << ": state " << statename(master->state) << endl;)
 }
 
-void TMenuButton::mouseEnter(TMouseEvent &m)
+void TMenuButton::mouseEnter(const TMouseEvent &m)
 {
   inside = this;
   DBM(cerr << "+ mouseEnter " << this << ": state " << statename(master->state) << endl;)

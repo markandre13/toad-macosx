@@ -123,7 +123,7 @@ TColorSelector::paint()
 }  
    
 void
-TColorSelector::mouseLDown(TMouseEvent &m)
+TColorSelector::mouseLDown(const TMouseEvent &m)
 {
   if (m.x<border ||
       m.y<border ||
@@ -147,7 +147,7 @@ TColorSelector::mouseLDown(TMouseEvent &m)
 }
 
 void
-TColorSelector::mouseMDown(TMouseEvent &m)
+TColorSelector::mouseMDown(const TMouseEvent &m)
 {
   if (m.x<border ||
       m.y<border ||

@@ -14,7 +14,7 @@ class TTestScrollWindow:
   public:
     TTestScrollWindow(TWindow *parent, const string &title);
     void paint();
-    void mouseLDown(TMouseEvent&);
+    void mouseLDown(const TMouseEvent&);
 };
 
 TTestScrollWindow::TTestScrollWindow(TWindow *parent, const string &title):
@@ -24,7 +24,7 @@ TTestScrollWindow::TTestScrollWindow(TWindow *parent, const string &title):
 }
 
 void
-TTestScrollWindow::mouseLDown(TMouseEvent &me)
+TTestScrollWindow::mouseLDown(const TMouseEvent &me)
 {
 cout << "mouseLDown" << endl;
   scrollRectangle(TRectangle(20,20,150,150), 10, 30);

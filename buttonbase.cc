@@ -185,7 +185,7 @@ TButtonBase::drawShadow(TPen &pen, bool down, bool onwhite)
 }
 
 void
-TButtonBase::mouseLDown(TMouseEvent &)
+TButtonBase::mouseLDown(const TMouseEvent &)
 {
 cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
   if (!isEnabled() || !sigClicked.isConnected())
@@ -203,7 +203,7 @@ cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
 }
 
 void
-TButtonBase::mouseLUp(TMouseEvent &)
+TButtonBase::mouseLUp(const TMouseEvent &)
 {
 cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
 //printf("%s\n", __FUNCTION__);
@@ -232,7 +232,7 @@ TButtonBase::keyDown(TKey key, char* str, unsigned modifier)
 }
 
 void
-TButtonBase::mouseEnter(TMouseEvent &)
+TButtonBase::mouseEnter(const TMouseEvent &)
 {
 cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
   bInside = true;
@@ -243,7 +243,7 @@ cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
 }
 
 void
-TButtonBase::mouseLeave(TMouseEvent &)
+TButtonBase::mouseLeave(const TMouseEvent &)
 {
 cout << getTitle() << " " << __PRETTY_FUNCTION__ << endl;
   bInside = false;

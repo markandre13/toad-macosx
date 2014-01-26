@@ -118,7 +118,7 @@ TCheckBox::paint()
 }
 
 void 
-TCheckBox::mouseLDown(TMouseEvent &)
+TCheckBox::mouseLDown(const TMouseEvent &)
 {
   if (!isEnabled())
     return;

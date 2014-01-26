@@ -148,11 +148,11 @@ class TFigure:
     static const unsigned NOGRAB   = 16; // don't grab
 
     // stage 1: select:
-    virtual double _distance(TFigureEditor *fe, int x, int y);
-    virtual double distance(int x, int y);
+    virtual double _distance(TFigureEditor *fe, TCoord x, TCoord y);
+    virtual double distance(TCoord x, TCoord y);
     
     // stage 2: move
-    virtual void translate(int dx, int dy);
+    virtual void translate(TCoord dx, TCoord dy);
     
     // stage 3: manipulate
     static const int NO_HANDLE = -1;
@@ -256,8 +256,8 @@ class TFRectangle:
     void paint(TPenBase &, EPaintType);
     void getShape(TRectangle*);
 
-    double distance(int x, int y);
-    void translate(int dx, int dy);
+    TCoord distance(TCoord x, TCoord y);
+    void translate(TCoord dx, TCoord dy);
     bool getHandle(unsigned n, TPoint *p);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
 
@@ -280,9 +280,9 @@ class TFPolygon:
     typedef TColoredFigure super;
   public:
     void paint(TPenBase &, EPaintType);
-    double distance(int x, int y);
+    TCoord distance(TCoord x, TCoord y);
     void getShape(TRectangle*);
-    void translate(int dx, int dy);
+    void translate(TCoord dx, TCoord dy);
     bool getHandle(unsigned n, TPoint *p);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     TPolygon polygon;
@@ -294,9 +294,9 @@ class TFPolygon:
     unsigned mouseMove(TFigureEditor*, TMouseEvent &);
     unsigned keyDown(TFigureEditor *editor, TKey key, char *str, unsigned);
     unsigned mouseRDown(TFigureEditor *editor, TMouseEvent &);
-    virtual void _insertPointNear(int, int, bool filled);
+    virtual void _insertPointNear(TCoord, TCoord, bool filled);
   public:
-    virtual void insertPointNear(int, int);
+    virtual void insertPointNear(TCoord, TCoord);
     virtual void deletePoint(unsigned);
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
     void addPoint(int x, int y) { polygon.addPoint(x,y); }
@@ -331,15 +331,15 @@ class TFLine:
     void setAttributes(const TFigureAttributes*);
     void getAttributes(TFigureAttributes*) const;
     void paint(TPenBase &, EPaintType);
-    double distance(int x, int y);
+    double distance(TCoord x, TCoord y);
 
     static void drawArrow(TPenBase &pen,
                           const TPoint &p0, const TPoint &p1, 
                           const TRGB &line, const TRGB &fill,
-                          int w, int h,
+                          TCoord w, TCoord h,
                           EArrowType type);
     
-    virtual void insertPointNear(int, int);
+    virtual void insertPointNear(TCoord, TCoord);
   protected:
     unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
     SERIALIZABLE_INTERFACE(toad::, TFLine);
@@ -358,13 +358,13 @@ class TFBezierline:
     unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
     unsigned mouseMove(TFigureEditor*, TMouseEvent &);
 
-    void insertPointNear(int x, int y);
+    void insertPointNear(TCoord x, TCoord y);
     void deletePoint(unsigned i);
 
     void paint(TPenBase &, EPaintType);
     void paintSelection(TPenBase &pen, int handle);
     void _paintSelection(TPenBase &pen, int handle, bool filled);
-    double _distance(TFigureEditor *fe, int x, int y);
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     void _translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned, bool filled);
     unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
@@ -385,7 +385,7 @@ class TFBezier:
 
     void paint(TPenBase &, EPaintType);
     void paintSelection(TPenBase &pen, int handle);
-    double _distance(TFigureEditor *fe, int x, int y);
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     void setAttributes(const TFigureAttributes*);
     
@@ -406,7 +406,7 @@ class TFCircle:
       TFRectangle(x,y,w,h) {}
     void paint(TPenBase &, EPaintType);
     
-    double distance(int x, int y);
+    TCoord distance(TCoord x, TCoord y);
     
     TCloneable* clone() const { return new TFCircle(*this); }
     const char * getClassName() const { return "toad::TFCircle"; } 
@@ -424,7 +424,7 @@ class TFText:
       p1.x = p1.y = 0;
       fontname = "arial,helvetica,sans-serif:size=12";
     }
-    TFText(int x,int y, const string &text) {
+    TFText(TCoord x,TCoord y, const string &text) {
       p1.x = x;
       p1.y = y;
       fontname = "arial,helvetica,sans-serif:size=12";
@@ -444,7 +444,7 @@ class TFText:
 
     void paint(TPenBase &, EPaintType);
 
-    double distance(int x, int y);
+    double distance(TCoord x, TCoord y);
     bool getHandle(unsigned n, TPoint *p);
 
     bool startInPlace();
@@ -478,14 +478,14 @@ class TFFrame:
     typedef TFText super;
   public:
     TFFrame() {}
-    TFFrame(int x,int y,int w, int h, const string &text="") {
+    TFFrame(TCoord x, TCoord y, TCoord w, TCoord h, const string &text="") {
       this->text = text;
       setShape(x,y,w,h);
     };
     void paint(TPenBase &, EPaintType);
 
     void getShape(TRectangle*);
-    double distance(int x, int y);
+    TCoord distance(TCoord x, TCoord y);
     unsigned stop(TFigureEditor*);
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
     bool getHandle(unsigned n, TPoint *p);
@@ -510,8 +510,8 @@ class TFWindow:
     TFWindow();
 
     void paint(TPenBase&, EPaintType);
-    double distance(int x, int y);
-    void translate(int dx, int dy);
+    double distance(TCoord x, TCoord y);
+    void translate(TCoord dx, TCoord dy);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     
     TCloneable* clone() const { return new TFWindow(*this); }
@@ -537,7 +537,7 @@ class TFGroup:
     TFGroup(const TFGroup &g);
     ~TFGroup();
     void paint(TPenBase&, EPaintType);
-    double _distance(TFigureEditor *fe, int x, int y);
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
     bool getHandle(unsigned n, TPoint *p);
     bool startTranslateHandle();
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
@@ -551,7 +551,7 @@ class TFGroup:
 
     TFigureModel gadgets;
 
-    void translate(int dx, int dy);
+    void translate(TCoord dx, TCoord dy);
     bool editEvent(TFigureEditEvent &ee);
 
     TCloneable* clone() const { return new TFGroup(*this); }

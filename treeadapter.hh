@@ -44,7 +44,7 @@ class TTreeAdapter:
     int getColWidth(size_t col);
     virtual bool isClosed(size_t row);
     void renderItem(TPen &pen, const TTableEvent&);
-    void mouseEvent(TMouseEvent &me, int col, int row, int w, int h);
+    void mouseEvent(const TMouseEvent &me, int col, int row, int w, int h);
     size_t findOpenRowAbove(size_t row);
     
     size_t getRows() { return getModel() ? getModel()->getRows() : 0; }

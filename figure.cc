@@ -159,14 +159,14 @@ TFigure::editEvent(TFigureEditEvent &ee)
  * This one is a crude hack to speedup selection in drawings with
  * many beziers. I still need to work it out.
  */
-double
-TFigure::_distance(TFigureEditor *fe, int x, int y)
+TCoord
+TFigure::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 {
   return distance(x, y);
 }
 
-double
-TFigure::distance(int x, int y)
+TCoord
+TFigure::distance(TCoord x, TCoord y)
 {
   TRectangle r;
   getShape(&r);
@@ -174,7 +174,7 @@ TFigure::distance(int x, int y)
 }
     
 void
-TFigure::translate(int dx, int dy)
+TFigure::translate(TCoord dx, TCoord dy)
 {
 }
 

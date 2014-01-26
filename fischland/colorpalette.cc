@@ -257,7 +257,7 @@ TColorPalette::paint()
 }
 
 void
-TColorPalette::mouseLDown(TMouseEvent &m)
+TColorPalette::mouseLDown(const TMouseEvent &m)
 {
   TNamedColor *color = mouse2color(m.x, m.y);
   if (!color)
@@ -272,7 +272,7 @@ TColorPalette::mouseLDown(TMouseEvent &m)
 }
 
 void
-TColorPalette::mouseMDown(TMouseEvent &m)
+TColorPalette::mouseMDown(const TMouseEvent &m)
 {
   TNamedColor *color = mouse2color(m.x, m.y);
   if (!color)

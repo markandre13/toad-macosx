@@ -67,7 +67,7 @@ TArrowButton::paint()
 }
 
 void
-TArrowButton::mouseLDown(TMouseEvent &)
+TArrowButton::mouseLDown(const TMouseEvent &)
 {
   if (!isEnabled())
     return;
@@ -80,7 +80,7 @@ TArrowButton::mouseLDown(TMouseEvent &)
 }
 
 void
-TArrowButton::mouseLUp(TMouseEvent &)
+TArrowButton::mouseLUp(const TMouseEvent &)
 {
   if (!bDown)
     return;

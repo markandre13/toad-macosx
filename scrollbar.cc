@@ -327,7 +327,7 @@ TScrollBar::keyDown(TKey key,char*,unsigned)
 }
 
 void
-TScrollBar::mouseEvent(TMouseEvent &me)
+TScrollBar::mouseEvent(const TMouseEvent &me)
 {
   switch(me.type) {
     case TMouseEvent::ROLL_UP:
@@ -342,7 +342,7 @@ TScrollBar::mouseEvent(TMouseEvent &me)
 }
 
 void
-TScrollBar::mouseLDown(TMouseEvent &m)
+TScrollBar::mouseLDown(const TMouseEvent &m)
 {
   setFocus();
   TCoord v = model->getValue();
@@ -369,7 +369,7 @@ TScrollBar::mouseLDown(TMouseEvent &m)
 }
 
 void
-TScrollBar::mouseMove(TMouseEvent &m)
+TScrollBar::mouseMove(const TMouseEvent &m)
 {
 //printf("scrollbar mouseMove: x=%i,y=%i,nMouseDown=%i\n",x,y,nMouseDown);
   if (nMouseDown!=-1) {
@@ -383,7 +383,7 @@ TScrollBar::mouseMove(TMouseEvent &m)
 }
 
 void
-TScrollBar::mouseLUp(TMouseEvent &)
+TScrollBar::mouseLUp(const TMouseEvent &)
 {
   if (nMouseDown!=-1) {
     nMouseDown = -1;

@@ -41,12 +41,12 @@ class TMenuButton:
     ~TMenuButton();
     void adjustButton();
     void paint();
-    void mouseLDown(TMouseEvent &);
-    void mouseLUp(TMouseEvent &);
-    void mouseRDown(TMouseEvent &);
-    void mouseRUp(TMouseEvent &);
-    void mouseEnter(TMouseEvent &);
-    void mouseLeave(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseLUp(const TMouseEvent &);
+    void mouseRDown(const TMouseEvent &);
+    void mouseRUp(const TMouseEvent &);
+    void mouseEnter(const TMouseEvent &);
+    void mouseLeave(const TMouseEvent &);
     void closeRequest();
 
   protected:

@@ -403,7 +403,7 @@ DBM(cout << "LEAVE keyDown" << endl;
 }
 
 void
-TTextArea::mouseLDown(TMouseEvent &m)
+TTextArea::mouseLDown(const TMouseEvent &m)
 {
   if (!isEnabled())
     return;
@@ -414,7 +414,7 @@ TTextArea::mouseLDown(TMouseEvent &m)
 }
 
 void
-TTextArea::mouseMove(TMouseEvent &m)
+TTextArea::mouseMove(const TMouseEvent &m)
 {
   if (!isEnabled())
     return;
@@ -427,7 +427,7 @@ TTextArea::mouseMove(TMouseEvent &m)
 }
 
 void
-TTextArea::mouseLUp(TMouseEvent &)
+TTextArea::mouseLUp(const TMouseEvent &)
 {
 }
 
@@ -1259,7 +1259,7 @@ TTextArea::_delete_current_line()
 }
 
 void
-TTextArea::mouseMDown(TMouseEvent &)
+TTextArea::mouseMDown(const TMouseEvent &)
 {
   if (!isEnabled())
     return;

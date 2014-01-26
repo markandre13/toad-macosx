@@ -88,10 +88,10 @@ class TRadioButtonBase:
     void setDown(bool down=true);
     void _setDown(bool);
     
-    void mouseLDown(TMouseEvent &);
-    void mouseLUp(TMouseEvent &);
-    void mouseEnter(TMouseEvent &);
-    void mouseLeave(TMouseEvent &);
+    void mouseLDown(const TMouseEvent &);
+    void mouseLUp(const TMouseEvent &);
+    void mouseEnter(const TMouseEvent &);
+    void mouseLeave(const TMouseEvent &);
     
     bool isDown() const;
 };

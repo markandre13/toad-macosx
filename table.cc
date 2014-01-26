@@ -534,7 +534,17 @@ TDefaultTableHeaderRenderer::getHeight()
 int
 TDefaultTableHeaderRenderer::getWidth()
 {
-  return 42;
+  int w = 38;
+  for(vector<TFigure*>::const_iterator p=figures.begin();
+      p!=figures.end();
+      ++p)
+  {
+    TRectangle r;
+    (*p)->getShape(&r);
+    if (w<r.w)
+      w = r.w;
+  }
+  return w+4;
 }
 
 void
@@ -556,6 +566,8 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
   if (numeric) {
     snprintf(buffer, 15, "%zu", idx+1);
     txt = buffer;
+    x = (w - pen.getTextWidth(txt))/2;
+    y = (h - pen.getHeight())/2;
   } else {
     do {
       char c = (idx%26)+'A';
@@ -563,8 +575,8 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
       idx/=26;
     } while(idx>0);
     txt = str.c_str();
-    x = (w - pen.getTextWidth(txt))>>1;
-    y = (h - pen.getHeight())>>1;
+    x = (w - pen.getTextWidth(txt))/2;
+    y = (h - pen.getHeight())/2;
   }
   
   if (x<0)
@@ -630,6 +642,55 @@ TTable::setModel(TTableModel *m)
 }
 #endif
 
+namespace toad {
+class TTableDropSite:
+  public TDropSite
+{
+    typedef TDropSite super;
+    TTable *table;
+  public:
+    TTableDropSite(TTable *p):super(p), table(p) {};
+    TTableDropSite(TTable *p, const TRectangle &r):super(p,r), table(p) {};
+  protected:
+    void dropRequest(TDnDObject&);
+    void drop(TDnDObject&);
+    void paint();
+};
+} // namespace toad
+
+void
+TTableDropSite::dropRequest(TDnDObject &obj)
+{
+  obj.action = ACTION_NONE;
+  table->dropRequest(obj);
+}
+
+void
+TTableDropSite::drop(TDnDObject &obj)
+{
+  table->drop(obj);
+}
+
+void
+TTableDropSite::paint()
+{
+  // no operation, TTableAdapter shall do this during dropRequest
+}
+
+void
+TTable::dropRequest(TDnDObject &obj)
+{
+  if (adapter)
+    adapter->dropRequest(obj);
+}
+
+void
+TTable::drop(TDnDObject &obj)
+{
+  if (adapter)
+    adapter->drop(obj);
+}
+
 void
 TTable::setAdapter(TTableAdapter *r) 
 {
@@ -646,6 +707,9 @@ TTable::setAdapter(TTableAdapter *r)
     adapter->setTable(this);
 //    if (model)
 //      adapter->setModel(model);
+    if (adapter->canDrag()) {
+      new TTableDropSite(this); // we need a way to delete dropsites!
+    }
   }
   handleNewModel();
 }
@@ -728,11 +792,7 @@ TTable::setRowHeaderRenderer(TAbstractTableHeaderRenderer *r)
   if (row_header_renderer==r)
     return;
   row_header_renderer = r;
-  if (row_header_renderer || col_header_renderer) {
-    setAllMouseMoveEvents(true);
-  } else {
-    setAllMouseMoveEvents(false);
-  }
+  setAllMouseMoveEvents(row_header_renderer || col_header_renderer);
   doLayout();
   invalidateWindow();
 }
@@ -743,11 +803,7 @@ TTable::setColHeaderRenderer(TAbstractTableHeaderRenderer *r)
   if (col_header_renderer==r)
     return;
   col_header_renderer = r;
-  if (row_header_renderer || col_header_renderer) {
-    setAllMouseMoveEvents(true);
-  } else {
-    setAllMouseMoveEvents(false);
-  }
+  setAllMouseMoveEvents(row_header_renderer || col_header_renderer);
   doLayout();
   invalidateWindow();
 }
@@ -758,7 +814,7 @@ TTable::setColHeaderRenderer(TAbstractTableHeaderRenderer *r)
  * Scrolls the table window and recalculates some internal variables.
  */
 void
-TTable::scrolled(int dx, int dy)
+TTable::scrolled(TCoord dx, TCoord dy)
 {
   // adjust (ffx, ffy) and (fpx, fpy)
 
@@ -973,14 +1029,14 @@ DBSCROLL({
   }
 
   pen&=visible;
-  pen&=getUpdateRegion();
+  pen&=*getUpdateRegion();
 
   // draw border between the fields
   if (border) {
-    int panex, paney;
+    TCoord panex, paney;
     getPanePos(&panex, &paney);
-    panex&=1;
-    paney&=1;
+//    panex&=1;
+//    paney&=1;
   
     pen.identity();
     pen.setColor(0,0,0);
@@ -1040,7 +1096,8 @@ DBSCROLL({
         check.w = visible.x+visible.w-xp;
       }
 
-      if (true || getUpdateRegion().isIntersecting(check)) { // FIXME
+      if (!getUpdateRegion() ||
+          getUpdateRegion()->isInside(check)!=TRegion::OUT) {
         pen.identity();
         pen.translate(xp, yp);
         bool selected=false;
@@ -1186,9 +1243,9 @@ TTable::setColWidth(size_t col, int width)
  * (rfx, rfy) when not NULL, the mouse position inside the field
  */
 bool
-TTable::mouse2field(int mx, int my, size_t *fx, size_t *fy, int *rfx, int *rfy)
+TTable::mouse2field(TCoord mx, TCoord my, size_t *fx, size_t *fy, TCoord *rfx, TCoord *rfy)
 {
-  int pos1, pos2;
+  TCoord pos1, pos2;
   size_t x, y;
 
   if (!visible.isInside(mx, my)) {
@@ -1255,8 +1312,42 @@ cerr << " y=" << y
 }
 
 void
-TTable::mouseEvent(TMouseEvent &me)
+TTable::mouseEvent(const TMouseEvent &me)
 {
+  if (me.type == TMouseEvent::ROLL_UP ||
+      me.type == TMouseEvent::ROLL_UP_END ||
+      me.type == TMouseEvent::ROLL_DOWN ||
+      me.type == TMouseEvent::ROLL_DOWN_END)
+  {
+//    TScrollPane::mouseEvent(me);
+    size_t x, y;   // field
+    TCoord fx, fy; // mouse within field
+    if (adapter && mouse2field(me.x, me.y, &x, &y, &fx, &fy)) {
+      TTableEvent te;
+      TMouseEvent me2(me, fx, fy);
+      te.mouse = &me2;
+      // this should also contain a pointer to this adapter, in case
+      // mouseEvent makes modifications?
+      int size = col_info[x].size;
+      if (stretchLastColumn && x==cols-1) {
+        int xp;
+        xp = fpx + visible.x;
+        for(int _x=ffx; _x<x; _x++) {
+          xp += col_info[_x].size;
+        }
+        if (xp+size<visible.x+visible.w)
+          size = visible.x+visible.w-xp;
+      }
+      te.col = x;
+      te.row = y;
+      te.w   = size;
+      te.h   = row_info[y].size;
+      te.type= TTableEvent::MOUSE;
+      adapter->tableEvent(te);
+    }
+    return;
+  }
+
   // handle resizing of columns
   //----------------------------
   bool between_h = false;
@@ -1335,18 +1426,22 @@ TTable::mouseEvent(TMouseEvent &me)
     return;
 
   // TWindow::setCursor(TCursor::DEFAULT);
-  TWindow::mouseEvent(me); // call the other mouse functions...
+  if (me.type == TMouseEvent::LUP) {
+    mouseLUp(me);
+  } else {
+    TWindow::mouseEvent(me);
+  }
 }
 
 //#warning "mouseLDown must not change the selection, only mouseLUp should"
 //#warning "do this!"
 void
-TTable::mouseLDown(TMouseEvent &m)
+TTable::mouseLDown(const TMouseEvent &m)
 {
   setFocus();
 
   size_t x, y;   // field
-  int fx, fy; // mouse within field
+  TCoord fx, fy; // mouse within field
   if (!mouse2field(m.x, m.y, &x, &y, &fx, &fy)) {
     return;
   }
@@ -1443,7 +1538,7 @@ TTable::mouseLDown(TMouseEvent &m)
 }
 
 void
-TTable::mouseMove(TMouseEvent &m)
+TTable::mouseMove(const TMouseEvent &m)
 {
   if (!(m.modifier()&MK_LBUTTON))
     return;
@@ -1512,7 +1607,7 @@ TTable::mouseMove(TMouseEvent &m)
 }
 
 void
-TTable::mouseLUp(TMouseEvent &m)
+TTable::mouseLUp(const TMouseEvent &m)
 {
 DBM2(cerr << "enter mouseLUp" << endl;)
   size_t x, y;
@@ -1555,7 +1650,7 @@ TTable::center(int how)
   if (cols==0 || rows==0)
     return;
 
-  int panex, paney;
+  TCoord panex, paney;
   panex = paney = -1;
   getPanePos(&panex, &paney, false);
 
@@ -1678,7 +1773,7 @@ invalidateWindow();
 }
 
 void
-TTable::keyEvent(TKeyEvent &ke)
+TTable::keyEvent(const TKeyEvent &ke)
 {
   if (adapter) {
     TTableEvent te;
@@ -2069,6 +2164,7 @@ TTable::handleNewModel()
   te.type = TTableEvent::GET_COL_SIZE;
   for(te.col=0; te.col<cols; ++te.col) {
     DBM(cout << "pane.w: " << pane.w << endl;)
+    te.w = 64;
     adapter->tableEvent(te);
     info->size = te.w;
     pane.w += te.w + border;
@@ -2077,6 +2173,11 @@ TTable::handleNewModel()
   DBM(cout << "pane.w: " << pane.w << endl;)
 
   // calculate pane.h
+  
+  // font height seems to be a nice default;
+  TFont &font(getDefaultFont());
+  TCoord h = font.getHeight()+4;
+  
   pane.h=0;
   info = row_info;
   te.type = TTableEvent::GET_ROW_SIZE;
@@ -2085,6 +2186,7 @@ TTable::handleNewModel()
     DBM(cout << "pane.h: " << pane.h << endl;)
     info->open = true;
     info->size = 0;
+    te.h = h;
     adapter->tableEvent(te);
     info->size = te.h;
     pane.h += te.h + border;

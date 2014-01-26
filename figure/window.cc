@@ -34,6 +34,7 @@ TFWindow::TFWindow()
   window = NULL;
   taborder = 0;
   removeable = false;
+  filled = true; // for super::distance()
 }
 
 void 
@@ -41,15 +42,14 @@ TFWindow::paint(TPenBase&, EPaintType)
 {
 }
 
-double
-TFWindow::distance(int x, int y)
+TCoord
+TFWindow::distance(TCoord x, TCoord y)
 {
-  filled = true;
   return super::distance(x,y);
 }
 
 void
-TFWindow::translate(int dx, int dy)
+TFWindow::translate(TCoord dx, TCoord dy)
 {
   if (window==NULL) {
     cerr << "toad warning: TFWindow.window==NULL : " << title << endl;

@@ -242,7 +242,7 @@ TColorDialog::createBitmaps()
 }
 
 void
-TColorDialog::mouseLDown(TMouseEvent &m)
+TColorDialog::mouseLDown(const TMouseEvent &m)
 {
   if (m.x>=8 && m.x<=8+256 &&
       m.y>=8 && m.y<=8+256) 
@@ -268,14 +268,14 @@ TColorDialog::mouseLDown(TMouseEvent &m)
 }
 
 void
-TColorDialog::mouseMove(TMouseEvent &me)
+TColorDialog::mouseMove(const TMouseEvent &me)
 {
   mouseLDown(me);
 }
 
 
 void
-TColorDialog::mouseMDown(TMouseEvent &m)
+TColorDialog::mouseMDown(const TMouseEvent &m)
 {
   if (ORIGCOLOR_X+64 <= m.x && m.x <= ORIGCOLOR_X+64 + ORIGCOLOR_W &&
       ORIGCOLOR_Y    <= m.y && m.y <= ORIGCOLOR_Y + ORIGCOLOR_H )

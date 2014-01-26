@@ -1257,48 +1257,13 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   page_edit->setToolTip("edit page name");
   page_edit->setSize(h,h);
   CONNECT(page_edit->sigClicked, this, pageEdit);
-{
-  const char *me = "figureeditor";
-  const char *mb = "menubar";
-  const char *zoom = "zoom";
-  const char *page = "page";
-  const char *page_add = "page add";
-  const char *page_del = "page delete";
-  const char *page_down = "page down";
-  const char *page_up = "page up";
-  const char *page_edit = "page edit";
-  
-  TSpringLayout *sl = new TSpringLayout();
-  sl->attach(mb, TSpringLayout::TOP|TSpringLayout::LEFT|TSpringLayout::RIGHT);
-  sl->attach(me, TSpringLayout::TOP, mb);
-  sl->attach(me, TSpringLayout::LEFT|TSpringLayout::RIGHT);
-  sl->attach(me, TSpringLayout::BOTTOM, zoom);
-  sl->attach(zoom, TSpringLayout::LEFT|TSpringLayout::BOTTOM);
-  sl->attach(page, TSpringLayout::LEFT, zoom);
-  sl->attach(page, TSpringLayout::BOTTOM); 
-  sl->attach(page_add, TSpringLayout::LEFT, page);
-  sl->attach(page_add, TSpringLayout::BOTTOM); 
-  sl->attach(page_del, TSpringLayout::LEFT, page_add);
-  sl->attach(page_del, TSpringLayout::BOTTOM); 
-  sl->attach(page_up, TSpringLayout::LEFT, page_del);
-  sl->attach(page_up, TSpringLayout::BOTTOM); 
-  sl->attach(page_down, TSpringLayout::LEFT, page_up);
-  sl->attach(page_down, TSpringLayout::BOTTOM); 
-  sl->attach(page_edit, TSpringLayout::LEFT, page_down);
-  sl->attach(page_edit, TSpringLayout::BOTTOM); 
-  sl->distance(zoom, 2);
-  sl->distance(page, 2);
-  sl->distance(page_add, 2);
-  sl->distance(page_del, 2);
-  sl->distance(page_up, 2);
-  sl->distance(page_down, 2);
-  sl->distance(page_edit, 2);
-  setLayout(sl);
-}
+
   if (!e)
     e = newEditModel();
     
   setEditModel(e);
+  
+  loadLayout(RESOURCE("TMainWindow.atv"));
 }
 
 TMainWindow::~TMainWindow()
@@ -1653,7 +1618,7 @@ main(int argc, char **argv, char **envv)
         // setAllMouseMoveEvents(true);
       }
       void paint(){}
-      void mouseEvent(TMouseEvent &me) {
+      void mouseEvent(const TMouseEvent &me) {
         switch(me.type) {
           case TMouseEvent::MOVE:
             cout << "MOVE" << endl;

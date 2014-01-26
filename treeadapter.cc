@@ -118,7 +118,7 @@ TTreeAdapter::handleTree(TTableEvent &te)
 
 
 void
-TTreeAdapter::mouseEvent(TMouseEvent &me, int col, int row, int w, int h)
+TTreeAdapter::mouseEvent(const TMouseEvent &me, int col, int row, int w, int h)
 {
 //cout << "  TTreeAdapter::mouseEvent" << endl;
   TTreeModel *model = getModel();

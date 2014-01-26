@@ -187,10 +187,10 @@ class TPenBase
     virtual void fillPolygon(const TPoint *points, size_t n) = 0;
     virtual void fillPolygon(const TPolygon &p) = 0;
     
-    virtual void drawPolyBezier(const TPoint *points, size_t n) = 0;
-    virtual void drawPolyBezier(const TPolygon &p) = 0;
-    virtual void fillPolyBezier(const TPoint *points, size_t n) = 0;
-    virtual void fillPolyBezier(const TPolygon &p) = 0;
+    virtual void drawBezier(const TPoint *points, size_t n) = 0;
+    virtual void drawBezier(const TPolygon &p) = 0;
+    virtual void fillBezier(const TPoint *points, size_t n) = 0;
+    virtual void fillBezier(const TPolygon &p) = 0;
 
     // 3D rectangle
     //-----------------------

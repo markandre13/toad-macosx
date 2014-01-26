@@ -28,14 +28,14 @@ size_t TFText::cx = 0;
 void 
 TFText::calcSize()
 {
-  int w=0, h=0;
+  TCoord w=0, h=0;
   size_t l,r;
   l = 0;
   PFont font = new TFont(fontname);
   while(true) {
     h+=font->getHeight();
     r = text.find('\n', l);
-    int wl = font->getTextWidth(text.substr(l,r==string::npos ? r : r-l));
+    TCoord wl = font->getTextWidth(text.substr(l,r==string::npos ? r : r-l));
     if (wl>w)
       w=wl;
     if (r==string::npos)
@@ -70,7 +70,7 @@ TFText::paint(TPenBase &pen, EPaintType type)
   }
 #endif  
   size_t l, r;
-  int yp = p1.y;
+  TCoord yp = p1.y;
   l = 0;
   while(true) {
     r = text.find('\n', l);
@@ -98,10 +98,10 @@ TFText::paint(TPenBase &pen, EPaintType type)
   }
 }
 
-double 
-TFText::distance(int mx, int my)
+TCoord
+TFText::distance(TCoord mx, TCoord my)
 {
-TRectangle r(p1, p2);
+  TRectangle r(p1, p2);
 // cerr << "mouse at (" << mx << ", " << my << "), text " << r << endl;
 
   if (TRectangle(p1, p2).isInside(mx, my))

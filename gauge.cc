@@ -88,7 +88,7 @@ TGauge::modelChanged()
 }
 
 void
-TGauge::mouseEvent(TMouseEvent &me)
+TGauge::mouseEvent(const TMouseEvent &me)
 {
   if (!model)
     return;

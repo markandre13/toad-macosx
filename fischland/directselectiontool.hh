@@ -18,30 +18,46 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _FISCHLAND_PENTOOL_HH
-#define _FISCHLAND_PENTOOL_HH 1
+#ifndef _FISCHLAND_DIRECTSELECTIONTOOL_HH
+#define _FISCHLAND_DIRECTSELECTIONTOOL_HH 1
 
-#include "fpath.hh"
 #include <toad/figureeditor.hh>
+#include <toad/boolmodel.hh>
+#include <toad/undo.hh>
+#include <toad/undomanager.hh>
+#include <map>
 
+namespace fischland {
+
+using namespace std;
 using namespace toad;
 
-class TPenTool:
+class TDirectSelectionTool:
   public TFigureTool
 {
-    TFPath *path;
-    bool down;
+    bool grab;                // grabbed selection for moving
+    bool hndl;                // grabbed handle
+    unsigned handle;          // the handle number
+    TFigure *figure;          // selected figure
+    TRectangle oldshape;
+    
+    bool tht;                 // do translate handle transformation
+
+    TPoint memo_pt;
+
   public:
-    TPenTool() {
-      down = false;
-      path = 0;
+    TDirectSelectionTool() {
+      grab = false;
+      hndl = false;
+      figure = 0;
     }
-    static TPenTool* getTool();
-    void cursor(TFigureEditor *fe, int x, int y);
+    static TDirectSelectionTool* getTool();
+  
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void paintSelection(TFigureEditor *fe, TPenBase &pen);
-    void stop(TFigureEditor*);
+    void paintSelection(TFigureEditor*, TPenBase &pen);
+    void stop(TFigureEditor *fe);
 };
+
+} // namespace toad
 
 #endif

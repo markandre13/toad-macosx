@@ -23,7 +23,7 @@
 using namespace toad;
 
 void
-TTextField::mouseEvent(TMouseEvent &me)
+TTextField::mouseEvent(const TMouseEvent &me)
 {
   switch(me.type) {
     case TMouseEvent::ROLL_UP:

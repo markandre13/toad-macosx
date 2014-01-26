@@ -50,6 +50,14 @@ TDnDType::TDnDType(const string &m, unsigned actions_in)
 #endif
 }
 
+TDropSite::TDropSite(TWindow *p)
+{ 
+  parent = p;
+  rect = *p;
+  use_parent = false;
+  init();
+}
+
 TDropSite::TDropSite(TWindow *p, TRectangle const &r)
 { 
   parent = p;

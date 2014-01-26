@@ -149,6 +149,18 @@ TPen::getMatrix() const
 }
 
 void
+TPen::setClipRect(const TRectangle &r)
+{
+  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  CGContextClipToRect(ctx, CGRectMake(r.x, r.y, r.w, r.h));
+/*
+  NSBezierPath* clipPath = [NSBezierPath bezierPath];
+  [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
+  [clipPath addClip];
+*/
+}
+
+void
 TPen::getClipBox(TRectangle *r) const
 {
   // FIXME: must be the rectangle given by NSView drawRect:
@@ -160,7 +172,6 @@ TPen::getClipBox(TRectangle *r) const
   }
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
-
 
 // FIXME: clipping not implemented, be carefull with that or you'll break TTable when using headers
 void
@@ -518,19 +529,19 @@ TPen::fillPolygon(const TPolygon &polygon)
 }
 
 void
-TPen::drawPolyBezier(const TPolygon &polygon)
+TPen::drawBezier(const TPolygon &polygon)
 {
-  drawPolyBezier(polygon.data(), polygon.size());
+  drawBezier(polygon.data(), polygon.size());
 }
 
 void
-TPen::fillPolyBezier(const TPolygon &polygon)
+TPen::fillBezier(const TPolygon &polygon)
 {
-  fillPolyBezier(polygon.data(), polygon.size());
+  fillBezier(polygon.data(), polygon.size());
 }
 
 void
-TPen::drawPolyBezier(const TPoint *p, size_t n)
+TPen::drawBezier(const TPoint *p, size_t n)
 {
   if (n<4)
     return;
@@ -548,7 +559,7 @@ TPen::drawPolyBezier(const TPoint *p, size_t n)
 }
 
 void
-TPen::fillPolyBezier(const TPoint *p, size_t n)
+TPen::fillBezier(const TPoint *p, size_t n)
 {
   if (n<4)
     return;

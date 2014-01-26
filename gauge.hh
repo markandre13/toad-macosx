@@ -48,7 +48,7 @@ class TGauge:
     
     void modelChanged();
     
-    void mouseEvent(TMouseEvent &me);
+    void mouseEvent(const TMouseEvent &me);
 };
 
 } // namespace toad

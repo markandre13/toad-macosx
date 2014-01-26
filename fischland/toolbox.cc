@@ -20,6 +20,7 @@
 
 #include "toolbox.hh"
 #include "selectiontool.hh"
+#include "directselectiontool.hh"
 #include "pentool.hh"
 #include "penciltool.hh"
 #include "colorpalette.hh"
@@ -309,16 +310,12 @@ openPalette(TWindow *parent)
   cp->createWindow();
 }
 
-
-
-
-
 class TColorPickTool:
   public TFigureTool
 {
   public:
     static TColorPickTool* getTool();
-    void mouseEvent(TFigureEditor *fe, TMouseEvent &me);
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
 };
 
 TColorPickTool*
@@ -331,7 +328,7 @@ TColorPickTool::getTool()
 }
 
 void 
-TColorPickTool::mouseEvent(TFigureEditor *fe, TMouseEvent &me)
+TColorPickTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   if (me.type!=TMouseEvent::LDOWN)
     return;
@@ -394,13 +391,14 @@ serialize.registerObject(new TFPath());
         wnd->setToolTip("Selection");
         rb->loadBitmap(RESOURCE("tool_select.png"));
         CONNECT(rb->sigClicked, me, setTool, TSelectionTool::getTool());
+        me->setTool(TSelectionTool::getTool());
+        rb->setDown();
         break;
       case 1:
         wnd = rb = new TFatRadioButton(this, "select", state);
         wnd->setToolTip("Direct Selection");
-        rb->loadBitmap(RESOURCE("tool_select.png"));
-        CONNECT(rb->sigClicked, me, setOperation, TFigureEditor::OP_SELECT);
-        rb->setDown();
+        rb->loadBitmap(RESOURCE("tool_directselect.png"));
+        CONNECT(rb->sigClicked, me, setTool, TDirectSelectionTool::getTool());
         break;
       case 2:
         wnd = rb = new TFatRadioButton(this, "pen", state);
@@ -418,10 +416,10 @@ serialize.registerObject(new TFPath());
       case 2:
 */
       case 5:
-         wnd = rb = new TFatRadioButton(this, "line", state);
-        wnd->setToolTip("Convert Anchor Point");
-        rb->loadBitmap(RESOURCE("tool_penc.png"));
-//        CONNECT(rb->sigClicked, me, setTool, &fline);
+        wnd = rb = new TFatRadioButton(this, "floodfill", state);
+        wnd->setToolTip("Flood Fill");
+        rb->loadBitmap(RESOURCE("tool_floodfill.png"));
+//        CONNECT(rb->sigClicked, me, setTool, TFillTool::getTool());
         break;
       case 6:
         wnd = rb = new TFatRadioButton(this, "text", state);

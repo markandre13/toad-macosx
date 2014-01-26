@@ -111,9 +111,9 @@ if (!parent->child) {
   }
 }
 
-void TInteractor::windowEvent(TWindowEvent&) {}
-void TInteractor::mouseEvent(TMouseEvent&) {}
-void TInteractor::keyEvent(TKeyEvent&) {}
+void TInteractor::windowEvent(const TWindowEvent&) {}
+void TInteractor::mouseEvent(const TMouseEvent&) {}
+void TInteractor::keyEvent(const TKeyEvent&) {}
 
 /**
  * This method was added for TMDIWindow and allows the window to define a
