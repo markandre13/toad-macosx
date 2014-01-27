@@ -133,8 +133,7 @@ class TMouseEvent
     enum EType {
       MOVE, ENTER, LEAVE,
       LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
-      ROLL_UP, ROLL_UP_END,
-      ROLL_DOWN, ROLL_DOWN_END
+      ROLL_UP, ROLL_DOWN
     };
     EType type;  
   

@@ -1650,14 +1650,8 @@ main(int argc, char **argv, char **envv)
           case TMouseEvent::ROLL_UP:
             cout << "ROLL UP" << endl;
             break;
-          case TMouseEvent::ROLL_UP_END:
-            cout << "ROLL UP END" << endl;
-            break;
           case TMouseEvent::ROLL_DOWN:
             cout << "ROLL DOWN" << endl;
-            break;
-          case TMouseEvent::ROLL_DOWN_END:
-            cout << "ROLL DOWN END" << endl;
             break;
         }
         cout <<" "<<x<<", "<<y;

@@ -1315,9 +1315,7 @@ void
 TTable::mouseEvent(const TMouseEvent &me)
 {
   if (me.type == TMouseEvent::ROLL_UP ||
-      me.type == TMouseEvent::ROLL_UP_END ||
-      me.type == TMouseEvent::ROLL_DOWN ||
-      me.type == TMouseEvent::ROLL_DOWN_END)
+      me.type == TMouseEvent::ROLL_DOWN)
   {
 //    TScrollPane::mouseEvent(me);
     size_t x, y;   // field

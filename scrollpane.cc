@@ -55,9 +55,7 @@ TScrollPane::mouseEvent(const TMouseEvent &me)
 {
   if (vscroll && (
         me.type == TMouseEvent::ROLL_UP ||
-        me.type == TMouseEvent::ROLL_UP_END ||
-        me.type == TMouseEvent::ROLL_DOWN ||
-        me.type == TMouseEvent::ROLL_DOWN_END) )
+        me.type == TMouseEvent::ROLL_DOWN ))
   {
     vscroll->mouseEvent(me);
     return;

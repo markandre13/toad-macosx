@@ -636,7 +636,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   }
   TMouseEvent me(theEvent, nsview, this);
   me.type = type;
-  me.dblClick = [theEvent clickCount]==2;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
   _inside = true;
   _doMouse(this, me);
   executeMessages();
@@ -706,6 +706,16 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
+}
+
+- (void) scrollWheel:(NSEvent*)theEvent
+{
+//  cout << "scrollwheel" << [theEvent deltaX] << ", " << [theEvent deltaY] << ", " << [theEvent deltaZ] << endl;
+  if ([theEvent deltaY] > 0.0) {
+    twindow->_up(TMouseEvent::ROLL_UP, theEvent);
+  } else {
+    twindow->_down(TMouseEvent::ROLL_DOWN, theEvent);
+  }
 }
 @end
 
