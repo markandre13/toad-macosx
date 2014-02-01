@@ -117,10 +117,9 @@ class TLayout;
 
 class TMouseEvent
 {
-  protected:
-    NSEvent *nsevent;
   public:
-    TMouseEvent(NSEvent *ne, NSView *view, TWindow *window);
+    NSEvent *nsevent;
+    TMouseEvent(NSEvent *ne, TWindow *window);
     TMouseEvent(const TMouseEvent &me, TCoord x, TCoord y) {
       nsevent = me.nsevent;
       this->x = x;

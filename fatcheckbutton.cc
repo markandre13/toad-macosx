@@ -72,7 +72,7 @@ void
 TFatCheckButton::keyDown(TKey key, char* str, unsigned modifier)
 {
   if (!modifier && (key==TK_RETURN || *str==' ')) {
-    TMouseEvent m(0,0,0);
+    TMouseEvent m(0,0);
     mouseLDown(m);
   }
 }

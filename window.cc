@@ -143,14 +143,21 @@ TWindow::grabMouse(bool allmove, TWindow *confine, TCursor::EType type)
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
+static bool grabPopupMouse = false;
+
 void
 TWindow::grabPopupMouse(bool allmove, TCursor::EType type)
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  ::grabPopupMouse = true;
 }
+
 void
 TWindow::ungrabMouse()
 {
+  if (::grabPopupMouse) {
+    ::grabPopupMouse = false;
+    return;
+  }
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
@@ -171,12 +178,12 @@ TWindow::getRootPos(int *x,int *y)
       np.x = *x;
       np.y = p->h-*y;
       np = [p->nswindow convertBaseToScreen: np];
-cout << "nswindow " << p->getTitle() << " on screen " << np.x << ", " << np.y << endl;
+//cout << "nswindow " << p->getTitle() << " on screen " << np.x << ", " << np.y << endl;
       *x = np.x;
       *y = np.y;
       return;
     }
-cout << "toad window " << p->getTitle() << " on screen " << p->x << ", " << p->y << endl;
+//cout << "toad window " << p->getTitle() << " on screen " << p->x << ", " << p->y << endl;
   }
 }
 
@@ -186,6 +193,8 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
   int px, py;
   switch(how) {
     case PLACE_SCREEN_CENTER:
+      if (nswindow)
+        [nswindow center];
       break;
     case PLACE_SCREEN_RANDOM:
       break;
@@ -579,18 +588,90 @@ TWindow::destroyParentless()
   executeMessages();
 }
 
+static TWindow *lastMouse = 0;
+
 static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
 {
-  if (twindow->layout && twindow->layout->mouseEvent(me))
-    return;
-  twindow->mouseEvent(me);
+  TWindow *mouseOver = 0;
+  if (grabPopupMouse) {
+    NSPoint p;
+    p = [NSEvent mouseLocation];
+    NSInteger wn = [NSWindow windowNumberAtPoint: p belowWindowWithWindowNumber: 0];
+    NSWindow *wnd = [NSApp windowWithWindowNumber: wn];
+    
+    if (wnd && [wnd isKindOfClass:[toadWindow class]]) {
+      toadWindow *t = (toadWindow*)wnd;
+      
+      NSRect r;
+      r.origin = p;
+      r = [wnd convertRectFromScreen: r]; // convert screen to window coordinates
+      
+      NSView *view = [t->twindow->nsview hitTest: r.origin];
+      if (view && [view isKindOfClass:[toadView class]]) {
+        toadView *v = (toadView*)view;
+        mouseOver = v->twindow;
+      }
+    }
+    if (mouseOver) {
+      cout << "  title=" << mouseOver->getTitle() << endl;
+      twindow = mouseOver;
+    } else {
+      cout << "  not a toad window" << endl;
+    }
+    if (twindow != lastMouse) {
+      if (lastMouse) {
+        TMouseEvent me2(me.nsevent, lastMouse);
+        me2.type = TMouseEvent::LEAVE;
+        if (!(lastMouse->layout && lastMouse->layout->mouseEvent(me2)))
+          lastMouse->mouseEvent(me2);
+      }
+      if (twindow) {
+        TMouseEvent me2(me.nsevent, twindow);
+        me2.type = TMouseEvent::ENTER;
+        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
+          twindow->mouseEvent(me2);
+      }
+      lastMouse = twindow;
+    }
+  } else {
+    CGPoint point = [twindow->nsview convertPoint:[me.nsevent locationInWindow] fromView:nil];
+    CGRect rect = [twindow->nsview bounds];
+    if ([twindow->nsview mouse:point inRect:[twindow->nsview bounds]]) {
+      if (!twindow->_inside) {
+        twindow->_inside = true;
+        TMouseEvent me2(me.nsevent, twindow);
+        me2.type = TMouseEvent::ENTER;
+        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
+          twindow->mouseEvent(me2);
+      }
+    } else {
+      if (twindow->_inside) {
+        twindow->_inside = false;
+        TMouseEvent me2(me.nsevent, twindow);
+        me2.type = TMouseEvent::LEAVE;
+        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
+          twindow->mouseEvent(me2);
+      }
+    }    
+  }
+  
+
+  if (twindow && !(twindow->layout && twindow->layout->mouseEvent(me)))
+    twindow->mouseEvent(me);
+
+  if (me.type == TMouseEvent::LUP ||
+      me.type == TMouseEvent::MUP ||
+      me.type == TMouseEvent::RUP )
+  {
+    grabPopupMouse = false;
+  }
 }
 
 - (void) mouseEntered:(NSEvent*)theEvent
 {
 //printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
   twindow->_inside = true;
-  TMouseEvent me(theEvent, self, twindow);
+  TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::ENTER;
   _doMouse(twindow, me);
   executeMessages();
@@ -600,7 +681,7 @@ static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
 {
 //printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
   twindow->_inside = false;
-  TMouseEvent me(theEvent, self, twindow);
+  TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::LEAVE;
   _doMouse(twindow, me);
   executeMessages();
@@ -608,7 +689,6 @@ static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
 
 - (void) mouseDown:(NSEvent*)theEvent
 {
-//cout << "mouse down in " << twindow->getTitle() << endl;
   TMouseEvent::_modifier |= MK_LBUTTON;
   twindow->_down(TMouseEvent::LDOWN, theEvent);
 }
@@ -628,13 +708,7 @@ static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
 void
 TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 {
-  if (!_inside) {
-    _inside = true;
-    TMouseEvent me(theEvent, nsview, this);
-    me.type = TMouseEvent::ENTER;
-    _doMouse(this, me);
-  }
-  TMouseEvent me(theEvent, nsview, this);
+  TMouseEvent me(theEvent, this);
   me.type = type;
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
   _inside = true;
@@ -660,13 +734,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 void
 TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 {
-  if (!_inside) {
-    _inside = false;
-    TMouseEvent me(theEvent, nsview, this);
-    me.type = TMouseEvent::LEAVE;
-    _doMouse(this, me);
-  }
-  TMouseEvent me(theEvent, nsview, this);
+  TMouseEvent me(theEvent, this);
   me.type = type;
   _doMouse(this, me);
   executeMessages();
@@ -675,15 +743,7 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 - (void) mouseDragged:(NSEvent*)theEvent
 {
 //printf("%s: %s _inside=%i\n",__FUNCTION__, twindow->getTitle().c_str(),twindow->_inside);
-  TMouseEvent me(theEvent, self, twindow);
-  TRectangle r(0,0,twindow->w,twindow->h);
-  if (twindow->_inside != r.isInside(me.x, me.y)) {
-//printf("  flip inside/outide\n");
-    twindow->_inside = !twindow->_inside;
-    TMouseEvent me(theEvent, self, twindow);
-    me.type = twindow->_inside ? TMouseEvent::ENTER : TMouseEvent::LEAVE;
-    _doMouse(twindow, me);
-  }
+  TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
@@ -693,16 +753,7 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 {
   if (!twindow->_allMouseMoveEvents)
     return;
-//printf("%s: %s _inside=%i\n",__FUNCTION__, twindow->getTitle().c_str(),twindow->_inside);
-  TMouseEvent me(theEvent, self, twindow);
-  TRectangle r(0,0,twindow->w,twindow->h);
-  if (twindow->_inside != r.isInside(me.x, me.y)) {
-//printf("  flip inside/outide\n");
-    twindow->_inside = !twindow->_inside;
-    TMouseEvent me(theEvent, self, twindow);
-    me.type = twindow->_inside ? TMouseEvent::ENTER : TMouseEvent::LEAVE;
-    _doMouse(twindow, me);
-  }
+  TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
@@ -719,14 +770,16 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 }
 @end
 
-TMouseEvent::TMouseEvent(NSEvent *anEvent, NSView *aView, TWindow *aWindow) {
+TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   nsevent = anEvent;
-  NSPoint pt = [aView convertPoint:[anEvent locationInWindow] fromView:nil];
-  x = pt.x;
-  y = pt.y;
+  if (aWindow) {
+    NSPoint pt = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
+    x = pt.x;
+    y = pt.y;
 // cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
-  x -= aWindow->getOriginX();
-  y -= aWindow->getOriginY();
+    x -= aWindow->getOriginX();
+    y -= aWindow->getOriginY();
+  }
   window = aWindow;
   dblClick = false;
 }
@@ -774,6 +827,8 @@ TWindow::TWindow(TWindow *parent, const string &title):
 TWindow::~TWindow()
 {
 //cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
+  if (lastMouse==this)
+    lastMouse = 0;
   
   if (layout) {
     // layout->toFile();
