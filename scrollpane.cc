@@ -271,7 +271,6 @@ TScrollPane::paintCorner(TPenBase &pen)
   pen.setColor(TColor::DIALOG);
   pen.identity();
   TRectangle r(0,0,getWidth(),getHeight());
-  pen|=r;
   if (visible.y>0) {
     if (visible.x>0) 
       pen.fillRectanglePC(0, 0, visible.x, visible.y);

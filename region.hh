@@ -35,10 +35,11 @@ namespace toad {
 class TRegion
 {
   public:
+/*
     enum EInside {
       IN, OUT, PART
     };
-
+*/
     TRegion();
     TRegion(const TRegion&);
     TRegion(int x, int y, int width, int height);
@@ -61,7 +62,7 @@ class TRegion
 
     void translate(int dx,int dy);
     void clear();
-    TRectangle getExtent();
+    TRectangle getExtent() const;
     void getBoundary(TRectangle*) const;  // getExtents
     void getClipBox(TRectangle *r) const { getBoundary(r); }
     size_t getNumRects() const;

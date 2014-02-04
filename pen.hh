@@ -65,10 +65,6 @@ class TPen:
 
     void setClipRect(const TRectangle&);
     void getClipBox(TRectangle*) const;
-    void operator&=(const TRectangle&);
-    void operator|=(const TRectangle&);
-    void operator&=(const TRegion&);
-    void operator|=(const TRegion&);
 
     void setMode(EMode);
     void setLineWidth(TCoord);

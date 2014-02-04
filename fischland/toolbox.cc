@@ -191,8 +191,8 @@ class TFontButton:
       pen.setFont(fa->getFont());
       const char *text = "F";
       int n =(bDown && bInside)?1:0;
-      int x = (getWidth()*96-pen.getTextWidth(text)) >> 1;
-      int y = (getHeight()*96-pen.getHeight()) >> 1;
+      int x = (getWidth()*96-pen.getTextWidth(text)) / 2;
+      int y = (getHeight()*96-pen.getHeight()) / 2;
       pen.setColor(TColor::BTNTEXT);
       pen.drawString(x+n, y+n, text);
       if (isFocus()) {

@@ -924,10 +924,6 @@ void
 TTable::paint()
 {
 DBM2(cerr << "enter paint" << endl;)
-  // 'dummy' is only used until the clipping methods in
-  // TPen are improved.
-  TRectangle dummy(0,0,getWidth(), getHeight()); // FIXME
-
   TPen pen(this);
 
 DBSCROLL({
@@ -945,12 +941,11 @@ DBSCROLL({
 })
 
   int xp, yp;
+  xp = yp = 0;
 
   if (col_header_renderer) {
-    TRectangle clip(visible.x, 0, visible.w, visible.y);
-    pen|=dummy;
-    pen&=clip;
-//    pen&=*getUpdateRegion();
+    pen.push();
+    pen.setClipRect(TRectangle(visible.x, 0, visible.w, visible.y));
     xp = fpx + visible.x;
     int h = col_header_renderer->getHeight();
     for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
@@ -969,13 +964,12 @@ DBSCROLL({
         xp+=border;
       }
     }
+    pen.pop();
   }
 
   if (row_header_renderer) {
-    TRectangle clip(0, visible.y, visible.x, visible.h);
-    pen|=dummy;
-    pen&=clip;
-//    pen&=*getUpdateRegion();
+    pen.push();
+    pen.setClipRect(TRectangle(0, visible.y, visible.x, visible.h));
     yp = fpy + visible.y;
     int w = row_header_renderer->getWidth();
     for(int y=ffy; y<rows && yp<visible.y+visible.h; y++) {
@@ -991,6 +985,7 @@ DBSCROLL({
         yp+=border;
       }
     }
+    pen.pop();
   }
 
   int x1, y1, x2, y2;    
@@ -1003,7 +998,6 @@ DBSCROLL({
 //cout << "fake selection from "<<x1<<"-"<<x2<<", "<<y1<<"-"<<y2<<endl;
   }
 
-  pen|=dummy;
   pen.setColor(TColor::DIALOG);
   pen.identity();
 
@@ -1028,8 +1022,8 @@ DBSCROLL({
     }
   }
 
-  pen&=visible;
-  pen&=*getUpdateRegion();
+//  pen&=visible;
+//  pen&=*getUpdateRegion();
 
   // draw border between the fields
   if (border) {
@@ -1096,8 +1090,12 @@ DBSCROLL({
         check.w = visible.x+visible.w-xp;
       }
 
+/*
       if (!getUpdateRegion() ||
-          getUpdateRegion()->isInside(check)!=TRegion::OUT) {
+          getUpdateRegion()->isInside(check)) {
+*/
+      if (!getUpdateRegion() ||
+          getUpdateRegion()->isIntersecting(check)) {
         pen.identity();
         pen.translate(xp, yp);
         bool selected=false;
@@ -1146,17 +1144,29 @@ DBSCROLL(
         te.selected = selected;
         te.pen = &pen;
         te.type = TTableEvent::PAINT;
+cout << "paint event for field " << x << ", " << y << " at " << xp << ", " << yp << endl;
         adapter->tableEvent(te);
+      } else {
+cout << "no paint event for field " << x << ", " << y << " at " << xp << ", " << yp
+     << " because check " << check.x << ", " << check.y << ", " << check.w << ", " << check.h
+     << " is not in region:" << endl;
+TRegion *r = getUpdateRegion();
+for(size_t i=0; i<r->getNumRects(); ++i) {
+  TRectangle b;
+  r->getRect(i, &b);
+  cout << "  " << b.x << ", " << b.y << ", " << b.w << ", " << b.h << endl;
+
+  cout << (getUpdateRegion()->isIntersecting(check) ? "overlap" : "disjunct") << endl;
+}
       }
       xp += col_info[x].size + border;
     }
     yp += row_info[y].size + border;
   }
-  
+#if 1
   // clear unused window region (we must do it on our own because
   // background is disabled to reduce flicker)
   if (!stretchLastColumn && xp<=visible.x+visible.w) {
-    pen|=dummy;
     pen.identity();
     pen.setColor(128,64,64);
     pen.setColor(getBackground());
@@ -1164,13 +1174,13 @@ DBSCROLL(
     pen.fillRectanglePC(xp,0,visible.x+visible.w-xp,getHeight());
   }
   if (yp<=visible.y+visible.h) {
-    pen|=dummy;
     pen.identity();
     pen.setColor(64,64,128);
     pen.setColor(getBackground());
     // yp--;
     pen.fillRectanglePC(0,yp,getWidth(),visible.y+visible.h-yp);
   }
+#endif
   DBM2(cerr << "leave paint" << endl << endl;)
 }
 

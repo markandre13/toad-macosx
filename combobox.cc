@@ -265,8 +265,8 @@ TComboBox::TComboButton::paint()
   drawShadow(pen, bDown, true);
 
   int n=bDown?1:0;
-  int cx = (getWidth() >> 1)+n;
-  int cy = (getHeight() >> 1)+n - 1;
+  int cx = getWidth()/2+n;
+  int cy = getHeight()/2+n - 1;
 
   TPoint p[3];
   p[0].set(cx-4,cy-2);

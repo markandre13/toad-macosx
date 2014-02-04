@@ -346,7 +346,7 @@ TFischEditor::paint()
 r = *window; //  scr.getClipBox(&r);
 //cerr << "got screen clip box " << r << endl;
 //  TBitmap bmp(r.w, r.h);
-  TPenBase *pen = 0;
+  TPen *pen = 0;
 #ifdef HAVE_LIBCAIRO  
   if (useCairo) {
     pen = new TCairo(&bmp);
@@ -1433,7 +1433,7 @@ class TMyWindow:
       pen.drawRectangle(100.5,100.5,49,99);
       
 //      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
-      pen &= TRectangle(101,101,48,98);
+      pen.setClipRect(TRectangle(101,101,48,98));
       
       pen.setColor(0,0,1);
       pen.fillRectangle(50,50,100,200);

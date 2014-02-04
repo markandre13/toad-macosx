@@ -67,8 +67,6 @@ class TPenBase
     virtual const TMatrix2D* getMatrix() const = 0;
 
     virtual void getClipBox(TRectangle*) const = 0;
-    virtual void operator&=(const TRectangle&) = 0;
-    virtual void operator|=(const TRectangle&) = 0;
     
     virtual void setMode(EMode) = 0;
     virtual void setLineWidth(TCoord) = 0;

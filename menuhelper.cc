@@ -25,7 +25,9 @@
 #include <fstream>
 
 #include <stack>
+#include <algorithm>
 
+using namespace std;
 using namespace toad;
 
 #define DBM_FEEL(A)
@@ -467,7 +469,7 @@ TMenuHelper::TNode::~TNode()
   }
   
   if (winarray) {
-    for(unsigned i=0; i<nwinarray; ++i) {
+    for(size_t i=0; i<nwinarray; ++i) {
       delete winarray[i];
     }
     delete[] winarray;
@@ -656,7 +658,7 @@ void TMenuHelper::TNode::actionChanged()
 {
 DBM_FEEL(cout << "action changed in node " << title << endl;)
   if (winarray) {
-    for(unsigned i=0; i<nwinarray; i++)
+    for(size_t i=0; i<nwinarray; i++)
       winarray[i]->invalidateWindow();
   }
   sigChanged();
@@ -719,8 +721,8 @@ TMenuHelper::TNode::createWindowAt(TMenuHelper *parent)
   winarray = new TMenuButton*[nwinarray];
   w=0;
   h=0;
-  unsigned j=0;
-  for(unsigned i=0; i<nwinarray; i++) {
+  size_t j=0;
+  for(size_t i=0; i<nwinarray; i++) {
     switch(type) {
       case TAction::BUTTON:
         winarray[j] = new TMenuButton(parent, this);
@@ -768,7 +770,7 @@ TMenuHelper::TNode::deleteWindow()
     p = p->next;
   }
   if (winarray) {
-    for(unsigned i=0; i<nwinarray; i++) {
+    for(size_t i=0; i<nwinarray; i++) {
       delete winarray[i];
     }
     delete winarray;
@@ -776,13 +778,13 @@ TMenuHelper::TNode::deleteWindow()
   }
 }
 
-int
+TCoord
 TMenuHelper::TNode::getHeight()
 {
   return h;
 }
 
-int
+TCoord
 TMenuHelper::TNode::getWidth()
 {
   return w;
@@ -795,9 +797,9 @@ TMenuHelper::TNode::isRealized()
 }
 
 void
-TMenuHelper::TNode::setPosition(int x, int y)
+TMenuHelper::TNode::setPosition(TCoord x, TCoord y)
 {
-  for(unsigned i=0; i<nwinarray; i++) {
+  for(size_t i=0; i<nwinarray; i++) {
     winarray[i]->setPosition(x, y);
     if (vertical) {
       y+=winarray[i]->getHeight();
@@ -808,9 +810,9 @@ TMenuHelper::TNode::setPosition(int x, int y)
 }
 
 void
-TMenuHelper::TNode::setSize(int w, int h)
+TMenuHelper::TNode::setSize(TCoord w, TCoord h)
 {
-  for(unsigned i=0; i<nwinarray; i++) {
+  for(size_t i=0; i<nwinarray; i++) {
     winarray[i]->setSize(w, h);
   }
 }

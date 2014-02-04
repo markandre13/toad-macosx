@@ -219,14 +219,14 @@ TInteractor::getPrevSibling(const TInteractor *ptr)
 
 bool TInteractor::isRealized() const {return true;}
 bool TInteractor::setFocus() {return false;}
-void TInteractor::setPosition(int x,int y) {}
-void TInteractor::setSize(int x,int y) {}
-void TInteractor::setShape(int,int,int,int) {}
+void TInteractor::setPosition(TCoord x, TCoord y) {}
+void TInteractor::setSize(TCoord w, TCoord h) {}
+void TInteractor::setShape(TCoord x, TCoord y, TCoord w, TCoord h) {}
 //void TInteractor::SetShape(const TRectangle &r){SetShape(r.x,r.y,r.w,r.h);}
 //void TInteractor::SetShape(const TRectangle *r){SetShape(r->x,r->y,r->w,r->h);}
 void TInteractor::getShape(TRectangle*) const {}
 void TInteractor::setSuppressMessages(bool) {}
-int TInteractor::getXPos() const {return 0;}
-int TInteractor::getYPos() const {return 0;}
-int TInteractor::getWidth() const {return 0;}
-int TInteractor::getHeight() const {return 0;}
+TCoord TInteractor::getXPos() const {return 0;}
+TCoord TInteractor::getYPos() const {return 0;}
+TCoord TInteractor::getWidth() const {return 0;}
+TCoord TInteractor::getHeight() const {return 0;}

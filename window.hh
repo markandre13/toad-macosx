@@ -293,9 +293,9 @@ class TWindow:
     virtual void paint();
     void doResize();
     virtual void resize();
-    virtual void setPosition(int x, int y);
-    virtual void setSize(int w, int h);
-    virtual void setShape(int x, int y, int w, int h);
+    virtual void setPosition(TCoord x, TCoord y);
+    virtual void setSize(TCoord w, TCoord h);
+    virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h);
     void setShape(const TRectangle &r) {
       setShape(r.x, r.y, r.w, r.h);
     }
@@ -303,19 +303,19 @@ class TWindow:
       *r = *this;
     }
     void invalidateWindow(bool clearbg=true);
-    void invalidateWindow(int,int,int,int, bool clearbg=true);
+    void invalidateWindow(TCoord x, TCoord y, TCoord w, TCoord h, bool clearbg=true);
     void invalidateWindow(const TRectangle&, bool clearbg=true);
     void invalidateWindow(const TRegion&, bool clearbg=true);
     TRegion* getUpdateRegion() const;
     
-    void scrollWindow(int x,int y, bool bClrBG=true);
-    void scrollRectangle(const TRectangle &rect, int x,int y, bool bClrBG=true);
-    void scrollTo(int x, int y);
-    void setOrigin(int x,int y);
+    void scrollWindow(TCoord x, TCoord y, bool bClrBG=true);
+    void scrollRectangle(const TRectangle &rect, TCoord x, TCoord y, bool bClrBG=true);
+    void scrollTo(TCoord x, TCoord y);
+    void setOrigin(TCoord x, TCoord y);
     void getOrigin(int *x, int *y) const;
     void getOrigin(TCoord *x, TCoord *y) const;
-    int getOriginX() const { return 0; }
-    int getOriginY() const { return 0; }
+    TCoord getOriginX() const { return origin.x; }
+    TCoord getOriginY() const { return origin.y; }
     
     void setBackground(TColor::EColor c) {
       const TRGB *a = TColor::lookup(c);
@@ -330,10 +330,10 @@ class TWindow:
     const TRGB& getBackground() const { return _bg; }
     void setBorder(unsigned b){ _b=b?1:0; }
     unsigned getBorder() const {return _b;}   
-    int getXPos() const { return x; }
-    int getYPos() const { return y; }
-    int getWidth() const { return w; }
-    int getHeight() const { return h; }  
+    TCoord getXPos() const { return x; }
+    TCoord getYPos() const { return y; }
+    TCoord getWidth() const { return w; }
+    TCoord getHeight() const { return h; }  
 
     void setCursor(TCursor::EType);
     void setCursor(const TCursor *cursor);

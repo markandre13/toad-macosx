@@ -142,11 +142,11 @@ class TMenuHelper:
         const TBitmap* getIcon() const;
         
         // added because window is now protected
-        int getHeight(); // { return window->Height(); }
-        int getWidth(); // { return window->Width(); }
+        TCoord getHeight(); // { return window->Height(); }
+        TCoord getWidth(); // { return window->Width(); }
         bool isRealized(); // { return window!=NULL; }
-        void setPosition(int x, int y); // { window->SetPosition(x,y); }
-        void setSize(int w, int h); // { window->SetSize(w,h); }
+        void setPosition(TCoord x, TCoord y); // { window->SetPosition(x,y); }
+        void setSize(TCoord w, TCoord h); // { window->SetSize(w,h); }
         void noWindow();
         
         string title;     // resource name
@@ -163,9 +163,9 @@ class TMenuHelper:
         string shortcut;  // shortcut's
         TBitmap *icon;
 
-        unsigned nwinarray;
+        size_t nwinarray;
         TMenuButton **winarray;
-        int w, h;
+        TCoord w, h;
     };
     
     class TRootNode:

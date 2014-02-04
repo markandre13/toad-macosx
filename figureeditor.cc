@@ -686,30 +686,28 @@ TFigureEditor::paintSelection(TPenBase &pen)
  * Called from 'paint' to draw the corners and the row and column headers
  */
 void
-TFigureEditor::paintDecoration(TPenBase &scr)
+TFigureEditor::paintDecoration(TPen &scr)
 {
   if (window==this)
     paintCorner(scr);
   // else ... not implemented yet
   
   if (row_header_renderer) {
-    TRectangle clip(0, visible.y, visible.x, visible.h);
-    TRectangle dummy(0,0,getWidth(), getHeight());
+    scr.push();
     scr.identity();
-    scr|=dummy;
-    scr&=clip;
+    scr.setClipRect(TRectangle(0, visible.y, visible.x, visible.h));
     scr.translate(0, visible.y+window->getOriginY());
     row_header_renderer->render(scr, -window->getOriginY(), visible.h, mat);
+    scr.pop();
   }
 
   if (col_header_renderer) {
-    TRectangle clip(visible.x, 0, visible.w, visible.y);
-    TRectangle dummy(0,0,getWidth(), getHeight());
+    scr.push();
     scr.identity();
-    scr|=dummy;
-    scr&=clip;
+    scr.setClipRect(TRectangle(visible.x, 0, visible.w, visible.y));
     scr.translate(visible.x+window->getOriginX(), 0);
     col_header_renderer->render(scr, -window->getOriginX(), visible.w, mat);
+    scr.pop();
   }
 }
 

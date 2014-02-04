@@ -260,7 +260,7 @@ TRegion::isIntersecting (const TRegion &region) const
 {
   TRegion r(*this);
   r &= region;
-  return r.isEmpty();
+  return !r.isEmpty();
 }
 
 /**
@@ -272,7 +272,10 @@ TRegion::isIntersecting (const TRegion &region) const
 bool
 TRegion::isIntersecting(const TRectangle &rectangle) const
 {
-  return isIntersecting(TRegion(rectangle));
+  TRegion r;
+  r |= rectangle;
+  r &= *this;
+  return !r.isEmpty();
 }
 
 #if 0
@@ -317,19 +320,40 @@ TRegion::isIntersecting(const TRectangle &rectangle) const
  * 
  * @return  The extent of this region.
  */
-#if 0
 TRectangle
 TRegion::getExtent() const
 {
-  return TRect(extent_);
+  return TRectangle(extent_);
 }
-#endif
 
 void
 TRegion::getBoundary(TRectangle *r) const
 {
-  cerr << __FILE__ << ":" << __LINE__ << " not implemented\n";
-  exit(1);
+  *r = TRectangle(extent_);
+#if 0
+  r->x = rectangles_[0];
+  r->y = rectangles_[2];
+  r->w = rectangles_[3] - rectangles_[2];
+  r->h = rectangles_[1] - rectangles_[0];
+
+  for(size_t i=1; i<nRectangles_) {
+    size_t j = i<<2;
+    if (rectangles_[j] < r->x) {
+      r->w += r->x - rectangles_[j];
+      r->x = rectangles_[j];
+    }
+    if (r->x+r->w < rectangles_[j+3]) {
+      r->w = rectangles_[j+3] - r->x;
+    }
+    if (rectangles_[j+2] < r->y) {
+      r->h += r->y - rectangles_[j+2];
+      r->x = rectangles_[j+2];
+    }
+    if (r->y+r->h < rectangles_[j+1]) {
+      r->h = rectangles_[j+1] - r->y;
+    }
+  }
+#endif
 }
 
 /**

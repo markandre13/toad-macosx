@@ -65,17 +65,17 @@ class TInteractor
     
     virtual bool isRealized() const;
     virtual bool setFocus();
-    virtual void setPosition(int x,int y);
-    virtual void setSize(int x,int y);
-    virtual void setShape(int,int,int,int);
+    virtual void setPosition(TCoord x, TCoord y);
+    virtual void setSize(TCoord w, TCoord h);
+    virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h);
     void setShape(const TRectangle &r){setShape(r.x,r.y,r.w,r.h);}
     void setShape(const TRectangle *r){setShape(r->x,r->y,r->w,r->h);}
     virtual void getShape(TRectangle*) const;
     virtual void setSuppressMessages(bool);
-    virtual int getXPos() const;
-    virtual int getYPos() const;
-    virtual int getWidth() const;
-    virtual int getHeight() const;
+    virtual TCoord getXPos() const;
+    virtual TCoord getYPos() const;
+    virtual TCoord getWidth() const;
+    virtual TCoord getHeight() const;
 
 //  protected:
 

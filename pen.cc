@@ -151,8 +151,9 @@ TPen::getMatrix() const
 void
 TPen::setClipRect(const TRectangle &r)
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-  CGContextClipToRect(ctx, CGRectMake(r.x, r.y, r.w, r.h));
+//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+//cout << "setClipRect(" << r.x << ", " << r.y << ", " << r.w << ", " << r.h << ")" << endl;
+  CGContextClipToRect(ctx, CGRectMake(r.x-window->getOriginX(), r.y-window->getOriginY(), r.w, r.h));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
@@ -170,53 +171,7 @@ TPen::getClipBox(TRectangle *r) const
     r->w = window->w;
     r->h = window->h;
   }
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-}
-
-// FIXME: clipping not implemented, be carefull with that or you'll break TTable when using headers
-void
-TPen::operator&=(const TRectangle &r)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-//      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
-/*
-  NSBezierPath* clipPath = [NSBezierPath bezierPath];
-  [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
-  [clipPath addClip];
-*/
-}
-
-void
-TPen::operator|=(const TRectangle &r)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-/*
-  NSBezierPath* clipPath = [NSBezierPath bezierPath];
-  [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
-  [clipPath addClip];
-*/
-}
-
-void
-TPen::operator&=(const TRegion &r)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-/*
-  NSBezierPath* clipPath = [NSBezierPath bezierPath];
-  [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
-  [clipPath addClip];
-*/
-}
-
-void
-TPen::operator|=(const TRegion &r)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-/*
-  NSBezierPath* clipPath = [NSBezierPath bezierPath];
-  [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];
-  [clipPath addClip];
-*/
+//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void

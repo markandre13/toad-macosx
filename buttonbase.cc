@@ -103,8 +103,8 @@ TButtonBase::drawLabel(TPen &pen,const string &text, bool bDown, bool bEnabled)
     return;
   }
 
-  int x = (getWidth()-pen.getTextWidth(text)) >> 1;
-  int y = (getHeight()-pen.getHeight()) >> 1;
+  int x = (getWidth()-pen.getTextWidth(text)) / 2;
+  int y = (getHeight()-pen.getHeight()) / 2;
   if(isEnabled() && bEnabled) {
     pen.setColor(TColor::BTNTEXT);
     pen.drawString(x+n, y+n, text);

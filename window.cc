@@ -503,8 +503,13 @@ TWindow::destroyParentless()
   twindow->doResize();
 }
 
+static TRegion *updateRegion = 0;
+
 - (void) drawRect:(NSRect)rect
 {
+  if (updateRegion) {
+    updateRegion = NULL;
+  }
 /*
   if ([self inLiveResize]) {
     drawQuick()...
@@ -876,7 +881,7 @@ TWindow::createWindow()
   // if we already have a window, return
   if (nsview)
     return;
-//cerr << "TWindow::createWindow: title=\"" << getTitle() << "\", pos="<<x<<", "<<y<<endl;
+cerr << "TWindow::createWindow: title=\"" << getTitle() << "\", shape="<<x<<", "<<y<<", "<<w<<", "<<h<<endl;
   nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
   nsview->twindow = this;
   if (getParent() && !flagShell && !flagPopup) {
@@ -1017,7 +1022,7 @@ TWindow::raiseWindow()
 }
 
 void
-TWindow::setSize(int w, int h)
+TWindow::setSize(TCoord w, TCoord h)
 {
   if (w<0)
     w = this->w;
@@ -1063,7 +1068,7 @@ cerr << "  old pos="<<this->x<<","<<this->y<<", size="<<this->w<<","<<this->h<<e
 }
 
 void
-TWindow::setPosition(int x, int y)
+TWindow::setPosition(TCoord x, TCoord y)
 {
   if (nsview) {
     if (this->x==x && this->y==y)
@@ -1077,7 +1082,7 @@ TWindow::setPosition(int x, int y)
 }
 
 void
-TWindow::setShape(int x, int y, int w, int h)
+TWindow::setShape(TCoord x, TCoord y, TCoord w, TCoord h)
 {
   TRectangle::set(x, y, w, h);
   if (nsview) {
@@ -1095,15 +1100,19 @@ TWindow::invalidateWindow(bool)
 }
 
 void
-TWindow::invalidateWindow(int,int,int,int, bool clearbg)
+TWindow::invalidateWindow(TCoord x, TCoord y ,TCoord w, TCoord h, bool clearbg)
 {
-  invalidateWindow();
+  if (nsview) {
+    [nsview setNeedsDisplayInRect: NSMakeRect(x, y, w, h)];
+  }
 }
 
 void
-TWindow::invalidateWindow(const TRectangle&, bool clearbg)
+TWindow::invalidateWindow(const TRectangle &r, bool clearbg)
 {
-  invalidateWindow();
+  if (nsview) {
+    [nsview setNeedsDisplayInRect: NSMakeRect(r.x, r.y, r.w, r.h)];
+  }
 }
 
 /*
@@ -1114,18 +1123,29 @@ TWindow::getUpdateRegion() const
 {
   if (!nsview)
     return NULL;
+  if (updateRegion)
+    return updateRegion;
   static TRegion r;
   r.clear();
   const NSRect *rects;
   NSInteger count;
   [nsview getRectsBeingDrawn:&rects count:&count];
   for(int i=0; i<count; ++i)
-    r|=TRectangle(rects[i].origin.x, rects[i].origin.y, rects[i].size.width, rects[i].size.height);
+    r|=TRectangle(rects[i].origin.x - origin.x,
+                  rects[i].origin.y - origin.y,//                  h - (rects[i].size.height - rects[i].origin.y) - origin.y,
+                  rects[i].size.width,
+                  rects[i].size.height);
+  updateRegion = &r;
+
+  TRectangle e;
+  r.getBoundary(&e);
+cout << getTitle() << ": update region extend " << e.x << ", " << e.y << ", " << e.w << ", " << e.h << endl;
+
   return &r;
 }
 
 void
-TWindow::scrollRectangle(const TRectangle &r, int x,int y, bool bClrBG)
+TWindow::scrollRectangle(const TRectangle &r, TCoord x, TCoord y, bool bClrBG)
 {
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //  invalidateWindow();
@@ -1142,7 +1162,7 @@ TWindow::scrollRectangle(const TRectangle &r, int x,int y, bool bClrBG)
  * to the new position.
  */
 void
-TWindow::scrollTo(int nx, int ny)
+TWindow::scrollTo(TCoord nx, TCoord ny)
 {
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
   
@@ -1158,7 +1178,7 @@ TWindow::scrollTo(int nx, int ny)
 }
 
 void
-TWindow::setOrigin(int x,int y)
+TWindow::setOrigin(TCoord x,TCoord y)
 {
   origin.x = x;
   origin.y = y;

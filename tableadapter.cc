@@ -314,6 +314,8 @@ TTableAdapter::handleString(TTableEvent &te, string *s, int offx)
 void
 TTableAdapter::handleStringHelper(TTableEvent &te, string *s, int offx)
 {
+cout << "TTableAdapter::handleStringHelper \"" << *s << "\"" << endl;
+
   static TTableAdapter *edit = 0;
   static size_t cx;
   static size_t col, row;
