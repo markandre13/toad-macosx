@@ -34,8 +34,6 @@ PFont toad::bold_font;
 
 TFont::TFont()
 {
-//  font = FcPatternDuplicate(default_font.font);
-  font = 0;
   setFont("arial,helvetica,sans-serif:size=12");
   nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
   [nsfont retain];
@@ -43,14 +41,12 @@ TFont::TFont()
 }
 
 TFont::TFont(const TFont &f) {
-  font = FcPatternDuplicate(f.font);
   nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
   [nsfont retain];
 //cerr << "TFont::TFont(const TFont&) -> nsfont=" << nsfont << endl;
 }
 
 TFont::TFont(const string &fontname) {
-  font = 0;
   setFont(fontname);
   nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
   [nsfont retain];
@@ -60,8 +56,6 @@ TFont::TFont(const string &fontname) {
 TFont::~TFont()
 {
 //cerr << "TFont::~TFont(const TFont&)" << nsfont << endl;
-  if (font)
-    FcPatternDestroy(font);
   if (nsfont)
     [nsfont release];
 }
@@ -69,49 +63,39 @@ TFont::~TFont()
 void
 TFont::setFont(const string &fontname)
 {
-  if (font)
-    FcPatternDestroy(font);
-  font = FcNameParse((FcChar8*)fontname.c_str());
 }
 
 const char*
 TFont::getFont() const
 {
-  return (char*)FcNameUnparse(font);
+  return "Helvetica";
 }
 
 void
 TFont::setFamily(const string &family)
 {
-  FcPatternAddString(font, FC_FAMILY, (FcChar8*)family.c_str());
 }
 
 const char*
 TFont::getFamily() const
 {
-  char *s;
-  FcPatternGetString(font, FC_FAMILY, 0, (FcChar8**)&s);
-  return s;
+  return "Helvetica";
 }
 
 void
 TFont::setSize(double size)
 {
-  FcPatternAddDouble(font, FC_SIZE, size);
 }
 
 double
 TFont::getSize() const
 {
-  double d = 0.0;
-  FcPatternGetDouble(font, FC_SIZE, 0, &d);
-  return d;
+  return 12;
 }
 
 void
 TFont::setWeight(int weight)
 {
-  FcPatternAddInteger(font, FC_WEIGHT, weight);
 }
 
 int
@@ -123,15 +107,12 @@ TFont::getWeight() const
 void
 TFont::setSlant(int slant)
 {
-   FcPatternAddInteger(font, FC_SLANT, slant);
 }
 
 int
 TFont::getSlant() const
 {
-  int i;
-  FcPatternGetInteger(font, FC_SLANT, 0, &i);
-  return i;
+	return 0;
 }
 
 int

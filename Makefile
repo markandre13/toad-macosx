@@ -46,7 +46,7 @@ $(EXEC): $(OBJS)
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
-	-L/usr/X11R6/lib -lfontconfig $(OBJS) -o $(EXEC)
+	$(OBJS) -o $(EXEC)
 
 clean:
 	rm -f $(OBJS) $(EXEC) .gdb_history
@@ -58,7 +58,7 @@ depend:
 	@makedepend -Iinclude -Y $(SRC) 2> /dev/null
 
 Makefile.dep:
-	$(CXX) -MM -I/usr/X11R6/include -Iinclude $(CXXFLAGS) $(SRC) > Makefile.dep
+	$(CXX) -MM -Iinclude $(CXXFLAGS) $(SRC) > Makefile.dep
 
 run:
 	fischland.app/Contents/MacOS/fischland fischland/example.fish
@@ -69,7 +69,8 @@ gdb:
 .SUFFIXES: .cc .M .o
 
 .cc.o:
-	$(CXX) -I/usr/X11R6/include -Iinclude $(CXXFLAGS) -c -o $*.o $*.cc
+	$(CXX) -Iinclude $(CXXFLAGS) -c -o $*.o $*.cc
+
 # DO NOT DELETE
 
 fischland/draw.o: fischland/fischland.hh include/toad/cursor.hh

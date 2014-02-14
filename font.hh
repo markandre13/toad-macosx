@@ -27,7 +27,7 @@
 #include <string>
 #include <cstring>
 #include <toad/pointer.hh>
-#include <fontconfig/fontconfig.h>
+// #include <fontconfig/fontconfig.h>
 
 #include <iostream>
 
@@ -134,7 +134,7 @@ class TFont:
     void setSlant(int slant);
     int getSlant() const;
 
-    FcPattern *font;
+//    FcPattern *font;
 
     int getHeight();
     int getAscent();
