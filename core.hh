@@ -23,3 +23,7 @@
 #include <toad/font.hh>
 #include <toad/bitmap.hh>
 #include <toad/connect.hh>
+
+namespace toad {
+  extern bool layouteditor;
+} // namespace toad

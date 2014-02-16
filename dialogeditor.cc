@@ -86,8 +86,10 @@ TDialogEditor::TFilter::mouseEvent(TMouseEvent &me)
   }
 
   // when the dialog editor isn't enabled, don't filter anything
-  if (!parent->enabled)
+  if (!parent->enabled) {
+//cerr << "  dialog editor is not enabled" << endl;
     return false;
+  }
 
   bool caught = false;
   

@@ -187,7 +187,7 @@ TColoredFigure::TColoredFigure()
   fill_color.set(0,0,0);
   alpha = 1.0;
   line_style = TPenBase::SOLID;
-  line_width = 0;
+  line_width = 1;
 }
 
 void

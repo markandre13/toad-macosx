@@ -39,8 +39,8 @@ class TDialogLayout:
     void arrange();
     void paint();
   
-    unsigned height;
-    unsigned width;
+    TCoord height;
+    TCoord width;
     bool drawfocus;
     PFigureModel gadgets;
 

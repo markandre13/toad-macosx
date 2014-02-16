@@ -63,13 +63,13 @@ TPenBase::~TPenBase()
 void
 TPenBase::drawRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vdrawRectangle(x+0.5,y+0.5,w-1,h-1);
+  vdrawRectangle(x+0.5,y+0.5,w,h);
 }
 
 void
 TPenBase::fillRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vfillRectangle(x+0.5,y+0.5,w-1,h-1);
+  vfillRectangle(x+0.5,y+0.5,w,h);
 }
 
 void

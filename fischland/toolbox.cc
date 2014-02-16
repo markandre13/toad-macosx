@@ -337,7 +337,6 @@ TColorPickTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   TCoord x, y;
   fe->mouse2sheet(me.x, me.y, &x, &y);
   TFigure *f = fe->findFigureAt(x, y);
-  cout << "found figure " << f << endl;
   if (f) {
     TToolBox::preferences->reason = TFigureAttributes::ALLCHANGED;
     f->getAttributes(TToolBox::preferences);

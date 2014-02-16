@@ -478,7 +478,7 @@ TFigureEditor::paint()
     update_scrollbars = false;
   }
   TPen pen(window);
-
+  pen.translate(0.5, 0.5); // FIXME
   if (!model) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
@@ -1364,6 +1364,7 @@ TFigureEditor::mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy)
 void
 TFigureEditor::mouseEvent(const TMouseEvent &me)
 {
+//cerr << "TFigureEditor::mouseEvent" << endl << endl << endl;
   if (!model)
     return;
 
@@ -1377,7 +1378,7 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     case TMouseEvent::MDOWN:
     case TMouseEvent::RDOWN:
 /*
-    // the would require some kind of grab emulation...
+    // this would require some kind of grab emulation...
     case TMouseEvent::LUP:
     case TMouseEvent::MUP:
     case TMouseEvent::RUP:
@@ -1423,7 +1424,7 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     if (preferences)
       preferences->setCurrent(this);
   }  
-    
+
   tool->mouseEvent(this, me);
 }
 
@@ -1461,9 +1462,7 @@ namespace {
 void
 TFigureEditor::mouseLDown(const TMouseEvent &me)
 {
-  #if VERBOSE
-    cout << __PRETTY_FUNCTION__ << endl;
-  #endif
+cerr << "TFigureEditor::mouseLDown" << endl;
 
   if (!window || !model)
     return;
@@ -1491,14 +1490,10 @@ redo:
   switch(state) {
 
     case STATE_NONE: {
-      #if VERBOSE
-        cout << "  STATE_NONE" << endl;
-      #endif
+       cout << "  STATE_NONE" << endl;
       switch(operation) {
         case OP_SELECT: {
-          #if VERBOSE
             cout << "    OP_SELECT" << endl;
-          #endif
 
           // handle the handles
           //--------------------
@@ -1552,6 +1547,7 @@ redo:
           // selection, start movement, start edit
           //--------------------------------------
           TFigure *g = findFigureAt(mx, my);
+//cout << "found  figure " << g << endl;
           if (g) {
             #if VERBOSE
               cout << "      gadget at cursor";

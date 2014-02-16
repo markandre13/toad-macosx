@@ -38,6 +38,10 @@
 #include <toad/figureeditor.hh>
 #include <toad/colorselector.hh>
 
+#include "fischland/directselectiontool.hh"
+
+using namespace fischland;
+
 namespace toad {
 
 class TLayoutEditDialog:
@@ -86,9 +90,149 @@ class TLayoutEditDialog:
     void sizeChanged();
 };
 
+class TDialogSelectionTool:
+  public TFigureTool
+{
+    TFigure *gadget;
+    int handle;
+    bool tht; // translate handle transform?
+    
+  public:
+    static TDialogSelectionTool* getTool();
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    void paintSelection(TFigureEditor*, TPenBase &pen);
+    void stop(TFigureEditor *fe);
+  private:
+    void handleHandles(TFigureEditor *fe, const TMouseEvent &me);
+};
+
 } // namespace
 
 using namespace toad;
+
+TDialogSelectionTool*
+TDialogSelectionTool::getTool()
+{
+  static TDialogSelectionTool* tool = 0;
+  if (!tool)
+    tool = new TDialogSelectionTool();
+  return tool;
+}
+
+void
+TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
+{
+  switch(me.type) {
+    case TMouseEvent::LDOWN: {
+      if (!fe->selection.empty() && !me.dblClick) {
+      	handleHandles(fe, me);
+      }
+/*
+      TCoord x, y;
+      fe->mouse2sheet(me.x, me.y, &x, &y);
+      TFigure *f = fe->findFigureAt(x, y);
+      if (figure)
+        fe->invalidateFigure(figure);
+      figure = f;
+      if (figure)
+        fe->invalidateFigure(figure);
+      fe->getWindow()->invalidateWindow();
+      cout << "got figure " << figure << endl;
+*/
+    }
+  }
+}
+
+void
+TDialogSelectionTool::handleHandles(TFigureEditor *fe, const TMouseEvent &me)
+{
+  for(auto p=fe->selection.begin();
+      p!=fe->selection.end();
+      ++p)
+  {
+    // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
+    TCoord x, y;
+    if ((*p)->mat) {
+      TMatrix2D m(*(*p)->mat);
+      m.invert();
+      m.map(me.x, me.y, &x, &y);
+    } else {
+      x = me.x;
+      y = me.y;
+    }
+
+    // loop over all handles
+    unsigned h = 0;
+    while(true) {
+      if (!(*p)->getHandle(h,&fe->memo_pt))
+        break;
+      if (fe->memo_pt.x-fe->fuzziness<=x && x<=fe->memo_pt.x+fe->fuzziness && 
+          fe->memo_pt.y-fe->fuzziness<=y && y<=fe->memo_pt.y+fe->fuzziness) {
+        #if VERBOSE
+          cout << "      found handle at cursor => STATE_MOVE_HANDLE" << endl;
+        #endif
+        handle = h;
+        gadget = *p;
+        #if VERBOSE
+        cout << "      handle " << h << " @ " << memo_pt.x << ", " << memo_pt.y << endl;
+        #endif
+        // state = STATE_MOVE_HANDLE;
+        tht = gadget->startTranslateHandle();
+        // fe->mouseMoved = false;
+        if (fe->selection.size()>1) {
+          fe->clearSelection();
+          fe->selection.insert(gadget);
+          fe->sigSelectionChanged();
+        }
+        fe->invalidateFigure(gadget);
+        return;
+      }
+      h++;
+    }
+  }
+}
+
+void
+TDialogSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
+{
+#if 0
+  if (!figure)
+    return;
+/*
+  // figure was deleted but we were not informed...
+  if (fe->selection.find(figure)==fe->selection.end()) {
+    stop(fe);
+    return;
+  }
+*/
+  pen.push();
+  pen.setColor(TColor::FIGURE_SELECTION);
+/*
+  if (figure->mat)
+    pen.multiply(figure->mat);
+*/
+  pen.setLineWidth(1);
+  figure->paint(pen);
+  pen.setLineWidth(1);
+  figure->paintSelection(pen, -1);
+  pen.pop();
+#endif
+}
+
+void
+TDialogSelectionTool::stop(TFigureEditor *fe)
+{
+/*
+  fe->getWindow()->setAllMouseMoveEvents(false);
+  fe->getWindow()->setCursor(0);
+  fe->state = TFigureEditor::STATE_NONE;
+  fe->quick = false;
+  if (figure) {
+    fe->invalidateFigure(figure);
+    figure = 0;
+  }
+*/
+}
 
 /**
  * \class toad::TDialog
@@ -301,6 +445,7 @@ TDialogLayout::paint()
 {
   if (!editor || !editor->isEnabled()) {
     TPen pen(window);
+    pen.translate(0.5, 0.5);
     TFigureModel::iterator p = gadgets->begin();
     while(p!=gadgets->end()) {
       (*p)->paint(pen, TFigure::NORMAL);
@@ -383,7 +528,8 @@ TLayoutEditDialog::TLayoutEditDialog(TWindow *parent,
     switch(i) {
       case 0:
         rb = new TFatRadioButton(this, "Select", state);
-        CONNECT(rb->sigClicked, &gedit, setOperation, TFigureEditor::OP_SELECT);
+//        CONNECT(rb->sigClicked, &gedit, setOperation, TFigureEditor::OP_SELECT);
+        CONNECT(rb->sigClicked, &gedit, setTool, TDialogSelectionTool::getTool());
         rb->setDown(true);
         break;
       case 1:

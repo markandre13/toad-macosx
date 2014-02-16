@@ -1,8 +1,11 @@
 #include <toad/core.hh>
 #include <toad/figure.hh>
 #include <toad/command.hh>
+#include <toad/dialogeditor.hh>
 
 #include "fischland/fontdialog.hh"
+
+bool toad::layouteditor = false;
 
 using namespace toad;
 
@@ -63,6 +66,7 @@ static NSAutoreleasePool *pool = 0;
 static int global_argc = 0;
 static char **global_argv = 0;
 
+
 void 
 toad::initialize(int argc, char *argv[])
 {
@@ -78,12 +82,24 @@ toad::initialize(int argc, char *argv[])
 
   // add a delegate to NSApp to customize the application
   [NSApp setDelegate: [ToadDelegate new]];
+
+  bool layouteditor = false;
+  for(int i=1; i<argc; i++) {
+    if (strcmp(argv[i], "--layout-editor")==0) {
+      layouteditor = true;
+    } else {
+      cerr << "unknown option " << argv[i] << endl;
+    }
+  }
+
+  if (layouteditor)
+    new TDialogEditor();
 }
 
 bool
 toad::mainLoop()
 {
-  int r = NSApplicationMain(global_argc,  (const char **) global_argv);
+  bool r = NSApplicationMain(global_argc,  (const char **) global_argv);
   return r;
 }
 

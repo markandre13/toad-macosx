@@ -19,7 +19,13 @@
  */
 
 #include <toad/layout.hh>
+#include <toad/window.hh>
+#include <toad/textarea.hh>
+#include <toad/pushbutton.hh>
 #include <toad/io/urlstream.hh>
+#include <toad/layouteditor.hh>
+
+#include <sstream>
 
 /**
  * \class toad::TLayout
@@ -36,7 +42,110 @@
  *   at this moment
  */
 
+namespace toad {
+
+/**
+ * \class TLayoutEditGeneric
+ *
+ * A simple layout editor to edit the layout as text.
+ *
+ * \todo
+ *   \li
+ *     TEditLayout: show error messages for 'restore'
+ *   \li
+ *     Show when the layout was modified
+ *   \li
+ *     Load/Save with different filenames
+ */
+class TLayoutEditGeneric:
+  public TLayoutEditor
+{
+    TWindow *window;    // window to be edited
+    TLayout *layout;    // layout to be edited
+    PTextModel text;
+
+  public:
+    TLayoutEditGeneric(TWindow*, const string&, TLayout*, TWindow *forWindow);
+  protected:
+    void fetch();
+    void apply();
+};
+
+} // namespace toad
+
 using namespace toad;
+
+TLayoutEditGeneric::TLayoutEditGeneric(TWindow *parent,
+                                       const string &title,
+                                       TLayout *layout,
+                                       TWindow *forWindow)
+  :TLayoutEditor(parent, title)
+{
+  TCoord x, y;
+  
+  this->layout = layout;
+  this->window = forWindow;
+  
+  text = new TTextModel();
+
+  setBackground(TColor::DIALOG);
+  
+  TTextArea *ta;
+  TPushButton *pb;
+  
+  x=5; y=5;
+  
+  ta = new TTextArea(this, "layout", text);
+  PFont font = new TFont(ta->getPreferences()->getFont());
+  ta->setShape(x, y, font->getTextWidth("x")*60, 
+                     font->getHeight()*25);
+  ta->getPreferences()->tabwidth=2;
+  
+  y+=ta->getHeight()+5;
+  
+  pb = new TPushButton(this, "Fetch");
+  pb->setShape(x,y,80,25);
+  connect(pb->sigClicked, this, &TLayoutEditGeneric::fetch);
+  
+  pb = new TPushButton(this, "Apply");
+  pb->setShape(x+80+5,y,80,25);
+  connect(pb->sigClicked, this, &TLayoutEditGeneric::apply);
+
+  y+=25+5;
+  
+  setSize(5+ta->getWidth()+5, y);
+  fetch();
+}
+
+void
+TLayoutEditGeneric::fetch()
+{
+  ostringstream os;
+  TOutObjectStream oo(&os);
+  oo.store(layout);
+  text->setValue(os.str());
+}
+
+void
+TLayoutEditGeneric::apply()
+{
+  istringstream is(text->getValue());
+  TInObjectStream io(&is);
+  TSerializable *s = io.restore();
+  if (s) {
+    TLayout *layout2 = dynamic_cast<TLayout*>(s);
+    if (layout2) {
+      layout = layout2;
+      layout->setModified(true);
+      window->setLayout(layout);
+    } else {
+      delete s;
+    }
+  }
+}
+
+
+//-----------------------------------------------------------------
 
 TLayout::TLayout()
 {
@@ -106,6 +215,5 @@ TLayout::restore(TInObjectStream &in)
 TLayoutEditor *
 TLayout::createEditor(TWindow *inWindow, TWindow *forWindow)
 {
-  return 0;
-//  return new TLayoutEditGeneric(inWindow, "TLayout.editor", this, forWindow);
+  return new TLayoutEditGeneric(inWindow, "TLayout.editor", this, forWindow);
 }

@@ -596,7 +596,7 @@ void
 TMenuButton::mouseLeave(const TMouseEvent &m)
 {
   inside = 0;
-  DBM(cerr << "+ mouseLeave " << this << ": state " << statename(master->state) << endl;)
+  DBM(cerr << "+ TMenuButton::mouseLeave " << getTitle() << ": state " << statename(master->state) << endl;)
   switch(master->state) {
     case MHS_WAIT:
     case MHS_DOWN_N_OUTSIDE:
@@ -611,13 +611,13 @@ TMenuButton::mouseLeave(const TMouseEvent &m)
     default:
       cout << __PRETTY_FUNCTION__ << ": unexpected state " << statename(master->state) << endl;
   }
-  DBM(cerr << "- mouseLeave " << this << ": state " << statename(master->state) << endl;)
+  DBM(cerr << "- TMenuButton::mouseLeave " << getTitle() << ": state " << statename(master->state) << endl;)
 }
 
 void TMenuButton::mouseEnter(const TMouseEvent &m)
 {
   inside = this;
-  DBM(cerr << "+ mouseEnter " << this << ": state " << statename(master->state) << endl;)
+  DBM(cerr << "+ TMenuButton::mouseEnter " << getTitle() << ": state " << statename(master->state) << endl;)
   switch(master->state) {
     case MHS_WAIT:
     case MHS_UP_N_HOLD:
@@ -640,7 +640,7 @@ void TMenuButton::mouseEnter(const TMouseEvent &m)
     default:
       cout << __PRETTY_FUNCTION__ << ": unexpected state " << statename(master->state) << endl;
   }
-  DBM(cerr << "- mouseEnter " << this << ": state " << statename(master->state) << endl;)
+  DBM(cerr << "- TMenuButton::mouseEnter " << getTitle() << ": state " << statename(master->state) << endl;)
 }
 
 void 

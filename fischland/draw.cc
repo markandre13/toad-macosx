@@ -826,7 +826,7 @@ TMainWindow::load(const string &filename)
   TSerializable *s = in.restore();
   if (!in || !s) {
     string msg =
-      programname + " failed to load the object.\n\n" +
+      programname + " failed to load '" + filename + "'\n\n" +
       in.getErrorText();
       messageBox(0, 
                "Failed to load file",
@@ -1518,11 +1518,12 @@ class TMyWindow:
 
 void test_table();
 void test_scroll();
+void test_dialog();
 
 int 
 main(int argc, char **argv, char **envv)
 {
-  if (argc==2) {
+  if (argc>=2) {
     if (strcmp(argv[1], "--test-table")==0) {
       toad::initialize(argc, argv);
       test_table();
@@ -1532,6 +1533,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-scroll")==0) {
       toad::initialize(argc, argv);
       test_scroll();
+      toad::terminate();
+      return 0;
+    } else
+    if (strcmp(argv[1], "--test-dialog")==0) {
+      toad::initialize(argc, argv);
+      test_dialog();
       toad::terminate();
       return 0;
     }
@@ -1696,7 +1703,7 @@ main(int argc, char **argv, char **envv)
 #endif
 
 #else
-  toad::initialize(1, argv);
+  toad::initialize(argc, argv);
 //    createMemoryFiles();
   toad::getDefaultStore().registerObject(new TPage());
   toad::getDefaultStore().registerObject(new TCollection());
@@ -1929,14 +1936,16 @@ main(int argc, char **argv, char **envv)
   cursor[5] = new TCursor(bm[5], 0, 21);
 
   new TToolBox(0, programname);
-  if (argc==1) {
+//  if (argc==1) {
     new TMainWindow(0, programname);
+/*
   } else {
     for(int i=1; i<argc; ++i) {
       TMainWindow *wnd = new TMainWindow(0, programname);
       wnd->load(argv[i]);
     }
   }
+*/
   toad::mainLoop();
   bmp_vlogo = 0;
   toad::terminate();

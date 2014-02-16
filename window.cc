@@ -18,6 +18,8 @@
  * MA  02111-1307,  USA
  */
 
+#include <execinfo.h>
+
 #include <toad/core.hh>
 #include <toad/layout.hh>
 #include <toad/focusmanager.hh>
@@ -42,6 +44,8 @@ static TVectorParentless parentless;
 
 typedef map<TWindow*,string> TTextMap;
 static TTextMap tooltipmap;
+
+static TWindow *lastMouse = 0;
 
 TWindow*
 TWindow::getParent() const
@@ -149,6 +153,7 @@ void
 TWindow::grabPopupMouse(bool allmove, TCursor::EType type)
 {
   ::grabPopupMouse = true;
+  lastMouse = 0;
 }
 
 void
@@ -204,8 +209,11 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
       break;
     case PLACE_MOUSE_POINTER:
       break;
-    case PLACE_CORNER_MOUSE_POINTER:
-      break;
+    case PLACE_CORNER_MOUSE_POINTER: {
+      NSPoint p = [NSEvent mouseLocation];
+      x = p.x;
+      y = p.y - h;
+    } break;
     case PLACE_PULLDOWN: {
       int rx, ry;
       parent->getRootPos(&rx, &ry);
@@ -534,6 +542,8 @@ static TRegion *updateRegion = 0;
     CGContextDrawPath(ctx, kCGPathFill);
   }
 
+  if (twindow->layout)
+    twindow->layout->paint();
   twindow->paint();
 }
 
@@ -593,10 +603,27 @@ static TRegion *updateRegion = 0;
   executeMessages();
 }
 
-static TWindow *lastMouse = 0;
-
-static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
+// handle layout and global event filter
+static void _doMouse2(TWindow *twindow, TMouseEvent &me)
 {
+  me.window = twindow;
+  TEventFilter *flt = toad::global_evt_filter;
+  while(flt) {
+    if (flt->mouseEvent(me))
+      return;
+    flt = flt->next;
+  }
+
+  if (twindow->layout && twindow->layout->mouseEvent(me))
+    return;
+
+  twindow->mouseEvent(me);
+}
+
+// handle grabPopUp mouse and enter/leave event generation
+static void _doMouse(TWindow *twindow, TMouseEvent &me)
+{
+//cerr << "_doMouse: TWindow='"<<twindow->getTitle()<<"', layout=" << twindow->layout << endl;
   TWindow *mouseOver = 0;
   if (grabPopupMouse) {
     NSPoint p;
@@ -618,23 +645,23 @@ static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
       }
     }
     if (mouseOver) {
-      cout << "  title=" << mouseOver->getTitle() << endl;
+//      cout << "  mouse over title=" << mouseOver->getTitle() << endl;
       twindow = mouseOver;
-    } else {
-      cout << "  not a toad window" << endl;
+//    } else {
+//      cout << "  not a toad window" << endl;
     }
     if (twindow != lastMouse) {
       if (lastMouse) {
+//cout << "leave " << lastMouse->getTitle() << endl;
         TMouseEvent me2(me.nsevent, lastMouse);
         me2.type = TMouseEvent::LEAVE;
-        if (!(lastMouse->layout && lastMouse->layout->mouseEvent(me2)))
-          lastMouse->mouseEvent(me2);
+        _doMouse2(lastMouse, me2);
       }
       if (twindow) {
+//cout << "enter " << twindow->getTitle() << endl;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::ENTER;
-        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
-          twindow->mouseEvent(me2);
+        _doMouse2(twindow, me2);
       }
       lastMouse = twindow;
     }
@@ -646,23 +673,19 @@ static inline void _doMouse(TWindow *twindow, TMouseEvent &me)
         twindow->_inside = true;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::ENTER;
-        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
-          twindow->mouseEvent(me2);
+        _doMouse2(twindow, me2);
       }
     } else {
       if (twindow->_inside) {
         twindow->_inside = false;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::LEAVE;
-        if (!(twindow->layout && twindow->layout->mouseEvent(me2)))
-          twindow->mouseEvent(me2);
+        _doMouse2(twindow, me2);
       }
     }    
   }
-  
 
-  if (twindow && !(twindow->layout && twindow->layout->mouseEvent(me)))
-    twindow->mouseEvent(me);
+  _doMouse2(twindow, me);
 
   if (me.type == TMouseEvent::LUP ||
       me.type == TMouseEvent::MUP ||
@@ -747,7 +770,21 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 
 - (void) mouseDragged:(NSEvent*)theEvent
 {
-//printf("%s: %s _inside=%i\n",__FUNCTION__, twindow->getTitle().c_str(),twindow->_inside);
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  _doMouse(twindow, me);
+  executeMessages();
+}
+
+- (void) rightMouseDragged:(NSEvent*)theEvent
+{
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  _doMouse(twindow, me);
+  executeMessages();
+}
+- (void) otherMouseDragged:(NSEvent*)theEvent
+{
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
@@ -881,7 +918,6 @@ TWindow::createWindow()
   // if we already have a window, return
   if (nsview)
     return;
-cerr << "TWindow::createWindow: title=\"" << getTitle() << "\", shape="<<x<<", "<<y<<", "<<w<<", "<<h<<endl;
   nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
   nsview->twindow = this;
   if (getParent() && !flagShell && !flagPopup) {
@@ -947,7 +983,10 @@ static TWindow* runningAsModal = 0;
 void
 TWindow::destroyWindow()
 {
+//cerr << "TWindow::destroyWindow: title=\"" << getTitle() << "\"" << endl;
+
   if (this==runningAsModal) {
+//cerr << "  modal stop" << endl;
     runningAsModal = 0;
     [NSApp stopModal];
     return; // doModalLoop will invoke destroyWindow again
@@ -976,7 +1015,22 @@ TWindow::doModalLoop()
   createWindow();
   if (nswindow) {
     runningAsModal = this;
-    [NSApp runModalForWindow: nswindow];
+    if (!toad::layouteditor) {
+      [NSApp runModalForWindow: nswindow];
+    } else {
+      while(runningAsModal == this) {
+          NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+          NSEvent *event =
+              [NSApp
+                  nextEventMatchingMask:NSAnyEventMask
+                  untilDate:[NSDate distantFuture]
+                  inMode:NSDefaultRunLoopMode
+                  dequeue:YES];
+          [NSApp sendEvent:event];
+          [NSApp updateWindows];
+	  [pool release];
+      }
+    }
   } else {
     cerr << "error: TWindow::doModalLoop requires '" << getTitle() << "' to be top level window" << endl;
     exit(0);
@@ -1028,6 +1082,7 @@ TWindow::setSize(TCoord w, TCoord h)
     w = this->w;
   if (h<0)
     h = this->h;
+
   if (w==this->w && h==this->h)
     return;
 

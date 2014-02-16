@@ -395,6 +395,7 @@ void
 TScrollBar::paint()
 {
   TPen pen(this);
+  pen.translate(0.5, 0.5);
   _drawArea(pen);
   _drawSlider(pen, rectSlider);
 //printf("paint: rectSlider: %i,%i,%i,%i\n", rectSlider.x,rectSlider.y,rectSlider.w,rectSlider.h);

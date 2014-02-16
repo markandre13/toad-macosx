@@ -181,11 +181,11 @@ TMessageBox::paint()
     return;
   static TBitmap *bmp[5] = { 0, 0, 0, 0, 0 };
   static const char *filename[5] = {
-    "memory://toad/exclamation.png",
-    "memory://toad/hand.png",
-    "memory://toad/stop.png",
-    "memory://toad/information.png",
-    "memory://toad/question.png"
+    "tresource/exclamation.png",
+    "tresource/hand.png",
+    "tresource/stop.png",
+    "tresource/information.png",
+    "tresource/question.png"
   };
   if (bmp[idx]==0) {
     bmp[idx] = new TBitmap();

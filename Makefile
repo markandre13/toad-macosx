@@ -24,7 +24,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/rectangle.cc figure/window.cc \
 	   \
-	   test_table.cc test_scroll.cc
+	   test_table.cc test_scroll.cc test_dialog.cc
 		
 SRC_COCOA=window.cc pen.cc
 
@@ -37,7 +37,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 #fischland/fontdialog.cc
 
 SRC=$(SRC_FISH) $(SRC_SHARED) $(SRC_COCOA)
-CXX=g++ -ObjC++
+CXX=g++ -ObjC++ -std=gnu++11
 CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration
 
 OBJS    = $(SRC:.cc=.o)

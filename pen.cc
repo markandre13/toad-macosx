@@ -260,12 +260,12 @@ TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
 
 void
 TPen::vdrawArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2) {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+// FIXME  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void
 TPen::vfillArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2) {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+// FIXME  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void
@@ -409,6 +409,8 @@ TPen::setLineWidth(TCoord w)
 {
   if (w<0)
     w = -w;
+  if (w==0)
+    w = 1;
   CGContextSetLineWidth(ctx, w);
 }
 
