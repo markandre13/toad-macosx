@@ -16,6 +16,7 @@ using namespace toad;
 - (void) createMenu;  
 - (void) applicationWillFinishLaunching:(NSNotification *)notification;
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
+- (void) windowDidMove:(NSNotification *)notification;
 @end
 
 @implementation ToadDelegate : NSObject
@@ -60,6 +61,11 @@ using namespace toad;
 {
   [self createMenu];  
 }
+
+- (void) windowDidMove: (NSNotification *)notification;
+{
+  TWindow::_windowDidMove(notification);
+}
 @end
 
 static NSAutoreleasePool *pool = 0;
@@ -81,7 +87,12 @@ toad::initialize(int argc, char *argv[])
   [NSApplication sharedApplication];
 
   // add a delegate to NSApp to customize the application
-  [NSApp setDelegate: [ToadDelegate new]];
+  ToadDelegate *delegate = [ToadDelegate new];
+  [NSApp setDelegate: delegate];
+  
+  [[NSNotificationCenter defaultCenter] addObserver:delegate
+      selector:@selector(windowDidMove:)
+          name:NSWindowDidMoveNotification object:nil];
 
   bool layouteditor = false;
   for(int i=1; i<argc; i++) {

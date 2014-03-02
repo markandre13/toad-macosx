@@ -220,6 +220,7 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
       x=rx; y=ry;
       y-=parent->h; // below parent
       y-=h;
+      // FIXME: should update the window object now, only done in setMapped for now
     } break;
     case PLACE_TOOLTIP:
       break;
@@ -826,14 +827,35 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   dblClick = false;
 }
 
-unsigned TMouseEvent::_modifier = 0; // FIXME: DEPRECATED
+unsigned TMouseEvent::_modifier = 0;
 
 unsigned
 TMouseEvent::modifier() const
 {
-  if (dblClick)
-    return [nsevent modifierFlags] | MK_DOUBLE;
-  return [nsevent modifierFlags];
+  const unsigned mask = MK_ALTGR|MK_LBUTTON|MK_MBUTTON|MK_RBUTTON|MK_DOUBLE;
+  return (  [nsevent modifierFlags] 
+          & mask )
+          | _modifier
+          | (dblClick ? MK_DOUBLE : 0);
+}
+
+void
+TWindow::_windowDidMove(NSNotification *notification)
+{
+  NSObject *obj = [notification object];
+  if (![obj isKindOfClass:[toadWindow class]]) {
+    cerr << "TWindow::_windowDidMove: it's not a window" << endl;
+    return;
+  }
+  toadWindow *t = (toadWindow*)obj;
+  if (!t->twindow) {
+    cerr << "TWindow::_windowDidMove: not toad window" << endl;
+    return;
+  }
+  
+  NSPoint pt = [t frame].origin;
+  t->twindow->x = pt.x;
+  t->twindow->y = t->twindow->h - pt.y;
 }
 
 TWindow::TWindow(TWindow *parent, const string &title):
@@ -918,6 +940,11 @@ TWindow::createWindow()
   // if we already have a window, return
   if (nsview)
     return;
+    
+  // wait for parent
+  if (getParent() && !flagShell && !flagPopup && !getParent()->nsview)
+    return;
+
   nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
   nsview->twindow = this;
   if (getParent() && !flagShell && !flagPopup) {
@@ -927,6 +954,7 @@ TWindow::createWindow()
     [nswindow setReleasedWhenClosed: YES];
     nswindow->twindow = this;
     unsigned int styleMask = 0;
+
     if (flagPopup) {
       styleMask = NSBorderlessWindowMask;
     } else
@@ -951,6 +979,8 @@ TWindow::createWindow()
     [nswindow makeKeyAndOrderFront: nil];
     [nswindow setAcceptsMouseMovedEvents: true];
     [nswindow setHasShadow: true];
+    if (flagPopup)
+      [nswindow setLevel: NSPopUpMenuWindowLevel];
   }
   // we must create the tracking window after the view was added to it's
   // parent, otherwise tracking does not work
@@ -1018,6 +1048,8 @@ TWindow::doModalLoop()
     if (!toad::layouteditor) {
       [NSApp runModalForWindow: nswindow];
     } else {
+      // we also need to receive events for the layout editor control window
+      // hence we run a modeless loop
       while(runningAsModal == this) {
           NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
           NSEvent *event =
@@ -1046,9 +1078,20 @@ TWindow::setMapped(bool b)
   if (_mapped==b)
     return;
   _mapped = b;
-  [nsview setHidden: !b];
-  if (!nswindow)
+
+  if (b && nswindow) {
+    // FIXME: only the size, see also placeWindow
+    NSRect frame = [nswindow frame];
+    frame.origin.x = x;
+    frame.origin.y = y;
+    [nswindow setFrame: frame display: false];
+  }
+
+  if (!nswindow) {
+    [nsview setHidden: !b];
     return;
+  }
+
   //[nswindow setOpaque: !b];
   if (!b) {
     cout << getTitle() << " orderOut: hide" << endl;

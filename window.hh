@@ -27,7 +27,7 @@
 #include <toad/region.hh>
 #include <string>
 
-@class NSEvent, NSView, toadWindow, toadView;
+@class NSEvent, NSView, NSNotification, toadWindow, toadView;
 
 #import <appkit/NSEvent.h>
 
@@ -42,11 +42,11 @@ using namespace std;
 #define MK_CONTROL   NSControlKeyMask
 #define MK_ALT       NSAlternateKeyMask
 
-#define MK_ALTGR   0
-#define MK_LBUTTON 1
-#define MK_MBUTTON 2
-#define MK_RBUTTON 4
-#define MK_DOUBLE  8
+#define MK_ALTGR   (1<<24)
+#define MK_LBUTTON (1<<25)
+#define MK_MBUTTON (1<<26)
+#define MK_RBUTTON (1<<27)
+#define MK_DOUBLE  (1<<28)
 
 #define TK_SHIFT_L 56
 #define TK_SHIFT_R 56
@@ -198,6 +198,7 @@ class TWindow:
     bool _allMouseMoveEvents:1;
     void _down(TMouseEvent::EType type, NSEvent *theEvent);
     void _up(TMouseEvent::EType type, NSEvent *theEvent);
+    static void _windowDidMove(NSNotification *theNotification);
 
     //! don't create window when parent is created
     bool flagExplicitCreate:1;
