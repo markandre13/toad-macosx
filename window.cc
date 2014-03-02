@@ -765,6 +765,7 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 {
   TMouseEvent me(theEvent, this);
   me.type = type;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
   _doMouse(this, me);
   executeMessages();
 }
@@ -1237,7 +1238,7 @@ TWindow::getUpdateRegion() const
 
   TRectangle e;
   r.getBoundary(&e);
-cout << getTitle() << ": update region extend " << e.x << ", " << e.y << ", " << e.w << ", " << e.h << endl;
+// cout << getTitle() << ": update region extend " << e.x << ", " << e.y << ", " << e.w << ", " << e.h << endl;
 
   return &r;
 }
