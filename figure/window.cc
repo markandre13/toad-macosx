@@ -122,7 +122,10 @@ TFWindow::restore(TInObjectStream &in)
     ::restore(in, "label", &label) ||
     ::restore(in, "taborder", &taborder) ||
     super::restore(in)
-  ) return true;
+  ) {
+    filled = true; // override super::restore
+    return true;
+  }
   ATV_FAILED(in)
   return false;
 }

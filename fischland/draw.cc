@@ -1665,8 +1665,6 @@ main(int argc, char **argv, char **envv)
         unsigned m = me.modifier();
         if (m&MK_SHIFT)
           cout<<" MK_SHIFT";
-        if (m&MK_LOCK)
-          cout<<" MK_LOCK";
         if (m&MK_CONTROL)
           cout<<" MK_CONTROL";
         if (m&MK_ALT)

@@ -256,7 +256,7 @@ TFigureEditor::init(TFigureModel *m)
   modified = false;
   preferences = 0;
   tool = 0;
-  fuzziness = 2;
+  fuzziness = 3;
 
   handle = -1;
   gadget = NULL;
@@ -1167,6 +1167,7 @@ TFigureEditor::setOperation(unsigned op)
 void
 TFigureEditor::setTool(TFigureTool *aTool)
 {
+cout << "TFigureEditor: setTool " << aTool << endl;
   stopOperation();
   clearSelection();
   if (tool!=aTool) {

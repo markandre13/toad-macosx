@@ -29,17 +29,18 @@
 
 @class NSEvent, NSView, toadWindow, toadView;
 
+#import <appkit/NSEvent.h>
+
 namespace toad {
 
 using namespace std;
 
 // see /Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/CFMCarbon/Events.h
 
-#define MK_SHIFT     (1 << 9)
-#define MK_LOCK      (1 << 10)
-#define MK_CONTROL   (1 << 12)
-#define MK_ALT       (1 << 11)
-#define MK_APPLE     (1 << 8)
+#define MK_SHIFT     NSShiftKeyMask
+#define MK_COMMAND   NSCommandKeyMask
+#define MK_CONTROL   NSControlKeyMask
+#define MK_ALT       NSAlternateKeyMask
 
 #define MK_ALTGR   0
 #define MK_LBUTTON 1

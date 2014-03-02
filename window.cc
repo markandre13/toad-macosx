@@ -826,14 +826,14 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   dblClick = false;
 }
 
-unsigned TMouseEvent::_modifier = 0;
+unsigned TMouseEvent::_modifier = 0; // FIXME: DEPRECATED
 
 unsigned
 TMouseEvent::modifier() const
 {
   if (dblClick)
-    return _modifier | MK_DOUBLE;
-  return _modifier;
+    return [nsevent modifierFlags] | MK_DOUBLE;
+  return [nsevent modifierFlags];
 }
 
 TWindow::TWindow(TWindow *parent, const string &title):

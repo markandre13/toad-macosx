@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -93,22 +93,40 @@ class TLayoutEditDialog:
 class TDialogSelectionTool:
   public TFigureTool
 {
-    TFigure *gadget;
+    TFigure *figure;
     int handle;
     bool tht; // translate handle transform?
     
+    enum {
+      STATE_NONE,
+      STATE_SELECT_RECT,
+      STATE_MOVE,
+      STATE_MOVE_HANDLE
+    } state;
+    
+    TCoord down_x, down_y;
+    TCoord select_x, select_y;
+    TCoord memo_x, memo_y;
+    bool mouseMoved;
+    
   public:
+    TDialogSelectionTool();
     static TDialogSelectionTool* getTool();
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     void paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
   private:
-    void handleHandles(TFigureEditor *fe, const TMouseEvent &me);
+    bool handleHandles(TFigureEditor *fe, const TMouseEvent &me);
 };
 
 } // namespace
 
 using namespace toad;
+
+TDialogSelectionTool::TDialogSelectionTool()
+{
+  state = STATE_NONE;
+}
 
 TDialogSelectionTool*
 TDialogSelectionTool::getTool()
@@ -122,101 +140,197 @@ TDialogSelectionTool::getTool()
 void
 TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
+  TCoord mx, my, x, y;
+  fe->mouse2sheet(me.x, me.y, &mx, &my);
+  mx = round(mx);
+  my = round(my);
+  fe->sheet2grid(mx, my, &x, &y);
   switch(me.type) {
     case TMouseEvent::LDOWN: {
-      if (!fe->selection.empty() && !me.dblClick) {
-      	handleHandles(fe, me);
+      down_x = x;
+      down_y = y;
+
+      if (!fe->selection.empty() &&
+          !me.dblClick &&
+      	  handleHandles(fe, me))
+        return;
+      
+      TFigure *f = fe->findFigureAt(mx, my);
+      if (f) {
+	TFigureSet::iterator fi = fe->selection.find(f);
+        if (me.modifier() & MK_DOUBLE) {
+        } else
+        if (me.modifier() & MK_CONTROL) {
+        } else
+        if (me.modifier() & MK_SHIFT) {
+	  state = STATE_SELECT_RECT;
+	  select_x = mx;
+	  select_y = my;
+        } else {
+          memo_x = memo_y = 0;
+          state = STATE_MOVE;
+          TUndoManager::beginUndoGrouping();
+        }
+        if (fi == fe->selection.end()) {
+          if (!(me.modifier() & MK_SHIFT))
+            fe->clearSelection();
+	  fe->selection.insert(f);
+	  fe->invalidateFigure(f);
+	}
+      } else {
+	if (!(me.modifier() & MK_SHIFT)) {
+	  fe->clearSelection();
+	}
+	state = STATE_SELECT_RECT;
+	select_x = mx; // FIXME: here a point structure would make sense
+	select_y = my;
       }
-/*
-      TCoord x, y;
-      fe->mouse2sheet(me.x, me.y, &x, &y);
-      TFigure *f = fe->findFigureAt(x, y);
-      if (figure)
-        fe->invalidateFigure(figure);
-      figure = f;
-      if (figure)
-        fe->invalidateFigure(figure);
-      fe->getWindow()->invalidateWindow();
-      cout << "got figure " << figure << endl;
-*/
+    } break;
+    case TMouseEvent::MOVE: {
+      switch(state) {
+        case STATE_NONE:
+          break;
+        case STATE_SELECT_RECT:
+          if (select_x != x || select_y != y) {
+	    select_x = mx;
+	    select_y = my;
+	    fe->invalidateWindow();
+          }
+          break;
+        case STATE_MOVE: {
+          TCoord dx = x-down_x; down_x=x;
+          TCoord dy = y-down_y; down_y=y;
+          memo_x+=dx;
+          memo_y+=dy;
+          fe->getModel()->translate(fe->selection, dx, dy);
+         } break;
+      	case STATE_MOVE_HANDLE:
+      	  handleHandles(fe, me);
+      	  break;
+      }
+    } break;
+    case TMouseEvent::LUP: {
+      switch(state) {
+      	case STATE_NONE:
+      	  break;
+      	case STATE_SELECT_RECT: {
+      	  state = STATE_NONE;
+      	  fe->invalidateWindow();
+      	  TRectangle r1(TPoint(down_x,down_y), TPoint(x,y));
+      	  TRectangle r2;
+      	  for(auto p=fe->getModel()->begin(); p!=fe->getModel()->end(); ++p) {
+      	    (*p)->getShape(&r2);
+      	    if (r1.isInside( r2.x, r2.y ) &&
+      	        r1.isInside( r2.x+r2.w, r2.y+r2.h ) )
+      	    {
+      	      fe->selection.insert(*p);
+      	    }
+      	  }
+      	} break;
+      	case STATE_MOVE:
+          TUndoManager::endUndoGrouping();
+          state = STATE_NONE;
+      	  break;
+      	case STATE_MOVE_HANDLE:
+      	  handleHandles(fe, me);
+      	  break;
+      }
     }
   }
 }
 
-void
+bool
 TDialogSelectionTool::handleHandles(TFigureEditor *fe, const TMouseEvent &me)
 {
-  for(auto p=fe->selection.begin();
-      p!=fe->selection.end();
-      ++p)
-  {
-    // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-    TCoord x, y;
-    if ((*p)->mat) {
-      TMatrix2D m(*(*p)->mat);
-      m.invert();
-      m.map(me.x, me.y, &x, &y);
-    } else {
-      x = me.x;
-      y = me.y;
-    }
-
-    // loop over all handles
-    unsigned h = 0;
-    while(true) {
-      if (!(*p)->getHandle(h,&fe->memo_pt))
-        break;
-      if (fe->memo_pt.x-fe->fuzziness<=x && x<=fe->memo_pt.x+fe->fuzziness && 
-          fe->memo_pt.y-fe->fuzziness<=y && y<=fe->memo_pt.y+fe->fuzziness) {
-        #if VERBOSE
-          cout << "      found handle at cursor => STATE_MOVE_HANDLE" << endl;
-        #endif
-        handle = h;
-        gadget = *p;
-        #if VERBOSE
-        cout << "      handle " << h << " @ " << memo_pt.x << ", " << memo_pt.y << endl;
-        #endif
-        // state = STATE_MOVE_HANDLE;
-        tht = gadget->startTranslateHandle();
-        // fe->mouseMoved = false;
-        if (fe->selection.size()>1) {
-          fe->clearSelection();
-          fe->selection.insert(gadget);
-          fe->sigSelectionChanged();
+  TCoord x, y;
+  x = round(me.x);
+  y = round(me.y);
+  switch(me.type) {
+    case TMouseEvent::LDOWN:
+      for(auto p=fe->selection.begin();
+          p!=fe->selection.end();
+          ++p)
+      {
+        // loop over all handles
+        unsigned h = 0;
+        TPoint memo;
+        while((*p)->getHandle(h, &memo)) {
+cout << "  is handle " << h << " at " << memo << " near " << x << ", " << y << endl;
+          if (memo.x-fe->fuzziness<=x && x<=memo.x+fe->fuzziness && 
+              memo.y-fe->fuzziness<=y && y<=memo.y+fe->fuzziness)
+          {
+            cout << "      found handle " << h << " at cursor => STATE_MOVE_HANDLE" << endl;
+            handle = h;
+            figure = *p;
+            state = STATE_MOVE_HANDLE;
+            tht = figure->startTranslateHandle();
+            mouseMoved = false;
+            if (fe->selection.size()>1) {
+              fe->clearSelection();
+              fe->selection.insert(figure);
+              fe->sigSelectionChanged();
+            }
+            fe->invalidateFigure(figure);
+            return true;
+          }
+          ++h;
         }
-        fe->invalidateFigure(gadget);
-        return;
       }
-      h++;
-    }
+      break;
+    case TMouseEvent::MOVE:
+      if (!mouseMoved) {
+        if (down_x!=x || down_y != y) {
+          mouseMoved = true;
+          TUndoManager::beginUndoGrouping();
+        }
+      }
+      if (mouseMoved) {
+        fe->getModel()->translateHandle(figure, handle, x, y, me.modifier());
+      }
+      break;
+    case TMouseEvent::LUP:
+      if (mouseMoved) {
+        fe->getModel()->translateHandle(figure, handle, x, y, me.modifier());
+        TUndoManager::endUndoGrouping();
+      }
+      state = STATE_NONE;
+      figure->endTranslateHandle();
+      fe->invalidateFigure(figure);
+      figure = 0;
+      handle = -1;
+      break;
   }
+  return false;
 }
 
 void
 TDialogSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
-#if 0
-  if (!figure)
-    return;
-/*
-  // figure was deleted but we were not informed...
-  if (fe->selection.find(figure)==fe->selection.end()) {
-    stop(fe);
-    return;
+  // draw the selection marks over all figures
+  for_each(fe->selection.begin(), fe->selection.end(), [&] (TFigure *f) {
+    if (f->mat) {
+      pen.push();
+      pen.multiply(f->mat);
+    }
+    pen.setLineWidth(1);
+    if (f!=figure) {
+      f->paintSelection(pen, -1);
+    } else {
+      f->paintSelection(pen, handle);
+    }
+    if (f->mat)
+      pen.pop();
+  });
+
+  if (state==STATE_SELECT_RECT) {
+    pen.push();
+    pen.setColor(0,0,0);
+    pen.setLineStyle(TPen::DOT);
+    pen.setLineWidth(1);
+    pen.drawRectanglePC(down_x+0.5, down_y+0.5, select_x-down_x, select_y-down_y);
+    pen.pop();
   }
-*/
-  pen.push();
-  pen.setColor(TColor::FIGURE_SELECTION);
-/*
-  if (figure->mat)
-    pen.multiply(figure->mat);
-*/
-  pen.setLineWidth(1);
-  figure->paint(pen);
-  pen.setLineWidth(1);
-  figure->paintSelection(pen, -1);
-  pen.pop();
-#endif
+
 }
 
 void
@@ -530,7 +644,9 @@ TLayoutEditDialog::TLayoutEditDialog(TWindow *parent,
         rb = new TFatRadioButton(this, "Select", state);
 //        CONNECT(rb->sigClicked, &gedit, setOperation, TFigureEditor::OP_SELECT);
         CONNECT(rb->sigClicked, &gedit, setTool, TDialogSelectionTool::getTool());
+//        CONNECT(rb->sigClicked, &gedit, setTool, TDirectSelectionTool::getTool());
         rb->setDown(true);
+	rb->sigClicked(); // FIXME: calling setDown should implicitly do that
         break;
       case 1:
         rb = new TFatRadioButton(this, "Frame", state);
