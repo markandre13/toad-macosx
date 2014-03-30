@@ -43,12 +43,14 @@ TFImage::paint(TPenBase &pen, EPaintType)
   if (bitmap) {
     pen.drawBitmap(x, y, bitmap);
   } else {
-    pen.setColor(191, 191, 191);
+    pen.setFillColor(0.75, 0.75, 0.75);
+    pen.setLineColor(0, 0, 0);
     pen.fillRectangle(x, y, 32, 32);
+    pen.drawLine(x,y,x+32,y+32);
+    pen.drawLine(x+32,y,x,y+32);
   }
 }
 
-#if 0
 bool
 TFImage::startInPlace()
 {
@@ -60,7 +62,6 @@ TFImage::startInPlace()
   
   return false;
 }
-#endif
 
 void
 TFImage::getShape(TRectangle *r)

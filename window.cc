@@ -1043,30 +1043,47 @@ TWindow::destroyWindow()
 void
 TWindow::doModalLoop()
 {
+  if (runningAsModal) {
+    cerr << "error: TWindow::doModalLoop: FIXME: nesting not yet supported" << endl;
+    return;
+  }
   createWindow();
-  if (nswindow) {
-    runningAsModal = this;
-    if (!toad::layouteditor) {
-      [NSApp runModalForWindow: nswindow];
-    } else {
-      // we also need to receive events for the layout editor control window
-      // hence we run a modeless loop
-      while(runningAsModal == this) {
-          NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-          NSEvent *event =
-              [NSApp
-                  nextEventMatchingMask:NSAnyEventMask
-                  untilDate:[NSDate distantFuture]
-                  inMode:NSDefaultRunLoopMode
-                  dequeue:YES];
-          [NSApp sendEvent:event];
-          [NSApp updateWindows];
-	  [pool release];
-      }
-    }
-  } else {
+  if (!nswindow) {
     cerr << "error: TWindow::doModalLoop requires '" << getTitle() << "' to be top level window" << endl;
     exit(0);
+  }
+  runningAsModal = this;
+  // two reason on why we can use
+  //   [NSApp runModalForWindow: nswindow];
+/*    
+  if (false && !toad::layouteditor) {
+    [NSApp runModalForWindow: nswindow];
+  } else {
+    // we also need to receive events for the layout editor control window
+    // hence we run a modeless loop
+*/
+  while(runningAsModal == this) {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    NSEvent *event =
+        [NSApp
+            nextEventMatchingMask:NSAnyEventMask
+            untilDate:[NSDate distantFuture]
+            inMode:NSDefaultRunLoopMode
+            dequeue:YES];
+    NSWindow *wnd = [event window];
+    if ([wnd isKindOfClass:[toadWindow class]]) {
+      toadWindow *t = (toadWindow*)wnd;
+      if (nswindow == wnd || t->twindow->isChildOf(this) ) // ||
+//          (toad::layouteditor && t->twindow->isChildOf(toad::layouteditor)))
+      {
+        [NSApp sendEvent:event];
+        [NSApp updateWindows];
+      }
+    } else {
+      [NSApp sendEvent:event];
+      [NSApp updateWindows];
+    }
+    [pool release];
   }
   destroyWindow();
 }

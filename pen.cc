@@ -30,7 +30,47 @@ TPen::TPen(TWindow *w)
   font = new TFont;
   linestyle = SOLID;
   window = w;
+  pdfContext = 0;
   ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  windowmatrix = CGContextGetCTM(ctx);
+  setColor(0,0,0);
+  setAlpha(1);
+}
+
+TPen::TPen(const string &filename)
+{
+  CGRect pdfPageRect = CGRectMake(0,0,640,480);
+
+  CFStringRef path = CFStringCreateWithCString (NULL, filename.c_str(), kCFStringEncodingUTF8);
+
+  CFURLRef url = CFURLCreateWithFileSystemPath (NULL, path, kCFURLPOSIXPathStyle, 0);
+  CFRelease (path);
+
+  CFMutableDictionaryRef myDictionary = CFDictionaryCreateMutable(NULL, 0,
+                        &kCFTypeDictionaryKeyCallBacks,
+                        &kCFTypeDictionaryValueCallBacks);
+  CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
+  CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
+
+  pdfContext = CGPDFContextCreateWithURL (url, &pdfPageRect, myDictionary);
+  CFRelease(myDictionary);
+  CFRelease(url);
+
+  pdfPageDictionary = CFDictionaryCreateMutable(NULL, 0,
+                        &kCFTypeDictionaryKeyCallBacks,
+                        &kCFTypeDictionaryValueCallBacks);
+  pdfBoxData = CFDataCreate(NULL,(const UInt8 *)&pdfPageRect, sizeof (CGRect));
+  CFDictionarySetValue(pdfPageDictionary, kCGPDFContextMediaBox, pdfBoxData);
+  CGPDFContextBeginPage (pdfContext, pdfPageDictionary);
+
+  CGAffineTransform m = { 1, 0, 0, -1, 0, pdfPageRect.size.height };
+  CGContextConcatCTM(pdfContext, m);
+
+  ctx = pdfContext;
+
+  font = new TFont;
+  linestyle = SOLID;
+  window = 0;
   windowmatrix = CGContextGetCTM(ctx);
   setColor(0,0,0);
   setAlpha(1);
@@ -38,10 +78,18 @@ TPen::TPen(TWindow *w)
 
 TPen::TPen(TBitmap *)
 {
+  pdfContext = 0;
 }
 
 TPen::~TPen()
 {
+  if (pdfContext) {
+cout << "end page" << endl;
+    CGPDFContextEndPage(pdfContext);
+    CGContextRelease(pdfContext);
+    CFRelease(pdfPageDictionary);
+    CFRelease(pdfBoxData);
+  }
 }
 
 void
@@ -153,7 +201,8 @@ TPen::setClipRect(const TRectangle &r)
 {
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //cout << "setClipRect(" << r.x << ", " << r.y << ", " << r.w << ", " << r.h << ")" << endl;
-  CGContextClipToRect(ctx, CGRectMake(r.x-window->getOriginX(), r.y-window->getOriginY(), r.w, r.h));
+  if (window)
+    CGContextClipToRect(ctx, CGRectMake(r.x-window->getOriginX(), r.y-window->getOriginY(), r.w, r.h));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];

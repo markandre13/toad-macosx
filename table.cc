@@ -1144,20 +1144,20 @@ DBSCROLL(
         te.selected = selected;
         te.pen = &pen;
         te.type = TTableEvent::PAINT;
-cout << "paint event for field " << x << ", " << y << " at " << xp << ", " << yp << endl;
+//cout << "paint event for field " << x << ", " << y << " at " << xp << ", " << yp << endl;
         adapter->tableEvent(te);
       } else {
-cout << "no paint event for field " << x << ", " << y << " at " << xp << ", " << yp
-     << " because check " << check.x << ", " << check.y << ", " << check.w << ", " << check.h
-     << " is not in region:" << endl;
-TRegion *r = getUpdateRegion();
-for(size_t i=0; i<r->getNumRects(); ++i) {
-  TRectangle b;
-  r->getRect(i, &b);
-  cout << "  " << b.x << ", " << b.y << ", " << b.w << ", " << b.h << endl;
-
-  cout << (getUpdateRegion()->isIntersecting(check) ? "overlap" : "disjunct") << endl;
-}
+//cout << "no paint event for field " << x << ", " << y << " at " << xp << ", " << yp
+//     << " because check " << check.x << ", " << check.y << ", " << check.w << ", " << check.h
+//     << " is not in region:" << endl;
+//TRegion *r = getUpdateRegion();
+//for(size_t i=0; i<r->getNumRects(); ++i) {
+//  TRectangle b;
+//  r->getRect(i, &b);
+//  cout << "  " << b.x << ", " << b.y << ", " << b.w << ", " << b.h << endl;
+//
+//  cout << (getUpdateRegion()->isIntersecting(check) ? "overlap" : "disjunct") << endl;
+//}
       }
       xp += col_info[x].size + border;
     }
@@ -1456,6 +1456,7 @@ TTable::mouseLDown(const TMouseEvent &m)
 
   // invoke adapter mouseEvent (ie. for tree widgets, check boxes, etc.)
   if (adapter) {
+cout << "TTable::mouseLDown::adapter: dblClick="<<(m.dblClick?"true":"false")<<endl;
     TMouseEvent me(m, fx, fy);
     TTableEvent te;
     te.mouse = &me;

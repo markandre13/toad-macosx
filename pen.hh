@@ -38,6 +38,11 @@ class TPen:
     TWindow *window;
     CGContextRef ctx; // Quartz2D Graphics Context
 
+    // Quartz 2D PDF
+    CGContextRef pdfContext;
+    CFDataRef pdfBoxData;
+    CFMutableDictionaryRef pdfPageDictionary;
+
     NSBezierPath *clipPath;
     
     TMatrix2D windowmatrix; // Cocoa's initial matrix for the window.
@@ -48,6 +53,7 @@ class TPen:
   public:
     TPen(TWindow *);
     TPen(TBitmap *);
+    TPen(const string &filename);
     ~TPen();
 
     void setFont(const string&);

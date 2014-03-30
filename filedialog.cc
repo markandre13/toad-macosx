@@ -44,8 +44,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-
-
 #define FINAL_FILEDIALOG
 #define RESOURCE(file) "tresource/" file
 //#define RESOURCE(file) "memory://toad/" file
@@ -769,6 +767,7 @@ TDirectory::load(const string &cwd, const TFileFilter *filter, bool hidden)
         !S_ISDIR(st.st_mode) &&
         !filter->doesMatch(de->d_name))
       continue;
+
     TDirectoryEntry e;
     e.name = de->d_name;
     e.mode = st.st_mode;

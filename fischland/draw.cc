@@ -1018,8 +1018,8 @@ TMainWindow::menuPrint()
     void paint() {
   // current page
 */
-#if 0
-  TCairo pen(/*this*/ "output.pdf");
+#if 1
+  TPen pen("output.pdf");
   pen.scale(1.0/(96.0), 1.0/(96.0));
   pen.setLineWidth(96.0);
 
@@ -1190,7 +1190,9 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   TCLOSURE1(
     a->sigClicked,
     gw, me,
-    gw->addFigure(new TFImage());
+    TFImage *img = new TFImage();
+    img->startInPlace();
+    gw->addFigure(img);
   )
 
   a = new TAction(this, "slide|slides");

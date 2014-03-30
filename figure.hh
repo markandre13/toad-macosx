@@ -578,6 +578,7 @@ class TFImage:
   public:
     TFImage();
     TFImage(const string &filename);
+    bool startInPlace();
 
     void paint(TPenBase &, EPaintType);
     void getShape(TRectangle*);

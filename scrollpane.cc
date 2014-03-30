@@ -186,11 +186,11 @@ TScrollPane::doLayout()
     visible.h -= TScrollBar::getFixedSize()-1;
   }
   
-  DBM(cout
-      << "doLayout:" << endl
-      << "visible  = "<<visible<<endl
-      << "pane     = "<<pane<<endl
-      << "need h,v = "<<need_hscroll<<", "<<need_vscroll<<endl;)
+cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
+     << "visible  = "<<visible<<endl
+     << "pane     = "<<pane<<endl
+     << "need h,v = "<<need_hscroll<<", "<<need_vscroll<<endl
+     << "vscroll = " << vscroll << endl;
 
   if (need_vscroll) {
     if (!vscroll) {  
