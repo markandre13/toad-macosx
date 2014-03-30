@@ -45,7 +45,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   TFigure *figure;
   TCoord x, y;
   TRectangle r;
-  
+
   switch(me.type) {
     case TMouseEvent::LDOWN:
       if (fe->state == TFigureEditor::STATE_NONE) {
@@ -96,7 +96,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         break;
       }
       
-      if (!me.modifier() & MK_SHIFT) {
+      if (!(me.modifier() & MK_SHIFT)) {
         fe->clearSelection();
       }
       if (!selection.empty()) {
