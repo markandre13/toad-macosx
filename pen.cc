@@ -224,8 +224,10 @@ TPen::getClipBox(TRectangle *r) const
 }
 
 void
-TPen::setFont(const string &)
+TPen::setFont(const string &fn)
 {
+  font->setFont(fn);
+//  cerr << "TPen::setFont(\"" << fn << "\")" << endl;
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
@@ -395,13 +397,12 @@ TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transpare
     setFillColor(fill2.r, fill2.g, fill2.b);
   }
   NSDictionary *textAttributes =
-    [NSDictionary
-      dictionaryWithObject: 
-        [NSColor colorWithDeviceRed: stroke.r 
-                              green: stroke.g 
-                              blue:  stroke.b
-                              alpha: 1.0]
-      forKey: NSForegroundColorAttributeName];
+    [NSDictionary dictionaryWithObjectsAndKeys:
+      font->nsfont,
+        NSFontAttributeName,
+      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue:  stroke.b alpha: 1.0],
+        NSForegroundColorAttributeName,
+      nil];
   [[NSString stringWithUTF8String: t?t:aText]
     drawAtPoint: NSMakePoint(x, y-getDescent())
     withAttributes: textAttributes];

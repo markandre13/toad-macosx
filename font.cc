@@ -30,26 +30,33 @@ PFont toad::bold_font;
   reference counting via retain&release must be done here
 */
 
+/*
+  NSFontManager *fm = [NSFontManager sharedFontManager];
+  NSArray *fl = [fm availableFontFamilies];
+  for(NSUInteger i=0; i<[fl count]; ++i) {
+    cout << "'" << [[fl objectAtIndex: i] UTF8String] << "'" << endl;
+  }
+*/
+
 // TFont toad::default_font("arial,helvetica,sans-serif:size=12");
 
 TFont::TFont()
 {
+  nsfont = 0;
   setFont("arial,helvetica,sans-serif:size=12");
-  nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
-  [nsfont retain];
 //cerr << "TFont::TFont() -> nsfont=" << nsfont << endl;
 }
 
 TFont::TFont(const TFont &f) {
-  nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
+  nsfont = f.nsfont;
+  fcname = f.fcname;
   [nsfont retain];
 //cerr << "TFont::TFont(const TFont&) -> nsfont=" << nsfont << endl;
 }
 
 TFont::TFont(const string &fontname) {
+  nsfont = 0;
   setFont(fontname);
-  nsfont = [NSFont fontWithName: @"Helvetica" size:12.0];
-  [nsfont retain];
 //cerr << "TFont::TFont(const string&) -> nsfont=" << nsfont << endl;
 }
 
@@ -61,14 +68,50 @@ TFont::~TFont()
 }
 
 void
-TFont::setFont(const string &fontname)
+TFont::setFont(const string &fn)
 {
+  fcname = fn;
+  if (nsfont)
+    [nsfont release];
+  string family;
+  string::const_iterator p0=fn.begin(), p=p0, p1;
+  for(; p!=fn.end(); ++p) {
+    if (*p == ',') {
+      if (family.empty())
+        family = string(p0, p);
+//      cout << "family: " << string(p0, p) << endl;
+      p0 = p + 1;
+    } else
+    if (*p == ':') {
+      break;
+    }
+  }
+  if (family.empty())
+    family = string(p0, p);
+//  cout << "family: " << string(p0, p) << endl;
+  p0=p+1;
+  for(; p!=fn.end(); ++p) {
+    if (*p=='=') {
+      p1=p;
+    }
+  }
+  int size = 0;
+  if (*p1 && string(p0, p1)=="size") {
+    size = atoi(string(p1+1, p).c_str());
+  }
+  if (family.empty())
+    family = "Helvetica";
+  if (size==0)
+    size = 12;
+//cout << "TFont::setFont(" << fn << ") -> " << family << ", " << size << endl;
+  nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: family.c_str()] size:size];
+  [nsfont retain];
 }
 
 const char*
 TFont::getFont() const
 {
-  return "Helvetica";
+  return fcname.c_str();
 }
 
 void
@@ -85,6 +128,7 @@ TFont::getFamily() const
 void
 TFont::setSize(double size)
 {
+  cout << "Font::setSize" << size << endl;
 }
 
 double

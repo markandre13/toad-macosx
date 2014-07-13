@@ -22,6 +22,7 @@
 #define __TOAD_PEN_HH 1
 
 #include <toad/penbase.hh>
+#include <toad/font.hh>
 #include <vector>
 #include <iostream>
 

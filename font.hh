@@ -114,9 +114,12 @@ class TFontManagerFT:
 class TFont:
   public TSmartObject
 {
+public:
     NSFont *nsfont;
 
-  public:
+//  public:
+    string fcname;
+
     TFont();
     TFont(const TFont &f);
     TFont(const string &fontname);

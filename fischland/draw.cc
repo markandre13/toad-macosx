@@ -1704,6 +1704,7 @@ main(int argc, char **argv, char **envv)
 
 #else
   toad::initialize(argc, argv);
+
 //    createMemoryFiles();
   toad::getDefaultStore().registerObject(new TPage());
   toad::getDefaultStore().registerObject(new TCollection());
