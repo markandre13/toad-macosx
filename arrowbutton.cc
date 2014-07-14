@@ -76,18 +76,20 @@ TArrowButton::mouseLDown(const TMouseEvent &)
   sigArm();
   sigClicked();
   delay = 0;
-//  startTimer(0, 1000000/48);
+  startTimer(0, 1000000/48);
 }
 
 void
 TArrowButton::mouseLUp(const TMouseEvent &)
 {
-  if (!bDown)
+  if (!bDown) {
+    cout << "  not bDown" << endl;
     return;
+  }
   bDown=false;
   invalidateWindow();
   sigDisarm();
-//  stopTimer();
+  stopTimer();
 }
 
 void

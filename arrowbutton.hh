@@ -22,12 +22,12 @@
 #define _TOAD_ARROWBUTTON_HH
 
 #include <toad/pushbutton.hh>
-//#include <toad/simpletimer.hh>
+#include <toad/simpletimer.hh>
 
 namespace toad {
 
 class TArrowButton: 
-  public TPushButton /*, TSimpleTimer */
+  public TPushButton, TSimpleTimer
 {
   public:
     enum EArrowType {

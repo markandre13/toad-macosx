@@ -87,6 +87,7 @@ class TTextArea::TBlink:
   public:
   TBlink() {
     current = NULL;
+    visible = blink = false;
   }
   TTextArea *current;
   bool visible;           // true: draw text cursor
@@ -100,9 +101,10 @@ TTextArea::TBlink blink;
 void
 TTextArea::TBlink::tick()
 {
+//cout << "TTextArea::TBlink::tick(): " << endl;
 //return;
   if (!current) {      // sanity check, not needed
-    cout << "  no current => " << endl;
+//    cout << "  no current => " << endl;
     return;
   }
   blink = !blink;
@@ -111,6 +113,7 @@ TTextArea::TBlink::tick()
     current->_invalidate_line(current->_cy, false);
     current->paintNow();
   }
+//cout << "TTextArea::TBlink::tick(): blink="<<(blink?"true":"false")<<", visible="<<(visible?"true":"false")<<endl;
 }  
 
 TTextArea::TPreferences::TPreferences()
@@ -1151,7 +1154,8 @@ cerr << "  selection: " << bos << " - " << eos << endl;
       
       // draw cursor
       if (blink.visible && blink.current==this && sy==_cy) {
-        pen.setColor(0,0,0);
+//        pen.setColor(0,0,0); // X11: invert?
+          pen.setColor(1,1,1); // Cocoa: for invert it must the 1
 //cerr << "2 sx=" << sx << endl;
 //string l2 = line.substr(0, utf8bytecount(line, 0, sx));
 //cerr << "'" << l2 << "'\n";

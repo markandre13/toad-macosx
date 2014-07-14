@@ -1518,6 +1518,7 @@ class TMyWindow:
 };
 #endif
 
+void test_timer();
 void test_table();
 void test_scroll();
 void test_dialog();
@@ -1526,6 +1527,12 @@ int
 main(int argc, char **argv, char **envv)
 {
   if (argc>=2) {
+    if (strcmp(argv[1], "--test-timer")==0) {
+      toad::initialize(argc, argv);
+      test_timer();
+      toad::terminate();
+      return 0;
+    } else
     if (strcmp(argv[1], "--test-table")==0) {
       toad::initialize(argc, argv);
       test_table();

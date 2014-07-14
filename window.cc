@@ -1373,7 +1373,8 @@ TWindow::setToolTip(const string &text)
 void
 TWindow::paintNow()
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  invalidateWindow();
+//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void

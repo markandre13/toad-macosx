@@ -26,25 +26,20 @@
 #include <toad/types.hh>
 #include <sys/time.h>
 
+@class toadTimerListener;
+@class NSTimer;
+
 namespace toad {
 
 class TOADBase;
 
 class TSimpleTimer
 {
-  public:
-    struct less;
   private:
-    friend struct less;
-    struct timeval _interval;
-    struct timeval _next;
-    bool _running:1;
-    bool _executing:1;
+    toadTimerListener *listener;
+    NSTimer *nstimer;
   public:
-    TSimpleTimer() {
-      _running = false;
-      _executing = false;
-    }
+    TSimpleTimer();
     virtual ~TSimpleTimer();
     virtual void tick()=0;
     void startTimer(ulong sec, ulong usec=0, bool skip_first=false);
