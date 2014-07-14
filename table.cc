@@ -578,6 +578,8 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
     x = (w - pen.getTextWidth(txt))/2;
     y = (h - pen.getHeight())/2;
   }
+  x = round(x);
+  y = round(y);
   
   if (x<0)
     x=0;
