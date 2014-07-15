@@ -50,7 +50,8 @@ TFont::TFont()
 TFont::TFont(const TFont &f) {
   nsfont = f.nsfont;
   fcname = f.fcname;
-  [nsfont retain];
+  if (nsfont)
+    [nsfont retain];
 //cerr << "TFont::TFont(const TFont&) -> nsfont=" << nsfont << endl;
 }
 
@@ -105,6 +106,10 @@ TFont::setFont(const string &fn)
     size = 12;
 //cout << "TFont::setFont(" << fn << ") -> " << family << ", " << size << endl;
   nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: family.c_str()] size:size];
+  if (!nsfont) {
+    cerr << "failed to find font '" << family << "', using 'Helvetica instead" << endl;
+    nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: "Helvetica"] size:size];
+  }
   [nsfont retain];
 }
 
@@ -156,7 +161,7 @@ TFont::setSlant(int slant)
 int
 TFont::getSlant() const
 {
-	return 0;
+  return 0;
 }
 
 int
@@ -177,6 +182,8 @@ TFont::getDescent() {
 int
 TFont::getTextWidth(const char *text)
 {
+  if (!nsfont)
+    return 0;
   // widthOfString is deprecated sind Mac OS X v10.4 and not available to 64bit applications
   // return [nsfont widthOfString: [NSString stringWithUTF8String: text]];
   NSDictionary *attributes = [NSDictionary dictionaryWithObject: nsfont forKey: NSFontAttributeName];
