@@ -195,20 +195,73 @@ TWindow::getRootPos(int *x,int *y)
 void
 TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
 {
-  int px, py;
+cout<<"TWindow::placeWindow()" << endl;
+  TCoord px, py;
+  TCoord sw, sh;
+
+  TRectangle where;
+  switch(how) {
+    case PLACE_PARENT_RANDOM:
+    case PLACE_PARENT_CENTER: {
+      if (!parent)
+        return;
+      parent->getShape(&where);
+      NSScreen *mainScreen = [parent->nswindow screen];
+      NSRect r = [mainScreen visibleFrame];
+      sw = r.size.width;
+      sh = r.size.height;
+    } break;
+    case PLACE_SCREEN_RANDOM:
+    case PLACE_SCREEN_CENTER: {
+      NSScreen *mainScreen;
+      if (nswindow)
+        mainScreen = [nswindow screen];
+      else
+        mainScreen = [NSScreen mainScreen];
+      NSRect r = [mainScreen visibleFrame];
+      where.set(0,0,r.size.width,r.size.height);
+      sw = r.size.width;
+      sh = r.size.height;
+    } break;
+  }
+  
   switch(how) {
     case PLACE_SCREEN_CENTER:
-      if (nswindow)
+    case PLACE_PARENT_CENTER: {
+      if (nswindow) {
         [nswindow center];
-      break;
+        return;
+      }
+      x = where.x + (where.w/2) - (w/2);
+      y = where.y + (where.h/2) - (h/2);
+    } break;
     case PLACE_SCREEN_RANDOM:
-      break;
-    case PLACE_PARENT_CENTER:
-      break;
-    case PLACE_PARENT_RANDOM: 
-      break;
-    case PLACE_MOUSE_POINTER:
-      break;
+    case PLACE_PARENT_RANDOM: {
+      x = where.x + (where.w/2) - (w/2);
+      y = where.y + (where.h/2) - (h/2);
+      int xr = (int) (0.5*where.w*rand()/(RAND_MAX+1.0));
+      xr-=(where.w/4);
+      x+=xr;
+      int yr = (int) (0.5*where.h*rand()/(RAND_MAX+1.0));
+      yr-=(where.h/4);
+      y+=yr;
+      
+      // keep window inside the screen boundarys
+      static const TCoord dist = 32;
+      if (x+w>sw-dist)
+	x = sw-w-dist;
+      if (y+h>sh-dist)
+        y = sh-h-dist;
+      if (x<dist)
+        x=dist;   
+      if (y<dist)
+        y=dist;
+    } break;
+    case PLACE_MOUSE_POINTER: {
+      NSPoint p = [NSEvent mouseLocation];
+      x = p.x - w/2;
+      y = p.y - h/2;
+      } break;
     case PLACE_CORNER_MOUSE_POINTER: {
       NSPoint p = [NSEvent mouseLocation];
       x = p.x;
@@ -869,9 +922,9 @@ TWindow::TWindow(TWindow *parent, const string &title):
   }
   nsview = nil;
   nswindow = nil;
-  x = y = 0;
-  w = 320;
-  h = 200;
+  set(0,0,320,200);
+  if (!parent)
+    placeWindow(PLACE_SCREEN_CENTER);
   _bg.set(1, 1, 1);
   layout = 0;
   
@@ -945,6 +998,8 @@ TWindow::createWindow()
   // wait for parent
   if (getParent() && !flagShell && !flagPopup && !getParent()->nsview)
     return;
+
+//cout << "TWindow::createWindow()" << endl;
 
   nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
   nsview->twindow = this;
@@ -1096,6 +1151,8 @@ TWindow::setMapped(bool b)
   if (_mapped==b)
     return;
   _mapped = b;
+
+//cout << "TWindow::setMapped("<<(b?"true":"false")<<")"<<endl;
 
   if (b && nswindow) {
     // FIXME: only the size, see also placeWindow
