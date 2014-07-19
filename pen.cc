@@ -380,16 +380,14 @@ TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transpare
 
   CFRelease(font);
 #endif
-#if 1
+#if 0
   // Cocoa
   char *t = 0;
   if (strlen(aText)!=len) {
     t = strdup(aText);
     t[len] = 0;
   }
-//cerr<<"vdrawString("<<x<<","<<y<<",\""<<text<<"\","<<len<<","<<transparent<<")\n";
   if (!transparent) {
-//cerr << "  not transparent" << endl;
     TRGBA stroke2 = stroke, fill2 = fill;
     setColor(fill2.r, fill2.g, fill2.b);    
     fillRectanglePC(x,y,getTextWidth(t?t:aText),getHeight());
@@ -404,13 +402,46 @@ TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transpare
         NSForegroundColorAttributeName,
       nil];
   [[NSString stringWithUTF8String: t?t:aText]
-    drawAtPoint: NSMakePoint(x, y-getDescent())
-    withAttributes: textAttributes];
-/*
-  [[NSString stringWithUTF8String: text]
     drawAtPoint: NSMakePoint(x, y)
-    withAttributes: [[NSGraphicsContext currentContext] attributes]];
-*/
+    withAttributes: textAttributes];
+
+  if (t)
+    free(t);
+#endif
+#if 1
+  // CoreText
+  char *t = 0;
+  if (strlen(aText)!=len) {
+    t = strdup(aText);
+    t[len] = 0;
+  }
+  if (!transparent) {
+    TRGBA stroke2 = stroke, fill2 = fill;
+    setColor(fill2.r, fill2.g, fill2.b);    
+    fillRectanglePC(x,y,getTextWidth(t?t:aText),getHeight());
+    setLineColor(stroke2.r, stroke2.g, stroke2.b);
+    setFillColor(fill2.r, fill2.g, fill2.b);
+  }
+  NSDictionary *textAttributes =
+    [NSDictionary dictionaryWithObjectsAndKeys:
+      font->nsfont,
+        NSFontAttributeName,
+      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue:  stroke.b alpha: 1.0],
+        NSForegroundColorAttributeName,
+      nil];
+  NSAttributedString *attrString = 
+    [[NSAttributedString alloc]
+      initWithString:[NSString stringWithUTF8String: t?t:aText]
+      attributes:textAttributes];
+
+  CGAffineTransform m = { 1, 0, 0, -1, 0, 0 };
+  CGContextSetTextMatrix(ctx, m);
+
+  CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attrString);
+  CGContextSetTextPosition(ctx, x, y + [font->nsfont pointSize]);
+  CTLineDraw(line, ctx);
+  CFRelease(line);
+
   if (t)
     free(t);
 #endif
