@@ -101,12 +101,12 @@ class TPenBase
     virtual void drawLines(const TPoint *points, size_t n) = 0; 
     virtual void drawLines(const TPolygon&) = 0;
 
-    int getTextWidth(const char* text, size_t len) const { return font->getTextWidth(text, len); }
-    int getTextWidth(const char* text) { return font->getTextWidth(text, strlen(text)); }
-    int getTextWidth(const string &text) const { return font->getTextWidth(text.c_str(), text.size()); }
-    int getAscent() const { return font->getAscent(); }
-    int getDescent() const { return font->getDescent(); }
-    int getHeight() const { return font->getHeight(); }
+    TCoord getTextWidth(const char* text, size_t len) const { return font->getTextWidth(text, len); }
+    TCoord getTextWidth(const char* text) { return font->getTextWidth(text, strlen(text)); }
+    TCoord getTextWidth(const string &text) const { return font->getTextWidth(text.c_str(), text.size()); }
+    TCoord getAscent() const { return font->getAscent(); }
+    TCoord getDescent() const { return font->getDescent(); }
+    TCoord getHeight() const { return font->getHeight(); }
 
     void setColor(TCoord r, TCoord g, TCoord b) { vsetColor(r, g, b); }
     void setLineColor(TCoord r, TCoord g, TCoord b) { vsetLineColor(r, g, b); }

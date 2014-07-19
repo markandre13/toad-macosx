@@ -139,7 +139,7 @@ TFont::setSize(double size)
 double
 TFont::getSize() const
 {
-  return 12;
+  return nsfont ? [nsfont pointSize] : 0;
 }
 
 void
@@ -164,22 +164,22 @@ TFont::getSlant() const
   return 0;
 }
 
-int
+TCoord
 TFont::getHeight() { 
-  return [nsfont ascender] - [nsfont descender];
+  return ([nsfont ascender] + [nsfont leading] - [nsfont descender]);
 }
 
-int
+TCoord
 TFont::getAscent() {
-  return [nsfont ascender];
+  return ([nsfont ascender] + [nsfont leading]);
 }
 
-int
+TCoord
 TFont::getDescent() {
-  return -[nsfont descender];
+  return (-[nsfont descender]);
 }
 
-int
+TCoord
 TFont::getTextWidth(const char *text)
 {
   if (!nsfont)
@@ -192,9 +192,9 @@ TFont::getTextWidth(const char *text)
   return size.width;
 }
 
-int
+TCoord
 TFont::getTextWidth(const char *text, size_t n) {
-  int w;
+  TCoord w;
   char *t = 0;
   if (strlen(text)>n) {
     t = strdup(text);

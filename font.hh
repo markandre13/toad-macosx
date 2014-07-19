@@ -27,6 +27,7 @@
 #include <string>
 #include <cstring>
 #include <toad/pointer.hh>
+#include <toad/types.hh>
 // #include <fontconfig/fontconfig.h>
 
 #include <iostream>
@@ -139,12 +140,12 @@ public:
 
 //    FcPattern *font;
 
-    int getHeight();
-    int getAscent();
-    int getDescent();
-    int getTextWidth(const char *text);
-    int getTextWidth(const char *text, size_t n);
-    int getTextWidth(const string &text) {
+    TCoord getHeight();
+    TCoord getAscent();
+    TCoord getDescent();
+    TCoord getTextWidth(const char *text);
+    TCoord getTextWidth(const char *text, size_t n);
+    TCoord getTextWidth(const string &text) {
       return getTextWidth(text.c_str());
     }
     
