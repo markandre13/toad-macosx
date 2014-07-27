@@ -1518,6 +1518,7 @@ class TMyWindow:
 };
 #endif
 
+void test_combobox();
 void test_timer();
 void test_table();
 void test_scroll();
@@ -1527,6 +1528,12 @@ int
 main(int argc, char **argv, char **envv)
 {
   if (argc>=2) {
+    if (strcmp(argv[1], "--test-combobox")==0) {
+      toad::initialize(argc, argv);
+      test_combobox();
+      toad::terminate();
+      return 0;
+    } else
     if (strcmp(argv[1], "--test-timer")==0) {
       toad::initialize(argc, argv);
       test_timer();

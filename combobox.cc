@@ -66,14 +66,12 @@ TComboBox::TComboBox(TWindow * parent, const string &title):
 void
 TComboBox::paint()
 {
-cout << "TComboBox::paint" << endl;
   TPen pen(this);
 
   pen.draw3DRectanglePC(0,0, getWidth(), getHeight());
   if (!table->getAdapter()) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectanglePC(2,2, getWidth()-4, getHeight()-4);
-cout << "  no table adapter" << endl;
     return;
   }
 #if 1
@@ -106,7 +104,6 @@ if (sm && sm->empty())
     te.cursor = false;
     te.selected = false;
     te.focus = true;
-cout << "  call adapter for paint" << endl;
     table->getAdapter()->tableEvent(te);
   }
 
@@ -121,7 +118,6 @@ cout << "  call adapter for paint" << endl;
 void
 TComboBox::resize()
 {
-cout << "TComboBox '"<<getTitle()<<"': resize " << w << ", " << h << endl;
   btn->setShape(
     getWidth()-TScrollBar::getFixedSize()+1 -2, 2,
     TScrollBar::getFixedSize(), getHeight()-4
@@ -143,27 +139,20 @@ TComboBox::focus(bool b)
 void
 TComboBox::button()
 {
-cout << "TComboBox " << getTitle() << " button isDown=" << (btn->isDown()?"true":"false") << endl;
-//return;
-
   if (btn->isDown()) {
-cout << "*** TComboBox::button: is down" << endl;
     if (!isFocus())
       setFocus();
     table->setSize(getWidth(), (getDefaultFont().getHeight()+1)*8);
     table->placeWindow(PLACE_PULLDOWN, this);
     table->setMapped(true);
     if (table->isRealized()) {
-cout << "raise combobox popup" << endl;
       table->raiseWindow();
     } else {
-cout << "create combobox popup" << endl;
       table->createWindow();
     }
     table->setFocus();
     grabPopupMouse();
   } else {
-cout << "*** TComboBox::button: is up" << endl;
     table->setMapped(false);
     ungrabMouse();
   }
@@ -230,6 +219,7 @@ TComboBox::keyDown(TKey key, char *string, unsigned modifier)
 void
 TComboBox::closeRequest()
 {
+cout << "TComboBox::closeRequest" << endl;
   btn->setDown(false);
 }
 

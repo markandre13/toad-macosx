@@ -21,3 +21,26 @@ o TPen
   + draw string
 o TFont
   + create/destroy
+
+----------------
+a "key window" is the one which currently receives keyboard events.
+a "main window" is the one highlighted.
+
+"key window" and "main window" are usually the same. exceptions are small
+dialogs which affect the main window, ie. a save file dialog.
+
+an example for a window which doesn't become a key window is NSPanel.
+
+isKeyWindow
+canBecomeKeyWindow
+  default is 'YES'
+makeKeyWindow
+
+becomeKeyWindow
+resignKeyWindow
+
+acceptsFirstMouse
+
+acceptsFirstResponder
+becomeFirstResponder
+resignFirstResponder

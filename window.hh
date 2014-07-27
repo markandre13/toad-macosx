@@ -198,6 +198,7 @@ class TWindow:
     bool _allMouseMoveEvents:1;
     void _down(TMouseEvent::EType type, NSEvent *theEvent);
     void _up(TMouseEvent::EType type, NSEvent *theEvent);
+    static void _windowWillMove(NSNotification *theNotification);
     static void _windowDidMove(NSNotification *theNotification);
 
     //! don't create window when parent is created
@@ -235,6 +236,7 @@ class TWindow:
     static unsigned getParentlessCount();
     static TWindow* getParentless(unsigned);
 
+    virtual void closeRequest();
     void createWindow();
     void destroyWindow();
     void doModalLoop();
@@ -256,7 +258,7 @@ class TWindow:
 
     void grabMouse(bool allmove=true, TWindow *confine=0, TCursor::EType type=TCursor::DEFAULT);
     void grabPopupMouse(bool allmove=true, TCursor::EType type=TCursor::DEFAULT);
-    void ungrabMouse();
+    static void ungrabMouse();
     
     void getRootPos(int*,int*);
     enum EWindowPlacement {

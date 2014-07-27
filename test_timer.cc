@@ -1,4 +1,3 @@
-// #include <toad/toad.hh>
 #include <toad/window.hh>
 #include <toad/simpletimer.hh>
 

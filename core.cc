@@ -16,6 +16,7 @@ using namespace toad;
 - (void) createMenu;  
 - (void) applicationWillFinishLaunching:(NSNotification *)notification;
 - (void) applicationDidFinishLaunching:(NSNotification *)notification;
+- (void) windowWillMove:(NSNotification *)notification;
 - (void) windowDidMove:(NSNotification *)notification;
 @end
 
@@ -62,6 +63,11 @@ using namespace toad;
   [self createMenu];  
 }
 
+- (void) windowWillMove: (NSNotification *)notification;
+{
+  TWindow::_windowWillMove(notification);
+}
+
 - (void) windowDidMove: (NSNotification *)notification;
 {
   TWindow::_windowDidMove(notification);
@@ -90,6 +96,9 @@ toad::initialize(int argc, char *argv[])
   ToadDelegate *delegate = [ToadDelegate new];
   [NSApp setDelegate: delegate];
   
+  [[NSNotificationCenter defaultCenter] addObserver:delegate
+      selector:@selector(windowWillMove:)
+          name:NSWindowWillMoveNotification object:nil];
   [[NSNotificationCenter defaultCenter] addObserver:delegate
       selector:@selector(windowDidMove:)
           name:NSWindowDidMoveNotification object:nil];

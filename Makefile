@@ -24,7 +24,8 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/rectangle.cc figure/window.cc \
 	   \
-	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc
+	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
+	   test_combobox.cc
 		
 SRC_COCOA=window.cc pen.cc
 
