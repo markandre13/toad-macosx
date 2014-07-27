@@ -155,7 +155,6 @@ TWindow::grabMouse(bool allmove, TWindow *confine, TCursor::EType type)
 }
 
 static TWindow *grabPopupWindow = 0;
-static TWindow *oldGrabPopupWindow = 0;
 
 void
 TWindow::grabPopupMouse(bool allmove, TCursor::EType type)
@@ -166,7 +165,6 @@ TWindow::grabPopupMouse(bool allmove, TCursor::EType type)
     ungrabMouse();
   }
   grabPopupWindow = this;
-  oldGrabPopupWindow = 0;
   lastMouse = 0;
 }
 
@@ -176,7 +174,6 @@ TWindow::ungrabMouse()
   if (grabPopupWindow) {
     TWindow *wnd = grabPopupWindow;
     grabPopupWindow = 0;
-    oldGrabPopupWindow = 0;
     wnd->closeRequest();
     return;
   }
@@ -471,12 +468,12 @@ TWindow::destroyParentless()
 }
 - (void)becomeKeyWindow {
   [super becomeKeyWindow];
-  printf("%s\n", __FUNCTION__);
+//  printf("%s\n", __FUNCTION__);
   TFocusManager::domainToWindow(twindow);
 }
 - (void)resignKeyWindow {
   [super resignKeyWindow];
-  printf("%s\n", __FUNCTION__);
+//  printf("%s\n", __FUNCTION__);
   if (grabPopupWindow)
     TWindow::ungrabMouse();
   TFocusManager::domainToWindow(0);
@@ -638,19 +635,19 @@ static TRegion *updateRegion = 0;
  */
 - (BOOL)acceptsFirstResponder
 {
-  printf("accept focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+//  printf("accept focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
   return YES;
 }
 
 - (BOOL)becomeFirstResponder
 {
-  printf("became focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+//  printf("became focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
   return YES;
 }
 
 - (BOOL)resignFirstResponder
 {
-  printf("lost focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+//  printf("lost focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
   return YES;
 }
  
@@ -694,6 +691,7 @@ static void _doMouse2(TWindow *twindow, TMouseEvent &me)
 // handle grabPopUp mouse and enter/leave event generation
 static void _doMouse(TWindow *twindow, TMouseEvent &me)
 {
+/*
 if (me.type == TMouseEvent::LUP)
 {
   cerr << "_doMouse: LUP -----------------------------------------------------" << endl;
@@ -706,6 +704,7 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
   cerr << "_doMouse: TWindow='"<<twindow->getTitle()<<"', layout=" << twindow->layout << endl;
   cerr << "twindow=" << twindow << ", grabPopupWindow=" << grabPopupWindow << endl;
 }
+*/
   TWindow *mouseOver = 0;
   
   if (grabPopupWindow) {
@@ -769,19 +768,17 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
   }
 
   _doMouse2(twindow, me);
-  if (grabPopupWindow &&
-       ( me.type == TMouseEvent::LUP ||
-         me.type == TMouseEvent::MUP ||
-         me.type == TMouseEvent::RUP ) )
+
+  if ( grabPopupWindow &&
+       twindow != grabPopupWindow &&
+       ( me.type == TMouseEvent::LDOWN ||
+         me.type == TMouseEvent::MDOWN ||
+         me.type == TMouseEvent::RDOWN ) &&
+       !twindow->isChildOf(grabPopupWindow) )
   {
-    if (oldGrabPopupWindow) {
-      if (grabPopupWindow == grabPopupWindow)
-        TWindow::ungrabMouse();
-      oldGrabPopupWindow = 0;
-    } else {
-      oldGrabPopupWindow = grabPopupWindow;
-    }
+    TWindow::ungrabMouse();
   }
+/*
 if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
   cerr << "twindow=" << twindow << ", grabPopupWindow=" << grabPopupWindow << endl;
 }
@@ -789,8 +786,7 @@ if (me.type == TMouseEvent::LDOWN)
   cerr << "_doMouse: LDOWN done -----------------------------------------------" << endl;
 if (me.type == TMouseEvent::LUP)
   cerr << "_doMouse: LUP done -------------------------------------------------" << endl;
-
-
+*/
 }
 
 - (void) mouseEntered:(NSEvent*)theEvent
