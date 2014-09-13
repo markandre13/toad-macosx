@@ -1049,7 +1049,6 @@ TMainWindow::newEditModel()
   e->slide.select(0,0);
   e->layer.select(0,0);
   e->figuremodel = &doc->content[0].content[0].content;
-  e->modelpath.push_back(e->figuremodel);
   return e;
 }
 
