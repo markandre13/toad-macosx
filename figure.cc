@@ -289,6 +289,7 @@ TFigure::paintSelection(TPenBase &pen, int handle)
     pen.setLineWidth(1);
     if (handle!=h) {
       pen.fillRectanglePC(x-2,y-2,5,5);
+      pen.drawRectanglePC(x-2,y-2,5,5);
     } else {
       pen.setFillColor(TColor::FIGURE_SELECTION);
       pen.fillRectanglePC(x-2,y-2,5,5);
@@ -313,6 +314,7 @@ TFigure::paintSelection(TPenBase &pen, int handle)
         m0->map(x, y, &x, &y);
       pen.setLineWidth(1);
       pen.fillRectanglePC(x-2,y-2,5,5);
+      pen.drawRectanglePC(x-2,y-2,5,5);
     }
   }
 

@@ -25,7 +25,7 @@
 #include <toad/focusmanager.hh>
 #include <toad/io/urlstream.hh>
 #include <toad/command.hh>
-
+#include <toad/stacktrace.hh>
 #include <set>
 
 /**
@@ -106,8 +106,6 @@ TWindow::isRealized() const
 {
   return nsview!=nil;
 }
-
-extern void printStackTrace();
 
 bool
 TWindow::setFocus()
@@ -615,7 +613,6 @@ static TRegion *updateRegion = 0;
     CGContextAddRect(ctx, NSRectToCGRect(rect));
     CGContextDrawPath(ctx, kCGPathFill);
   }
-
   if (twindow->layout)
     twindow->layout->paint();
   twindow->paint();

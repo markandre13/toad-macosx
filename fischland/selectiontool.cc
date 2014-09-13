@@ -340,6 +340,8 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 void
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
+  // 'down' means that the user is holding the mouse button,
+  // draw the interactive selection rectangle
   if (down) {
     // draw the selection marks over all figures
     for(TFigureSet::iterator sp = selection.begin();
@@ -378,6 +380,7 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       pen.pop();
     }
   } else
+
   if (!fe->selection.empty()) {
 //    cout << "draw bounding rectangle " << x0 << ", " << y0 << " to " << x1 << ", " << y1 << endl;
     const TMatrix2D *m = 0;
@@ -392,13 +395,14 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.setColor(TColor::FIGURE_SELECTION);
     pen.setLineWidth(1);
     pen.setAlpha(1.0);
-    pen.drawRectangle(x0, y0, x1-x0, y1-y0);
+    pen.drawRectangle(x0+0.5, y0+0.5, x1-x0, y1-y0);
 
     pen.setFillColor(1,1,1);
     TRectangle r;
     for(unsigned i=0; i<8; ++i) {
       getBoundingHandle(i, &r);
-      pen.fillRectangle(r);
+      pen.fillRectanglePC(r);
+      pen.drawRectanglePC(r);
     }
     
     if (pen.getMatrix()) {
@@ -413,14 +417,14 @@ TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
   int w = x1 - x0;
   int h = y1 - y0;
   switch(i) {
-    case 0: r->set(x0-3  , y0-3  , 5, 5); break;
-    case 1: r->set(x0+w/2, y0-3  , 5, 5); break;
-    case 2: r->set(x0+w-1, y0-3  , 5, 5); break;
-    case 3: r->set(x0+w-1, y0+h/2, 5, 5); break;
-    case 4: r->set(x0+w-1, y0+h-1, 5, 5); break;
-    case 5: r->set(x0+w/2, y0+h-1, 5, 5); break;
-    case 6: r->set(x0-3,   y0+h-1, 5, 5); break;
-    case 7: r->set(x0-3,   y0+h/2, 5, 5); break;
+    case 0: r->set(x0-2  , y0-2  , 5, 5); break;
+    case 1: r->set(x0+w/2-2, y0-2  , 5, 5); break;
+    case 2: r->set(x0+w-2, y0-2  , 5, 5); break;
+    case 3: r->set(x0+w-2, y0+h/2-2, 5, 5); break;
+    case 4: r->set(x0+w-2, y0+h-2, 5, 5); break;
+    case 5: r->set(x0+w/2-2, y0+h-2, 5, 5); break;
+    case 6: r->set(x0-2,   y0+h-2, 5, 5); break;
+    case 7: r->set(x0-2,   y0+h/2-2, 5, 5); break;
   }
 }
       

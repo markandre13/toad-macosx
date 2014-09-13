@@ -111,52 +111,10 @@ return;
 
   unsigned total = 0, painted = 0, skipped = 0;
 
-  for(vector<TFigureModel*>::iterator p = editmodel->modelpath.begin();
-      p != editmodel->modelpath.end();
-      ++p)
-  {  
-#if 0
-    for(TFigureModel::iterator q = (*p)->begin();
-        q != (*p)->end();
-        ++q)
-    {
-      ++total;
-      TRectangle fr;
-      getFigureShape(*q, &fr, pen->getMatrix());
-      if (!r.intersects(fr)) {
-        ++skipped;
-        continue;
-      }
-      ++painted;
-      TFigure::EPaintType pt = TFigure::NORMAL;
-      unsigned pushs = 0;
-      if (gadget==*q) {  
-        pt = TFigure::EDIT;
-      }  
+  // paint all active layers
+  for(auto p: editmodel->modelpath)
+    print(*pen, p, true);
 
-      if ((*q)->mat) {
-        pen->push();   
-        pushs++;      
-        pen->multiply( (*q)->mat );
-      }
-     
-      if (gadget!=*q && selection.find(*q)!=selection.end()) {
-        pt = TFigure::SELECT;
-      }
-      
-//cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
-      (*q)->paint(*pen, pt);
-
-      while(pushs) {
-        pen->pop();  
-        pushs--;    
-      }
-
-    }
-#else
-    print(*pen, *p, true);
-#endif
-  }
 //pen->getClipBox(&r0);
 //cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
 //cerr << "painted " << painted << " out of " << total << " in " << r << endl;

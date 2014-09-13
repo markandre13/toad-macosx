@@ -144,6 +144,7 @@ TFBezierline::_paintSelection(TPenBase &pen, int handle, bool filled)
     if (handle!=h) {
       if ((h%3)==0) {
         pen.fillRectanglePC(x-2,y-2,5,5);
+        pen.drawRectanglePC(x-2,y-2,5,5);
       } else {
         bool b = false;
         if ( (handle%3)==0) {
@@ -165,6 +166,7 @@ TFBezierline::_paintSelection(TPenBase &pen, int handle, bool filled)
           pen.setFillColor(TColor::WHITE);
         } else {
           pen.fillCirclePC(x-2,y-2,6,6);
+          pen.drawCirclePC(x-2,y-2,6,6);
         }
       }
     } else {

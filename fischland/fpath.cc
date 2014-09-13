@@ -190,7 +190,8 @@ TFPath::paintSelection(TPenBase &pen, int handle)
           m0->map(x1, y1, &x1, &y1);
         }
         pen.drawLine(x0, y0, x1, y1);
-        pen.fillCirclePC(x1-2,y1-2,6,6);
+        pen.fillCirclePC(x1-2,y1-2,5,5);
+        pen.drawCirclePC(x1-2,y1-2,5,5);
       }
 /*
  else
@@ -218,7 +219,8 @@ TFPath::paintSelection(TPenBase &pen, int handle)
           m0->map(x1, y1, &x1, &y1);
         }
         pen.drawLine(x0, y0, x1, y1);
-        pen.fillCirclePC(x1-2,y1-2,6,6);
+        pen.fillCirclePC(x1-2,y1-2,5,5);
+        pen.drawCirclePC(x1-2,y1-2,5,5);
       }
 //    }
     for(TPolygon::size_type i=0; i<polygon.size(); i+=3) {
@@ -230,6 +232,7 @@ TFPath::paintSelection(TPenBase &pen, int handle)
         y = polygon[i].y;
       }
       pen.fillRectanglePC(x-2,y-2,5,5);
+      pen.drawRectanglePC(x-2,y-2,5,5);
     }
   }
   

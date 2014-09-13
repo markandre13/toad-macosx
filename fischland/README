@@ -191,3 +191,9 @@ TMainWindow
   TFischEditor(figureeditor)
   TComboBox(zoom) TComboBox(page) TPushButton(page add) TPushButton(page delete) TPushButton(page up)
 
+TToolBox
+  TSelectionTool
+  TDirectSelectionTool
+  TPenTool
+  TPencilTool
+  TFillTool

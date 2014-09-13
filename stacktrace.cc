@@ -1,9 +1,11 @@
+#include <toad/stacktrace.hh>
+
 #include <execinfo.h>
 #include <cstdio>
 #include <cstdlib>
 
 void
-printStackTrace()
+toad::printStackTrace()
 {
   void* callstack[256];
   int i, frames = backtrace(callstack, 256);

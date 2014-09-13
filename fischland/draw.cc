@@ -925,7 +925,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   CONNECT(me->sigFischModified, this, editorModified);
   editor = me;
   me->setAttributes(TToolBox::preferences);
-  me->setBackground(255,255,255);
+  me->setBackground(1,1,1);
   me->setRowHeaderRenderer(new TLineal(true));
   me->setColHeaderRenderer(new TLineal(false));
   me->setFont("arial,helvetica,sans-serif:size=1152"); // 12pt * 9600 dpi / 100

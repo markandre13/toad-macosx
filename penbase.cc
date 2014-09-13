@@ -63,37 +63,37 @@ TPenBase::~TPenBase()
 void
 TPenBase::drawRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vdrawRectangle(x+0.5,y+0.5,w,h);
+  vdrawRectangle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void
 TPenBase::fillRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vfillRectangle(x+0.5,y+0.5,w,h);
+  vfillRectangle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void
 TPenBase::drawCirclePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vdrawCircle(x,y,w-1,h-1);
+  vdrawCircle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void
 TPenBase::fillCirclePC(TCoord x, TCoord y, TCoord w, TCoord h)
 {
-  vfillCircle(x,y,w-1,h-1);
+  vfillCircle(x+0.5,y+0.5,w-1,h-1);
 }
 
 void
 TPenBase::drawArcPC(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r0, TCoord r1)
 {
-  vdrawArc(x,y,w-1,h-1, r0, r1);
+  vdrawArc(x+0.5,y+0.5,w-1,h-1, r0, r1);
 }
 
 void
 TPenBase::fillArcPC(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r0, TCoord r1)
 {
-  vfillArc(x,y,w-1,h-1, r0, r1);
+  vfillArc(x+0.5,y+0.5,w-1,h-1, r0, r1);
 }
 
 void
