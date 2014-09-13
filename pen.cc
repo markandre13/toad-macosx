@@ -291,8 +291,8 @@ TPen::vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
   }
   CGContextAddRect(ctx, CGRectMake(x, y, w, h));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddRect(ctx, CGRectMake(x, y, w, h));
-  CGContextDrawPath(ctx, kCGPathStroke);
+//  CGContextAddRect(ctx, CGRectMake(x, y, w, h));
+//  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void
@@ -305,8 +305,8 @@ void
 TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
   CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
-  CGContextDrawPath(ctx, kCGPathStroke);
+//  CGContextAddEllipseInRect(ctx, CGRectMake(x, y, w, h));
+//  CGContextDrawPath(ctx, kCGPathStroke);
 }
 
 void

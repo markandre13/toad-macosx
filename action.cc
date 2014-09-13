@@ -67,6 +67,7 @@ TAction::~TAction()
 void
 TAction::focus(bool b)
 {
+cout << "action '" << getTitle() << "' " << (b?"got":"lost") << " the focus" << endl;
   bool oldstate = isEnabled();
   has_focus = b;
   if (isEnabled()!=oldstate) {
@@ -77,6 +78,7 @@ TAction::focus(bool b)
 void 
 TAction::domainFocus(bool b)
 {
+//cout << "action '" << getTitle() << "' " << (b?"got":"lost") << " the focus domain" << endl;
   bool oldstate = isEnabled();
   has_domain_focus = b;
   if (isEnabled()!=oldstate) {

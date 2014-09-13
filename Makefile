@@ -22,7 +22,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
 	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
-	   figure/rectangle.cc figure/window.cc \
+	   figure/rectangle.cc figure/window.cc backtrace.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
 	   test_combobox.cc
@@ -33,7 +33,8 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
 	 fischland/toolbox.cc fischland/selectiontool.cc fischland/directselectiontool.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \
-	 fischland/filltool.cc fischland/filltoolutil.cc
+	 fischland/filltool.cc fischland/filltoolutil.cc \
+	 fischland/fischeditor.cc
 	 
 #fischland/fontdialog.cc
 

@@ -185,13 +185,13 @@ TScrollPane::doLayout()
     need_hscroll = true;
     visible.h -= TScrollBar::getFixedSize()-1;
   }
-  
+/*  
 cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
      << "visible  = "<<visible<<endl
      << "pane     = "<<pane<<endl
      << "need h,v = "<<need_hscroll<<", "<<need_vscroll<<endl
      << "vscroll = " << vscroll << endl;
-
+*/
   if (need_vscroll) {
     if (!vscroll) {  
       vscroll = new TScrollBar(this, "vertical");

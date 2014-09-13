@@ -284,15 +284,17 @@ cout << "FocusDelWindow" << endl
 void
 TFocusManager::domainToWindow(TWindow *wnd)
 {
-DBM(cout << "DomainToWindow " << (wnd ? wnd->getTitle() : "(NULL)") << endl;)
+cout << "+TFocusManager::domainToWindow " << (wnd ? wnd->getTitle() : "(NULL)") << endl;
   TDomain *new_domain = wnd ? GetTopDomain(wnd) : NULL;
 
   if (wnd && !new_domain) {
     cerr << "warning: no key domain for window " << wnd << " '" << wnd->getTitle() << "'\n";
   }
 
-  if (new_domain==current_domain)
+  if (new_domain==current_domain) {
+cout << "-TFocusManager::domainToWindow " << (wnd ? wnd->getTitle() : "(NULL)") << endl;
     return;
+  }
   
   // deactivate old domain
   //-----------------------
@@ -345,6 +347,7 @@ DBM(cout << "DomainToWindow " << (wnd ? wnd->getTitle() : "(NULL)") << endl;)
     if (current_domain->focus_window)
       current_domain->focus_window->_setFocus(true);
   }
+cout << "-TFocusManager::domainToWindow " << (wnd ? wnd->getTitle() : "(NULL)") << endl;
 }
 
 
@@ -357,7 +360,10 @@ TFocusManager::setFocusWindow(TWindow* wnd)
 {
   assert(wnd!=NULL);
 
-//cout << "setFocusWindow " << wnd->getTitle() << endl;
+  if (getFocusWindow()==wnd)
+    return;
+
+cout << "TFocusManager::setFocusWindow " << wnd->getTitle() << endl;
   if (wnd->flagNoFocus && !wnd->flagFocusManager && !wnd->flagShell) {
 /*
     cout << "window \"" << wnd->getTitle() << "\" doesn't need focus" << endl;
@@ -441,7 +447,7 @@ ToggleDomain2(TInteractor *wnd, bool on)
 void
 ToggleDomain(TDomain *d, bool on)
 {
-  DBM(cout << "toggle domain \"" << d->owner->getTitle() << "\" " << (on ? "on" : "off") << endl;)
+  cout << "ToggleDomain \"" << d->owner->getTitle() << "\" " << (on ? "on" : "off") << endl;
   ToggleDomain2(d->owner, on);
 }
 

@@ -107,9 +107,12 @@ TWindow::isRealized() const
   return nsview!=nil;
 }
 
+extern void printStackTrace();
+
 bool
 TWindow::setFocus()
 {
+cout << "TWindow::setFocus: " << getTitle() << endl;
   TFocusManager::setFocusWindow(this);
   return TFocusManager::getFocusWindow()==this;
 }
@@ -117,6 +120,7 @@ TWindow::setFocus()
 void
 TWindow::_setFocusHelper(TInteractor *parent, bool b)
 {
+cout << "TWindow::setFocusHelper: " << getTitle() << endl;
   parent->focus(b);
   TInteractor *p = parent->getFirstChild();
   while(p) {
@@ -131,6 +135,8 @@ TWindow::_setFocusHelper(TInteractor *parent, bool b)
 void
 TWindow::_setFocus(bool b)
 {
+cout << "TWindow::_setFocus: " << getTitle() << " from " << _bOwnsFocus << " to " << b << endl;
+printStackTrace();
   if (b==_bOwnsFocus)
     return;
   _bOwnsFocus = b;

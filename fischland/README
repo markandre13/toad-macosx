@@ -182,3 +182,12 @@ CTRL+Click (Mac), Right Click (Windows)
 selected objects turn blue
 ttp://online.caup.washington.edu/courses/larcwi01/larc440/
 http://howto.lycos.com/lycos/series/1,,10+55+140+23930,00.html
+
+
+Window Hierachy
+
+TMainWindow
+  TMenuBar(menubar)
+  TFischEditor(figureeditor)
+  TComboBox(zoom) TComboBox(page) TPushButton(page add) TPushButton(page delete) TPushButton(page up)
+

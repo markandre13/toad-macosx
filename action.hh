@@ -67,8 +67,6 @@ class TAction:
     virtual ~TAction();
     
     // enable/disable
-    void focus(bool);
-    void domainFocus(bool);
     void setEnabled(bool b);
     bool isEnabled() const;
     
@@ -93,6 +91,10 @@ class TAction:
     virtual bool getState(string *text, bool *active) const { return false; }
     void setActivationType(EActivation a) { activation = a; }
     EActivation getActivationType() const { return activation; }
+
+  protected:
+    void focus(bool);
+    void domainFocus(bool);
 
   private:
     TBitmap *bitmap;
