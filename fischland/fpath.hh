@@ -29,9 +29,8 @@ class TFPath:
 {
     SERIALIZABLE_INTERFACE(toad::, TFPath);
   public:
-    TFPath() {
-      closed = false;
-    }
+    typedef TColoredFigure super;
+    TFPath();
     void paint(TPenBase&, EPaintType);
     void paintSelection(TPenBase &pen, int handle);
     void getShape(toad::TRectangle *r);
@@ -48,9 +47,23 @@ class TFPath:
     void insertPointNear(TCoord x, TCoord y);
     void deletePoint(unsigned i);
 
+    // 0: no curves
+    // 1: curve before corner
+    // 2: curve after corner
+    // 4: smooth corner
+    unsigned cornerAtHandle(TPolygon::size_type handle);
+
     bool closed;
     TPolygon polygon;
     vector<byte> corner;
+    
+    void setAttributes(const TFigureAttributes*);
+    void getAttributes(TFigureAttributes*) const;
+
+    TFLine::EArrowMode arrowmode;
+    TFLine::EArrowType arrowtype;
+    TCoord arrowheight;
+    TCoord arrowwidth;
 };
 
 #endif

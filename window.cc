@@ -1362,8 +1362,8 @@ TWindow::getUpdateRegion() const
                   rects[i].size.height);
   updateRegion = &r;
 
-  TRectangle e;
-  r.getBoundary(&e);
+//  TRectangle e;
+//  r.getBoundary(&e);
 // cout << getTitle() << ": update region extend " << e.x << ", " << e.y << ", " << e.w << ", " << e.h << endl;
 
   return &r;

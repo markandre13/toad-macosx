@@ -230,6 +230,13 @@ TPen::setClipRect(const TRectangle &r)
 void
 TPen::getClipBox(TRectangle *r) const
 {
+#if 1
+  if (window) {
+    // FIXME: returning the rectangle from NSView drawRect: would be faster
+    TRegion *region = window->getUpdateRegion();
+    region->getBoundary(r);
+  }
+#else
   // FIXME: must be the rectangle given by NSView drawRect:
   if (window) {
     r->x = 0;
@@ -238,6 +245,7 @@ TPen::getClipBox(TRectangle *r) const
     r->h = window->h;
   }
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+#endif
 }
 
 void

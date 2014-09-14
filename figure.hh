@@ -204,6 +204,7 @@ class TFigure:
 class TColoredFigure:
   public TFigure
 {
+  public:
     typedef TFigure super;
   protected:
     TColoredFigure();
@@ -312,8 +313,8 @@ class TFPolygon:
 class TFLine:
   public TFPolygon
 {
-    typedef TFPolygon super;
   public:
+    typedef TFPolygon super;
     enum EArrowMode {
       NONE, HEAD, TAIL, BOTH
     } arrowmode;

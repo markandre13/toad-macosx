@@ -42,8 +42,10 @@ struct TPoint:
   public CGPoint
 {
   TPoint() { x = y = 0; }
-  TPoint(TCoord inX, int inY) { x=inX; y=inY; }
+  TPoint(TCoord inX, TCoord inY) { x=inX; y=inY; }
   void set(TCoord a, TCoord b) { x=a;y=b; }
+  bool operator==(const TPoint &p) { return x==p.x && y==p.y; }
+  bool operator!=(const TPoint &p) { return x!=p.x || y!=p.y; }
 };
 
 inline ostream& operator<<(ostream &s, const TPoint& p) {

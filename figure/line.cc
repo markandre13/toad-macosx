@@ -36,7 +36,7 @@ TFLine::TFLine()
   arrowtype = SIMPLE;
   arrowheight = 8;
   arrowwidth = 4;
-  fill_color.set(255,0,0);
+  fill_color.set(1,0,0);
 }
 
 void
@@ -233,7 +233,7 @@ namespace {
     "empty-concave",
     "filled-concave",
     "empty-convex",
-    "filled-convec"
+    "filled-convex"
   };
 } // namespace
 

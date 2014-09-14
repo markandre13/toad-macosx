@@ -25,6 +25,45 @@
 
 #include <cmath>
 
+TFPath::TFPath()
+{
+  closed = false;
+  arrowmode = TFLine::NONE;
+  arrowtype = TFLine::SIMPLE;
+  arrowheight = 8;
+  arrowwidth = 4;
+  fill_color.set(1,1,1);
+}
+
+void
+TFPath::setAttributes(const TFigureAttributes *preferences)
+{
+  super::setAttributes(preferences);
+  switch(preferences->reason) {
+    case TFigureAttributes::ALLCHANGED:
+      arrowmode = preferences->arrowmode;
+      arrowtype = preferences->arrowtype;
+      break;
+    case TFigureAttributes::ARROWMODE:
+      arrowmode = preferences->arrowmode;
+      break;
+    case TFigureAttributes::ARROWSTYLE:
+      arrowtype = preferences->arrowtype;
+      break;
+  }
+//  filled = (arrowmode!=TFLine::NONE); // for parents 'store' method
+}
+
+void
+TFPath::getAttributes(TFigureAttributes *preferences) const
+{
+  super::getAttributes(preferences);
+  preferences->arrowmode = arrowmode;
+  preferences->arrowtype = arrowtype;
+//  preferences->filled    = filled;
+}
+
+
 void
 TFPath::getShape(toad::TRectangle *r)
 {
@@ -54,17 +93,9 @@ TFPath::getHandle(unsigned handle, TPoint *p)
 void
 TFPath::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
-  // 0 0  1 1 1  2 2 2  3 3 3
-  // 0 1  2 3 4  5 6 7  8 9 10
-//  cout << "handle: " << handle << endl;
+cout << "TFPath::translateHandle: " << handle << endl;
   
-//  cout << "corner: " << (handle+1)/3 << endl;
-//  cout << "no    : " << (handle+1)%3 << endl;
-  unsigned c = 3;
-  unsigned i = (handle+1)/3;
-  if (i<corner.size())
-    c = corner[i];
-//  cout << "i=" << i << ", c=" << c << endl;
+  unsigned c = cornerAtHandle(handle);
   switch( (handle+1)%3 ) {
     case 0:
       if ( c == 4) {
@@ -241,6 +272,17 @@ TFPath::paintSelection(TPenBase &pen, int handle)
   }
 }
 
+unsigned
+TFPath::cornerAtHandle(TPolygon::size_type handle)
+{
+  // 0 0  1 1 1  2 2 2  3 3 3
+  // 0 1  2 3 4  5 6 7  8 9 10
+  unsigned c = 3;
+  vector<byte>::size_type i = (handle+1)/3;
+  if (i<corner.size())
+    c = corner[i];
+  return c;
+}
 
 void
 TFPath::paint(TPenBase &pen, EPaintType type)
@@ -260,6 +302,7 @@ TFPath::paint(TPenBase &pen, EPaintType type)
 //      pen.fillCircle(polygon[0].x-100, polygon[0].y-100, 200, 200);
     }
   } else {
+    // FIXME: why not apply cmat
     TPoint *polygon2 = new TPoint[polygon.size()];
     TPoint *p2 = polygon2;
     for(TPolygon::const_iterator p = polygon.begin();
@@ -277,6 +320,31 @@ TFPath::paint(TPenBase &pen, EPaintType type)
     delete[] polygon2;
   }
 
+  pen.setLineStyle(TPenBase::SOLID);
+  
+  TCoord aw = arrowwidth * line_width;
+  TCoord ah = arrowheight * line_width;
+
+  if (arrowmode == TFLine::TAIL || arrowmode == TFLine::BOTH) {
+//cout << "cornerAtHandle(TAIL)==" << cornerAtHandle(0) << endl;
+    unsigned c = cornerAtHandle(0);
+    if (c!=0)
+      TFLine::drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
+    else
+      TFLine::drawArrow(pen, polygon[0], polygon[3], line_color, fill_color, aw, ah, arrowtype);
+  }
+    
+  if (arrowmode == TFLine::HEAD || arrowmode == TFLine::BOTH) {
+//cout << "cornerAtHandle(HEAD)==" << cornerAtHandle(polygon.size()-1) << endl;
+    unsigned c = cornerAtHandle(polygon.size()-1);
+    if (c==0)
+      TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-3], line_color, fill_color, aw, ah, arrowtype);
+    else
+      TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-4], line_color, fill_color, aw, ah, arrowtype);
+//pen.setColor(1,0,0);
+//pen.drawLine(polygon[polygon.size()-1], polygon[polygon.size()-3]);
+  }
+  
   if (type!=EDIT && type!=SELECT)
     return;
 
@@ -658,10 +726,43 @@ TFPath::deletePoint(unsigned i)
   }
 }  
 
+// storage
+//---------------------------------------------------------------------------
+namespace {
+  const char* arrowmodename[] = {
+    "none",
+    "head",
+    "tail",
+    "both"
+  };
+  
+  const char* arrowtypename[] = {
+    "simple",
+    "empty",
+    "filled",
+    "empty-concave",
+    "filled-concave",
+    "empty-convex",
+    "filled-convex"
+  };
+} // namespace
+
 void
 TFPath::store(TOutObjectStream &out) const
 {
   TColoredFigure::store(out);
+
+  if (arrowmode!=TFLine::NONE) {
+   out.indent();
+   out << "arrowmode = " << arrowmodename[arrowmode];
+   out.indent();
+   out << "arrowtype = " << arrowtypename[arrowtype];
+   out.indent();
+   out << "arrowheight = " << arrowheight;
+   out.indent();
+   out << "arrowwidth = " << arrowwidth;
+  }
+
   ::store(out, "closed", closed);
   unsigned i = 0;
   for(TPolygon::const_iterator p = polygon.begin();
@@ -716,6 +817,30 @@ TFPath::restore(TInObjectStream &in)
     in.setInterpreter(this);
     return true;
   }
+
+  string s;
+  if (::restore(in, "arrowmode", &s)) {
+    for(unsigned i=0; i<sizeof(arrowmodename)/sizeof(char*); ++i) {
+      if (s == arrowmodename[i]) {
+        arrowmode = (TFLine::EArrowMode)i;
+        return true;
+      }
+    }
+  } else
+  if (::restore(in, "arrowtype", &s)) {
+    for(unsigned i=0; i<sizeof(arrowtypename)/sizeof(char*); ++i) {
+      if (s == arrowtypename[i]) {
+        arrowtype = (TFLine::EArrowType)i;
+        return true;
+      }
+    }
+  } else
+  if (::restore(in, "arrowheight", &arrowheight) ||
+      ::restore(in, "arrowwidth", &arrowwidth))
+  {
+    return true;
+  }
+
   bool b;
   if (::restore(in, "closed", &b)) {
     closed = b;

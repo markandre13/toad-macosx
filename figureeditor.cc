@@ -522,8 +522,11 @@ TFigureEditor::paintGrid(TPenBase &pen)
   TCoord x1, x2, y1, y2;
   TCoord g = preferences->gridsize;
 
+  TRegion region(*window->getUpdateRegion());
+  region &= visible;
+
   TRectangle r;
-  pen.getClipBox(&r);
+  region.getBoundary(&r);
   x1=r.x;
   y1=r.y;
   x2=r.x+r.w+1;
