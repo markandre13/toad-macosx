@@ -506,64 +506,67 @@ TFigureEditor::paint()
 void
 TFigureEditor::paintGrid(TPenBase &pen)
 {
-  if (!preferences)
+  if (!preferences ||
+      !preferences->drawgrid ||
+      !preferences->gridsize)
+  {
     return;
-  if (preferences->drawgrid && preferences->gridsize) {
-    const TRGB &background_color = window->getBackground();
-    pen.setColor(
-      background_color.r > 0.5 ? background_color.r-0.5 : background_color.r+0.5,
-      background_color.g > 0.5 ? background_color.g-0.5 : background_color.g+0.5,
-      background_color.b > 0.5 ? background_color.b-0.5 : background_color.b+0.5
-    );
-    TCoord x1, x2, y1, y2;
-    TCoord g = preferences->gridsize;
-  
-    TRectangle r;
-    pen.getClipBox(&r);
-    x1=r.x;
-    y1=r.y;
-    x2=r.x+r.w+1;
-    y2=r.y+r.h+1;
+  }
 
-    const TMatrix2D *mat = pen.getMatrix();
-    if (mat) {
-      TCoord gx0, gx, gy0, gy;
-      TMatrix2D m(*mat);   
-      m.map(0, 0, &gx0, &gy0);
-      m.map(preferences->gridsize, preferences->gridsize, &gx, &gy);
-      gx-=gx0;
-      gy-=gy0;
+  const TRGB &background_color = window->getBackground();
+  pen.setColor(
+    background_color.r > 0.5 ? background_color.r-0.5 : background_color.r+0.5,
+    background_color.g > 0.5 ? background_color.g-0.5 : background_color.g+0.5,
+    background_color.b > 0.5 ? background_color.b-0.5 : background_color.b+0.5
+  );
+  TCoord x1, x2, y1, y2;
+  TCoord g = preferences->gridsize;
+
+  TRectangle r;
+  pen.getClipBox(&r);
+  x1=r.x;
+  y1=r.y;
+  x2=r.x+r.w+1;
+  y2=r.y+r.h+1;
+
+  const TMatrix2D *mat = pen.getMatrix();
+  if (mat) {
+    TCoord gx0, gx, gy0, gy;
+    TMatrix2D m(*mat);   
+    m.map(0, 0, &gx0, &gy0);
+    m.map(preferences->gridsize, preferences->gridsize, &gx, &gy);
+    gx-=gx0;
+    gy-=gy0;
 //cout << "gx,gy=" << gx << "," << gy << endl;
+    m.invert();
+    if (gx<=2 || gy<=2) {
+      // don't draw grid, it's too small
+      return;
+    } else {
+      TMatrix2D m(*mat);
       m.invert();
-      if (gx<=2 || gy<=2) {
-        // don't draw grid, it's too small
-        return;
-      } else {
-        TMatrix2D m(*mat);
-        m.invert();
 //        cerr << "draw grid of size " << gx << ", " << gy << endl;
-        m.map(x1, y1, &x1, &y1);
-        m.map(x2, y2, &x2, &y2);
-        if (x1>x2) {
-          TCoord a = x1; x1 = x2; x2 = a;
-        }
-        if (y1>y2) {
-          TCoord a = y1; y1 = y2; y2 = a;
-        }
+      m.map(x1, y1, &x1, &y1);
+      m.map(x2, y2, &x2, &y2);
+      if (x1>x2) {
+        TCoord a = x1; x1 = x2; x2 = a;
+      }
+      if (y1>y2) {
+        TCoord a = y1; y1 = y2; y2 = a;
       }
     }
+  }
 
-    // justify to grid
-    x1 -= fmod(x1, g);
-    y1 -= fmod(y1, g);
+  // justify to grid
+  x1 -= fmod(x1, g);
+  y1 -= fmod(y1, g);
 
 //    cerr << "draw grid from (" << x1 << ", " << y1 << ") to ("
 //         << x2 << ", " << y2 << ")" << endl;
 
-    for(TCoord y=y1; y<=y2; y+=g) {
-      for(TCoord x=x1; x<=x2; x+=g) {
-        pen.drawPoint(x, y);
-      }
+  for(TCoord y=y1; y<=y2; y+=g) {
+    for(TCoord x=x1; x<=x2; x+=g) {
+      pen.drawPoint(x, y);
     }
   }
 }  

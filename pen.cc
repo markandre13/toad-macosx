@@ -193,6 +193,23 @@ TPen::getMatrix() const
   CGAffineTransform m0 = CGAffineTransformInvert(windowmatrix);
   CGAffineTransform m1 = CGContextGetCTM(ctx);
   static TMatrix2D m = CGAffineTransformConcat(m1, m0);
+/*
+cout << "TPen::getMatrix m0" << endl
+     << "  " << m0.a << ", " << m0.b << endl
+     << "  " << m0.c << ", " << m0.d << endl
+     << "  " << m0.tx << ", " << m0.ty << endl;
+
+cout << "TPen::getMatrix m1" << endl
+     << "  " << m1.a << ", " << m1.b << endl
+     << "  " << m1.c << ", " << m1.d << endl
+     << "  " << m1.tx << ", " << m1.ty << endl;
+
+
+cout << "TPen::getMatrix =>" << endl
+     << "  " << m.a << ", " << m.b << endl
+     << "  " << m.c << ", " << m.d << endl
+     << "  " << m.tx << ", " << m.ty << endl;
+*/
   return &m;
 }
 
@@ -514,7 +531,20 @@ TPen::setMode(EMode mode)
 void
 TPen::drawPoint(TCoord x, TCoord y)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  TCoord x0, y0, x1, y1, sx, sy;
+    
+  TMatrix2D m(CGAffineTransformInvert(CGContextGetCTM(ctx)));
+  m.map(0, 0, &x0, &y0);
+  m.map(1, 1, &x1, &y1);
+
+  sx = x1-x0;
+  sy = y1-y0;
+  
+  x+=sx/2.0;
+  y+=sy/2.0;
+
+  CGContextAddRect(ctx, CGRectMake(x, y, sx, sy));
+  CGContextDrawPath(ctx, kCGPathFill);
 }
 
 void
