@@ -93,7 +93,7 @@ TFPath::getHandle(unsigned handle, TPoint *p)
 void
 TFPath::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
-cout << "TFPath::translateHandle: " << handle << endl;
+//cout << "TFPath::translateHandle: " << handle << endl;
   
   unsigned c = cornerAtHandle(handle);
   switch( (handle+1)%3 ) {

@@ -24,16 +24,18 @@
 #include "pentool.hh"
 #include "penciltool.hh"
 #include "directselectiontool.hh"
+#include "colorpicker.hh"
 #include "colorpalette.hh"
 #include "fischland.hh"
 #include "cairo.hh"
+
 
 #include <toad/combobox.hh>
 #include <toad/pushbutton.hh>
 #include <toad/fatradiobutton.hh>
 #include <toad/fatcheckbutton.hh>
 #include <toad/textfield.hh>
-#include <toad/colorselector.hh>
+//#include <toad/colorselector.hh>
 #include <toad/colordialog.hh>
 #include <toad/gauge.hh>
 #include <toad/figure.hh>
@@ -368,7 +370,7 @@ serialize.registerObject(new TFPath());
 
   flagNoMenu = true;
   setLayout(0);
-  setSize(2+2+28+28+2+2, 480+50+28);
+  setSize(2+2+28+28+2+2, 480+50+28+20);
   
   bmp.load(RESOURCE("fischland-small.png"));
   
@@ -493,6 +495,10 @@ serialize.registerObject(new TFPath());
         CONNECT(rb->sigClicked, me, selection2Top);
         break;
       case 19:
+#if 1
+        wnd = new TColorPicker(this, "colorpicker", preferences);
+        y+=5;
+#else
         wnd = new TColorSelector(this, "colorselector", preferences);
         y+=5;
         {
@@ -509,19 +515,26 @@ serialize.registerObject(new TFPath());
             in = in->getNextSibling();
           } while(in);
         }
+#endif
         break;
     }
     if (wnd) {
       if (i!=19)
         wnd->setSize(28,28);
       else
-        wnd->setSize(28+28,28+28-16);
+        wnd->setSize(28+28, 60);
+      if (i==19)
+        x = 4 + 7;
+      else
       if (odd) {
         x = 4;
       } else {
         x = 4 + 28;
       }
       wnd->setPosition(x, y);
+      if (i==19)
+        y+=20;
+      else
       if (!odd)
         y+=28;
       odd = !odd;
@@ -664,9 +677,11 @@ TToolBox::paint()
   y += h+1; h = 4+2*28;
   pen.draw3DRectanglePC(2,y,w,h, true);
 
-  // color palette
-  y += h+1; h = 4+28+28-16;
-  pen.draw3DRectanglePC(2,y,w,h, true);
+  // color picker
+  y += h+1; h = 4+60;
+//  pen.draw3DRectanglePC(2,y,w,h, true);
+//  pen.setColor(0,0,1);
+//  pen.drawRectanglePC(2,y,w,h);
 
   // alpha
   y += h+1; h = 4+20;

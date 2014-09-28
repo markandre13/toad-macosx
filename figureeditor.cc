@@ -112,6 +112,7 @@ TFigureAttributes::TFigureAttributes()
   fillcolor.set(1,1,1);
   alpha.setRangeProperties(255,0,0,255);
   connect(alpha.sigChanged, foobar, this, ALPHA);
+  outline = true;
   filled = false;
   fontname = "arial,helvetica,sans-serif:size=12";
 
@@ -513,6 +514,13 @@ TFigureEditor::paintGrid(TPenBase &pen)
     return;
   }
 
+pen.setLineWidth(96);
+pen.setColor(0,1,0);
+//pen.drawRectangle(16.5,16.5,96*4,96*4);
+pen.fillRectangle(96*0,96*0,96*4,96*4);
+pen.setColor(0,0,1);
+pen.drawRectangle(0,0,96*4,96*4);
+
   const TRGB &background_color = window->getBackground();
   pen.setColor(
     background_color.r > 0.5 ? background_color.r-0.5 : background_color.r+0.5,
@@ -533,7 +541,14 @@ TFigureEditor::paintGrid(TPenBase &pen)
   y2=r.y+r.h+1;
 
   const TMatrix2D *mat = pen.getMatrix();
+
+
   if (mat) {
+cout << "TFigureEditor::paintGrid: matrix" << endl
+     << "  " << mat->a << ", " << mat->b << endl
+     << "  " << mat->c << ", " << mat->d << endl
+     << "  " << mat->tx << ", " << mat->ty << endl;
+
     TCoord gx0, gx, gy0, gy;
     TMatrix2D m(*mat);   
     m.map(0, 0, &gx0, &gy0);

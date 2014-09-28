@@ -181,6 +181,7 @@ TFigure::translate(TCoord dx, TCoord dy)
 
 TColoredFigure::TColoredFigure()
 {
+  outline = true;
   filled = false;
   closed = false;
   line_color.set(0,0,0);
@@ -210,6 +211,7 @@ int a;
       line_style = preferences->linestyle;
       line_color = preferences->linecolor;
       fill_color = preferences->fillcolor;
+      outline    = preferences->outline;
       filled     = preferences->filled;
       alpha = preferences->alpha;
       break;

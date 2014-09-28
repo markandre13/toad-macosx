@@ -336,7 +336,7 @@ TPen::vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) {
 
 void
 TPen::vdrawArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2) {
-// FIXME  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 void

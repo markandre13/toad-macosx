@@ -187,6 +187,7 @@ class TFigureAttributes:
       return fontname;
     }
 
+    TBoolModel outline;
     TBoolModel filled;
     TRGB linecolor;
     TRGB fillcolor;

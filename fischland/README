@@ -35,10 +35,19 @@ Vector coordinates are stored as integers, so a decision about the maximal
 resolution has to be made. Other programs seem to use:
 
 xfig       : 1200 dpi
-illustrator: 9600 dpi
+illustrator: 9600 dpi (zoom 6400%)
 
 These numbers relate to common printer resolutions, ie. 75, 150, 300, 600,
 1200, 2400, 4800 or 9600.
+
+PDF
+o origin is the lower, left corner (as in the original Cocoa window)
+o unit it pt := 1/72 inch
+
+screen
+o os default dpi: mac=72dpi, windows=96dpi
+o line: 0.5,0.5 -> crisp (+line_width/2)
+o rectangle 0,0->1.1: crisp
 
 Papersize
 ^^^^^^^^^^^^^^

@@ -210,6 +210,7 @@ class TColoredFigure:
     TColoredFigure();
     TCoord alpha;
   public:
+    bool outline:1;       // true when outline
     bool filled:1;        // true when filled
     bool closed:1;        // true when closed
   protected:

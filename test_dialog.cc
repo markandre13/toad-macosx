@@ -64,10 +64,36 @@ void TMainWindow::printInt(int n)
   cout << n << endl;
 }
 
+
+#if 0
+class TToolBox:
+  public TWindow
+{
+  public:
+    TToolBox(TWindow *p, const string &t):TWindow(p, t) {
+      setSize(61, 437);
+      TWindow *cp = new TColorPicker(this, "cp");
+      cp->setPosition(11,344);
+    }
+    void paint();
+};
+
+void
+TToolBox::paint()
+{
+  TPen pen(this);
+  // draw: add 0.5 to coords, substract 1 from size
+  pen.drawRectangle(5.5,  42.5, 50, 42);
+  pen.drawRectangle(5.5,  89.5, 50, 63);
+  pen.drawRectangle(5.5, 156.5, 50, 42);
+}
+#endif
+
 void
 test_dialog()
 {
   TMainWindow wnd(NULL, "data manipulation test");
+//  TToolBox tb(0, "illustrator");
   toad::mainLoop();
 }
 

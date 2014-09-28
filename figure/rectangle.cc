@@ -32,30 +32,18 @@ void
 TFRectangle::paint(TPenBase &pen, EPaintType)
 {
   pen.push();
-  pen.setLineColor(line_color);
-  pen.setLineStyle(line_style);
-  pen.setLineWidth(line_width);
   pen.setAlpha(alpha);
-  if (!cmat) {
-    if (!filled) {
-      pen.drawRectangle(p1,p2);
-    } else {
-      pen.setFillColor(fill_color);
-      pen.fillRectangle(p1,p2);
-    }
-  } else {
-    TPoint p[5];
-    cmat->map(p1.x, p1.y, &p[0].x,  &p[0].y);
-    cmat->map(p2.x, p1.y, &p[1].x,  &p[1].y);
-    cmat->map(p2.x, p2.y, &p[2].x,  &p[2].y);
-    cmat->map(p1.x, p2.y, &p[3].x,  &p[3].y);
-    if (!filled) {
-      p[4] = p[0];
-      pen.drawPolygon(p, 5);
-    } else {
-      pen.setFillColor(fill_color);
-      pen.fillPolygon(p, 4);
-    }
+  if (cmat)
+    pen.multiply(cmat);
+  if (filled) {
+    pen.setFillColor(fill_color);
+    pen.fillRectangle(p1,p2);
+  }
+  if (outline) {
+    pen.setLineColor(line_color);
+    pen.setLineStyle(line_style);
+    pen.setLineWidth(line_width);
+    pen.drawRectangle(p1,p2);
   }
   pen.pop();
 }
