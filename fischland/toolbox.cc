@@ -189,12 +189,11 @@ class TFontButton:
     
     void paint() {
       TPen pen(this);
-      pen.scale(1.0/96.0, 1.0/96.0);
       pen.setFont(fa->getFont());
       const char *text = "F";
       int n =(bDown && bInside)?1:0;
-      int x = (getWidth()*96-pen.getTextWidth(text)) / 2;
-      int y = (getHeight()*96-pen.getHeight()) / 2;
+      int x = (getWidth()-pen.getTextWidth(text)) / 2;
+      int y = (getHeight()-pen.getHeight()) / 2;
       pen.setColor(TColor::BTNTEXT);
       pen.drawString(x+n, y+n, text);
       if (isFocus()) {
@@ -220,7 +219,7 @@ setLineWidth(TSingleSelectionModel *model)
     n*=96;
   if (TToolBox::preferences->linewidth != n) {
     TToolBox::preferences->reason = TFigureAttributes::LINEWIDTH;
-    TToolBox::preferences->linewidth = n;
+    TToolBox::preferences->linewidth = n/96.0;
     TToolBox::preferences->sigChanged();
   }
 }
@@ -231,7 +230,7 @@ TToolBox::preferencesChanged()
   int n;
 
   // lw_sm, line width selection model
-  n = TToolBox::preferences->linewidth;
+  n = TToolBox::preferences->linewidth*96.0;
   if (n==48)
     n=0;
   else
@@ -298,10 +297,10 @@ selectFont()
 {
   TFontDialog dlg(0, "Select Font");
   dlg.setFont(TToolBox::preferences->getFont());
-  dlg.setFontSize(dlg.getFontSize()/96);
+  dlg.setFontSize(dlg.getFontSize());
   dlg.doModalLoop();
   if (dlg.getResult() == TMessageBox::OK) {
-    dlg.setFontSize(dlg.getFontSize()*96);
+    dlg.setFontSize(dlg.getFontSize());
     TToolBox::preferences->setFont(dlg.getFont());
   }
 }
@@ -366,7 +365,7 @@ serialize.registerObject(new TFPath());
   assert(toolbox==0);
   toolbox = this;
   preferences = new TFigureAttributes;
-  preferences->linewidth = 48;
+  preferences->linewidth = 1;
 
   flagNoMenu = true;
   setLayout(0);

@@ -509,18 +509,18 @@ TColoredFigure::restore(TInObjectStream &in)
 /**
  * Returns the distance of point (x,y) to the line (x1,y1)-(x2,y2).
  */
-double 
-TFigure::distance2Line(int x, int y, int x1, int y1, int x2, int y2)
+TCoord 
+TFigure::distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2)
 {
-  double bx = x2 - x1;
-  double by = y2 - y1;
-  double ax = x-x1;
-  double ay = y-y1;
+  TCoord bx = x2 - x1;
+  TCoord by = y2 - y1;
+  TCoord ax = x-x1;
+  TCoord ay = y-y1;
   if (bx==0.0 && by==0.0) {
     return sqrt(ax*ax+ay*ay);
   }
-  double lb = bx*bx+by*by;
-  double t = (bx * ax + by * ay ) / lb;
+  TCoord lb = bx*bx+by*by;
+  TCoord t = (bx * ax + by * ay ) / lb;
   if (t<0.0 || t>1.0)
     return OUT_OF_RANGE;
   return fabs(by * ax - bx * ay) / sqrt(lb);

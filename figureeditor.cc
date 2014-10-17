@@ -377,11 +377,17 @@ void TFigureEditor::translate(TCoord x, TCoord y)
 /**
  * Scale the edit pane.
  */
-void TFigureEditor::scale(double sx, double sy)
+void TFigureEditor::scale(TCoord sx, TCoord sy)
 {
   if (!mat)
     mat = new TMatrix2D();
   mat->scale(sx, sy);
+
+cout << "TFigureEditor::scale(" << sx << ", " << sy << ")\n"
+     << "  " << mat->a << ", " << mat->b << endl
+     << "  " << mat->c << ", " << mat->d << endl
+     << "  " << mat->tx << ", " << mat->ty << endl;
+
 
 // better: create 2 points, transform 'em and calculate the
 // distance
@@ -479,7 +485,7 @@ TFigureEditor::paint()
     update_scrollbars = false;
   }
   TPen pen(window);
-  pen.translate(0.5, 0.5); // FIXME
+//  pen.translate(0.5, 0.5); // FIXME
   if (!model) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
@@ -487,12 +493,13 @@ TFigureEditor::paint()
   }
 
   pen.setColor(window->getBackground());
-  int x, y;
+  TCoord x, y;
   window->getOrigin(&x, &y);
   pen.fillRectanglePC(-x,-y,window->getWidth(),window->getHeight());
 
-  if (mat)
+  if (mat) {
     pen.multiply(mat);
+  }
 
   paintGrid(pen);
   print(pen, model, true);
@@ -514,13 +521,6 @@ TFigureEditor::paintGrid(TPenBase &pen)
     return;
   }
 
-pen.setLineWidth(96);
-pen.setColor(0,1,0);
-//pen.drawRectangle(16.5,16.5,96*4,96*4);
-pen.fillRectangle(96*0,96*0,96*4,96*4);
-pen.setColor(0,0,1);
-pen.drawRectangle(0,0,96*4,96*4);
-
   const TRGB &background_color = window->getBackground();
   pen.setColor(
     background_color.r > 0.5 ? background_color.r-0.5 : background_color.r+0.5,
@@ -541,14 +541,13 @@ pen.drawRectangle(0,0,96*4,96*4);
   y2=r.y+r.h+1;
 
   const TMatrix2D *mat = pen.getMatrix();
-
-
   if (mat) {
+/*
 cout << "TFigureEditor::paintGrid: matrix" << endl
      << "  " << mat->a << ", " << mat->b << endl
      << "  " << mat->c << ", " << mat->d << endl
      << "  " << mat->tx << ", " << mat->ty << endl;
-
+*/
     TCoord gx0, gx, gy0, gy;
     TMatrix2D m(*mat);   
     m.map(0, 0, &gx0, &gy0);
@@ -563,7 +562,6 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
     } else {
       TMatrix2D m(*mat);
       m.invert();
-//        cerr << "draw grid of size " << gx << ", " << gy << endl;
       m.map(x1, y1, &x1, &y1);
       m.map(x2, y2, &x2, &y2);
       if (x1>x2) {
@@ -579,11 +577,8 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
   x1 -= fmod(x1, g);
   y1 -= fmod(y1, g);
 
-//    cerr << "draw grid from (" << x1 << ", " << y1 << ") to ("
-//         << x2 << ", " << y2 << ")" << endl;
-
-  for(TCoord y=y1; y<=y2; y+=g) {
-    for(TCoord x=x1; x<=x2; x+=g) {
+  for(auto y=y1; y<=y2; y+=g) {
+    for(auto x=x1; x<=x2; x+=g) {
       pen.drawPoint(x, y);
     }
   }
@@ -1461,6 +1456,7 @@ TFigureEditorHeaderRenderer::mouseEvent(const TMouseEvent &me)
 void
 TFigureEditor::sheet2grid(TCoord inX, TCoord inY, TCoord *outX, TCoord *outY)
 {
+TPoint gridorigin(0.5, 0.5);
   if (!preferences->drawgrid) {
     *outX = inX;
     *outY = inY;
@@ -1468,9 +1464,8 @@ TFigureEditor::sheet2grid(TCoord inX, TCoord inY, TCoord *outX, TCoord *outY)
   }
   if (state!=STATE_ROTATE && state!=STATE_MOVE_ROTATE) {
     int g = preferences->gridsize;
-    // FIXME: after switching to TCoord and round(), +g/2 might be useless
-    *outX = round((inX+g/2)/g)*g;
-    *outY = round((inY+g/2)/g)*g;
+    *outX = round(inX/g)*g+gridorigin.x;
+    *outY = round(inY/g)*g+gridorigin.y;
   } else {
     *outX = inX;
     *outY = inY;
@@ -1484,8 +1479,6 @@ namespace {
 void
 TFigureEditor::mouseLDown(const TMouseEvent &me)
 {
-cerr << "TFigureEditor::mouseLDown" << endl;
-
   if (!window || !model)
     return;
   setFocus();

@@ -192,8 +192,9 @@ TPen::getMatrix() const
 {
   CGAffineTransform m0 = CGAffineTransformInvert(windowmatrix);
   CGAffineTransform m1 = CGContextGetCTM(ctx);
-  static TMatrix2D m = CGAffineTransformConcat(m1, m0);
-/*
+  static TMatrix2D m;
+  m = CGAffineTransformConcat(m1, m0);
+#if 0
 cout << "TPen::getMatrix m0" << endl
      << "  " << m0.a << ", " << m0.b << endl
      << "  " << m0.c << ", " << m0.d << endl
@@ -209,7 +210,7 @@ cout << "TPen::getMatrix =>" << endl
      << "  " << m.a << ", " << m.b << endl
      << "  " << m.c << ", " << m.d << endl
      << "  " << m.tx << ", " << m.ty << endl;
-*/
+#endif
   return &m;
 }
 
@@ -546,10 +547,10 @@ TPen::drawPoint(TCoord x, TCoord y)
   m.map(1, 1, &x1, &y1);
 
   sx = x1-x0;
-  sy = y1-y0;
+  sy = y0-y1;
   
-  x+=sx/2.0;
-  y+=sy/2.0;
+//  x-=sx/2.0;
+//  y-=sy/2.0;
 
   CGContextAddRect(ctx, CGRectMake(x, y, sx, sy));
   CGContextDrawPath(ctx, kCGPathFill);

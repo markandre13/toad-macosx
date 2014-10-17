@@ -309,9 +309,7 @@ _fixLineWidth(TFigureModel::iterator b, TFigureModel::iterator e)
       cf->getAttributes(&a);
       if (a.linewidth<15) {
         if (a.linewidth==0)
-          a.linewidth=48;
-        else
-          a.linewidth*=96;
+          a.linewidth=0.5;
         a.reason = TFigureAttributes::LINEWIDTH;
         cf->setAttributes(&a);
       }
@@ -786,8 +784,6 @@ TMainWindow::menuPrint()
 */
 #if 1
   TPen pen("output.pdf");
-  pen.scale(1.0/(96.0), 1.0/(96.0));
-  pen.setLineWidth(96.0);
 
   // all pages
   printSlide(pen, editmodel->document->content.getRoot());
@@ -859,21 +855,19 @@ struct TZoom
   const char * toText(unsigned) const { return text; }
 };
 
-// for this table we assume a screen resolution of 100dpi and a
-// maximum resolution of 9600 dpi for our image files
 TZoom zoom[13] = {
-  { "12.5%", 0.125/96.0 },
-  { "25%",  0.25/96.0 },
-  { "50%",  0.50/96.0 },
-  { "75%",  0.75/96.0 },
-  { "100%", 1.0/96.0 },
-  { "150%", 1.5/96.0 },
-  { "200%", 2.0/96.0 },
-  { "300%", 3.0/96.0 },
-  { "600%", 6.0/96.0 },
-  { "1200%", 12.0/96.0 },
-  { "2400%", 24.0/96.0 },
-  { "4800%", 48.0/96.0 },
+  { "12.5%", 0.125 },
+  { "25%",  0.25 },
+  { "50%",  0.50 },
+  { "75%",  0.75 },
+  { "100%", 1.0 },
+  { "150%", 1.5 },
+  { "200%", 2.0 },
+  { "300%", 3.0 },
+  { "600%", 6.0 },
+  { "1200%", 12.0 },
+  { "2400%", 24.0 },
+  { "4800%", 48.0 },
   { "9600%", 1.0 }
 };
 
@@ -928,7 +922,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   me->setBackground(1,1,1);
   me->setRowHeaderRenderer(new TLineal(true));
   me->setColHeaderRenderer(new TLineal(false));
-  me->setFont("arial,helvetica,sans-serif:size=1152"); // 12pt * 9600 dpi / 100
+  me->setFont("arial,helvetica,sans-serif:size=12");
 
   TMenuBar *mb = new TMenuBar(this, "menubar");
   mb->loadLayout(RESOURCE("menubar.atv"));
@@ -992,7 +986,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
 #if 0
   page->setAdapter(new TCollectionRenderer(this));
 #endif
-  me->setGrid(4*96);
+  me->setGrid(4);
   
   int h = page->getHeight();
 
@@ -1058,8 +1052,6 @@ TMainWindow::changeZoom(TFigureEditor *fe, TComboBox *cb)
   unsigned i = cb->getSelectionModel()->getRow();
   fe->identity();
   fe->scale(zoom[i].factor, zoom[i].factor);
-  int foobar = 0.5 / zoom[i].factor;
-  fe->translate(foobar, foobar);
 }
 
 void
@@ -1084,41 +1076,6 @@ TMainWindow::menuLayers()
   dlg->createWindow();
 }
 
-#if 0
-
-class TTest:
-  public TWindow
-{
-  public:
-    TTest(TWindow *p, const string &t): TWindow(p, t) {}
-    void paint();
-};
-
-void
-TTest::paint()
-{
-{
-  TCairo pen("test.pdf");
-  double x = 1.0/96.0;
-  pen.setColor(0,0,255);
-  pen.drawRectangle(0,0,320,200);
-  pen.drawString(10,10, "Hallo");
-  pen.scale(x, x);
-  pen.setLineWidth(96.0);
-  pen.setColor(255,0,0);
-  pen.drawRectangle(5,5,20,20);
-  pen.setColor(0,255,0);
-  pen.drawCircle(30,30,20,20);
-  pen.drawString(50,50, "Würze Dein GUI!");
-  pen.drawLine(0,0,320,200);
-  pen.setColor(0,0,0);
-  pen.drawRectangle(5,5,310,190);
-  pen.fillRectangle(0,0,5*96,5*96);
-  pen.fillRectangle(315,195,5,5);
-  pen.showPage();
-} exit(0);
-}
-#endif
 TCursor *fischland::cursor[16];
 
 void

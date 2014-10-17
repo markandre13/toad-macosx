@@ -296,7 +296,7 @@ class TFigureEditor:
     void rotate(double);
     void rotateAt(double x, double y, double radiants);
     void translate(TCoord, TCoord);
-    void scale(double sx, double sy);
+    void scale(TCoord sx, TCoord sy);
     void shear(double, double);
     void multiply(const TMatrix2D*);
 

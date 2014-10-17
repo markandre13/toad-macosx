@@ -69,9 +69,9 @@ class TFigureEditEvent
     
     TRectangle shape; // out:GET_SHAPE
 
-    int x, y;         // in:GET_DISTANCE, in:GET_HANDLE, in:TRANSLATE, 
+    TCoord x, y;         // in:GET_DISTANCE, in:GET_HANDLE, in:TRANSLATE, 
                       // in:TRANSLATE_HANDLE
-    double distance;  // out:GET_DISTANCE
+    TCoord distance;  // out:GET_DISTANCE
 
     unsigned handle;  // out:GET_HANDLE, in:TRANSLATE_HANDLE, in:PAINT_SELECTION
     
@@ -177,16 +177,16 @@ class TFigure:
 
     // editor related stuff for all gadgets
     //--------------------------------------
-    static double distance2Line(int x, int y, int x1, int y1, int x2, int y2);
+    static TCoord distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2);
 
 #if 0
     static const double OUT_OF_RANGE = HUGE_VAL;
     static const double RANGE = 5.0;
     static const double INSIDE = -1.0;
 #else
-    static double OUT_OF_RANGE;
-    static double RANGE;
-    static double INSIDE;
+    static TCoord OUT_OF_RANGE;
+    static TCoord RANGE;
+    static TCoord INSIDE;
 #endif
     // storage stuff for all gadgets
     //-------------------------------------- 
@@ -250,14 +250,14 @@ class TFRectangle:
     typedef TColoredFigure super;
   public:
     TFRectangle() {}
-    TFRectangle(int x,int y,int w, int h) {
+    TFRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
       setShape(x, y, w, h);
     };
-    void setShape(int x, int y, int w, int h) {
+    void setShape(TCoord x, TCoord y, TCoord w, TCoord h) {
       p1.x = x;
       p1.y = y;
-      p2.x = x+w-1;
-      p2.y = y+h-1;
+      p2.x = x+w;
+      p2.y = y+h;
     }
     void paint(TPenBase &, EPaintType);
     void getShape(TRectangle*);
@@ -305,7 +305,7 @@ class TFPolygon:
     virtual void insertPointNear(TCoord, TCoord);
     virtual void deletePoint(unsigned);
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
-    void addPoint(int x, int y) { polygon.addPoint(x,y); }
+    void addPoint(TCoord x, TCoord y) { polygon.addPoint(x,y); }
 };
 
 /**
@@ -408,7 +408,7 @@ class TFCircle:
 {
   public:
     TFCircle(){}
-    TFCircle(int x, int y, int w, int h):
+    TFCircle(TCoord x, TCoord y, TCoord w, TCoord h):
       TFRectangle(x,y,w,h) {}
     void paint(TPenBase &, EPaintType);
     
@@ -576,7 +576,7 @@ class TFImage:
   protected:
     string filename;
     PBitmap bitmap;
-    int x, y;
+    TCoord x, y;
   public:
     TFImage();
     TFImage(const string &filename);
