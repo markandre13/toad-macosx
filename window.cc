@@ -134,7 +134,6 @@ void
 TWindow::_setFocus(bool b)
 {
 cout << "TWindow::_setFocus: " << getTitle() << " from " << _bOwnsFocus << " to " << b << endl;
-printStackTrace();
   if (b==_bOwnsFocus)
     return;
   _bOwnsFocus = b;
@@ -510,7 +509,7 @@ TWindow::destroyParentless()
  *
  */
 
-@interface toadView : NSView
+@interface toadView : NSView <NSTextInputClient>
 {
   @public
     TWindow *twindow;
@@ -519,6 +518,27 @@ TWindow::destroyParentless()
 @end
 
 @implementation toadView : NSView
+
+/*
+ * To properly handle dead keys (ie. [alt]+[n], [ ] -> '~') our NSView has
+ * to implement the NSTextInputClient protocol.
+ *
+ * Here implement all methods for this protocol but they actually do nothing.
+ * Just having them available and calling [self interpretKeyEvents] will
+ * take care that the event's methods will deliver the requested dead keys.
+ */
+- (BOOL) hasMarkedText { return FALSE; }
+- (NSRange)markedRange { return {NSNotFound, 0}; }
+- (NSRange)selectedRange { return {NSNotFound, 0}; }
+- (void)setMarkedText: (id)str selectedRange:(NSRange)selected replacementRange:(NSRange)replacement {}
+- (void)unmarkText {}
+- (NSArray*) validAttributesForMarkedText { return [NSArray array]; }
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return nil; }
+- (void)insertText: (id)str replacementRange:(NSRange) replacement {}
+- (NSUInteger)characterIndexForPoint:(NSPoint)aPoint { return NSNotFound; }
+- (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return NSMakeRect(0,0,0,0); }
+- (void)doCommandBySelector:(SEL)aSelector {}
+
 /*
 - (id)initWithFrame:(NSRect)frame {
   printf("initWithFrame\n");
@@ -656,12 +676,15 @@ static TRegion *updateRegion = 0;
  
 - (void) keyDown:(NSEvent*)theEvent
 {
-//printf("key down\n");
+//cout << "key down" << endl;
+  [self interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
+
   TKeyEvent ke(theEvent);
   ke.type = TKeyEvent::DOWN;
   //twindow->keyEvent(ke);
   TFocusManager::handleEvent(ke);
   executeMessages();
+
 }
 
 - (void) keyUp:(NSEvent*)theEvent
@@ -1425,7 +1448,7 @@ TWindow::getOrigin(TCoord *x, TCoord *y) const
 const char*
 TKeyEvent::getString() const
 {
-  NSString *ns = [nsevent characters];
+  NSString *ns = [nsevent charactersIgnoringModifiers];
   return [ns UTF8String];
 }
 
@@ -1438,13 +1461,19 @@ TKeyEvent::getKey() const
 unsigned 
 TKeyEvent::modifier() const
 {
-  return [nsevent modifierFlags];
+  if (!_has_modifier) {
+    TKeyEvent *t = const_cast<TKeyEvent*>(this);
+    t->_modifier = [nsevent modifierFlags];
+    t->_has_modifier = true;
+  }
+  return _modifier;
 }
 
 void
-TKeyEvent::setModifier(unsigned)
+TKeyEvent::setModifier(unsigned m)
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  _modifier = m;
+  _has_modifier = true;
 }
 
 #if 0

@@ -155,6 +155,8 @@ class TKeyEvent {
   public:
     TKeyEvent(NSEvent *ns) {
       nsevent = ns;
+      _modifier = 0;
+      _has_modifier = false;
     }
     enum EType {
       DOWN, UP
@@ -162,6 +164,9 @@ class TKeyEvent {
 
     NSEvent *nsevent;
     TWindow *window;
+    
+    unsigned _modifier;
+    bool _has_modifier:1;
 
     const char* getString() const;
     TKey getKey() const;
