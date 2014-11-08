@@ -1245,6 +1245,8 @@ void test_timer();
 void test_table();
 void test_scroll();
 void test_dialog();
+void test_cursor();
+void test_colordialog();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1277,6 +1279,18 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-dialog")==0) {
       toad::initialize(argc, argv);
       test_dialog();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-cursor")==0) {
+      toad::initialize(argc, argv);
+      test_cursor();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-colordialog")==0) {
+      toad::initialize(argc, argv);
+      test_colordialog();
       toad::terminate();
       return 0;
     }

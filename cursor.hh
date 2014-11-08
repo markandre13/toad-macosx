@@ -24,19 +24,16 @@
 //#include <toad/os.hh>
 //#include <toad/toadbase.hh>
 
+@class NSCursor;
+
 namespace toad {
 
 class TWindow;
 
 class TCursor
 {
-    friend class TWindow;
-#ifdef __X11__
-    _TOAD_CURSOR cursor;
-#else
-#endif
-
   public:
+    NSCursor *cursor;
     enum EType {
       // Java compatible cursor types
       DEFAULT,
@@ -71,12 +68,7 @@ class TCursor
       _MAX
     };
 
-  #ifdef _TOAD_PRIVATE
-    #ifdef __X11__
-    static Cursor X11Cursor(EType);
-    #endif
-  #endif
-
+    TCursor(EType type);
     TCursor(const char shape[32][32+1], unsigned x=0, unsigned y=0);
     ~TCursor();
 };

@@ -68,3 +68,33 @@ TBitmap::load(istream&)
 {
   return false;
 }
+
+void
+TBitmap::setPixel(TCoord x, TCoord y, TCoord r, TCoord g, TCoord b)
+{
+  if (!img) {
+    NSRect offscreenRect = NSMakeRect(0.0, 0.0, width, height);
+    NSBitmapImageRep* offscreenRep = nil;
+    img = [[NSBitmapImageRep alloc]
+            initWithBitmapDataPlanes: nil
+            pixelsWide: offscreenRect.size.width
+            pixelsHigh: offscreenRect.size.height
+            bitsPerSample:8
+            samplesPerPixel:4
+            hasAlpha:YES
+            isPlanar:NO
+            colorSpaceName:NSCalibratedRGBColorSpace
+            bitmapFormat:0
+            bytesPerRow:(4 * offscreenRect.size.width)
+            bitsPerPixel:32];
+    CGContextRef ctx = (CGContextRef)[[NSGraphicsContext graphicsContextWithBitmapImageRep:img] graphicsPort];
+    CGContextSetRGBFillColor(ctx, 0, 0, 0, 0);
+    CGContextAddRect(ctx, CGRectMake(0, 0, width, height));
+    CGContextDrawPath(ctx, kCGPathFill);
+  }
+
+  CGContextRef ctx = (CGContextRef)[[NSGraphicsContext graphicsContextWithBitmapImageRep:img] graphicsPort];
+  CGContextSetRGBFillColor(ctx, r, g, b, 1.0);
+  CGContextAddRect(ctx, CGRectMake(x, height - y - 1, 1, 1));
+  CGContextDrawPath(ctx, kCGPathFill);
+}

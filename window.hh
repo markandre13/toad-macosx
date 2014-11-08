@@ -226,6 +226,7 @@ class TWindow:
     int _b; // border
     TRGB _bg;
     TLayout *layout;
+    TCursor *cursor;
 
     toadView *nsview;
     toadWindow *nswindow;

@@ -57,6 +57,11 @@ TColorDialog::~TColorDialog()
 */
 }
 
+/*
+ * \param h 0.0 - 360.0
+ * \param s 0.0 - 1.0
+ * \param v 0.0 - 1.0
+ */
 static void
 hsv2rgb(TCoord h, TCoord s, TCoord v, TCoord *red, TCoord *green, TCoord *blue)
 {
@@ -66,7 +71,7 @@ hsv2rgb(TCoord h, TCoord s, TCoord v, TCoord *red, TCoord *green, TCoord *blue)
     *blue = v;
   } else {
     double f;
-    int p, q, r;
+    TCoord p, q, r;
     while(h<0.0)
       h+=360.0;
     while(h>360.0)
@@ -218,10 +223,10 @@ TColorDialog::createBitmaps()
     return;
 
   bmp1 = new TBitmap(256, 256);
-  int iy, ix;
-  double x, y;
-  for(iy=0, y=-1.0; iy<256; ++iy, y+=2.0/255.0) {
-    for(ix=0, x=-1.0; ix<256; ++ix, x+=2.0/255.0) {
+  TCoord iy, ix;
+  TCoord x, y;
+  for(iy=0, y=-1.0; iy<256; ++iy, y+=2.0/255) {
+    for(ix=0, x=-1.0; ix<256; ++ix, x+=2.0/255) {
       double s = hypot(x, y);
       if (s<=1.0) {
         TCoord r, g, b;
@@ -235,7 +240,7 @@ TColorDialog::createBitmaps()
   bmp2 = new TBitmap(16,256);
   for(unsigned y=0; y<256; ++y) {
     for(unsigned x=0; x<16; ++x) {
-      TCoord v = (256-y) / 255.0;
+      TCoord v = (256-y) / 256.0;
       bmp2->setPixel(x,y,v,v,v);
     }
   }
@@ -295,13 +300,13 @@ void
 TColorDialog::paint()
 {
   TPen pen(this);
-  
+
   pen.drawBitmap(8      , 8, bmp1); // HS
   pen.drawBitmap(8+256+8, 8, bmp2); // V
   
   // paint HSV carets
-  double h = (double)hue / 360.0 * 2*M_PI - M_PI;
-  double s = (double)saturation / 100.0 * 128.0;
+  TCoord h = (double)hue / 360.0 * 2*M_PI - M_PI;
+  TCoord s = (double)saturation / 100.0 * 128.0;
   
   int x = static_cast<int>(s*cos(h)) +8+128;
   if (x>8+255) x=8+255;
@@ -309,13 +314,14 @@ TColorDialog::paint()
   if (y>8+255) y=8+255;
   int z = 8+255-value*255/100;
 
-  pen.setColor(0,0,0);
-  pen.fillRectanglePC(x-2, y-2, 5,5);
-  pen.fillRectanglePC(8+256+8,z-2,16,5);
 
   pen.setColor(1,1,1);
   pen.fillRectanglePC(x-1, y-1, 3,3);
   pen.fillRectanglePC(8+256+8+1,z-1,14,3);
+
+  pen.setColor(0,0,0);
+  pen.drawRectanglePC(x-2, y-2, 5,5);
+  pen.drawRectanglePC(8+256+8,z-2,16,5);
   
   pen.draw3DRectanglePC(8-2      ,8-2,256+4,256+4);
   pen.draw3DRectanglePC(8-2+256+8,8-2,16+4,256+4);

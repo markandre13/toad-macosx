@@ -22,6 +22,7 @@
 
 #include <toad/core.hh>
 #include <toad/layout.hh>
+#include <toad/cursor.hh>
 #include <toad/focusmanager.hh>
 #include <toad/io/urlstream.hh>
 #include <toad/command.hh>
@@ -700,6 +701,13 @@ static TRegion *updateRegion = 0;
 // handle layout and global event filter
 static void _doMouse2(TWindow *twindow, TMouseEvent &me)
 {
+  if (me.type == TMouseEvent::ENTER) {
+    if (twindow->cursor && twindow->cursor->cursor)
+      [twindow->cursor->cursor set];
+    else
+      [[NSCursor arrowCursor] set];
+  }
+
   me.window = twindow;
   TEventFilter *flt = toad::global_evt_filter;
   while(flt) {
@@ -999,6 +1007,7 @@ TWindow::TWindow(TWindow *parent, const string &title):
     placeWindow(PLACE_SCREEN_CENTER);
   _bg.set(1, 1, 1);
   layout = 0;
+  cursor = 0;
   
   flagExplicitCreate = false;
   flagTabKey = false;
@@ -1475,20 +1484,6 @@ TKeyEvent::setModifier(unsigned m)
   _modifier = m;
   _has_modifier = true;
 }
-
-#if 0
-void
-TWindow::setCursor(TCursor::EType)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-}
-
-void
-TWindow::setCursor(const TCursor*)
-{
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-}
-#endif
 
 void
 TWindow::setToolTip(const string &text)
