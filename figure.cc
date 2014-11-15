@@ -213,7 +213,7 @@ int a;
       fill_color = preferences->fillcolor;
       outline    = preferences->outline;
       filled     = preferences->filled;
-      alpha = preferences->alpha;
+      alpha      = preferences->alpha;
       break;
     case TFigureAttributes::LINECOLOR:
       line_color = preferences->linecolor;
@@ -449,8 +449,8 @@ TColoredFigure::store(TOutObjectStream &out) const
       }
     }
   }
-  if (alpha!=1) {
-    ::store(out, "alpha", static_cast<int>(alpha*255));
+  if (alpha<1.0) {
+    ::store(out, "alpha", alpha);
   }
 }
 
@@ -491,9 +491,7 @@ TColoredFigure::restore(TInObjectStream &in)
     return false;
   }
 
-  int a;
-  if (::restore(in, "alpha", &a)) {
-    alpha = a/255.0;
+  if (::restore(in, "alpha", &alpha)) {
     return true;
   }
   
