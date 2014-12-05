@@ -388,7 +388,7 @@ serialize.registerObject(new TFPath());
     wnd = 0;
     switch(i) {
       case 0:
-        wnd = rb = new TFatRadioButton(this, "pencil", state);
+        wnd = rb = new TFatRadioButton(this, "select", state);
         wnd->setToolTip("Selection");
         rb->loadBitmap(RESOURCE("tool_select.png"));
         CONNECT(rb->sigClicked, me, setTool, TSelectionTool::getTool());
@@ -396,19 +396,19 @@ serialize.registerObject(new TFPath());
         rb->setDown();
         break;
       case 1:
-        wnd = rb = new TFatRadioButton(this, "select", state);
+        wnd = rb = new TFatRadioButton(this, "directselect", state);
         wnd->setToolTip("Direct Selection");
         rb->loadBitmap(RESOURCE("tool_directselect.png"));
         CONNECT(rb->sigClicked, me, setTool, TDirectSelectionTool::getTool());
         break;
       case 2:
-        wnd = rb = new TFatRadioButton(this, "pen", state);
+        wnd = rb = new TFatRadioButton(this, "bezier", state);
         wnd->setToolTip("Pen: draw beziers");
         rb->loadBitmap(RESOURCE("tool_pen.png"));
         CONNECT(rb->sigClicked, me, setTool, TPenTool::getTool());
         break;
       case 3:
-        wnd = rb = new TFatRadioButton(this, "pencil", state);
+        wnd = rb = new TFatRadioButton(this, "freehand", state);
         wnd->setToolTip("Pencil: freehand curves");
         rb->loadBitmap(RESOURCE("tool_pencil.png"));
         CONNECT(rb->sigClicked, me, setTool, TPencilTool::getTool());

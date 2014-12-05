@@ -48,10 +48,13 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 
   switch(me.type) {
     case TMouseEvent::LDOWN:
+      // get mouse move events
       if (fe->state == TFigureEditor::STATE_NONE) {
         fe->state = TFigureEditor::STATE_CREATE;
         fe->getWindow()->setAllMouseMoveEvents(true);
       }
+      
+      // handle handle
       if (!fe->selection.empty()) {
         // origin is already applied by scroll pane?
         TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
@@ -86,8 +89,11 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           }
         }
       }
+
+      // find figure under mouse
       fe->mouse2sheet(me.x, me.y, &x, &y);
       figure = fe->findFigureAt(x, y);
+
       if (fe->selection.find(figure) != fe->selection.end()) {
         fe->sheet2grid(x, y, &last_x, &last_y);
         last_sx = me.x;
@@ -96,9 +102,12 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         break;
       }
       
+      // shift not pressed, clear earlier selection
       if (!(me.modifier() & MK_SHIFT)) {
         fe->clearSelection();
       }
+
+      // invalidate old selection
       if (!selection.empty()) {
         fe->invalidateWindow();
       }
@@ -107,10 +116,12 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         selection.insert(figure);
         fe->invalidateWindow();
       }
+      
       down = true;
       rx0 = rx1 = me.x;
       ry0 = ry1 = me.y;
       break;
+
     case TMouseEvent::MOVE:
       if (!hndl) {
         if (!fe->selection.empty()) {
