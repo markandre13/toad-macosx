@@ -54,41 +54,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         fe->getWindow()->setAllMouseMoveEvents(true);
       }
       
-      // handle handle
-      if (!fe->selection.empty()) {
-        // origin is already applied by scroll pane?
-        TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-        TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
-//        cout << "down at " << x << ", " << y << endl;
-        for(unsigned i=0; i<8; ++i) {
-          getBoundingHandle(i, &r);
-//          cout << "  check " << r.x << ", " << r.y << endl;
-          if (r.isInside(x, y)) {
-            handle = i;
-            ox0 = x0;
-            oy0 = y0;
-            ox1 = x1;
-            oy1 = y1;
-            hndl = true;
-            oldmat.clear();
-            for(TFigureSet::const_iterator p = fe->selection.begin();
-                p != fe->selection.end();
-                ++p)
-            {
-              if ( (*p)->mat || (*p)->cmat ) {
-                if (scale_strokes_and_fx)
-                  oldmat.push_back(*(*p)->mat);
-                else
-                  oldmat.push_back(*(*p)->cmat);
-              } else {
-                oldmat.push_back(TMatrix2D());
-              }
-            }
-//            cout << "its inside handle " << i << endl;
-            return;
-          }
-        }
-      }
+      if (downHandle(fe, me))
+        break;
 
       // find figure under mouse
       fe->mouse2sheet(me.x, me.y, &x, &y);
@@ -108,12 +75,12 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       }
 
       // invalidate old selection
-      if (!selection.empty()) {
+      if (!tmpsel.empty()) {
         fe->invalidateWindow();
+        tmpsel.clear();
       }
-      selection.clear();
       if (figure) {
-        selection.insert(figure);
+        tmpsel.insert(figure);
         fe->invalidateWindow();
       }
       
@@ -123,140 +90,24 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       break;
 
     case TMouseEvent::MOVE:
-      if (!hndl) {
-        if (!fe->selection.empty()) {
-          // origin is already applied by scroll pane?
-          int x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-          int y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
-          TCursor::EType cursor = TCursor::DEFAULT;
-          for(unsigned i=0; i<8; ++i) {
-            getBoundingHandle(i, &r);
-            if (r.isInside(x, y)) {
-              static const TCursor::EType wind[8] = {
-               TCursor::NW_RESIZE,
-               TCursor::N_RESIZE,
-               TCursor::NE_RESIZE,
-               TCursor::E_RESIZE,
-               TCursor::SE_RESIZE,
-               TCursor::S_RESIZE,
-               TCursor::SW_RESIZE,
-               TCursor::W_RESIZE
-              };
-              cursor = wind[i];
-              break;
-            }
-          }
-          fe->getWindow()->setCursor(cursor);
-        }
-      } else {
-        // mouse is holding a handle, scale the selection
-        invalidateBounding(fe);
-        TCoord x, y;
-        x = me.x - fe->getVisible().x;
-        y = me.y - fe->getVisible().y;
-        switch(handle) {
-          case 0:
-            x0 = x;
-            y0 = y;
-            break;
-          case 1:
-            y0 = y;
-            break;
-          case 2:
-            x1 = x;
-            y0 = y;
-            break;
-          case 3:
-            x1 = x;
-            break;
-          case 4:
-            x1 = x;
-            y1 = y;
-            break;
-          case 5:
-            y1 = y;
-            break;
-          case 6:
-            x0 = x;
-            y1 = y;
-            break;
-          case 7:
-            x0 = x;
-            break;
-        }
-
-        TCoord sx = (x1-x0)/(ox1 - ox0);
-        TCoord sy = (y1-y0)/(oy1 - oy0);
-        TCoord X0, OX0, Y0, OY0;
-        if (fe->getMatrix()) {
-          TMatrix2D m(*fe->getMatrix());
-          m.invert();
-          m.map(x0, y0, &X0, &Y0);
-          m.map(ox0, oy0, &OX0, &OY0);
-        } else {
-          X0 = x0; Y0 = y0;
-          OX0 = ox0; OY0 = oy0;
-        }
-        TMatrix2D m;
-        m.translate(X0, Y0);
-        m.scale(sx, sy);
-        m.translate(-OX0, -OY0);
-
-        unsigned i=0;
-        for(TFigureSet::iterator p = fe->selection.begin();
-            p != fe->selection.end();
-            ++p, ++i)
-        {
-          if (scale_strokes_and_fx) {
-            if ((*p)->mat) {
-              *(*p)->mat = m * oldmat[i];
-            } else {
-              (*p)->mat = new TMatrix2D(m);
-            }
-          } else {
-            if ((*p)->cmat) {
-              *(*p)->cmat = m * oldmat[i];
-            } else {
-              (*p)->cmat = new TMatrix2D(m);
-            }
-          }
-        }
-
-        invalidateBounding(fe);
+      if (hndl) {
+        moveHandle(fe, me);
         break;
       }
+
+      setCursorForHandle(fe, me);
+      
       if (grab) {
-        TCoord x, y;
-        fe->mouse2sheet(me.x, me.y, &x, &y);
-        fe->sheet2grid(x, y, &x, &y);
-        TCoord dx = x-last_x;
-        TCoord dy = y-last_y;
-        last_x=x;
-        last_y=y;
-        
-        invalidateBounding(fe);
-
-        fe->getModel()->translate(fe->selection, dx, dy);
-        #if 0
-        dx = me.x - last_sx;
-        dy = me.y - last_sy;
-        last_sx = me.x;
-        last_sy = me.y;
-        x0 += dx;
-        y0 += dy;
-        x1 += dx;
-        y1 += dy;
-        #else
-        calcSelectionsBoundingRectangle(fe);
-        #endif
-        invalidateBounding(fe);
+        moveGrab(fe, me);
         break;
       }
+
+
       if (down) {
         if (!rect) {
           if (me.x < rx0-2 || me.x > rx0+2 || me.y < ry0-2 || me.y > ry0+2) {
             rect = true;
-            selection.clear();
+            tmpsel.clear();
           } else {
             break;
           }
@@ -271,10 +122,9 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           rx0 + fe->getWindow()->getOriginX(),
           ry0 + fe->getWindow()->getOriginY(),
           rx1-rx0+3,ry1-ry0+2);
-        selection.clear();
-        TFigureModel::const_iterator p, e;
-        p = fe->getModel()->begin();
-        e = fe->getModel()->end();
+        tmpsel.clear();
+        auto p = fe->getModel()->begin();
+        auto e = fe->getModel()->end();
         TPoint p0, p1;
         fe->mouse2sheet(rx0, ry0, &p0.x, &p0.y);
         fe->mouse2sheet(rx1, ry1, &p1.x, &p1.y);
@@ -296,12 +146,13 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           if (r0.isInside( r1.x, r1.y ) &&
               r0.isInside( r1.x+r1.w, r1.y+r1.h ) )
           {
-            selection.insert(*p);
+            tmpsel.insert(*p);
           }
           ++p;
         }
       }
       break;
+
     case TMouseEvent::LUP:
       if (hndl) {
         hndl = false;
@@ -316,8 +167,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       down = rect = false;
       
       // add new selection to figure editors selection
-      fe->selection.insert(selection.begin(), selection.end());
-      selection.clear();
+      fe->selection.insert(tmpsel.begin(), tmpsel.end());
+      tmpsel.clear();
 
       // calculate the selections bounding rectangle
       calcSelectionsBoundingRectangle(fe);
@@ -326,6 +177,177 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     default:
       ;
   }
+}
+
+void
+TSelectionTool::setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me)
+{
+  if (fe->selection.empty())
+    return;
+  
+  // origin is already applied by scroll pane?
+  TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+  TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  TCursor::EType cursor = TCursor::DEFAULT;
+  for(unsigned i=0; i<8; ++i) {
+    TRectangle r;
+    getBoundingHandle(i, &r);
+    if (r.isInside(x, y)) {
+      static const TCursor::EType wind[8] = {
+       TCursor::NW_RESIZE,
+       TCursor::N_RESIZE,
+       TCursor::NE_RESIZE,
+       TCursor::E_RESIZE,
+       TCursor::SE_RESIZE,
+       TCursor::S_RESIZE,
+       TCursor::SW_RESIZE,
+       TCursor::W_RESIZE
+      };
+      cursor = wind[i];
+      break;
+    }
+  }
+  fe->getWindow()->setCursor(cursor);
+}
+
+bool
+TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
+{      
+  if (fe->selection.empty())
+    return false;
+  // origin is already applied by scroll pane?
+  TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+  TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+// cout << "down at " << x << ", " << y << endl;
+  for(unsigned i=0; i<8; ++i) {
+    TRectangle r;
+    getBoundingHandle(i, &r);
+// cout << "  check " << r.x << ", " << r.y << endl;
+    if (r.isInside(x, y)) {
+      handle = i;
+      ox0 = x0;
+      oy0 = y0;
+      ox1 = x1;
+      oy1 = y1;
+      hndl = true;
+      oldmat.clear();
+      for(TFigureSet::const_iterator p = fe->selection.begin();
+          p != fe->selection.end();
+          ++p)
+      {
+        if ( (*p)->mat || (*p)->cmat ) {
+          if (scale_strokes_and_fx)
+            oldmat.push_back(*(*p)->mat);
+          else
+            oldmat.push_back(*(*p)->cmat);
+        } else {
+          oldmat.push_back(TMatrix2D());
+        }
+      }
+// cout << "its inside handle " << i << endl;
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+void
+TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
+{
+  // mouse is holding a handle, scale the selection
+  invalidateBounding(fe);
+  TCoord x, y;
+  x = me.x - fe->getVisible().x;
+  y = me.y - fe->getVisible().y;
+  switch(handle) {
+    case 0:
+      x0 = x;
+      y0 = y;
+      break;
+    case 1:
+      y0 = y;
+      break;
+    case 2:
+      x1 = x;
+      y0 = y;
+      break;
+    case 3:
+      x1 = x;
+      break;
+    case 4:
+      x1 = x;
+      y1 = y;
+      break;
+    case 5:
+      y1 = y;
+      break;
+    case 6:
+      x0 = x;
+      y1 = y;
+      break;
+    case 7:
+      x0 = x;
+      break;
+  }
+
+  TCoord sx = (x1-x0)/(ox1 - ox0);
+  TCoord sy = (y1-y0)/(oy1 - oy0);
+  TCoord X0, OX0, Y0, OY0;
+  if (fe->getMatrix()) {
+    TMatrix2D m(*fe->getMatrix());
+    m.invert();
+    m.map(x0, y0, &X0, &Y0);
+    m.map(ox0, oy0, &OX0, &OY0);
+  } else {
+    X0 = x0; Y0 = y0;
+    OX0 = ox0; OY0 = oy0;
+  }
+  TMatrix2D m;
+  m.translate(X0, Y0);
+  m.scale(sx, sy);
+  m.translate(-OX0, -OY0);
+
+  unsigned i=0;
+  for(auto p = fe->selection.begin();
+      p != fe->selection.end();
+      ++p, ++i)
+  {
+    if (scale_strokes_and_fx) {
+      if ((*p)->mat) {
+        *(*p)->mat = m * oldmat[i];
+      } else {
+        (*p)->mat = new TMatrix2D(m);
+      }
+    } else {
+      if ((*p)->cmat) {
+        *(*p)->cmat = m * oldmat[i];
+      } else {
+        (*p)->cmat = new TMatrix2D(m);
+      }
+    }
+  }
+
+  invalidateBounding(fe);
+}
+
+void
+TSelectionTool::moveGrab(TFigureEditor *fe, const TMouseEvent &me)
+{
+  TCoord x, y;
+  fe->mouse2sheet(me.x, me.y, &x, &y);
+  fe->sheet2grid(x, y, &x, &y);
+  TCoord dx = x-last_x;
+  TCoord dy = y-last_y;
+  last_x=x;
+  last_y=y;
+  
+  invalidateBounding(fe);
+
+  fe->getModel()->translate(fe->selection, dx, dy);
+
+  calcSelectionsBoundingRectangle(fe);
+  invalidateBounding(fe);
 }
 
 void
@@ -355,10 +377,7 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   // draw the interactive selection rectangle
   if (down) {
     // draw the selection marks over all figures
-    for(TFigureSet::iterator sp = selection.begin();
-        sp != selection.end();
-        ++sp)
-    {
+    for(auto sp = tmpsel.begin(); sp != tmpsel.end(); ++sp) {
       if ((*sp)->mat) {
         pen.push();
         pen.multiply( (*sp)->mat );
