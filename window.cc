@@ -960,9 +960,7 @@ unsigned TMouseEvent::_modifier = 0;
 unsigned
 TMouseEvent::modifier() const
 {
-  const unsigned mask = MK_ALTGR|MK_LBUTTON|MK_MBUTTON|MK_RBUTTON|MK_DOUBLE;
-  return (  [nsevent modifierFlags] 
-          & mask )
+  return  [nsevent modifierFlags] 
           | _modifier
           | (dblClick ? MK_DOUBLE : 0);
 }
