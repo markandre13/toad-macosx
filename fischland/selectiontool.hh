@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2014 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -67,6 +67,7 @@ class TSelectionTool:
     void moveHandle(TFigureEditor *fe, const TMouseEvent &me);
     
     void moveGrab(TFigureEditor *fe, const TMouseEvent &me);
+    void moveSelect(TFigureEditor *fe, const TMouseEvent &me);
     
     void paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);

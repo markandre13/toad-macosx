@@ -61,27 +61,30 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       fe->mouse2sheet(me.x, me.y, &x, &y);
       figure = fe->findFigureAt(x, y);
 
-      if (fe->selection.find(figure) != fe->selection.end()) {
+      // if figure not part of selection and not shift
+      if (fe->selection.find(figure) == fe->selection.end() &&
+          !(me.modifier() & MK_SHIFT))
+      {
+        fe->clearSelection();
+      }
+
+      // on a figure, start grab
+      if (figure) {
+        fe->selection.insert(figure);
         fe->sheet2grid(x, y, &last_x, &last_y);
         last_sx = me.x;
         last_sy = me.y;
         grab = true;
+        fe->invalidateWindow();
         break;
       }
       
-      // shift not pressed, clear earlier selection
-      if (!(me.modifier() & MK_SHIFT)) {
-        fe->clearSelection();
-      }
-
       // invalidate old selection
-      if (!tmpsel.empty()) {
+      if (!tmpsel.empty() &&
+          !(me.modifier() & MK_SHIFT))
+      {
         fe->invalidateWindow();
         tmpsel.clear();
-      }
-      if (figure) {
-        tmpsel.insert(figure);
-        fe->invalidateWindow();
       }
       
       down = true;
@@ -94,63 +97,15 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         moveHandle(fe, me);
         break;
       }
-
-      setCursorForHandle(fe, me);
-      
       if (grab) {
         moveGrab(fe, me);
         break;
       }
-
-
       if (down) {
-        if (!rect) {
-          if (me.x < rx0-2 || me.x > rx0+2 || me.y < ry0-2 || me.y > ry0+2) {
-            rect = true;
-            tmpsel.clear();
-          } else {
-            break;
-          }
-        }
-        fe->getWindow()->invalidateWindow(
-          rx0 + fe->getWindow()->getOriginX(),
-          ry0 + fe->getWindow()->getOriginY(),
-          rx1-rx0+3,ry1-ry0+2);
-        rx1 = me.x;
-        ry1 = me.y;
-        fe->getWindow()->invalidateWindow(
-          rx0 + fe->getWindow()->getOriginX(),
-          ry0 + fe->getWindow()->getOriginY(),
-          rx1-rx0+3,ry1-ry0+2);
-        tmpsel.clear();
-        auto p = fe->getModel()->begin();
-        auto e = fe->getModel()->end();
-        TPoint p0, p1;
-        fe->mouse2sheet(rx0, ry0, &p0.x, &p0.y);
-        fe->mouse2sheet(rx1, ry1, &p1.x, &p1.y);
-        TRectangle r0(p1, p0), r1;
-        while(p!=e) {
-#if 1
-          fe->getFigureShape(*p, &r1, NULL);
-#else
-          (*p)->getShape(&r1);
-          
-          #warning "why isn't the following already done by getShape?"
-          if ( (*p)->mat ) {
-            TPoint p0, p1;
-            (*p)->mat->map(r1.x       , r1.y       , &p0.x, &p0.y);
-            (*p)->mat->map(r1.x+r1.w-1, r1.y+r1.h-1, &p1.x, &p1.y);
-            r1.set(p0, p1);
-          }
-#endif
-          if (r0.isInside( r1.x, r1.y ) &&
-              r0.isInside( r1.x+r1.w, r1.y+r1.h ) )
-          {
-            tmpsel.insert(*p);
-          }
-          ++p;
-        }
+        moveSelect(fe, me);
+        break;
       }
+//      setCursorForHandle(fe, me);
       break;
 
     case TMouseEvent::LUP:
@@ -348,6 +303,45 @@ TSelectionTool::moveGrab(TFigureEditor *fe, const TMouseEvent &me)
 
   calcSelectionsBoundingRectangle(fe);
   invalidateBounding(fe);
+}
+
+void
+TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
+{
+  if (!rect) {
+    if (me.x < rx0-2 || me.x > rx0+2 || me.y < ry0-2 || me.y > ry0+2) {
+      rect = true;
+      tmpsel.clear();
+    } else {
+      return;
+    }
+  }
+  fe->getWindow()->invalidateWindow(
+    rx0 + fe->getWindow()->getOriginX(),
+    ry0 + fe->getWindow()->getOriginY(),
+    rx1-rx0+3,ry1-ry0+2);
+  rx1 = me.x;
+  ry1 = me.y;
+  fe->getWindow()->invalidateWindow(
+    rx0 + fe->getWindow()->getOriginX(),
+    ry0 + fe->getWindow()->getOriginY(),
+    rx1-rx0+3,ry1-ry0+2);
+  tmpsel.clear();
+  auto p = fe->getModel()->begin();
+  auto e = fe->getModel()->end();
+  TPoint p0, p1;
+  fe->mouse2sheet(rx0, ry0, &p0.x, &p0.y);
+  fe->mouse2sheet(rx1, ry1, &p1.x, &p1.y);
+  TRectangle r0(p1, p0), r1;
+  while(p!=e) {
+    fe->getFigureShape(*p, &r1, NULL);
+    if (r0.isInside( r1.x, r1.y ) &&
+        r0.isInside( r1.x+r1.w, r1.y+r1.h ) )
+    {
+      tmpsel.insert(*p);
+    }
+    ++p;
+  }
 }
 
 void
