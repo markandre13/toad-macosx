@@ -67,7 +67,7 @@ TAction::~TAction()
 void
 TAction::focus(bool b)
 {
-cout << "action '" << getTitle() << "' " << (b?"got":"lost") << " the focus" << endl;
+//cout << "action '" << getTitle() << "' " << (b?"got":"lost") << " the focus" << endl;
   bool oldstate = isEnabled();
   has_focus = b;
   if (isEnabled()!=oldstate) {

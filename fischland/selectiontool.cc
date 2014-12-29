@@ -75,6 +75,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         last_sx = me.x;
         last_sy = me.y;
         grab = true;
+        calcSelectionsBoundingRectangle(fe);
         fe->invalidateWindow();
         break;
       }
@@ -212,6 +213,7 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 {
   // mouse is holding a handle, scale the selection
   invalidateBounding(fe);
+TCoord x0, y0;
   TCoord x, y;
   x = me.x - fe->getVisible().x;
   y = me.y - fe->getVisible().y;
@@ -419,14 +421,14 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.setColor(TColor::FIGURE_SELECTION);
     pen.setLineWidth(1);
     pen.setAlpha(1.0);
-    pen.drawRectangle(x0+0.5, y0+0.5, x1-x0, y1-y0);
+    pen.drawRectangle(x0+1, y0+1, x1-x0-1, y1-y0-1);
 
     pen.setFillColor(1,1,1);
     TRectangle r;
     for(unsigned i=0; i<8; ++i) {
       getBoundingHandle(i, &r);
-      pen.fillRectanglePC(r);
-      pen.drawRectanglePC(r);
+      pen.fillRectangle(r);
+      pen.drawRectangle(r);
     }
     
     if (pen.getMatrix()) {
@@ -441,20 +443,21 @@ TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
   int w = x1 - x0;
   int h = y1 - y0;
   switch(i) {
-    case 0: r->set(x0-2  , y0-2  , 5, 5); break;
-    case 1: r->set(x0+w/2-2, y0-2  , 5, 5); break;
-    case 2: r->set(x0+w-2, y0-2  , 5, 5); break;
-    case 3: r->set(x0+w-2, y0+h/2-2, 5, 5); break;
-    case 4: r->set(x0+w-2, y0+h-2, 5, 5); break;
-    case 5: r->set(x0+w/2-2, y0+h-2, 5, 5); break;
-    case 6: r->set(x0-2,   y0+h-2, 5, 5); break;
-    case 7: r->set(x0-2,   y0+h/2-2, 5, 5); break;
+    case 0: r->set(x0-1  , y0-1  , 4, 4); break;
+    case 1: r->set(x0+w/2-2, y0-1  , 4, 4); break;
+    case 2: r->set(x0+w-2, y0-1  , 4, 4); break;
+    case 3: r->set(x0+w-2, y0+h/2-2, 4, 4); break;
+    case 4: r->set(x0+w-2, y0+h-2, 4, 4); break;
+    case 5: r->set(x0+w/2-2, y0+h-2, 4, 4); break;
+    case 6: r->set(x0-1,   y0+h-2, 4, 4); break;
+    case 7: r->set(x0-1,   y0+h/2-2, 4, 4); break;
   }
 }
       
 void
 TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
 {
+cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
   for(TFigureSet::const_iterator p = fe->selection.begin();
       p != fe->selection.end();
       ++p)
@@ -462,6 +465,7 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
     TRectangle r;
 #if 1
     fe->getFigureShape(*p, &r, NULL);
+cout << "-> getFigureShape -> " << r << endl;
 #else
     (*p)->getShape(&r);
     if ( (*p)->mat ) {
@@ -499,4 +503,7 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
       y1 += fe->getVisible().y;
 */
   }
+
+cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
+
 }

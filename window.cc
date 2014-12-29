@@ -111,7 +111,7 @@ TWindow::isRealized() const
 bool
 TWindow::setFocus()
 {
-cout << "TWindow::setFocus: " << getTitle() << endl;
+//cout << "TWindow::setFocus: " << getTitle() << endl;
   TFocusManager::setFocusWindow(this);
   return TFocusManager::getFocusWindow()==this;
 }
@@ -119,7 +119,7 @@ cout << "TWindow::setFocus: " << getTitle() << endl;
 void
 TWindow::_setFocusHelper(TInteractor *parent, bool b)
 {
-cout << "TWindow::setFocusHelper: " << getTitle() << endl;
+//cout << "TWindow::setFocusHelper: " << getTitle() << endl;
   parent->focus(b);
   TInteractor *p = parent->getFirstChild();
   while(p) {
@@ -134,7 +134,7 @@ cout << "TWindow::setFocusHelper: " << getTitle() << endl;
 void
 TWindow::_setFocus(bool b)
 {
-cout << "TWindow::_setFocus: " << getTitle() << " from " << _bOwnsFocus << " to " << b << endl;
+//cout << "TWindow::_setFocus: " << getTitle() << " from " << _bOwnsFocus << " to " << b << endl;
   if (b==_bOwnsFocus)
     return;
   _bOwnsFocus = b;
@@ -148,14 +148,14 @@ cout << "TWindow::_setFocus: " << getTitle() << " from " << _bOwnsFocus << " to 
 void
 TWindow::closeRequest()
 {
-  cout << "TWindow::closeRequest for " << getTitle() << endl;
+//  cout << "TWindow::closeRequest for " << getTitle() << endl;
   destroyWindow();
 }
 
 void
 TWindow::grabMouse(bool allmove, TWindow *confine, TCursor::EType type)
 {
-  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 static TWindow *grabPopupWindow = 0;

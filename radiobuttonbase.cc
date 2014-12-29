@@ -54,7 +54,7 @@ TRadioStateModel::TRadioStateModel()
 void 
 TRadioStateModel::add(TRadioButtonBase *rb)
 {
-cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
+//cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
   // to call button
   listener.push_back(rb);
   
@@ -65,7 +65,7 @@ cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
 void 
 TRadioStateModel::remove(TRadioButtonBase *rb)
 {
-cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
+//cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
   TListenerBuffer::iterator p,e;
   p = listener.begin();
   e = listener.end();
@@ -83,7 +83,7 @@ cout << this << " " << __PRETTY_FUNCTION__ << " " << rb << endl;
 void 
 TRadioStateModel::setCurrent(TRadioButtonBase *btn)
 {
-cout << this << " " << __PRETTY_FUNCTION__ << " " << btn << endl;
+//cout << this << " " << __PRETTY_FUNCTION__ << " " << btn << endl;
   if (btn==_current)
     return;
   TRadioButtonBase *old = _current;
@@ -98,7 +98,7 @@ cout << this << " " << __PRETTY_FUNCTION__ << " " << btn << endl;
 void 
 TRadioStateModel::setTemporary(TRadioButtonBase *btn)
 {
-cout << this << " " << __PRETTY_FUNCTION__ << " " << btn << endl;
+//cout << this << " " << __PRETTY_FUNCTION__ << " " << btn << endl;
   if (btn==_temporary)
     return;
   

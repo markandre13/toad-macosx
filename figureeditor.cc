@@ -382,12 +382,12 @@ void TFigureEditor::scale(TCoord sx, TCoord sy)
   if (!mat)
     mat = new TMatrix2D();
   mat->scale(sx, sy);
-
+/*
 cout << "TFigureEditor::scale(" << sx << ", " << sy << ")\n"
      << "  " << mat->a << ", " << mat->b << endl
      << "  " << mat->c << ", " << mat->d << endl
      << "  " << mat->tx << ", " << mat->ty << endl;
-
+*/
 
 // better: create 2 points, transform 'em and calculate the
 // distance
@@ -1183,7 +1183,7 @@ TFigureEditor::setOperation(unsigned op)
 void
 TFigureEditor::setTool(TFigureTool *aTool)
 {
-cout << "TFigureEditor: setTool " << aTool << endl;
+//cout << "TFigureEditor: setTool " << aTool << endl;
   stopOperation();
   clearSelection();
   if (tool!=aTool) {
@@ -2189,10 +2189,12 @@ TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *m
   // add some extra for the figure handles
   // (this would be be delegated to the figure itself, as the figure contains
   // the code to draw the handles!)
+/*
   r->x-=3;
   r->y-=3;
   r->w+=6;
   r->h+=6;
+*/
 }
 
 /**
