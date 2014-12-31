@@ -23,18 +23,23 @@ using namespace toad;
 @implementation ToadDelegate : NSObject
 - (void) dealloc
 {
+  TOAD_DBG_ENTER
   [super dealloc];
   // RELEASE (myWindow);
+  TOAD_DBG_LEAVE
 }
 
 - (void) createWindow
 {
+  TOAD_DBG_ENTER
   TWindow::createParentless();
+  TOAD_DBG_LEAVE
 }
 
 // this one creates a simple custom menu without NIB files
 - (void) createMenu
 {
+  TOAD_DBG_ENTER
   NSMenu *m0, *m1;
 
   // menu = AUTORELEASE ([NSMenu new]);
@@ -51,26 +56,35 @@ using namespace toad;
   [m1 addItemWithTitle: @"Quit" action: @selector (terminate:) keyEquivalent: @"q"];
 
   [NSApp setMainMenu: m0];
+  TOAD_DBG_LEAVE
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)notification;
 {
+  TOAD_DBG_ENTER
   [self createWindow];
+  TOAD_DBG_LEAVE
 }
 
 - (void) applicationDidFinishLaunching: (NSNotification *)notification;
 {
-  [self createMenu];  
+  TOAD_DBG_ENTER
+  [self createMenu];
+  TOAD_DBG_LEAVE
 }
 
 - (void) windowWillMove: (NSNotification *)notification;
 {
+  TOAD_DBG_ENTER
   TWindow::_windowWillMove(notification);
+  TOAD_DBG_LEAVE
 }
 
 - (void) windowDidMove: (NSNotification *)notification;
 {
+  TOAD_DBG_ENTER
   TWindow::_windowDidMove(notification);
+  TOAD_DBG_LEAVE
 }
 @end
 

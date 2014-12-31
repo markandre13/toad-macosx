@@ -461,26 +461,33 @@ TWindow::destroyParentless()
 
 @implementation toadWindow : NSWindow
 - (void)dealloc {
+  TOAD_DBG_ENTER
   if (twindow) {
     cout << "dealloc toadWindow " << twindow->getTitle() << endl;
     delete twindow;
   }
   [super dealloc];
+  TOAD_DBG_LEAVE
 }
 - (void)setWindow: (TWindow*)aWindow {
   twindow = aWindow;
 }
+
 - (void)becomeKeyWindow {
+  TOAD_DBG_ENTER
   [super becomeKeyWindow];
 //  printf("%s\n", __FUNCTION__);
   TFocusManager::domainToWindow(twindow);
+  TOAD_DBG_LEAVE
 }
 - (void)resignKeyWindow {
+  TOAD_DBG_ENTER
   [super resignKeyWindow];
 //  printf("%s\n", __FUNCTION__);
   if (grabPopupWindow)
     TWindow::ungrabMouse();
   TFocusManager::domainToWindow(0);
+  TOAD_DBG_LEAVE
 }
 
 - (BOOL)canBecomeMainWindow
@@ -592,6 +599,7 @@ TWindow::destroyParentless()
 */
 - (void) setFrameSize:(NSSize)newSize
 {
+  TOAD_DBG_ENTER
 //  printf("%s: (%f,%f)\n", __FUNCTION__, newSize.width, newSize.height);
   [super setFrameSize:newSize];
   [self removeTrackingRect: trackAll];
@@ -602,12 +610,14 @@ TWindow::destroyParentless()
   twindow->w = newSize.width;
   twindow->h = newSize.height;
   twindow->doResize();
+  TOAD_DBG_LEAVE
 }
 
 static TRegion *updateRegion = 0;
 
 - (void) drawRect:(NSRect)rect
 {
+  TOAD_DBG_ENTER
   if (updateRegion) {
     updateRegion = NULL;
   }
@@ -625,8 +635,10 @@ static TRegion *updateRegion = 0;
 */
 //printf("print draw rect (%f,%f,%f,%f)\n",rect.origin.x,rect.origin.y,
 //                                         rect.size.width,rect.size.height);
-  if (!twindow)
+  if (!twindow) {
+    TOAD_DBG_LEAVE
     return;
+  }
 
   if (!twindow->flagNoBackground) {
     CGContextRef ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
@@ -637,6 +649,7 @@ static TRegion *updateRegion = 0;
   if (twindow->layout)
     twindow->layout->paint();
   twindow->paint();
+  TOAD_DBG_LEAVE
 }
 
 // We always return YES here to simulate FocusFollowsMouse behaviour.
@@ -677,6 +690,7 @@ static TRegion *updateRegion = 0;
  
 - (void) keyDown:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
 //cout << "key down" << endl;
   [self interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
 
@@ -685,17 +699,19 @@ static TRegion *updateRegion = 0;
   //twindow->keyEvent(ke);
   TFocusManager::handleEvent(ke);
   executeMessages();
-
+  TOAD_DBG_LEAVE
 }
 
 - (void) keyUp:(NSEvent*)theEvent
 {
 //printf("key up\n");
+  TOAD_DBG_ENTER
   TKeyEvent ke(theEvent);
   ke.type = TKeyEvent::UP;
   //twindow->keyEvent(ke);
   TFocusManager::handleEvent(ke);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 // handle layout and global event filter
@@ -825,40 +841,48 @@ if (me.type == TMouseEvent::LUP)
 
 - (void) mouseEntered:(NSEvent*)theEvent
 {
-//printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
+  TOAD_DBG_ENTER
   twindow->_inside = true;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::ENTER;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 - (void) mouseExited:(NSEvent*)theEvent
 {
-//printf("%s: %s\n",__FUNCTION__, twindow->getTitle().c_str());
+  TOAD_DBG_ENTER
   twindow->_inside = false;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::LEAVE;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 - (void) mouseDown:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier |= MK_LBUTTON;
   twindow->_down(TMouseEvent::LDOWN, theEvent);
+  TOAD_DBG_LEAVE
 }
 
 - (void) rightMouseDown:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier |= MK_RBUTTON;
   twindow->_down(TMouseEvent::RDOWN, theEvent);
+  TOAD_DBG_LEAVE
 }
 
 - (void) otherMouseDown:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier |= MK_MBUTTON;
   twindow->_down(TMouseEvent::MDOWN, theEvent);
+  TOAD_DBG_LEAVE
 }
 
 void
@@ -874,18 +898,24 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
 
 - (void) mouseUp:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier &= ~MK_LBUTTON;
   twindow->_up(TMouseEvent::LUP, theEvent);
+  TOAD_DBG_LEAVE
 }
 - (void) rightMouseUp:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier &= ~MK_RBUTTON;
   twindow->_up(TMouseEvent::RUP, theEvent);
+  TOAD_DBG_LEAVE
 }
 - (void) otherMouseUp:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent::_modifier &= ~MK_MBUTTON;
   twindow->_up(TMouseEvent::MUP, theEvent);
+  TOAD_DBG_LEAVE
 }
 void
 TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
@@ -899,45 +929,55 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 
 - (void) mouseDragged:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 - (void) rightMouseDragged:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 - (void) otherMouseDragged:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 - (void) mouseMoved:(NSEvent*)theEvent
 {
   if (!twindow->_allMouseMoveEvents)
     return;
+  TOAD_DBG_ENTER
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
   executeMessages();
+  TOAD_DBG_LEAVE
 }
 
 - (void) scrollWheel:(NSEvent*)theEvent
 {
+  TOAD_DBG_ENTER
 //  cout << "scrollwheel" << [theEvent deltaX] << ", " << [theEvent deltaY] << ", " << [theEvent deltaZ] << endl;
   if ([theEvent deltaY] > 0.0) {
     twindow->_up(TMouseEvent::ROLL_UP, theEvent);
   } else {
     twindow->_down(TMouseEvent::ROLL_DOWN, theEvent);
   }
+  TOAD_DBG_LEAVE
 }
 @end
 
@@ -1582,4 +1622,3 @@ TWindow::setLayout(TLayout *l)
     layout->arrange();
   }
 }
-

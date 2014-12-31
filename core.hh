@@ -24,6 +24,15 @@
 #include <toad/bitmap.hh>
 #include <toad/connect.hh>
 
+// log invocation of TOAD from Cocoa
+#if 1
+#define TOAD_DBG_ENTER cout << ">" << __FUNCTION__ << endl;
+#define TOAD_DBG_LEAVE cout << "<" << __FUNCTION__ << endl;
+#else
+#define TOAD_DBG_ENTER
+#define TOAD_DBG_LEAVE
+#endif
+
 namespace toad {
   extern bool layouteditor;
 } // namespace toad
