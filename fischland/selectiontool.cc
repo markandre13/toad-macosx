@@ -457,7 +457,7 @@ TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
 void
 TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
 {
-cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
+//cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
   for(TFigureSet::const_iterator p = fe->selection.begin();
       p != fe->selection.end();
       ++p)
@@ -465,7 +465,7 @@ cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
     TRectangle r;
 #if 1
     fe->getFigureShape(*p, &r, NULL);
-cout << "-> getFigureShape -> " << r << endl;
+//cout << "-> getFigureShape -> " << r << endl;
 #else
     (*p)->getShape(&r);
     if ( (*p)->mat ) {
@@ -504,6 +504,6 @@ cout << "-> getFigureShape -> " << r << endl;
 */
   }
 
-cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
+//cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
 
 }
