@@ -31,7 +31,7 @@ TPencilTool::TPencilTool()
   back = front = 0; 
   keepSelected=true;
   withinPixels = 10;  // snap to path
-  smoothness   = 50*960;
+  smoothness   = 50;
 }
 
 TPencilTool*
@@ -64,7 +64,8 @@ TPencilTool::createEditor(TWindow *inWindow)
 void
 TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
-//cout << __PRETTY_FUNCTION__ << endl;
+  pen.drawLines(polygon);
+
   // copied from TSelectionTool:
 //  pen.keepcolor = false;
     pen.push();
@@ -73,9 +74,8 @@ TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 //  pen.outline = true;
 //  pen.keepcolor = true;
 
-  TFigureSet::const_iterator sp, se;
-  sp = fe->selection.begin();
-  se = fe->selection.end();  
+  auto sp = fe->selection.begin();
+  auto se = fe->selection.end();  
 
   for(; sp != se; ++sp) {
     pen.push();
@@ -237,21 +237,7 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       //TCairo pen(fe->getWindow()); // too slow
 
       // indicate the new point to the user
-      TPen pen(fe->getWindow());
-      TFigureAttributes *a = fe->getAttributes();
-      pen.setAlpha(a->alpha);
-      pen.setColor(a->linecolor);
-      pen.setLineStyle(a->linestyle);
-      pen.setLineWidth(1 /*a->linewidth*/);
-
-      pen.setClipRect(fe->getVisible());
-      TWindow *window = fe->getWindow();
-      pen.translate(fe->getVisible().x,
-                    fe->getVisible().y);
-      pen.multiply(fe->getMatrix());
-      TPolygon::size_type i = polygon.size();
-      pen.drawLine(polygon[i-2].x, polygon[i-2].y,
-                   polygon[i-1].x, polygon[i-1].y);
+      fe->getWindow()->invalidateWindow();
     } break;
 
     case TMouseEvent::LUP:
