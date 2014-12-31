@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 
 #include <toad/figureeditor.hh>
 #include <toad/figure.hh>
+#include <toad/figuretool.hh>
 #include <toad/colordialog.hh>
 #include <toad/scrollbar.hh>
 #include <toad/checkbox.hh>
@@ -140,13 +141,10 @@ TFigureAttributes::setOperation(unsigned op)
   if (current) current->setOperation(op);
 }
 
-#if 0
-void
-TFigureAttributes::setCreate(TFigure *figure)
+void TFigureAttributes::setCreate(TFigure *figure)
 {
-  if (current) current->setCreate(figure);
+  setTool(new TFCreateTool(figure));
 }
-#endif
 
 void
 TFigureAttributes::setTool(TFigureTool *aTool)
@@ -1178,6 +1176,12 @@ TFigureEditor::setOperation(unsigned op)
   operation = op;
   tool = 0;
   setTool(0);
+}
+
+void
+TFigureEditor::setCreate(TFigure *figure)
+{
+  setTool(new TFCreateTool(figure));
 }
 
 void
@@ -2445,191 +2449,4 @@ TWindow*
 TFigureTool::createEditor(TWindow *inWindow)
 {
   return 0;
-}
-
-void
-TFCreateTool::stop(TFigureEditor *fe)
-{
-  if (figure) {
-    unsigned r = figure->stop(fe);
-    if (r & TFigure::DELETE) {
-      delete figure;
-    } else {
-      fe->addFigure(figure);
-    }
-    figure = 0;
-    fe->setCurrent(0);
-    fe->getWindow()->ungrabMouse();
-  }
-  fe->state = TFigureEditor::STATE_NONE;
-}
-
-void
-TFCreateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
-{
-//cout << "TFCreateTool::mouseEvent" << endl;
-  TCoord x0, y0, x1, y1;
-  unsigned r;
-
-redo:
-
-  switch(fe->state) {
-    case TFigureEditor::STATE_NONE:
-      switch(me.type) {
-        case TMouseEvent::LDOWN: {
-//          cout << "TFCreateTool: LDOWN" << endl;
-//          cout << "TFCreateTool: start create" << endl;
-          fe->mouse2sheet(me.x, me.y, &x0, &y0);
-          fe->sheet2grid(x0, y0, &x1, &y1);
-          fe->clearSelection();
-          figure = static_cast<TFigure*>(tmpl->clone());
-          fe->setCurrent(figure);
-//cout << "  new figure " << figure << endl;
-          figure->removeable = true;
-          fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
-          figure->setAttributes(fe->getAttributes());
-          figure->startCreate();
-          fe->state = TFigureEditor::STATE_START_CREATE;
-          TMouseEvent me2(me, x1, y1);
-          r = figure->mouseLDown(fe, me2);
-          fe->state = TFigureEditor::STATE_CREATE;
-          if (r & TFigure::DELETE) {
-//            cout << "  delete" << endl;
-            delete figure;
-            figure = 0;
-          }
-          if (r & TFigure::STOP) {
-//cout << "  stop" << endl;
-            fe->state = TFigureEditor::STATE_NONE;
-            fe->getWindow()->ungrabMouse();
-            fe->setCurrent(0);
-            if (figure) {
-              fe->addFigure(figure);
-            }
-          }
-          if (fe->state != TFigureEditor::STATE_NONE &&
-              !(r & TFigure::NOGRAB) )
-          {
-            fe->getWindow()->grabMouse(true);
-          }
-          if (r & TFigure::REPEAT) {
-//            cout << "  repeat" << endl;
-            goto redo;
-          }
-        } break;
-        default:
-//          cout << "TFCreateTool: unhandled mouse event in state 0" << endl;
-          break;
-      }
-      break;
-    
-    case TFigureEditor::STATE_CREATE:
-      fe->mouse2sheet(me.x, me.y, &x0, &y0);
-      fe->sheet2grid(x0, y0, &x1, &y1);
-      TMouseEvent me2(me, x1, y1);
-      switch(me.type) {
-        case TMouseEvent::LDOWN:
-//          cout << "TFCreateTool: mouseLDown during create" << endl;
-          r = figure->mouseLDown(fe, me2);
-          break;
-        case TMouseEvent::MOVE:
-//          cout << "TFCreateTool: mouseMove during create" << endl;
-          r = figure->mouseMove(fe, me2);
-          break;
-        case TMouseEvent::LUP:
-//          cout << "TFCreateTool: mouseLUp during create" << endl;
-          r = figure->mouseLUp(fe, me2);
-          break;
-        case TMouseEvent::RDOWN:
-//          cout << "TFCreateTool: mouseRDown during create" << endl;
-          r = figure->mouseRDown(fe, me2);
-          break;
-        default:
-//          cout << "TFCreateTool: unhandled mouse event in state 1" << endl;
-          return;
-      }
-
-      if (r & TFigure::DELETE) {
-//        cout << "  delete figure" << endl;
-        fe->deleteFigure(figure);
-        figure = 0;
-      }
-      if (r & TFigure::STOP) {
-//        cout << "  stop" << endl;
-        // fe->stopOperation();
-        fe->getWindow()->ungrabMouse();
-        fe->state = TFigureEditor::STATE_NONE;
-        fe->setCurrent(0);
-        if (figure) {
-          fe->addFigure(figure);
-          figure = 0;
-        }
-      }
-      if (r & TFigure::REPEAT) {
-//        cout << "  repeat" << endl;
-        if (me.modifier() & MK_DOUBLE) {
-//          cerr << "TFigureEditor: kludge: avoiding endless loop bug\n";
-          break;
-        }
-        goto redo;
-      }
-      break;
-  }
-  if (figure)
-    fe->invalidateFigure(figure);
-}
-
-void
-TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
-{
-  if (fe->state == TFigureEditor::STATE_NONE && ke.type == TKeyEvent::DOWN) {
-    fe->clearSelection();
-  }
-  if (!figure || ke.type != TKeyEvent::DOWN)
-    return;
-  if (ke.getKey() == TK_ESCAPE) {
-    fe->deleteFigure(figure);
-    fe->state = TFigureEditor::STATE_NONE;
-    fe->getWindow()->ungrabMouse();
-    figure = 0;
-    return;
-  }
-
-  unsigned r = figure->keyDown(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
-  if (r & TFigure::DELETE) {
-//        cout << "  delete figure" << endl;
-    fe->deleteFigure(figure);
-    figure = 0;
-  }
-  if (r & TFigure::STOP) {
-    fe->getWindow()->ungrabMouse();
-    fe->state = TFigureEditor::STATE_NONE;
-    if (figure) {
-      fe->addFigure(figure);
-      figure = 0;
-    }
-  }
-  if (figure)
-    fe->invalidateFigure(figure);
-}
-
-void
-TFCreateTool::setAttributes(TFigureAttributes *a)
-{
-  if (figure)
-    figure->setAttributes(a);
-}
-
-void
-TFCreateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
-{
-  if (!figure)
-    return;
-  pen.push();
-  if (figure->mat)
-    pen.multiply(figure->mat);
-  if (figure->cmat)
-    pen.multiply(figure->cmat);
-  figure->paint(pen, TFigure::EDIT);
-  pen.pop();
 }

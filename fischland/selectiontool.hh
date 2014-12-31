@@ -22,6 +22,7 @@
 #define _FISCHLAND_SELECTIONTOOL_HH 1
 
 #include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 #include <toad/boolmodel.hh>
 #include <toad/undo.hh>
 #include <toad/undomanager.hh>

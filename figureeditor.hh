@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,9 +31,11 @@
 #include <toad/integermodel.hh>
 #include <toad/floatmodel.hh>
 
+#include <toad/figure/createtool.hh>
+
 namespace toad {
 
-// class TFigure;
+class TFigureTool;
 class TFigureEditor;
 class TScrollBar;
 
@@ -43,51 +45,6 @@ class TFigureEditorHeaderRenderer
     virtual void render(TPenBase &pen, int pos, int size, TMatrix2D *mat) = 0;
     virtual int getSize() = 0;
     virtual void mouseEvent(const TMouseEvent&);
-};
-
-class TFigureTool
-{
-  public:
-    virtual ~TFigureTool();
-    virtual void stop(TFigureEditor*);
-    virtual void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    virtual void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    virtual void setAttributes(TFigureAttributes *p);
-    virtual void paintSelection(TFigureEditor *fe, TPenBase &pen);
-    virtual void modelChanged(TFigureEditor *fe);
-    virtual TWindow* createEditor(TWindow *inWindow);
-};
-
-/**
- * Tool to create figures.
- *
- * Mose of the code to actually create figures is located in the figures
- * themselves. This class just creates an interface between the figure
- * editor and the figure.
- */
-class TFCreateTool:
-  public TFigureTool
-{
-    TFigure *tmpl;
-    TFigure *figure;
-  public:
-    /**
-     * \param tmpl template for the figure to be created. This object will be
-     *        deleted along with the TFCreateTool.
-     */
-    TFCreateTool(TFigure *tmpl) {
-      this->tmpl = tmpl;
-      figure = 0;
-    }
-    ~TFCreateTool() {
-      delete tmpl;
-    }
-  protected:    
-    void stop(TFigureEditor*);
-    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void setAttributes(TFigureAttributes *p);
-    void paintSelection(TFigureEditor *fe, TPenBase &pen);
 };
 
 class TFigureAttributes:
@@ -115,9 +72,7 @@ class TFigureAttributes:
     // These methods delegate to the current TFigureEditor.
     void setOperation(unsigned);
     // unsigned getOperation() const { return current->getOperation(); }
-    void setCreate(TFigure *figure) {
-      setTool(new TFCreateTool(figure));
-    }
+    void setCreate(TFigure *figure);
     void setTool(TFigureTool*);
     TFigureTool* getTool() const { return tool; }
     
@@ -285,9 +240,7 @@ class TFigureEditor:
     static const unsigned OP_ROTATE = 2;
     void setOperation(unsigned);
     unsigned getOperation() const { return operation; }
-    void setCreate(TFigure *figure) {
-      setTool(new TFCreateTool(figure));
-    }
+    void setCreate(TFigure *figure);
     void setTool(TFigureTool*);
     virtual void toolChanged(TFigureTool*);
     

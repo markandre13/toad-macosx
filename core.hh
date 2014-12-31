@@ -25,7 +25,7 @@
 #include <toad/connect.hh>
 
 // log invocation of TOAD from Cocoa
-#if 1
+#if 0
 #define TOAD_DBG_ENTER cout << ">" << __FUNCTION__ << endl;
 #define TOAD_DBG_LEAVE cout << "<" << __FUNCTION__ << endl;
 #else

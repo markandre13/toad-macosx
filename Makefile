@@ -22,7 +22,8 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
 	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
-	   figure/rectangle.cc figure/window.cc stacktrace.cc \
+	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
+	   stacktrace.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc
@@ -666,6 +667,7 @@ cursor.o: include/toad/io/atvparser.hh include/toad/font.hh
 cursor.o: include/toad/pointer.hh include/toad/matrix2d.hh
 cursor.o: include/toad/window.hh include/toad/interactor.hh
 cursor.o: include/toad/cursor.hh include/toad/region.hh
+cursor.o: include/toad/bitmap.hh
 tableadapter.o: include/toad/table.hh include/toad/pen.hh
 tableadapter.o: include/toad/penbase.hh include/toad/color.hh
 tableadapter.o: include/toad/types.hh include/toad/io/serializable.hh
@@ -1185,6 +1187,30 @@ test_combobox.o: include/toad/scrollpane.hh include/toad/window.hh
 test_combobox.o: include/toad/interactor.hh include/toad/cursor.hh
 test_combobox.o: include/toad/model.hh include/toad/connect.hh
 test_combobox.o: include/toad/dragndrop.hh
+test_cursor.o: include/toad/window.hh include/toad/interactor.hh
+test_cursor.o: include/toad/types.hh include/toad/cursor.hh
+test_cursor.o: include/toad/color.hh include/toad/io/serializable.hh
+test_cursor.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_cursor.o: include/toad/pen.hh include/toad/penbase.hh
+test_cursor.o: include/toad/font.hh include/toad/pointer.hh
+test_cursor.o: include/toad/matrix2d.hh
+test_colordialog.o: include/toad/colordialog.hh include/toad/dialog.hh
+test_colordialog.o: include/toad/window.hh include/toad/interactor.hh
+test_colordialog.o: include/toad/types.hh include/toad/cursor.hh
+test_colordialog.o: include/toad/color.hh include/toad/io/serializable.hh
+test_colordialog.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_colordialog.o: include/toad/layout.hh include/toad/eventfilter.hh
+test_colordialog.o: include/toad/figuremodel.hh include/toad/model.hh
+test_colordialog.o: include/toad/pointer.hh include/toad/connect.hh
+test_colordialog.o: include/toad/rgbmodel.hh include/toad/floatmodel.hh
+test_colordialog.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+test_colordialog.o: include/toad/undo.hh include/toad/textarea.hh
+test_colordialog.o: include/toad/core.hh include/toad/pen.hh
+test_colordialog.o: include/toad/penbase.hh include/toad/font.hh
+test_colordialog.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+test_colordialog.o: include/toad/control.hh include/toad/scrollbar.hh
+test_colordialog.o: include/toad/integermodel.hh include/toad/dnd/color.hh
+test_colordialog.o: include/toad/dragndrop.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh
