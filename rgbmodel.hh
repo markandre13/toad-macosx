@@ -41,7 +41,7 @@ class TRGBModel:
     operator TRGB() const { TRGB c(r, g, b); return c; }
     TFloatModel r, g, b;
     
-    void set(double r, double g, double b) {
+    void set(TCoord r, TCoord g, TCoord b) {
       if (this->r == r && this->g == g && this->b == b)
         return;
       lock = true;

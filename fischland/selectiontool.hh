@@ -70,7 +70,7 @@ class TSelectionTool:
     void moveGrab(TFigureEditor *fe, const TMouseEvent &me);
     void moveSelect(TFigureEditor *fe, const TMouseEvent &me);
     
-    void paintSelection(TFigureEditor*, TPenBase &pen);
+    bool paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
     
     void invalidateBounding(TFigureEditor *fe);

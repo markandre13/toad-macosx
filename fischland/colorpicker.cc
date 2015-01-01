@@ -33,14 +33,18 @@ TColorPicker::TColorPicker(TWindow *p, const string &t, TFigureAttributes *attr)
   :TWindow(p, t)
 {
   this->attr = attr;
-  if (attr)                
+  if (attr) {
     connect(attr->sigChanged, this, &TColorPicker::preferencesChanged);
+    line = COLOR;
+    preferencesChanged();
+  } else {
+    init();
+  }
 
   setBackground(TColor::DIALOG);
   active=FILL;
-  init();
-  linecolor.set(1,0.5,0);
-  fillcolor.set(0.5,0,1);
+//  init();
+  
 }
 
 TColorPicker::~TColorPicker()
@@ -55,14 +59,23 @@ TColorPicker::init()
   linecolor.set(0,0,0);
   fillcolor.set(1,1,1);
   fill=line=COLOR;
+cout << "TColorPicker::init" << endl;
+cout << "  linecolor=" << linecolor << endl;
+cout << "  fillcolor=" << fillcolor << endl;
 }
 
 void
 TColorPicker::preferencesChanged()
 {
   fill = attr->filled ? COLOR : NONE;
+cout << "TColorPicker::preferencesChanged" << endl;
+cout << "  linecolor=" << linecolor << endl;
+cout << "  fillcolor=" << fillcolor << endl;
   linecolor = attr->linecolor;
   fillcolor = attr->fillcolor;
+cout << "  linecolor=" << linecolor << endl;
+cout << "  fillcolor=" << fillcolor << endl;
+
   invalidateWindow();
 }
 
@@ -117,12 +130,18 @@ TColorPicker::mouseLDown(const TMouseEvent &me)
 {
   if (click(me)) {
     invalidateWindow();
-    attr->filled = fill != NONE;
-    attr->outline = line != NONE;
-    attr->linecolor = linecolor;
-    attr->fillcolor = fillcolor;
-    attr->reason = TFigureAttributes::ALL;
-    attr->sigChanged();
+    
+    // FIXME: figure attributes isn't fit for this kind of update
+cout << __FILE__ << ":" << __LINE__ << endl;
+    attr->setFillColor(fillcolor);
+cout << __FILE__ << ":" << __LINE__ << endl;
+    if (fill == NONE)
+      attr->unsetFillColor();
+cout << __FILE__ << ":" << __LINE__ << endl;
+    attr->outline = line != NONE; // FIXME: outline not handled well by figure attributes
+cout << __FILE__ << ":" << __LINE__ << endl;
+    attr->setLineColor(linecolor);
+cout << __FILE__ << ":" << __LINE__ << endl;
   }
 }
 
@@ -150,7 +169,12 @@ TColorPicker::click(const TMouseEvent &me)
   
   if (flipRect.isInside(me.x, me.y)) {
     Type ab = line; line=fill; fill=ab;
+cout << "TColorPicker::flipRect:" << endl;
+cout << "  linecolor=" << linecolor << endl;
+cout << "  fillcolor=" << fillcolor << endl;
     TRGB rc = linecolor; linecolor=fillcolor; fillcolor=rc;
+cout << "  linecolor=" << linecolor << endl;
+cout << "  fillcolor=" << fillcolor << endl;
     return true;
   }
   

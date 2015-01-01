@@ -277,11 +277,11 @@ TPenTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   }
 }
 
-void
+bool
 TPenTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!path)
-    return;
+    return false;
   path->paint(pen, TFigure::EDIT);
 
   const TMatrix2D *m0 = pen.getMatrix();
@@ -293,7 +293,7 @@ TPenTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   int i = polygon.size();
 
   if (i<4 || (i%3)!=1)  
-    return;
+    return true;
   --i;
   int x0 = polygon[i].x;
   int y0 = polygon[i].y;
@@ -309,4 +309,5 @@ TPenTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   if (m0) {
     pen.pop();
   }
+  return true;
 }

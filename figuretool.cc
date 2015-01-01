@@ -46,9 +46,14 @@ TFigureTool::setAttributes(TFigureAttributes *p)
 {
 }
 
-void
+/**
+ * Let the figure tool draw a selection.
+ * \return 'true' when the figure editor shall not paint its own selection
+ */
+bool
 TFigureTool::paintSelection(TFigureEditor *fe, TPenBase &)
 {
+  return false;
 }
 
 /**

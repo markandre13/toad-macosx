@@ -40,7 +40,7 @@ class TPenTool:
     void cursor(TFigureEditor *fe, int x, int y);
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void paintSelection(TFigureEditor *fe, TPenBase &pen);
+    bool paintSelection(TFigureEditor *fe, TPenBase &pen);
     void stop(TFigureEditor*);
 };
 

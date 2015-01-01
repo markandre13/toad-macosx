@@ -37,7 +37,7 @@ class TFigureTool
     virtual void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     virtual void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     virtual void setAttributes(TFigureAttributes *p);
-    virtual void paintSelection(TFigureEditor *fe, TPenBase &pen);
+    virtual bool paintSelection(TFigureEditor *fe, TPenBase &pen);
     virtual void modelChanged(TFigureEditor *fe);
     virtual TWindow* createEditor(TWindow *inWindow);
 };

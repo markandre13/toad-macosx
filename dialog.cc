@@ -113,7 +113,7 @@ class TDialogSelectionTool:
     TDialogSelectionTool();
     static TDialogSelectionTool* getTool();
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void paintSelection(TFigureEditor*, TPenBase &pen);
+    bool paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
   private:
     bool handleHandles(TFigureEditor *fe, const TMouseEvent &me);
@@ -303,7 +303,7 @@ cout << "  is handle " << h << " at " << memo << " near " << x << ", " << y << e
   return false;
 }
 
-void
+bool
 TDialogSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   // draw the selection marks over all figures
@@ -331,6 +331,7 @@ TDialogSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.pop();
   }
 
+  return true;
 }
 
 void

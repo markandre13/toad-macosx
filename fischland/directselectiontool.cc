@@ -200,16 +200,16 @@ cout << "selected figure " << figure << endl;
   }
 }
 
-void
+bool
 TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
-    return;
+    return false;
 
   // figure was deleted but we were not informed...
   if (fe->selection.find(figure)==fe->selection.end()) {
     stop(fe);
-    return;
+    return false;
   }
 
   pen.push();
@@ -221,4 +221,5 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   pen.setLineWidth(1);
   figure->paintSelection(pen, -1);
   pen.pop();
+  return true;
 }

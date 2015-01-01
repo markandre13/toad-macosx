@@ -28,6 +28,8 @@
 #include <toad/undomanager.hh>
 #include <toad/window.hh>
 
+#include <toad/stacktrace.hh>
+
 #include <cmath>
 #include <algorithm>
 
@@ -588,16 +590,16 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
 void
 TFigureEditor::paintSelection(TPenBase &pen)
 {
+cout << "TFigureEditor::paintSelection: " << (selection.empty() ? "empty" : "not empty") << endl;
   if (tool) {
-    tool->paintSelection(this, pen);
-    return;
+cout << "  use the tool" << endl;
+    if (tool->paintSelection(this, pen))
+      return;
   }
+cout << "  use TFigureEditor" << endl;
 
   // draw the selection marks over all figures
-  for(TFigureSet::iterator sp = selection.begin();
-      sp != selection.end();
-      ++sp)
-  {
+  for(auto sp = selection.begin(); sp != selection.end(); ++sp) {
     if ((*sp)->mat) {
       pen.push();
       pen.multiply( (*sp)->mat );
@@ -956,6 +958,8 @@ TFigureEditor::deleteFigure(TFigure *g)
 bool
 TFigureEditor::clearSelection()
 {
+cout << "TFigureEditor::clearSelection" << endl;
+printStackTrace();
   if (selection.empty())
     return false;
   for(TFigureSet::iterator p = selection.begin();
@@ -974,7 +978,7 @@ TFigureEditor::clearSelection()
 void
 TFigureEditor::deleteSelection()
 {
-//cout << "delete selection" << endl;
+cout << "delete selection" << endl;
   if (gadget && selection.find(gadget)!=selection.end()) {
     gadget = 0;
   }
@@ -2401,52 +2405,4 @@ TFigureEditor::scrolled(TCoord dx, TCoord dy)
   getPanePos(&x, &y);
   // window->scrollTo(-x, -y);
   window->setOrigin(-x, -y);
-}
-
-TFigureTool::~TFigureTool()
-{
-}
-
-void
-TFigureTool::stop(TFigureEditor*)
-{
-}
-
-void
-TFigureTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
-{
-}
-
-void
-TFigureTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
-{
-}
-
-void
-TFigureTool::setAttributes(TFigureAttributes *p)
-{
-}
-
-void
-TFigureTool::paintSelection(TFigureEditor *fe, TPenBase &)
-{
-}
-
-/**
- * This virtual method is called each time TFigureEditor's TFigureModel
- * reported a change.
- */
-void
-TFigureTool::modelChanged(TFigureEditor *fe)
-{
-}
-
-/**
- * Create a window to configure additional tool options while the tool is
- * active.
- */
-TWindow*
-TFigureTool::createEditor(TWindow *inWindow)
-{
-  return 0;
 }

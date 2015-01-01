@@ -32,6 +32,9 @@ TFCreateTool::stop(TFigureEditor *fe)
       delete figure;
     } else {
       fe->addFigure(figure);
+      fe->selection.insert(figure);
+      fe->getWindow()->invalidateWindow();
+cout << "TFCreateTool::stop" << endl;
     }
     figure = 0;
     fe->setCurrent(0);
@@ -81,6 +84,8 @@ redo:
             fe->setCurrent(0);
             if (figure) {
               fe->addFigure(figure);
+          fe->selection.insert(figure);
+cout << __FILE__ << ":" << __LINE__ << endl;
             }
           }
           if (fe->state != TFigureEditor::STATE_NONE &&
@@ -138,6 +143,9 @@ redo:
         fe->setCurrent(0);
         if (figure) {
           fe->addFigure(figure);
+          fe->selection.insert(figure);
+          fe->invalidateFigure(figure);
+cout << __FILE__ << ":" << __LINE__ << endl;
           figure = 0;
         }
       }
@@ -196,11 +204,11 @@ TFCreateTool::setAttributes(TFigureAttributes *a)
     figure->setAttributes(a);
 }
 
-void
+bool
 TFCreateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
-    return;
+    return false;
   pen.push();
   if (figure->mat)
     pen.multiply(figure->mat);
@@ -208,4 +216,5 @@ TFCreateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.multiply(figure->cmat);
   figure->paint(pen, TFigure::EDIT);
   pen.pop();
+  return true;
 }

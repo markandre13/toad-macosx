@@ -308,7 +308,7 @@ _fixLineWidth(TFigureModel::iterator b, TFigureModel::iterator e)
       TFigureAttributes a;
       cf->getAttributes(&a);
       if (a.linewidth<15) {
-        if (a.linewidth==0)
+        if (a.linewidth==0.0)
           a.linewidth=0.5;
         a.reason = TFigureAttributes::LINEWIDTH;
         cf->setAttributes(&a);

@@ -365,8 +365,7 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 #endif
 }
 
-
-void
+bool
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   // 'down' means that the user is holding the mouse button,
@@ -435,6 +434,7 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       pen.pop();
     }
   }
+  return true;
 }
 
 void

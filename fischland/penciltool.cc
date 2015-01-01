@@ -61,7 +61,7 @@ TPencilTool::createEditor(TWindow *inWindow)
   return w;
 }
 
-void
+bool
 TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   pen.drawLines(polygon);
@@ -89,6 +89,7 @@ TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   
 //  pen.outline = false;
 //  pen.keepcolor = false;
+  return true;
 }
 
 void

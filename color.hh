@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 #ifndef __TOAD_COLOR_HH
 #define __TOAD_COLOR_HH 1
 
+#include <iostream>
 #include <toad/types.hh>
 #include <toad/io/serializable.hh>
 
@@ -107,6 +108,11 @@ struct TRGB
       *this = *TColor::lookup(c);
     }
 };
+
+static inline std::ostream& operator<<(std::ostream& os, const TRGB& rgb)
+{
+  return os << '(' << rgb.r << ',' << rgb.g << ',' << rgb.b << ')';
+}
 
 struct TRGBA {
   TRGBA() {

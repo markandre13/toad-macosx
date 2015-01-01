@@ -36,11 +36,10 @@ class TColorPicker:
     enum Type {
       COLOR, GRADIENT, NONE
     } fill, line; // GRADIENT only applies to fill
-
-  public:
     TRGB linecolor;
     TRGB fillcolor;
-    
+
+  public:
     TColorPicker(TWindow *p, const string &t, TFigureAttributes *a=0);
     ~TColorPicker();
     void preferencesChanged();

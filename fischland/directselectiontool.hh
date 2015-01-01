@@ -54,7 +54,7 @@ class TDirectSelectionTool:
     static TDirectSelectionTool* getTool();
   
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void paintSelection(TFigureEditor*, TPenBase &pen);
+    bool paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
 };
 

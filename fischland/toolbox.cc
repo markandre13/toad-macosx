@@ -29,7 +29,6 @@
 #include "fischland.hh"
 #include "cairo.hh"
 
-
 #include <toad/combobox.hh>
 #include <toad/pushbutton.hh>
 #include <toad/fatradiobutton.hh>

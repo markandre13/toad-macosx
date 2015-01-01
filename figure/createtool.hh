@@ -54,7 +54,7 @@ class TFCreateTool:
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     void setAttributes(TFigureAttributes *p);
-    void paintSelection(TFigureEditor *fe, TPenBase &pen);
+    bool paintSelection(TFigureEditor *fe, TPenBase &pen);
 };
 
 } // namespace toad
