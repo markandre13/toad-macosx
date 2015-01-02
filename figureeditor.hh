@@ -57,11 +57,14 @@ class TFigureAttributes:
     TFigureAttributes();
     virtual ~TFigureAttributes();
 
+    /**
+     * ...
+     */
     void setCurrent(TFigureEditor *current) {
       if (this->current == current)
         return;
       this->current = current;
-      reason = CURRENTCHANGED;
+      reason.current = true;
       sigChanged();
     }
     
@@ -85,65 +88,77 @@ class TFigureAttributes:
     void applyAll();
     
     // additional information on why sigChanged was triggered
-    enum EReason {
-      /**
-       * All parameters have changed or, apply all parameters.
-       */
-      ALLCHANGED=0, ALL=0,
-      /**
-       * Where going to edit another object.
-       */
-      CURRENTCHANGED=1, CURRENT=1,
-      /**
-       * Drawing properties have changed.
-       */
-      GRID=2,
-      LINECOLOR,
-      FILLCOLOR,
-      UNSETFILLCOLOR,
-      LINEWIDTH,
-      LINESTYLE,
-      ARROWMODE,
-      ARROWSTYLE,
-      FONTNAME,
+    
+    struct {
+      bool current:1; // we are going to edit another object
+      bool grid:1;
+
+      bool linecolor:1;
+      bool fillcolor:1;
+      bool alpha:1;
+
+      bool line:1;
+      bool fill:1;
+
+      bool linewidth:1;
+      bool linestyle:1;
+      bool arrowmode:1;
+      bool arrowstyle:1;
       
-      TOOL,
-      ALPHA,
-      /**
-       * This TPreferences was subclassed. Try dynamic_cast to get
-       * more information.
-       */
-      EXTENDED = 256
+      bool fontname:1;
+      
+      bool tool:1; // we might not want to place the tool here
     } reason;
+    
+    void setAllReasons(bool f=true) {
+      reason.current =
+      reason.grid =
+      reason.linecolor =
+      reason.fillcolor =
+      reason.alpha =
+      reason.line =
+      reason.fill =
+      reason.linewidth =
+      reason.linestyle =
+      reason.arrowmode =
+      reason.arrowstyle =
+      reason.fontname =
+      reason.tool = f;
+    }
+
+    void clearReasons() {
+      setAllReasons(false);
+    }
     
     void setLineColor(const TRGB &rgb) { 
       linecolor = rgb;
-      reason = LINECOLOR;
+      reason.linecolor = true;
       sigChanged();
     }
-    void setFillColor(const TRGB &rgb) { 
+    void setFillColor(const TRGB &rgb) {
       fillcolor = rgb; 
       filled = true; 
-      reason = FILLCOLOR;
+      reason.fillcolor = true;
+      reason.fill = true;
       sigChanged();
     }
     void unsetFillColor() { 
       filled = false; 
-      reason = UNSETFILLCOLOR;
+      reason.fill = true;
       sigChanged();
     }
     void setFont(const string &font) {
       this->font.setFont(font);
       fontname = font;
-      reason = FONTNAME;
+      reason.fontname = true;
       sigChanged();
     }
     const string& getFont() const {
       return fontname;
     }
 
-    TBoolModel outline;
-    TBoolModel filled;
+    TBoolModel outline; // FIXME: rename me into line
+    TBoolModel filled; // FIXME: rename me into fill
     TRGB linecolor;
     TRGB fillcolor;
     TFloatModel alpha;
@@ -154,7 +169,7 @@ class TFigureAttributes:
     // TBoolModel use_grid;
     TIntegerModel gridsize;
     
-    unsigned linewidth;
+    unsigned linewidth; // FIXME: TCoord
     TPenBase::ELineStyle linestyle;
     
     TFLine::EArrowMode arrowmode;

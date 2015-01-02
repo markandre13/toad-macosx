@@ -179,11 +179,8 @@ class TFontButton:
     }
     
     void fontChanged() {
-      if (fa->reason == TFigureAttributes::ALLCHANGED || 
-          fa->reason == TFigureAttributes::FONTNAME)
-      {
+      if (fa->reason.fontname)
         invalidateWindow();
-      }
     }
     
     void paint() {
@@ -217,7 +214,7 @@ setLineWidth(TSingleSelectionModel *model)
   else
     n*=96;
   if (TToolBox::preferences->linewidth != n) {
-    TToolBox::preferences->reason = TFigureAttributes::LINEWIDTH;
+    TToolBox::preferences->reason.linewidth = true;
     TToolBox::preferences->linewidth = n/96.0;
     TToolBox::preferences->sigChanged();
   }
@@ -263,7 +260,7 @@ setLineStyle(TSingleSelectionModel *model)
 {
   TPenBase::ELineStyle n = static_cast<TPenBase::ELineStyle>(model->getRow()+1);
   if (TToolBox::preferences->linestyle != n) {
-    TToolBox::preferences->reason = TFigureAttributes::LINESTYLE;
+    TToolBox::preferences->reason.linestyle = true;
     TToolBox::preferences->linestyle = n;
     TToolBox::preferences->sigChanged();
   }
@@ -274,7 +271,7 @@ setArrowMode(TSingleSelectionModel *model)
 {
   TFLine::EArrowMode n = static_cast<TFLine::EArrowMode>(model->getRow());
   if (TToolBox::preferences->arrowmode != n) {
-    TToolBox::preferences->reason = TFigureAttributes::ARROWMODE;
+    TToolBox::preferences->reason.arrowmode = true;
     TToolBox::preferences->arrowmode = n;
     TToolBox::preferences->sigChanged();
   }
@@ -285,7 +282,7 @@ setArrowType(TSingleSelectionModel *model)
 {
   TFLine::EArrowType n = static_cast<TFLine::EArrowType>(model->getRow());
   if (TToolBox::preferences->arrowtype != n) {
-    TToolBox::preferences->reason = TFigureAttributes::ARROWSTYLE;
+    TToolBox::preferences->reason.arrowstyle = true;
     TToolBox::preferences->arrowtype = n;;
     TToolBox::preferences->sigChanged();
   }
@@ -338,7 +335,7 @@ TColorPickTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   fe->mouse2sheet(me.x, me.y, &x, &y);
   TFigure *f = fe->findFigureAt(x, y);
   if (f) {
-    TToolBox::preferences->reason = TFigureAttributes::ALLCHANGED;
+    TToolBox::preferences->setAllReasons();
     f->getAttributes(TToolBox::preferences);
     TToolBox::preferences->sigChanged();
   }

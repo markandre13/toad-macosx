@@ -213,7 +213,7 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 {
   // mouse is holding a handle, scale the selection
   invalidateBounding(fe);
-TCoord x0, y0;
+//TCoord x0, y0;
   TCoord x, y;
   x = me.x - fe->getVisible().x;
   y = me.y - fe->getVisible().y;

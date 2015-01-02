@@ -43,8 +43,6 @@ TColorPicker::TColorPicker(TWindow *p, const string &t, TFigureAttributes *attr)
 
   setBackground(TColor::DIALOG);
   active=FILL;
-//  init();
-  
 }
 
 TColorPicker::~TColorPicker()
@@ -59,23 +57,15 @@ TColorPicker::init()
   linecolor.set(0,0,0);
   fillcolor.set(1,1,1);
   fill=line=COLOR;
-cout << "TColorPicker::init" << endl;
-cout << "  linecolor=" << linecolor << endl;
-cout << "  fillcolor=" << fillcolor << endl;
 }
 
 void
 TColorPicker::preferencesChanged()
 {
   fill = attr->filled ? COLOR : NONE;
-cout << "TColorPicker::preferencesChanged" << endl;
-cout << "  linecolor=" << linecolor << endl;
-cout << "  fillcolor=" << fillcolor << endl;
+  line = attr->outline ? COLOR : NONE;
   linecolor = attr->linecolor;
   fillcolor = attr->fillcolor;
-cout << "  linecolor=" << linecolor << endl;
-cout << "  fillcolor=" << fillcolor << endl;
-
   invalidateWindow();
 }
 
@@ -128,21 +118,18 @@ TColorPicker::paintLine(TPen &pen)
 void
 TColorPicker::mouseLDown(const TMouseEvent &me)
 {
-  if (click(me)) {
-    invalidateWindow();
-    
-    // FIXME: figure attributes isn't fit for this kind of update
-cout << __FILE__ << ":" << __LINE__ << endl;
-    attr->setFillColor(fillcolor);
-cout << __FILE__ << ":" << __LINE__ << endl;
-    if (fill == NONE)
-      attr->unsetFillColor();
-cout << __FILE__ << ":" << __LINE__ << endl;
-    attr->outline = line != NONE; // FIXME: outline not handled well by figure attributes
-cout << __FILE__ << ":" << __LINE__ << endl;
-    attr->setLineColor(linecolor);
-cout << __FILE__ << ":" << __LINE__ << endl;
-  }
+  if (!click(me))
+    return;
+  invalidateWindow();
+  attr->linecolor = linecolor;
+  attr->fillcolor = fillcolor;
+  attr->outline = line == COLOR;
+  attr->filled = fill == COLOR;
+  attr->reason.linecolor =
+  attr->reason.fillcolor =
+  attr->reason.line =
+  attr->reason.fill = true;
+  attr->sigChanged();
 }
 
 bool
@@ -170,11 +157,11 @@ TColorPicker::click(const TMouseEvent &me)
   if (flipRect.isInside(me.x, me.y)) {
     Type ab = line; line=fill; fill=ab;
 cout << "TColorPicker::flipRect:" << endl;
-cout << "  linecolor=" << linecolor << endl;
-cout << "  fillcolor=" << fillcolor << endl;
+cout << "  linecolor=" << linecolor << (line==COLOR?", yes":", no") << endl;
+cout << "  fillcolor=" << fillcolor << (fill==COLOR?", yes":", no") << endl;
     TRGB rc = linecolor; linecolor=fillcolor; fillcolor=rc;
-cout << "  linecolor=" << linecolor << endl;
-cout << "  fillcolor=" << fillcolor << endl;
+cout << "  linecolor=" << linecolor << (line==COLOR?", yes":", no") << endl;
+cout << "  fillcolor=" << fillcolor << (fill==COLOR?", yes":", no") << endl;
     return true;
   }
   

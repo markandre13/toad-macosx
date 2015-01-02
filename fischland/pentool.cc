@@ -102,7 +102,7 @@ TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         fe->getWindow()->setAllMouseMoveEvents(true);
         path = new TFPath();
         path->removeable = true;
-        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
+//FIXME        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
         path->setAttributes(fe->getAttributes());
       } else
       if (me.modifier() & MK_CONTROL || me.modifier() & MK_DOUBLE) {

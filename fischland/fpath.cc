@@ -39,18 +39,10 @@ void
 TFPath::setAttributes(const TFigureAttributes *preferences)
 {
   super::setAttributes(preferences);
-  switch(preferences->reason) {
-    case TFigureAttributes::ALLCHANGED:
-      arrowmode = preferences->arrowmode;
-      arrowtype = preferences->arrowtype;
-      break;
-    case TFigureAttributes::ARROWMODE:
-      arrowmode = preferences->arrowmode;
-      break;
-    case TFigureAttributes::ARROWSTYLE:
-      arrowtype = preferences->arrowtype;
-      break;
-  }
+  if (preferences->reason.arrowmode)
+    arrowmode = preferences->arrowmode;
+  if (preferences->reason.arrowstyle)
+    arrowtype = preferences->arrowtype;
 //  filled = (arrowmode!=TFLine::NONE); // for parents 'store' method
 }
 

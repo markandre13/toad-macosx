@@ -104,7 +104,7 @@ TFillTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (path) {
         path->removeable = true;
         path->closed = true;
-        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
+//FIXEME        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
         path->setAttributes(fe->getAttributes());
         fe->getModel()->add(path);
       }

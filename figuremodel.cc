@@ -652,7 +652,7 @@ class TUndoAttributes:
       TNode *node = new TNode;
       node->figure = f;
       f->getAttributes(&node->attributes);
-      node->attributes.reason = TFigureAttributes::ALLCHANGED;
+      node->attributes.setAllReasons();
       node->next = list;
       list = node;
     }

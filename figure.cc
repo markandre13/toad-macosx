@@ -204,37 +204,20 @@ TFigure::getAttributes(TFigureAttributes *preferences) const
 void
 TColoredFigure::setAttributes(const TFigureAttributes *preferences)
 {
-int a;
-  switch(preferences->reason) {
-    case TFigureAttributes::ALLCHANGED:
-      line_width = preferences->linewidth;
-      line_style = preferences->linestyle;
-      line_color = preferences->linecolor;
-      fill_color = preferences->fillcolor;
-      outline    = preferences->outline;
-      filled     = preferences->filled;
-      alpha      = preferences->alpha;
-      break;
-    case TFigureAttributes::LINECOLOR:
-      line_color = preferences->linecolor;
-      break;
-    case TFigureAttributes::FILLCOLOR:
-      fill_color = preferences->fillcolor;
-      filled     = preferences->filled;
-      break;
-    case TFigureAttributes::UNSETFILLCOLOR:
-      filled     = preferences->filled;
-      break;
-    case TFigureAttributes::LINEWIDTH:
-      line_width = preferences->linewidth;
-      break;
-    case TFigureAttributes::LINESTYLE:
-      line_style = preferences->linestyle;
-      break;
-    case TFigureAttributes::ALPHA:
-      alpha = preferences->alpha;
-      break;
-  }
+  if (preferences->reason.linecolor)
+    line_color = preferences->linecolor;
+  if (preferences->reason.fillcolor)
+    fill_color = preferences->fillcolor;
+  if (preferences->reason.fill)
+    filled = preferences->filled;
+  if (preferences->reason.line)
+    outline = preferences->outline;
+  if (preferences->reason.linewidth)
+    line_width = preferences->linewidth;
+  if (preferences->reason.linestyle)
+    line_style = preferences->linestyle;
+  if (preferences->reason.alpha)
+    alpha = preferences->alpha;
 }
 
 void

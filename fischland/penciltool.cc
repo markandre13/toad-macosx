@@ -248,7 +248,7 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           polygon.addPoint(polygon[0].x, polygon[0].y);
           f->closed = true;
         }
-        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
+//FIXME        fe->getAttributes()->reason = TFigureAttributes::ALLCHANGED;
         f->setAttributes(fe->getAttributes());
 
         fitCurve(polygon, &f->polygon, smoothness);

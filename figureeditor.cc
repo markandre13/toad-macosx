@@ -103,26 +103,32 @@ using namespace toad;
  *
  */
 
-static void
-foobar(TFigureAttributes *p, TFigureAttributes::EReason reason) {
-  p->reason = reason;
-  p->sigChanged();
-}
-
 TFigureAttributes::TFigureAttributes()
 {
   linecolor.set(0,0,0);
   fillcolor.set(1,1,1);
   alpha.setRangeProperties(255,0,0,255);
-  connect(alpha.sigChanged, foobar, this, ALPHA);
+//  connect(alpha.sigChanged, foobar, this, ALPHA);
+  CLOSURE1(alpha.sigChanged, TFigureAttributes *dst, this,
+    dst->reason.alpha = true;
+    dst->sigChanged();
+  );
   outline = true;
   filled = false;
   fontname = "arial,helvetica,sans-serif:size=12";
 
   drawgrid = true;
-  connect(drawgrid.sigChanged, foobar, this, GRID);
+//  connect(drawgrid.sigChanged, foobar, this, GRID);
+  CLOSURE1(drawgrid.sigChanged, TFigureAttributes *dst, this,
+    dst->reason.grid = true;
+    dst->sigChanged();
+  );
   gridsize = 4;
-  connect(gridsize.sigChanged, foobar, this, GRID);
+//  connect(gridsize.sigChanged, foobar, this, GRID);
+  CLOSURE1(gridsize.sigChanged, TFigureAttributes *dst, this,
+    dst->reason.grid = true;
+    dst->sigChanged();
+  );
   
   linewidth = 0;
   linestyle = TPen::SOLID;
@@ -154,7 +160,7 @@ TFigureAttributes::setTool(TFigureTool *aTool)
   if (tool==aTool)
     return;
   tool = aTool;
-  reason = TOOL;
+  reason.tool = true;
   sigChanged();
 }
 
@@ -590,13 +596,10 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
 void
 TFigureEditor::paintSelection(TPenBase &pen)
 {
-cout << "TFigureEditor::paintSelection: " << (selection.empty() ? "empty" : "not empty") << endl;
   if (tool) {
-cout << "  use the tool" << endl;
     if (tool->paintSelection(this, pen))
       return;
   }
-cout << "  use TFigureEditor" << endl;
 
   // draw the selection marks over all figures
   for(auto sp = selection.begin(); sp != selection.end(); ++sp) {
@@ -828,26 +831,29 @@ TFigureEditor::preferencesChanged()
   if (!preferences)
     return;
   quickready=false;
-  if (preferences->reason == TFigureAttributes::TOOL) {
-    setTool(preferences->getTool());
-    return;
+
+  if (preferences->reason.tool) {
+    if (state != STATE_NONE)
+      stopOperation();
+    tool = preferences->getTool();
   }
 
-  if (preferences->reason == TFigureAttributes::GRID) {
+//  if (preferences->reason.grid) {
     invalidateWindow(visible);
-    return;
-  }
+//  }
   
-  if (preferences->reason == TFigureAttributes::ALL) {
-    setTool(preferences->getTool());
-    invalidateWindow(visible);
-  }
+//  if (preferences->reason == TFigureAttributes::ALL) {
+//    setTool(preferences->getTool());
+//    invalidateWindow(visible);
+//  }
 
   if (tool)
     tool->setAttributes(preferences);
   
   model->setAttributes(selection, preferences);
 //  invalidateWindow(visible); 
+
+  preferences->clearReasons();
 }
 
 void
@@ -978,7 +984,6 @@ printStackTrace();
 void
 TFigureEditor::deleteSelection()
 {
-cout << "delete selection" << endl;
   if (gadget && selection.find(gadget)!=selection.end()) {
     gadget = 0;
   }
@@ -1210,7 +1215,7 @@ TFigureEditor::toolChanged(TFigureTool*)
 void
 TFigureEditor::applyAll()
 {
-  preferences->reason = TFigureAttributes::ALLCHANGED;
+  preferences->setAllReasons();
   model->setAttributes(selection, preferences);
 }
 

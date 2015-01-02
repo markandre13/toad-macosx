@@ -259,6 +259,12 @@ void
 TFText::setAttributes(const TFigureAttributes *preferences)
 {
   super::setAttributes(preferences);
+  if (preferences->reason.fontname) {
+    fontname = preferences->fontname;
+    calcSize();
+  }
+  
+/*
   switch(preferences->reason) {
     case TFigureAttributes::ALLCHANGED:
     case TFigureAttributes::FONTNAME:
@@ -266,6 +272,7 @@ TFText::setAttributes(const TFigureAttributes *preferences)
       calcSize();
       break;
   }
+*/
 }
 
 void
