@@ -79,7 +79,7 @@ TComboBox::paint()
   size_t col=0, row=0;
   TAbstractSelectionModel *sm = table->getSelectionModel();
 //cout << "  selection model = " << sm << endl;
-if (sm && sm->empty())
+//if (sm && sm->empty())
 //  cout << "  selection model is empty" << endl;
   if (sm) {
     sm->getFirst(&col, &row);
