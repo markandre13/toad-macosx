@@ -26,6 +26,8 @@
 #include <toad/textfield.hh>
 #include <toad/checkbox.hh>
 
+#include <sys/time.h>
+
 TPencilTool::TPencilTool()
 {
   back = front = 0; 
@@ -64,7 +66,11 @@ TPencilTool::createEditor(TWindow *inWindow)
 bool
 TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
-  pen.drawLines(polygon);
+//  if ([NSEvent isMouseCoalescingEnabled]) {
+//printf("paint\n");
+    pen.drawLines(polygon);
+    return true;
+//  }
 
   // copied from TSelectionTool:
 //  pen.keepcolor = false;
@@ -120,6 +126,8 @@ TPencilTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 void 
 TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
+static timeval t0;
+
   TCoord x, y;
   fe->mouse2sheet(me.x, me.y, &x, &y);
 
@@ -133,7 +141,9 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     case TMouseEvent::LDOWN:
       // prepare to sample the freehand curve
       fe->getWindow()->setAllMouseMoveEvents(true);
-      fe->getWindow()->flagCompressMotion = false;
+//      fe->getWindow()->flagCompressMotion = false;
+      [NSEvent setMouseCoalescingEnabled: FALSE];
+      gettimeofday(&t0, 0);
       polygon.clear();
       polygon.addPoint(x, y);
       closed = false;
@@ -235,10 +245,26 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       // sample the new point
       polygon.addPoint(x,y);
 
-      //TCairo pen(fe->getWindow()); // too slow
-
       // indicate the new point to the user
-      fe->getWindow()->invalidateWindow();
+      timeval t1;
+      gettimeofday(&t1, 0);
+      
+      timeval d;
+      d.tv_sec = t1.tv_sec - t0.tv_sec;
+      if (t1.tv_usec < t0.tv_usec) {
+        d.tv_usec = 100000UL + t1.tv_usec - t0.tv_usec;
+        --d.tv_sec;
+      } else {
+        d.tv_usec = t1.tv_usec - t0.tv_usec;
+      }
+
+//printf("delta: %u.%06u\n", d.tv_sec, d.tv_usec);
+
+      if (d.tv_sec>0 || d.tv_usec>(1000000UL/12UL)) {
+//printf("  draw\n");
+        t0=t1;
+        fe->getWindow()->invalidateWindow();
+      }
     } break;
 
     case TMouseEvent::LUP:
@@ -347,6 +373,7 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       }
       polygon.clear();
       fe->getWindow()->flagCompressMotion = true;
+      [NSEvent setMouseCoalescingEnabled: TRUE];
       break;
   }
 }

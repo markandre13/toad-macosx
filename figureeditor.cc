@@ -964,8 +964,8 @@ TFigureEditor::deleteFigure(TFigure *g)
 bool
 TFigureEditor::clearSelection()
 {
-cout << "TFigureEditor::clearSelection" << endl;
-printStackTrace();
+//cout << "TFigureEditor::clearSelection" << endl;
+//printStackTrace();
   if (selection.empty())
     return false;
   for(TFigureSet::iterator p = selection.begin();
