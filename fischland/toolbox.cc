@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2014 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 #include "pentool.hh"
 #include "penciltool.hh"
 #include "directselectiontool.hh"
+#include "rotatetool.hh"
 #include "colorpicker.hh"
 #include "colorpalette.hh"
 #include "fischland.hh"
@@ -440,7 +441,7 @@ serialize.registerObject(new TFPath());
       case 9:
         y+=5;
         wnd = rb = new TFatRadioButton(this, "rotate", state);
-        CONNECT(rb->sigClicked, me, setOperation, TFigureEditor::OP_ROTATE);
+        CONNECT(rb->sigClicked, me, setTool, TRotateTool::getTool());
         wnd->setToolTip("rotate");
         rb->loadBitmap(RESOURCE("tool_rotate.png"));
         break;

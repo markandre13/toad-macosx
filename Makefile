@@ -34,6 +34,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
 	 fischland/toolbox.cc fischland/colorpicker.cc \
 	 fischland/selectiontool.cc fischland/directselectiontool.cc \
+	 fischland/rotatetool.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
@@ -229,7 +230,7 @@ fischland/toolbox.o: include/toad/dragndrop.hh fischland/selectiontool.hh
 fischland/toolbox.o: include/toad/undomanager.hh include/toad/action.hh
 fischland/toolbox.o: fischland/filltool.hh fischland/fpath.hh
 fischland/toolbox.o: fischland/pentool.hh fischland/penciltool.hh
-fischland/toolbox.o: fischland/directselectiontool.hh
+fischland/toolbox.o: fischland/directselectiontool.hh fischland/rotatetool.hh
 fischland/toolbox.o: fischland/colorpicker.hh fischland/colorpalette.hh
 fischland/toolbox.o: include/toad/combobox.hh include/toad/textfield.hh
 fischland/toolbox.o: include/toad/textarea.hh include/toad/control.hh
@@ -313,6 +314,24 @@ fischland/directselectiontool.o: include/toad/figuretool.hh
 fischland/directselectiontool.o: include/toad/core.hh include/toad/pen.hh
 fischland/directselectiontool.o: include/toad/undomanager.hh
 fischland/directselectiontool.o: include/toad/action.hh
+fischland/rotatetool.o: fischland/rotatetool.hh include/toad/figureeditor.hh
+fischland/rotatetool.o: include/toad/figure.hh include/toad/penbase.hh
+fischland/rotatetool.o: include/toad/color.hh include/toad/types.hh
+fischland/rotatetool.o: include/toad/io/serializable.hh
+fischland/rotatetool.o: include/toad/io/atvparser.hh include/toad/font.hh
+fischland/rotatetool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+fischland/rotatetool.o: include/toad/window.hh include/toad/interactor.hh
+fischland/rotatetool.o: include/toad/cursor.hh include/toad/region.hh
+fischland/rotatetool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+fischland/rotatetool.o: include/toad/model.hh include/toad/connect.hh
+fischland/rotatetool.o: include/toad/scrollpane.hh include/toad/undo.hh
+fischland/rotatetool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+fischland/rotatetool.o: include/toad/integermodel.hh
+fischland/rotatetool.o: include/toad/numbermodel.hh
+fischland/rotatetool.o: include/toad/floatmodel.hh
+fischland/rotatetool.o: include/toad/figure/createtool.hh
+fischland/rotatetool.o: include/toad/figuretool.hh include/toad/core.hh
+fischland/rotatetool.o: include/toad/pen.hh fischland/fischland.hh
 fischland/pentool.o: fischland/pentool.hh fischland/fpath.hh
 fischland/pentool.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/pentool.o: include/toad/color.hh include/toad/types.hh
@@ -782,7 +801,7 @@ figureeditor.o: include/toad/textarea.hh include/toad/control.hh
 figureeditor.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
 figureeditor.o: include/toad/dragndrop.hh include/toad/checkbox.hh
 figureeditor.o: include/toad/labelowner.hh include/toad/action.hh
-figureeditor.o: include/toad/undomanager.hh
+figureeditor.o: include/toad/undomanager.hh include/toad/stacktrace.hh
 figuretool.o: include/toad/figuretool.hh include/toad/core.hh
 figuretool.o: include/toad/window.hh include/toad/interactor.hh
 figuretool.o: include/toad/types.hh include/toad/cursor.hh

@@ -491,7 +491,6 @@ TFigureEditor::paint()
     update_scrollbars = false;
   }
   TPen pen(window);
-//  pen.translate(0.5, 0.5); // FIXME
   if (!model) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
@@ -637,68 +636,6 @@ TFigureEditor::paintSelection(TPenBase &pen)
       pen.drawRectanglePC(down_x, down_y, select_x-down_x, select_y-down_y);
     }
   }
-
-  // draw rotation center  
-  if (gadget && operation==OP_ROTATE) {
-
-    // draw center of rotation
-    TCoord x, y;
-    if (pen.getMatrix()) {
-      pen.getMatrix()->map(rotx, roty, &x, &y);
-      pen.push();
-      pen.identity();
-    } else {
-      x = rotx;
-      y = roty;
-    }
-    pen.setLineWidth(1);
-    pen.setLineColor(TColor::FIGURE_SELECTION);
-    pen.setFillColor(TColor::WHITE);
-    pen.drawCirclePC(x-3,y-3,7,7);
-    pen.drawLine(x,y+3,x,y+6);
-    pen.drawLine(x+3,y,x+6,y);
-    pen.drawLine(x,y-3,x,y-6);
-    pen.drawLine(x-3,y,x-6,y);
-    if (pen.getMatrix())
-      pen.pop();
-    
-    // draw handles for rotated figure
-    pen.push();
-    if (state==STATE_ROTATE) {
-      pen.translate(rotx, roty);
-      pen.rotate(rotd);
-      pen.translate(-rotx, -roty);
-    }
-    if (gadget->mat)
-      pen.multiply(gadget->mat);
-
-    TRectangle r;
-    gadget->getShape(&r);
-    for(int i=0; i<=4; ++i) {
-      switch(i) {
-        case 0: x = r.x;       y = r.y;       break;
-        case 1: x = r.x+r.w-1; y = r.y;       break;
-        case 2: x = r.x+r.w-1; y = r.y+r.h-1; break;
-        case 3: x = r.x;       y = r.y+r.h-1; break;
-        case 4: x = r.x+r.w/2; y = r.y+r.h/2; break;
-      }
-      if (pen.getMatrix()) {
-        pen.getMatrix()->map(x, y, &x, &y);
-        pen.push();
-        pen.identity();
-      }
-      if (i!=4) {
-        pen.fillRectanglePC(x-2,y-2,5,5);
-      } else {
-        pen.drawLine(x-2, y-2, x+2, y+2);
-        pen.drawLine(x+2, y-2, x-2, y+2);
-      }
-      if (pen.getMatrix())
-        pen.pop();
-    }
-    pen.pop();
-  }
-
 }
 
 /**
@@ -2222,12 +2159,12 @@ TFigureEditor::findFigureAt(TCoord mx, TCoord my)
   cerr << "TFigureEditor::findFigureAt(" << mx << ", " << my << ")\n";
 #endif
   double distance = INFINITY;
-  TFigureModel::iterator p,b,found;
+  TFigureModel::const_iterator p,b,found;
   p = found = model->end();
   b = model->begin();
   TMatrix2D stack;
 
-  double inside = 0.4 * fuzziness * TFigure::RANGE;
+  TCoord inside = 0.4 * fuzziness * TFigure::RANGE;
 
   bool stop = false;
   while(p!=b && !stop) {
@@ -2246,7 +2183,7 @@ TFigureEditor::findFigureAt(TCoord mx, TCoord my)
         y = my;
       }
 //cerr << "  after rotation ("<<x<<", "<<y<<")\n";
-      double d = (*p)->_distance(this, x, y);
+      TCoord d = (*p)->_distance(this, x, y);
       if (d==TFigure::INSIDE) {
         d = inside;
         stop = true;

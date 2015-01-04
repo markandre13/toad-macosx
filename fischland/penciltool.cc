@@ -252,7 +252,7 @@ static timeval t0;
       timeval d;
       d.tv_sec = t1.tv_sec - t0.tv_sec;
       if (t1.tv_usec < t0.tv_usec) {
-        d.tv_usec = 100000UL + t1.tv_usec - t0.tv_usec;
+        d.tv_usec = 1000000UL + t1.tv_usec - t0.tv_usec;
         --d.tv_sec;
       } else {
         d.tv_usec = t1.tv_usec - t0.tv_usec;

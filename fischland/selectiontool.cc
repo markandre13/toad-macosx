@@ -129,6 +129,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       // calculate the selections bounding rectangle
       calcSelectionsBoundingRectangle(fe);
       fe->invalidateWindow();
+      fe->getWindow()->setAllMouseMoveEvents(false);
       break;
     default:
       ;

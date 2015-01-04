@@ -32,6 +32,7 @@ TPen::TPen(TWindow *w)
   window = w;
   pdfContext = 0;
   ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+//  CGContextSetAllowsAntialiasing(ctx, FALSE);
   windowmatrix = CGContextGetCTM(ctx);
   setColor(0,0,0);
   setAlpha(1);
