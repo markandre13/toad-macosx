@@ -38,13 +38,6 @@ TMatrix2D::~TMatrix2D()
 {
 }
 
-TMatrix2D&
-TMatrix2D::operator=(const TMatrix2D &in)
-{
-  *static_cast<CGAffineTransform*>(this) = in;
-  return *this;
-}
-
 /**
  * Reset matrix to 'no transformation'.
  *
@@ -97,7 +90,7 @@ TMatrix2D::rotate(TCoord radiant)
 }
 
 /**
- * PostScript alike tranlation of the coordinate system with the
+ * PostScript alike translation of the coordinate system with the
  * translation matrix multiplied after the current matrix.
  *
  * \pre
@@ -179,7 +172,7 @@ TMatrix2D::shear(TCoord, TCoord)
 void
 TMatrix2D::multiply(const TMatrix2D *p)
 {
-  *static_cast<CGAffineTransform*>(this) = CGAffineTransformConcat(*this, *p);
+  *static_cast<CGAffineTransform*>(this) = CGAffineTransformConcat(*p, *this);
 }
 
 TMatrix2D

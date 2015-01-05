@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2014 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,6 @@
 #ifndef _TOAD_MATRIX2D_HH
 #define _TOAD_MATRIX2D_HH 1
 
-//#import <AppKit/NSAffineTransform.h>
 #include "CoreGraphics/CGAffineTransform.h"
 
 #include <toad/types.hh>
@@ -48,7 +47,10 @@ class TMatrix2D:
       this->tx  = tx;
       this->ty  = ty;
     }
-    TMatrix2D& operator=(const TMatrix2D&);
+    TMatrix2D& operator=(const TMatrix2D &m) {
+      *static_cast<CGAffineTransform*>(this) = m;
+      return *this;
+    }
     TMatrix2D& operator=(const CGAffineTransform &m) {
       *static_cast<CGAffineTransform*>(this) = m;
       return *this;
