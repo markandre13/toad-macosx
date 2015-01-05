@@ -118,10 +118,7 @@ TFillTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 void
 printPage(const TFigureModel &model)
 {
-  for(TFigureModel::const_iterator p = model.begin();
-      p != model.end();
-      ++p)
-  {
+  for(auto p = model.begin(); p != model.end(); ++p) {
     if ((*p)->mat) {
       pen->push();
       pen->multiply( (*p)->mat );
@@ -144,10 +141,7 @@ intersect_model_with_horizontal_line(const TFigureModel &model,
   line.addPoint(INT_MAX, y);
   line.addPoint(INT_MAX, y);
 
-  for (TFigureModel::const_iterator p = model.begin();
-       p != model.end();
-       ++p)
-  {
+  for(auto p = model.begin(); p != model.end(); ++p) {
     const TFPath *path = dynamic_cast<const TFPath*>(*p);
     if (!path)
       continue;
@@ -169,10 +163,7 @@ find_nearest_intersection_on_the_left(const IntersectionPointList &linelist,
   *nearx = -DBL_MAX;
   *neara = 0.0;
   *nearpath = 0;
-  for(IntersectionPointList::const_iterator q = linelist.begin();
-      q != linelist.end();
-      ++q)
-  {
+  for(auto q = linelist.begin(); q != linelist.end(); ++q) {
     if (q->coord.x < x && q->coord.x > *nearx) {
       *nearx = q->coord.x;
       *neara = q->b;
@@ -190,16 +181,10 @@ add_directions_overlapping_with(directionstack_t *direction,
 {
   // add other directions from lines which do overlap with this intersection
   cout << "looking for other points intersecting with " << minp << " at " << minb << endl;
-  for(IntersectionPointList::const_iterator q = list.begin();
-      q != list.end();
-      ++q)
-  {
+  for(auto q = list.begin(); q != list.end(); ++q) {
     // list contains duplicates, ignore 'em here for now...
     bool boo = false;
-    for(directionstack_t::const_iterator r = direction->begin();
-        r != direction->end();
-        ++r)
-    {
+    for(auto r = direction->begin(); r != direction->end(); ++r) {
       if (q->bp == r->path && q->b == r->position) {
         boo = true;
       }
@@ -235,6 +220,8 @@ debug_pdf_print_page_one(TPenBase *pen,
                          TCoord x, TCoord y,
                          const TFigureModel &model)
 {
+  if (!pen)
+    return;
   pen->drawString(100,100, "Page 1");
 
   pen->scale(1.0/(96.0), 1.0/(96.0));
@@ -256,6 +243,8 @@ debug_pdf_print_directions(TPenBase *pen,
                            const TFigureModel &model,
                            const directionstack_t &direction)
 {
+  if (!pen)
+    return;
   printPage(model);
 
   pen->setLineWidth(96.0);
@@ -264,15 +253,12 @@ debug_pdf_print_directions(TPenBase *pen,
   pen->drawLine(x+200, y-200, x-200, y+200);
 
   pen->setColor(0,0.5,0);
-  for(directionstack_t::const_iterator p = direction.begin();
-      p != direction.end();
-      ++p)
-  {
-  TPoint pt;
-  bez2point(p->path, p->position, &pt);
-  pen->drawLine(
-    pt.x, pt.y,
-    pt.x + cos(p->degree) * 800, pt.y + sin(p->degree) * 800);
+  for(auto p = direction.begin(); p != direction.end(); ++p) {
+    TPoint pt;
+    bez2point(p->path, p->position, &pt);
+    pen->drawLine(
+      pt.x, pt.y,
+      pt.x + cos(p->degree) * 800, pt.y + sin(p->degree) * 800);
   }
   pen->setColor(0,0,0);
   ostringstream txt;
@@ -288,6 +274,8 @@ debug_pdf_print_taking_direction(TPenBase *pen,
                                  const directionstack_t &direction,
                                  directionstack_t::const_iterator dp)
 {
+  if (!pen)
+    return;
   const TFPath *nearpath = dp->path;
   TCoord neara = dp->position;
 
@@ -298,10 +286,7 @@ debug_pdf_print_taking_direction(TPenBase *pen,
   pen->drawLine(x+200, y-200, x-200, y+200);
   pen->setColor(0,0.5,0);
   TPoint pt;
-  for(directionstack_t::const_iterator p = direction.begin();
-      p != direction.end();
-      ++p)
-  {
+  for(auto p = direction.begin(); p != direction.end(); ++p) {
     if (!p->path)
       continue;
     bez2point(p->path, p->position, &pt);
@@ -331,6 +316,8 @@ debug_pdf_mark_intersections(TPenBase *pen,
                              TCoord minb,
                              bool backtrace)
 {
+  if (!pen)
+    return;
   pen->setLineWidth(96.0);
 
   // mark start position
@@ -348,10 +335,7 @@ debug_pdf_mark_intersections(TPenBase *pen,
   // mark found intersections
   pen->setColor(1,0,0);
   TPoint pt;
-  for(IntersectionPointList::const_iterator q = list.begin();
-      q != list.end();
-      ++q)
-  {
+  for(auto q = list.begin(); q != list.end(); ++q) {
     if (nearpath==q->ap) {
       pen->setColor(1,0,0);
       bez2point(q->ap, q->a, &pt);
@@ -464,7 +448,7 @@ cout << "left of point is path " << nearpath << " at " << neara << endl;
     //   2nd: find all new intersections
     while(true) {
       bool backtrace = false;
-      bool forward;
+      bool forward = true;
 
       // make a decision which direction to take
 cout << "  taking a new direction" << endl;
@@ -472,10 +456,7 @@ cout << "  taking a new direction" << endl;
         // all direction values are below 'a', now find the largest one
         TCoord dm = -DBL_MAX;
         directionstack_t::iterator dp = direction.end();
-        for(directionstack_t::iterator p = direction.begin();
-            p != direction.end();
-            ++p)
-        {
+        for(auto p = direction.begin(); p != direction.end(); ++p) {
           if (!p->path)
             continue;
 cout << "    offered: degree=" << p->degree << ", path=" << p->path << endl;
@@ -515,10 +496,7 @@ cout << "    taking : degree=" << dp->degree << ", path=" << dp->path << endl;
       // find all beziers intersecting with 'nearpath'
 cout << "find all beziers intersecting with " << nearpath << endl;
       list.clear();
-      for (TFigureModel::const_iterator p = model.begin();
-           p != model.end();
-           ++p)
-      {
+      for (auto p = model.begin(); p != model.end(); ++p) {
         const TFPath *path = dynamic_cast<const TFPath*>(*p);
         if (!path)
           continue;
@@ -549,10 +527,7 @@ pen->drawString(xp, yp, txt.str()); yp+=ys;
 }
 #endif
 
-      for(IntersectionPointList::const_iterator q = list.begin();
-          q != list.end();
-          ++q)
-      {
+      for(auto q = list.begin(); q != list.end(); ++q) {
         if (pointsOverlap(nearpath, q->a, nearpath, neara, 1)) {
          cout << "    overlaps, ignore" << endl;
          continue;
