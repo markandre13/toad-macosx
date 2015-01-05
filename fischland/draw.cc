@@ -26,6 +26,7 @@
 #include "page.hh"
 #include "config.h"
 
+
 #ifdef HAVE_LIBCAIRO
 #include "cairo.hh"
 #endif
@@ -59,6 +60,7 @@
 #include <time.h>
 #include <fcntl.h>
 
+#include "rotatetool.hh"
 
 // basename on MacOS X
 #include <libgen.h>
@@ -910,12 +912,71 @@ TMainWindow::editorModified()
   }
 }
 
+#if 0
+class TTestWindow: public TWindow
+{
+    TRotateTool *t;
+    TFigure *f;
+  public:
+    TTestWindow(TWindow *p, TRotateTool *t, TFigure *f):TWindow(p, "Test") {
+      this->t = t;
+      this->f = f;
+    }
+    void paint();
+};
+
+void
+TTestWindow::paint()
+{
+  TPen pen(this);
+  
+  pen.multiply(&t->oldmatrix);
+  pen.drawRectangle(50,50,100,50);
+  pen.identity();
+
+  // correct result
+  pen.setColor(0,1,0);
+
+  pen.translate(t->rotx, t->roty);
+  pen.rotate(t->rotd);
+  pen.translate(-t->rotx, -t->roty);
+
+  pen.multiply(&t->oldmatrix);
+
+  pen.drawRectangle(50,50,100,50);
+  
+  //
+//  pen.setColor(0,0,1);
+//  pen.identity();
+//  pen.drawRectangle(50,50,100,50);
+
+  // wrong result
+  pen.setColor(1,0,0);
+  pen.identity();
+
+  TMatrix2D m;
+  m.translate(t->rotx, t->roty);
+  m.rotate(t->rotd);
+  m.translate(-t->rotx, -t->roty);
+
+  m.multiply(&t->oldmatrix);
+
+  pen.multiply(&m);
+
+//pen.multiply(&t->oldmatrix);
+
+  pen.drawRectangle(50,50,100,50);
+}
+#endif
+
 TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   super(p, t)
 {
   new TUndoManager(this, "undomanager");
 
   TFischEditor *me = new TFischEditor(this, "figureeditor");
+
+
   CONNECT(me->sigFischModified, this, editorModified);
   editor = me;
   me->setAttributes(TToolBox::preferences);
@@ -932,6 +993,75 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   CONNECT(a->sigClicked, this, menuNew);
   a = new TAction(this, "file|newview");
   CONNECT(a->sigClicked, this, menuNewView);
+
+#if 0
+a = new TAction(this, "file|xxx");
+TCLOSURE1(
+  a->sigClicked,
+  e, me,
+  
+  e->addFigure(new TFRectangle(50,50,100,50));
+  TFigure *f = new TFRectangle(50,50,100,50);
+  e->addFigure(f);
+  
+  TRotateTool *t = TRotateTool::getTool();
+  e->setTool(t);
+  
+  TMouseEvent me(0,0);
+  TRectangle v(e->getVisible());
+
+  // rotate by 90°
+  me.type = TMouseEvent::LDOWN;
+  me.x    = 50 + v.x;
+  me.y    = 50 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::MOVE;
+  me.x    = 125 + v.x;
+  me.y    =  25 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::LUP;
+  me.x    = 125 + v.x;
+  me.y    =  25 + v.y;
+  t->mouseEvent(e, me);
+  
+  // move origin
+  me.type = TMouseEvent::LDOWN;
+  me.x    = 100 + v.x;
+  me.y    =  75 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::MOVE;
+  me.x    =  75 + v.x;
+  me.y    =  25 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::LUP;
+  me.x    =  75 + v.x;
+  me.y    =  25 + v.y;
+  t->mouseEvent(e, me);
+  
+  // rotate again
+  me.type = TMouseEvent::LDOWN;
+  me.x    = 125 + v.x;
+  me.y    =  25 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::MOVE;
+  me.x    = 125 + v.x;
+  me.y    =   0 + v.y;
+  t->mouseEvent(e, me);
+
+  me.type = TMouseEvent::LUP;
+  me.x    = 125 + v.x;
+  me.y    =   0 + v.y;
+  t->mouseEvent(e, me);
+  
+  TWindow *w = new TTestWindow(0, t, f);
+  w->createWindow();
+);
+#endif
   
   a = new TAction(this, "file|open");
   CONNECT(a->sigClicked, this, menuOpen);
@@ -1247,6 +1377,7 @@ void test_scroll();
 void test_dialog();
 void test_cursor();
 void test_colordialog();
+void test_grab();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1291,6 +1422,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-colordialog")==0) {
       toad::initialize(argc, argv);
       test_colordialog();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-grab")==0) {
+      toad::initialize(argc, argv);
+      test_grab();
       toad::terminate();
       return 0;
     }

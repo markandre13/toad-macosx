@@ -51,29 +51,32 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       }
 
       TFigure *f = fe->findFigureAt(x, y);
-      if (f) {
-//cout << "got figure" << endl;
-        if (figure!=f) {
-          // a new figure was selected, setup a new rotation center
-          TRectangle r;
-          f->getShape(&r);
-          rotx = r.x + r.w/2;
-          roty = r.y + r.h/2;
-          if (f->mat) {
-            f->mat->map(rotx, roty, &rotx, &roty);
-          }
-          figure = f;
-        }
-        rotd0=atan2(static_cast<TCoord>(y - roty), 
-                    static_cast<TCoord>(x - rotx));
-        rotd = 0.0;
-        if (f->mat)
-          oldmatrix = *f->mat;
-        else
-          oldmatrix.identity();
-        state = ROTATE;
+      if (!f) {
+        figure = 0;
         fe->invalidateWindow();
+        break;
       }
+//cout << "got figure" << endl;
+      if (figure!=f) {
+        // a new figure was selected, setup a new rotation center
+        TRectangle r;
+        f->getShape(&r);
+        rotx = r.x + r.w/2;
+        roty = r.y + r.h/2;
+        if (f->mat) {
+          f->mat->map(rotx, roty, &rotx, &roty);
+        }
+        figure = f;
+      }
+      rotd0=atan2(y - roty, x - rotx);
+      if (f->mat) {
+//        cout << "save old matrix" << endl;
+        oldmatrix = *f->mat;
+      } else {
+        oldmatrix.identity();
+      }
+      state = ROTATE;
+      fe->invalidateWindow();
     }  break;
     
     case TMouseEvent::LUP:
@@ -81,33 +84,37 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       break;
 
     case TMouseEvent::MOVE:
-      if (!figure)
+      if (!figure || state==NONE)
         break;
-        fe->mouse2sheet(me.x, me.y, &x, &y);
-        // fe->sheet2grid(x, y, &x, &y);
+      fe->mouse2sheet(me.x, me.y, &x, &y);
+      // fe->sheet2grid(x, y, &x, &y);
 
-        switch(state) {
-          case ROTATE:
-            rotd=atan2(y - roty, x - rotx);
-//      cerr << "rotd="<<rotd<<", rotd0="<<rotd0<<" -> " << (rotd-rotd0) << "\n";
-            rotd-=rotd0;
-            if (!figure->mat)
-              figure->mat = new TMatrix2D(oldmatrix);
-            else
-              *figure->mat = oldmatrix;
-            figure->mat->translate(rotx, roty);
-            figure->mat->rotate(rotd);
-            figure->mat->translate(-rotx, -roty);
-        
-            fe->invalidateWindow();
-            break;
-          case MOVE_CENTER:
-            rotx = x;
-            roty = y;
-            fe->invalidateWindow();
-            break;
-      }
-      break;
+      switch(state) {
+        case ROTATE: {
+          rotd=atan2(y - roty, x - rotx);
+//          cerr << "rotd="<<rotd<<", rotd0="<<rotd0<<" -> " << (rotd-rotd0) << "\n";
+          rotd-=rotd0;
+          if (!figure->mat)
+            figure->mat = new TMatrix2D();
+          figure->mat->identity();
+
+//cout << "rotate around " << rotx << ", " << roty << endl;
+          figure->mat->translate(rotx, roty);
+          figure->mat->rotate(rotd);
+          figure->mat->translate(-rotx, -roty);
+            
+          figure->mat->multiply(&oldmatrix);
+
+          fe->invalidateWindow();
+        } break;
+        case MOVE_CENTER:
+//cout << "center is now at " << x << ", " << y << endl;
+          rotx = x;
+          roty = y;
+          fe->invalidateWindow();
+          break;
+    }
+    break;
   }
 }
 
@@ -116,15 +123,6 @@ TRotateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
     return true;
-
-#if 0
-  pen.push();
-  pen.translate(rotx, roty);
-  pen.rotate(rotd);
-  pen.translate(-rotx, -roty);
-  figure->paint(pen);
-  pen.pop();
-#endif
 
   // draw center of rotation
   pen.setLineWidth(1);
@@ -151,11 +149,7 @@ TRotateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   
   // draw handles for rotated figure
   pen.push();
-/*
-  pen.translate(rotx, roty);
-  pen.rotate(rotd);
-  pen.translate(-rotx, -roty);
-*/
+
   if (figure->mat)
     pen.multiply(figure->mat);
 

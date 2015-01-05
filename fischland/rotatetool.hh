@@ -28,10 +28,12 @@ using namespace toad;
 class TRotateTool:
   public TFigureTool
 {
+public:
     TFigure *figure;   // figure to rotate (FIXME: should be selection)
     TMatrix2D oldmatrix;
     TCoord rotx, roty; // point to rotate around
-    TCoord rotd, rotd0;
+TCoord rotd;
+    TCoord rotd0;      // degree at ldown
     
     enum {
       NONE,
