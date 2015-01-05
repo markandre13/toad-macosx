@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.de>
+ * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,40 +22,80 @@
 */
 
 #include <toad/window.hh>
+#include <toad/pen.hh>
 
 using namespace toad;
 
 namespace {
 
-class TWindowB:
+class TMyWindow:
   public TWindow
 {
   public:
-    TWindowA(TWindow *parent, const string &title):
+    TMyWindow(TWindow *parent, const string &title):
       TWindow(parent, title)
     {
-      setBackgroun(1,0.5,0);
     }
+    
+    void paint();
 };
 
-class TWindowA:
-  public TDialog
+void
+TMyWindow::paint()
 {
-  public:
-    TWindowA(TWindow *parent, const string &title):
-      TWindow(parent, title)
-    {
-      setSize(90,90);
-      TWindow *w = new TWindowB(this, "window b");
-      w->setShape(20,20,50,50);
-    }
-};
+  TPen pen(this);
+
+  pen.drawRectangle(50,50,100,50);
+  
+  pen.translate(100,75);
+  pen.rotate(2.0 * M_PI / 4);
+  pen.translate(-100,-75);
+  
+  pen.drawRectangle(50,50,100,50);
+  
+  // via pen
+  pen.setColor(1,0,0);
+  pen.identity();
+  pen.drawRectangle(50,50,100,50);
+
+  pen.translate(50, 50);
+pen.drawRectangle(-2,-2,5,5);
+  pen.rotate(2.0 * M_PI / 16);
+  pen.translate(-50, -50);
+
+  pen.translate(100,75);
+  pen.rotate(2.0 * M_PI / 4);
+  pen.translate(-100,-75);
+
+  pen.setColor(0,0,1);
+  pen.drawRectangle(50,50,100,50);
+
+  // via matrix
+  TMatrix2D m;
+  pen.identity();
+  pen.translate(50, 50);
+  pen.rotate(2.0 * M_PI / 16);
+  pen.translate(-50, -50);
+
+  TMatrix2D m1;
+  m1.translate(100,75);
+  m1.rotate(2.0 * M_PI / 4);
+  m1.translate(-100,-75);
+
+  TMatrix2D m2;
+  m2 = m1;
+  
+  pen.multiply(&m2);
+
+  pen.setColor(0,1,0);
+  pen.drawRectangle(50,50,100,50);
+}
 
 } // unnamed namespace
 
 void
 test_grab()
 {
-  TWindowA wnd(NULL, "mouse grab test");
+  TMyWindow wnd(NULL, "my test");
   toad::mainLoop();
 }

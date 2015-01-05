@@ -26,7 +26,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   stacktrace.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
-	   test_combobox.cc test_cursor.cc test_colordialog.cc
+	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc
 		
 SRC_COCOA=window.cc pen.cc
 
