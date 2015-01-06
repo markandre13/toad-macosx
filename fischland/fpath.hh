@@ -53,7 +53,7 @@ class TFPath:
     // 4: smooth corner
     unsigned cornerAtHandle(TPolygon::size_type handle);
 
-    bool closed;
+//    bool closed;
     TPolygon polygon;
     vector<byte> corner;
     

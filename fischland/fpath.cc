@@ -43,7 +43,6 @@ TFPath::setAttributes(const TFigureAttributes *preferences)
     arrowmode = preferences->arrowmode;
   if (preferences->reason.arrowstyle)
     arrowtype = preferences->arrowtype;
-//  filled = (arrowmode!=TFLine::NONE); // for parents 'store' method
 }
 
 void
@@ -52,7 +51,6 @@ TFPath::getAttributes(TFigureAttributes *preferences) const
   super::getAttributes(preferences);
   preferences->arrowmode = arrowmode;
   preferences->arrowtype = arrowtype;
-//  preferences->filled    = filled;
 }
 
 
@@ -284,34 +282,16 @@ TFPath::paint(TPenBase &pen, EPaintType type)
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
 
-  if (!cmat) {
-    if (!closed || !filled) {  
-      pen.drawBezier(polygon);
-//      pen.fillCircle(polygon[0].x-100, polygon[0].y-100, 200, 200);
-    } else {
-      pen.setFillColor(fill_color);
-      pen.fillBezier(polygon);
-//      pen.fillCircle(polygon[0].x-100, polygon[0].y-100, 200, 200);
-    }
-  } else {
-    // FIXME: why not apply cmat
-    TPoint *polygon2 = new TPoint[polygon.size()];
-    TPoint *p2 = polygon2;
-    for(TPolygon::const_iterator p = polygon.begin();
-        p != polygon.end();
-        ++p, ++p2)
-    {
-      cmat->map(p->x, p->y, &p2->x, &p2->y);
-    }
-    if (!closed || !filled) {  
-      pen.drawBezier(polygon2, polygon.size());
-    } else {
-      pen.setFillColor(fill_color);
-      pen.fillBezier(polygon2, polygon.size());
-    }
-    delete[] polygon2;
+  if (cmat) {
+    pen.push();
+    pen.multiply(cmat);
   }
-
+  if (closed && filled) {
+    pen.setFillColor(fill_color);
+    pen.fillBezier(polygon);
+  }
+  pen.drawBezier(polygon);
+  
   pen.setLineStyle(TPenBase::SOLID);
   
   TCoord aw = arrowwidth * line_width;
@@ -336,6 +316,9 @@ TFPath::paint(TPenBase &pen, EPaintType type)
 //pen.setColor(1,0,0);
 //pen.drawLine(polygon[polygon.size()-1], polygon[polygon.size()-3]);
   }
+  
+  if (cmat)
+    pen.pop();
   
   if (type!=EDIT && type!=SELECT)
     return;

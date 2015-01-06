@@ -19,7 +19,11 @@
  */
 
 #include "colorpicker.hh"
+#include "colorpalette.hh"
+#include "toolbox.hh"
 #include <toad/pen.hh>
+
+using namespace fischland;
 
 static TRectangle fillRect(0.5, 0.5, 27, 27);
 static TRectangle lineRect(13.5, 14.5, 27, 27);
@@ -135,6 +139,11 @@ TColorPicker::mouseLDown(const TMouseEvent &me)
 bool
 TColorPicker::click(const TMouseEvent &me)
 {
+  if (me.dblClick) {
+    TColorPalette *cp = new TColorPalette(0, "Palette", TToolBox::preferences);
+    cp->createWindow();
+    return true;
+  }
   switch(active) {
     case LINE:
       if (lineRect.isInside(me.x, me.y))
