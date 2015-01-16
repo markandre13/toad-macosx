@@ -63,9 +63,23 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         f->getShape(&r);
         rotx = r.x + r.w/2;
         roty = r.y + r.h/2;
+
         if (f->mat) {
-          f->mat->map(rotx, roty, &rotx, &roty);
+          TCoord x0, x1, y0, y1;
+          f->mat->map(r.x, r.y, &x0, &y0);
+          f->mat->map(r.x+r.w, r.y+r.h, &x1, &y1);
+cout << "mapped rectangle "
+     << r.x << ", " << r.y << " - " << (r.x+r.w) << ", " << (r.y+r.h) << " to "
+     << x0  << ", " << y0  << " - " << x1        << ", " << y1 << endl;
+          rotx = x0 + (x1-x0)/2;
+          roty = y0 + (y1-y0)/2; 
+          // f->mat->map(rotx, roty, &rotx, &roty);
+        } else {
+cout << "figure " << f << " has no matrix" << endl;
         }
+        
+        rotx -= 50;
+
         figure = f;
       }
       rotd0=atan2(y - roty, x - rotx);

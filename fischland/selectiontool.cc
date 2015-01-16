@@ -459,10 +459,7 @@ void
 TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
 {
 //cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
-  for(TFigureSet::const_iterator p = fe->selection.begin();
-      p != fe->selection.end();
-      ++p)
-  {
+  for(auto p = fe->selection.begin(); p != fe->selection.end(); ++p) {
     TRectangle r;
 #if 1
     fe->getFigureShape(*p, &r, NULL);

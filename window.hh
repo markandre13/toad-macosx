@@ -279,7 +279,7 @@ class TWindow:
     };
     void placeWindow(EWindowPlacement how, TWindow *parent=NULL);
     void windowEvent(const TWindowEvent &we);
-    void mouseEvent(const TMouseEvent &);
+    virtual void mouseEvent(const TMouseEvent &);
     virtual void mouseMove(const TMouseEvent &);
     virtual void mouseEnter(const TMouseEvent &);
     virtual void mouseLeave(const TMouseEvent &);

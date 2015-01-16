@@ -53,7 +53,7 @@ class TSelectionTool:
     vector<TMatrix2D> oldmat;
   public:
     TSelectionTool() {
-      scale_strokes_and_fx = false;
+      scale_strokes_and_fx = true;
       down = false;
       rect = false;
       grab = false;
