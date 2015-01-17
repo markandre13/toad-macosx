@@ -463,6 +463,10 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
     TRectangle r;
 #if 1
     fe->getFigureShape(*p, &r, NULL);
+    r.x-=1;
+    r.y-=1;
+    r.w+=2;
+    r.h+=2;
 //cout << "-> getFigureShape -> " << r << endl;
 #else
     (*p)->getShape(&r);
