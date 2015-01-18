@@ -9,7 +9,7 @@ bool toad::layouteditor = false;
 
 using namespace toad;
 
-@interface ToadDelegate : NSObject
+@interface ToadDelegate : NSObject <NSFileManagerDelegate>
 {
 }
 - (void) createWindow;
