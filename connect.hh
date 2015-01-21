@@ -19,11 +19,12 @@
  * MA  02111-1307,  USA
  */
 
-#include <cstdlib>
-
 
 #ifndef TSignal
 #define TSignal TSignal
+
+#include <cstdlib>
+#include <functional>
 
 namespace toad {  // connect.hh
 
@@ -131,6 +132,14 @@ class TSignalLink
     bool dirty:1;    
 };
 
+class TClosure: public TSignalLink
+{
+  public:
+    std::function<void()> cb;
+    TClosure(std::function<void()> c):cb(c) {}
+    virtual void execute() { cb(); }
+};
+
 /**
  * \ingroup callback
  *
@@ -144,6 +153,7 @@ class TSignal
   public:
     TSignal();
     ~TSignal();
+    TSignalLink* add(std::function<void()> cb) { return add(new TClosure(cb)); }
     TSignalLink* add(TSignalLink*);
 		bool isConnected() const { return _list!=NULL; }
     void remove();
