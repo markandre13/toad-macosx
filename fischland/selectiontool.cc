@@ -43,7 +43,7 @@ void
 TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   TFigure *figure;
-  TCoord x, y;
+  TPoint p;
   TRectangle r;
 
   switch(me.type) {
@@ -58,8 +58,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         break;
 
       // find figure under mouse
-      fe->mouse2sheet(me.x, me.y, &x, &y);
-      figure = fe->findFigureAt(x, y);
+      fe->mouse2sheet(me.pos, &p);
+      figure = fe->findFigureAt(p);
 
       // if figure not part of selection and not shift
       if (fe->selection.find(figure) == fe->selection.end() &&
@@ -71,9 +71,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       // on a figure, start grab
       if (figure) {
         fe->selection.insert(figure);
-        fe->sheet2grid(x, y, &last_x, &last_y);
-        last_sx = me.x;
-        last_sy = me.y;
+        fe->sheet2grid(p, &last);
+        last_s = me.pos;
         grab = true;
         calcSelectionsBoundingRectangle(fe);
         fe->invalidateWindow();
@@ -89,8 +88,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       }
       
       down = true;
-      rx0 = rx1 = me.x;
-      ry0 = ry1 = me.y;
+      rx0 = rx1 = me.pos.x;
+      ry0 = ry1 = me.pos.y;
       break;
 
     case TMouseEvent::MOVE:
@@ -143,8 +142,10 @@ TSelectionTool::setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me)
     return;
   
   // origin is already applied by scroll pane?
-  TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-  TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  
+  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  
   TCursor::EType cursor = TCursor::DEFAULT;
   for(unsigned i=0; i<8; ++i) {
     TRectangle r;
@@ -173,8 +174,8 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
   if (fe->selection.empty())
     return false;
   // origin is already applied by scroll pane?
-  TCoord x = me.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-  TCoord y = me.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
 // cout << "down at " << x << ", " << y << endl;
   for(unsigned i=0; i<8; ++i) {
     TRectangle r;
@@ -216,8 +217,8 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
   invalidateBounding(fe);
 //TCoord x0, y0;
   TCoord x, y;
-  x = me.x - fe->getVisible().x;
-  y = me.y - fe->getVisible().y;
+  x = me.pos.x - fe->getVisible().x;
+  y = me.pos.y - fe->getVisible().y;
   switch(handle) {
     case 0:
       x0 = x;
@@ -292,17 +293,15 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveGrab(TFigureEditor *fe, const TMouseEvent &me)
 {
-  TCoord x, y;
-  fe->mouse2sheet(me.x, me.y, &x, &y);
-  fe->sheet2grid(x, y, &x, &y);
-  TCoord dx = x-last_x;
-  TCoord dy = y-last_y;
-  last_x=x;
-  last_y=y;
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
+  fe->sheet2grid(pos, &pos);
+  TPoint d = pos-last;
+  last = pos;
   
   invalidateBounding(fe);
 
-  fe->getModel()->translate(fe->selection, dx, dy);
+  fe->getModel()->translate(fe->selection, d.x, d.y);
 
   calcSelectionsBoundingRectangle(fe);
   invalidateBounding(fe);
@@ -312,7 +311,7 @@ void
 TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
 {
   if (!rect) {
-    if (me.x < rx0-2 || me.x > rx0+2 || me.y < ry0-2 || me.y > ry0+2) {
+    if (me.pos.x < rx0-2 || me.pos.x > rx0+2 || me.pos.y < ry0-2 || me.pos.y > ry0+2) {
       rect = true;
       tmpsel.clear();
     } else {
@@ -323,8 +322,8 @@ TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
     rx0 + fe->getWindow()->getOriginX(),
     ry0 + fe->getWindow()->getOriginY(),
     rx1-rx0+3,ry1-ry0+2);
-  rx1 = me.x;
-  ry1 = me.y;
+  rx1 = me.pos.x;
+  ry1 = me.pos.y;
   fe->getWindow()->invalidateWindow(
     rx0 + fe->getWindow()->getOriginX(),
     ry0 + fe->getWindow()->getOriginY(),
@@ -333,8 +332,8 @@ TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
   auto p = fe->getModel()->begin();
   auto e = fe->getModel()->end();
   TPoint p0, p1;
-  fe->mouse2sheet(rx0, ry0, &p0.x, &p0.y);
-  fe->mouse2sheet(rx1, ry1, &p1.x, &p1.y);
+  fe->mouse2sheet(TPoint(rx0, ry0), &p0);
+  fe->mouse2sheet(TPoint(rx1, ry1), &p1);
   TRectangle r0(p1, p0), r1;
   while(p!=e) {
     fe->getFigureShape(*p, &r1, NULL);

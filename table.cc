@@ -1255,19 +1255,19 @@ TTable::setColWidth(size_t col, int width)
  * (rfx, rfy) when not NULL, the mouse position inside the field
  */
 bool
-TTable::mouse2field(TCoord mx, TCoord my, size_t *fx, size_t *fy, TCoord *rfx, TCoord *rfy)
+TTable::mouse2field(TPoint m, size_t *fx, size_t *fy, TPoint *fp)
 {
   TCoord pos1, pos2;
   size_t x, y;
 
-  if (!visible.isInside(mx, my)) {
+  if (!visible.isInside(m)) {
     // code to handle this event outside the visible area is missing
     return false;
   }
 
   // transform (mx, my) from screen pixel to table pixel coordinates
-  mx -= visible.x + fpx;
-  my -= visible.y + fpy;
+  m.x -= visible.x + fpx;
+  m.y -= visible.y + fpy;
 
   pos1 = 0;
   for(x=ffx; ; x++) {
@@ -1279,13 +1279,13 @@ TTable::mouse2field(TCoord mx, TCoord my, size_t *fx, size_t *fy, TCoord *rfx, T
     pos2 = pos1 + col_info[x].size;
     if (stretchLastColumn && x==cols-1)
       pos2 = visible.x+visible.w;
-    if (pos1 <= mx && mx < pos2) {
+    if (pos1 <= m.x && m.x < pos2) {
       break;
     }
     pos1 = pos2;
   }
-  if (rfx)
-    *rfx = mx - pos1;
+  if (fp)
+    fp->x = m.x - pos1;
   
   pos1 = 0;
   y = ffy;  // first upper left field
@@ -1302,14 +1302,14 @@ cerr << " y=" << y
       return false;
     }
     pos2 = pos1 + row_info[y].size;
-    if (pos1 <= my && my < pos2) {
+    if (pos1 <= m.y && m.y < pos2) {
       break;
     }
     pos1 = pos2;
     ++y;
   }
-  if (rfy)
-    *rfy = my - pos1;
+  if (fp)
+    fp->y = m.y - pos1;
 
 /*
   if (selection&&selection->perRow())
@@ -1331,10 +1331,10 @@ TTable::mouseEvent(const TMouseEvent &me)
   {
 //    TScrollPane::mouseEvent(me);
     size_t x, y;   // field
-    TCoord fx, fy; // mouse within field
-    if (adapter && mouse2field(me.x, me.y, &x, &y, &fx, &fy)) {
+    TPoint fp; // mouse within field
+    if (adapter && mouse2field(me.pos, &x, &y, &fp)) {
       TTableEvent te;
-      TMouseEvent me2(me, fx, fy);
+      TMouseEvent me2(me, fp);
       te.mouse = &me2;
       // this should also contain a pointer to this adapter, in case
       // mouseEvent makes modifications?
@@ -1373,7 +1373,7 @@ TTable::mouseEvent(const TMouseEvent &me)
       int colx;
       if (col_header_renderer) {
         TRectangle clip(visible.x, 0, visible.w, visible.y);
-        if (clip.isInside(me.x, me.y)) {
+        if (clip.isInside(me.pos)) {
           int xp = fpx + visible.x;
           int h = col_header_renderer->getHeight();
           for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
@@ -1381,10 +1381,10 @@ TTable::mouseEvent(const TMouseEvent &me)
             if (stretchLastColumn && x==cols-1 && xp+size<visible.x+visible.w)
               size = visible.x+visible.w-xp+1;
 //            cout << "xp="<<xp<<", size="<<size<<", mx="<<me.x<<endl;
-            if (xp+1 <= me.x && me.x <= xp+size-2) {
+            if (xp+1 <= me.pos.x && me.pos.x <= xp+size-2) {
 //              cout << "  inside " << x << endl;
             } else
-            if (xp+size-1<=me.x && me.x<=xp+size+1+border) {
+            if (xp+size-1<=me.pos.x && me.pos.x<=xp+size+1+border) {
 //              cout << "between" << endl;
               colx = x;
               between_h = true;
@@ -1411,7 +1411,7 @@ TTable::mouseEvent(const TMouseEvent &me)
         col = colx;
         osize = col_info[col].size;
         opane = pane.w;
-        mdown = me.x;
+        mdown = me.pos.x;
 //        cout << "grep between " << col << endl;
       }
       break;
@@ -1423,7 +1423,7 @@ TTable::mouseEvent(const TMouseEvent &me)
       if (me.type==TMouseEvent::MOVE) {
 //        cout << "move col "<<col<<" between" << endl;
 //        cout << "  dx=" << (osize+me.x-mdown) << endl;
-        col_info[col].size = osize+me.x-mdown;
+        col_info[col].size = osize+me.pos.x-mdown;
         if (col_info[col].size<3)
           col_info[col].size=3;
         pane.w = opane - osize + col_info[col].size;
@@ -1451,15 +1451,15 @@ TTable::mouseLDown(const TMouseEvent &m)
   setFocus();
 
   size_t x, y;   // field
-  TCoord fx, fy; // mouse within field
-  if (!mouse2field(m.x, m.y, &x, &y, &fx, &fy)) {
+  TPoint fp; // mouse within field
+  if (!mouse2field(m.pos, &x, &y, &fp)) {
     return;
   }
 
   // invoke adapter mouseEvent (ie. for tree widgets, check boxes, etc.)
   if (adapter) {
 cout << "TTable::mouseLDown::adapter: dblClick="<<(m.dblClick?"true":"false")<<endl;
-    TMouseEvent me(m, fx, fy);
+    TMouseEvent me(m, fp);
     TTableEvent te;
     te.mouse = &me;
     // this should also contain a pointer to this adapter, in case
@@ -1555,7 +1555,7 @@ TTable::mouseMove(const TMouseEvent &m)
     return;
 
   size_t x, y;
-  if (!mouse2field(m.x, m.y, &x, &y)) {
+  if (!mouse2field(m.pos, &x, &y)) {
     DBM2(cerr << "  mouse2field failed" << endl;
     cout << "leave mouseMove" << endl << endl;)
     return;
@@ -1622,7 +1622,7 @@ TTable::mouseLUp(const TMouseEvent &m)
 {
 DBM2(cerr << "enter mouseLUp" << endl;)
   size_t x, y;
-  if (!mouse2field(m.x, m.y, &x, &y)) {
+  if (!mouse2field(m.pos, &x, &y)) {
     x = cx;
     y = cy;
   }

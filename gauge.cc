@@ -95,12 +95,12 @@ TGauge::mouseEvent(const TMouseEvent &me)
     
   switch(me.type) {
     case TMouseEvent::LDOWN:
-      down_y = me.y;
+      down_y = me.pos.y;
       down_val = model->getValue();
       break;
     case TMouseEvent::MOVE:
     case TMouseEvent::LUP:
-      model->setValue(down_val + down_y - me.y);
+      model->setValue(down_val + down_y - me.pos.y);
       break;
   }
 }

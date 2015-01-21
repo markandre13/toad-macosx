@@ -102,7 +102,7 @@ class TColorPalette:
     void mouseLDown(const TMouseEvent &);
     void mouseMDown(const TMouseEvent &);
 
-    TNamedColor* mouse2color(int mx, int my);
+    TNamedColor* mouse2color(TPoint mousepos);
     void dropColor(const PDnDColor&);
     
     void assignLineColor();

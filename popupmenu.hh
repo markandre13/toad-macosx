@@ -34,11 +34,11 @@ class TPopupMenu:
     TPopupMenu(TWindow *parent, const string &title);
     ~TPopupMenu();
     void open(TMouseEvent &event);
-    void open(int x, int y, unsigned modifier);
+    void open(TPoint pos, unsigned modifier);
     void addFilter();
 
     //! the x,y and modifier values given to the last 'open' method call
-    int x, y;
+    TPoint pos;
     unsigned modifier;
 };
 

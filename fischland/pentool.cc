@@ -88,8 +88,10 @@ cout << "---------------" << endl;
 void
 TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
-  TCoord x, y;
-  fe->mouse2sheet(me.x, me.y, &x, &y);
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
+  TCoord x=pos.x;
+  TCoord y=pos.y;
 
   switch(me.type) {
     case TMouseEvent::ENTER:

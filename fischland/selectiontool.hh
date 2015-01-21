@@ -47,8 +47,8 @@ class TSelectionTool:
     TCoord rx0, ry0, rx1, ry1;  // rectangle for rectangle selection
     TCoord x0, y0, x1, y1;      // bounding rectangle
     TCoord ox0, oy0, ox1, oy1;  // bounding rectangle before resizing it
-    TCoord last_x, last_y;      // last mouse position in figure coordinates when moving selection
-    TCoord last_sx, last_sy;    // last mouse position in screen coordinates when moving selection
+    TPoint last;                // last mouse position in figure coordinates when moving selection
+    TPoint last_s;              // last mouse position in screen coordinates when moving selection
     TFigureSet tmpsel;          // objects to be added on next mouseLUp
     vector<TMatrix2D> oldmat;
   public:

@@ -91,15 +91,15 @@ TFillTool::getTool()
 void
 TFillTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
-  TCoord x, y;
+  TPoint pos;
   TFPath *path;
   
   switch(me.type) {
     case TMouseEvent::LDOWN:
-      fe->mouse2sheet(me.x, me.y, &x, &y);
+      fe->mouse2sheet(me.pos, &pos);
       fe->getWindow()->setCursor(TCursor::WAIT);
 //      toad::flush();
-      path = floodfill(*fe->getModel(), x, y);
+      path = floodfill(*fe->getModel(), pos.x, pos.y);
       fe->getWindow()->setCursor(TCursor::DEFAULT);
       if (path) {
         path->removeable = true;

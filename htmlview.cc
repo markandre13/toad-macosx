@@ -2013,7 +2013,7 @@ THTMLView::mouseLDown(const TMouseEvent &m)
   p = anchors->begin();
   e = anchors->end();
   while(p!=e) {
-    if ((*p)->polygon.isInside(m.x, m.y)) {
+    if ((*p)->polygon.isInside(m.pos)) {
       setCursor(TCursor::DEFAULT);
 //      cerr << "goto: '" << (*p)->href << "'\n";
       if ( !(*p)->href.empty()) {
@@ -2040,7 +2040,7 @@ THTMLView::mouseMove(const TMouseEvent &m)
   p = anchors->begin();
   e = anchors->end();
   while(p!=e) {
-    if ((*p)->polygon.isInside(m.x, m.y)) {
+    if ((*p)->polygon.isInside(m.pos)) {
       setCursor(TCursor::HAND);
       return;
     }

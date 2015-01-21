@@ -185,7 +185,7 @@ TTableAdapter::handleCheckBox(TTableEvent &te, bool *value)
     } break;
     case TTableEvent::MOUSE: {
       TRectangle r((te.w-13) / 2, (te.h-13) / 2, 13, 13);
-      if (!r.isInside(te.mouse->x, te.mouse->y)) {
+      if (!r.isInside(te.mouse->pos)) {
         return;
       }
       *value = !*value;

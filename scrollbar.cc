@@ -347,11 +347,11 @@ TScrollBar::mouseLDown(const TMouseEvent &m)
   setFocus();
   TCoord v = model->getValue();
   
-  if (!rectSlider.isInside(m.x, m.y)) {
+  if (!rectSlider.isInside(m.pos)) {
     // move by a page
     int e = model->getExtent();
     if (e<1) e=1; else e--;
-    if (bVertical ? m.y<rectSlider.y : m.x<rectSlider.x) {
+    if (bVertical ? m.pos.y<rectSlider.y : m.pos.x<rectSlider.x) {
       model->setValue(v-e);
     } else {
       model->setValue(v+e);
@@ -363,7 +363,7 @@ TScrollBar::mouseLDown(const TMouseEvent &m)
     _drawSlider(pen, rectSlider);
 */
     invalidateWindow();
-    nMouseDown = bVertical ? m.y-rectSlider.y : m.x-rectSlider.x;
+    nMouseDown = bVertical ? m.pos.y-rectSlider.y : m.pos.x-rectSlider.x;
     // model->setValueIsAdjusting(true);
   }
 }
@@ -376,9 +376,9 @@ TScrollBar::mouseMove(const TMouseEvent &m)
     TRectangle rectOld;
     rectOld = rectSlider;
     if (bVertical)
-      _moveSliderTo(m.y - nMouseDown);
+      _moveSliderTo(m.pos.y - nMouseDown);
     else
-      _moveSliderTo(m.x - nMouseDown);
+      _moveSliderTo(m.pos.x - nMouseDown);
   }
 }
 

@@ -146,24 +146,24 @@ TColorPicker::click(const TMouseEvent &me)
   }
   switch(active) {
     case LINE:
-      if (lineRect.isInside(me.x, me.y))
+      if (lineRect.isInside(me.pos))
         return false;
-      if (fillRect.isInside(me.x, me.y)) {
+      if (fillRect.isInside(me.pos)) {
         active = FILL;
         return true;
       }
       break;
     case FILL:
-      if (fillRect.isInside(me.x, me.y))
+      if (fillRect.isInside(me.pos))
         return false;
-      if (lineRect.isInside(me.x, me.y)) {
+      if (lineRect.isInside(me.pos)) {
         active = LINE;
         return true;
       }
       break;
   }
   
-  if (flipRect.isInside(me.x, me.y)) {
+  if (flipRect.isInside(me.pos)) {
     Type ab = line; line=fill; fill=ab;
 cout << "TColorPicker::flipRect:" << endl;
 cout << "  linecolor=" << linecolor << (line==COLOR?", yes":", no") << endl;
@@ -174,24 +174,24 @@ cout << "  fillcolor=" << fillcolor << (fill==COLOR?", yes":", no") << endl;
     return true;
   }
   
-  if (initRect.isInside(me.x, me.y)) {
+  if (initRect.isInside(me.pos)) {
     init();
     return true;
   }
   
-  if (typeColorRect.isInside(me.x, me.y)) {
+  if (typeColorRect.isInside(me.pos)) {
     switch(active) {
       case FILL: fill = COLOR; break;
       case LINE: line = COLOR; break;
     }
     return true;
   }
-  if (typeGradientRect.isInside(me.x, me.y)) {
+  if (typeGradientRect.isInside(me.pos)) {
     active = FILL;
     fill = GRADIENT;
     return true;
   }
-  if (typeNoneRect.isInside(me.x, me.y)) {
+  if (typeNoneRect.isInside(me.pos)) {
     switch(active) {
       case FILL: fill = NONE; break;
       case LINE: line = NONE; break;

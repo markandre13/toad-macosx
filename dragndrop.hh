@@ -88,7 +88,7 @@ struct TDnDObject:
   TDnDTypeList typelist;
   
   PDnDType type;
-  int x,y;
+  TPoint pos;
 
   void setType(const string &mime, unsigned);
 

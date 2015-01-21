@@ -55,11 +55,11 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   
   switch(me.type) {
     case TMouseEvent::RDOWN: {
-      TCoord x, y;
-      fe->mouse2sheet(me.x, me.y, &x, &y);
-      TFigure *f =  fe->findFigureAt(x, y);
+      TPoint pos;
+      fe->mouse2sheet(me.pos, &pos);
+      TFigure *f =  fe->findFigureAt(pos);
       if (f && f==figure) {
-        TMouseEvent me2(me, x, y);
+        TMouseEvent me2(me, pos);
         f->mouseRDown(fe, me2);
       }
     } break;
@@ -69,8 +69,8 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 //cout << "mouse down" << endl;
       if (figure && !(me.dblClick) ) {
 //cout << "  selection is not empty" << endl;
-        TCoord mx, my;
-        fe->mouse2sheet(me.x, me.y, &mx, &my);
+        TPoint pos;
+        fe->mouse2sheet(me.pos, &pos);
         // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
         TCoord x, y;
         if (figure->mat || figure->cmat) {
@@ -80,10 +80,7 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           if (figure->cmat)
             m.multiply(figure->cmat);
           m.invert();
-          m.map(mx, my, &x, &y);
-        } else {
-          x = mx;
-          y = my;
+          m.map(pos, &pos);
         }
 
         // loop over all handles
@@ -91,8 +88,8 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         while(true) {
           if (!figure->getHandle(h,&memo_pt))
             break;
-          if (memo_pt.x-fe->fuzziness<=x && x<=memo_pt.x+fe->fuzziness &&
-              memo_pt.y-fe->fuzziness<=y && y<=memo_pt.y+fe->fuzziness)
+          if (memo_pt.x-fe->fuzziness<=pos.x && pos.x<=memo_pt.x+fe->fuzziness &&
+              memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
           {
 //cout << "got handle " << h << endl;
             fe->getFigureShape(figure, &oldshape, fe->getMatrix());
@@ -108,10 +105,10 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         }
       }
 
-      TCoord x, y;
-      fe->mouse2sheet(me.x, me.y, &x, &y);
+      TPoint pos;
+      fe->mouse2sheet(me.pos, &pos);
 //cout << "mouse:" <<me.x<<","<<me.y<<", sheet:"<<x<<","<<y<<endl;
-      TFigure *f = fe->findFigureAt(x, y);
+      TFigure *f = fe->findFigureAt(pos);
       if (f!=figure) {
         if (figure)
           fe->invalidateFigure(figure);
@@ -138,9 +135,9 @@ cout << "selected figure " << figure << endl;
     } break;
     case TMouseEvent::MOVE:
       if (hndl) {
-        TCoord x, y;
-        fe->mouse2sheet(me.x, me.y, &x, &y);
-        fe->sheet2grid(x, y, &x, &y);
+        TPoint pos;
+        fe->mouse2sheet(me.pos, &pos);
+        fe->sheet2grid(pos, &pos);
         if (tht && (figure->mat || figure->cmat)) {
           TMatrix2D m;
           if (figure->mat)
@@ -148,16 +145,15 @@ cout << "selected figure " << figure << endl;
           if (figure->cmat)
             m.multiply(figure->cmat);
           m.invert();
-          m.map(x, y, &x, &y);
+          m.map(pos, &pos);
         }
-        fe->getModel()->translateHandle(figure, handle, x, y, me.modifier());
+        fe->getModel()->translateHandle(figure, handle, pos.x, pos.y, me.modifier());
       } else
       if (figure) {
 
-        TCoord mx, my;
-        fe->mouse2sheet(me.x, me.y, &mx, &my);
+        TPoint pos;
+        fe->mouse2sheet(me.pos, &pos);
         // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-        TCoord x, y;
         if (figure->mat || figure->cmat) {
           TMatrix2D m;
           if (figure->mat)
@@ -165,10 +161,7 @@ cout << "selected figure " << figure << endl;
           if (figure->cmat)
             m.multiply(figure->cmat);
           m.invert();
-          m.map(mx, my, &x, &y);
-        } else {
-          x = mx;
-          y = my;
+          m.map(pos, &pos);
         }
 
         // loop over all handles
@@ -176,8 +169,8 @@ cout << "selected figure " << figure << endl;
         while(true) {
           if (!figure->getHandle(h,&memo_pt))
             break;
-          if (memo_pt.x-fe->fuzziness<=x && x<=memo_pt.x+fe->fuzziness &&
-              memo_pt.y-fe->fuzziness<=y && y<=memo_pt.y+fe->fuzziness)
+          if (memo_pt.x-fe->fuzziness<=pos.x && pos.x<=memo_pt.x+fe->fuzziness &&
+              memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
           {
 //cout << "got handle " << h << endl;
             fe->getWindow()->setCursor(TCursor::RESIZE);

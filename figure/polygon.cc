@@ -49,9 +49,9 @@ TFPolygon::paint(TPenBase &pen, EPaintType)
 }
 
 TCoord
-TFPolygon::distance(TCoord mx, TCoord my)
+TFPolygon::distance(const TPoint &pos)
 {
-  if (filled && polygon.isInside(mx, my))
+  if (filled && polygon.isInside(pos))
     return INSIDE;
 
   TPolygon::const_iterator p(polygon.begin()), e(polygon.end());
@@ -69,7 +69,7 @@ TFPolygon::distance(TCoord mx, TCoord my)
     y1=y2;
     x2=p->x;
     y2=p->y;
-    d = distance2Line(mx,my, x1,y1, x2,y2);
+    d = distance2Line(pos.x, pos.y, x1,y1, x2,y2);
     if (d<min)
       min = d;
     ++p;
@@ -110,8 +110,8 @@ TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
-      polygon.addPoint(m.x, m.y);
-      polygon.addPoint(m.x, m.y);
+      polygon.addPoint(m.pos);
+      polygon.addPoint(m.pos);
       editor->setAllMouseMoveEvents(true);
       break;
     case TFigureEditor::STATE_CREATE: {
@@ -122,8 +122,8 @@ TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
         return STOP;
       }
       TPolygon::iterator p(polygon.end()-2);
-      if (p->x != m.x || p->y != m.y) {
-        polygon.addPoint(m.x, m.y);
+      if (*p != m.pos) {
+        polygon.addPoint(m.pos);
         editor->invalidateFigure(this);
       }
     } break;
@@ -138,7 +138,7 @@ TFPolygon::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
   TPolygon::iterator p(--polygon.end());
   editor->invalidateFigure(this);
-  p->set(m.x, m.y);
+  *p = m.pos;
   editor->invalidateFigure(this);
   return CONTINUE;
 }
@@ -197,8 +197,8 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
       p!=polygon.end();
       ++p, ++i)
   {
-    if (p->x-editor->fuzziness<=m.x && m.x<=p->x+editor->fuzziness && 
-        p->y-editor->fuzziness<=m.y && m.y<=p->y+editor->fuzziness)
+    if (p->x-editor->fuzziness<=m.pos.x && m.pos.x<=p->x+editor->fuzziness && 
+        p->y-editor->fuzziness<=m.pos.y && m.pos.y<=p->y+editor->fuzziness)
     {
       // cerr << "found handle " << i << endl;
       found = true;
@@ -215,8 +215,8 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
       action->sigClicked,
       figure, this,
       edit, editor,
-      _x, m.x,
-      _y, m.y,
+      _x, m.pos.x,
+      _y, m.pos.y,
       edit->invalidateFigure(figure);
       figure->insertPointNear(_x, _y);
       edit->invalidateFigure(figure);
@@ -241,7 +241,7 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
   menu = new TMyPopupMenu(editor, "popup");
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
-  menu->open(m.x, m.y, m.modifier());
+  menu->open(m.pos, m.modifier());
   return NOTHING;
 }
 
@@ -336,3 +336,4 @@ TFPolygon::restore(TInObjectStream &in)
   ATV_FAILED(in)
   return false;
 }
+

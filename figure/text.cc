@@ -99,14 +99,14 @@ TFText::paint(TPenBase &pen, EPaintType type)
 }
 
 TCoord
-TFText::distance(TCoord mx, TCoord my)
+TFText::distance(const TPoint &pos)
 {
   TRectangle r(p1, p2);
 // cerr << "mouse at (" << mx << ", " << my << "), text " << r << endl;
 
-  if (TRectangle(p1, p2).isInside(mx, my))
+  if (TRectangle(p1, p2).isInside(pos))
     return INSIDE;
-  return super::distance(mx,my);
+  return super::distance(pos);
 }
 
 bool
@@ -220,8 +220,7 @@ TFText::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
       cx = 0;
-      p1.x = m.x;
-      p1.y = m.y;
+      p1 = m.pos;
       calcSize();
       editor->invalidateFigure(this);
       startInPlace();
@@ -229,7 +228,7 @@ TFText::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
       
     case TFigureEditor::STATE_CREATE:
     case TFigureEditor::STATE_EDIT:
-      if (distance(m.x,m.y)>RANGE) {
+      if (distance(m.pos)>RANGE) {
         editor->invalidateFigure(this);
         if (text.empty())
           return STOP|DELETE|REPEAT;

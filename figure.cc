@@ -99,8 +99,8 @@ TFigure::initialize()
   serialize.registerObject(new TFCircle());
   serialize.registerObject(new TFPolygon());
   serialize.registerObject(new TFPolyline());
-  serialize.registerObject(new TFBezier());
-  serialize.registerObject(new TFBezierline());
+//  serialize.registerObject(new TFBezier());
+//  serialize.registerObject(new TFBezierline());
   serialize.registerObject(new TFGroup());
   serialize.registerObject(new TFWindow());
   serialize.registerObject(new TFImage());
@@ -162,15 +162,15 @@ TFigure::editEvent(TFigureEditEvent &ee)
 TCoord
 TFigure::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 {
-  return distance(x, y);
+  return distance(TPoint(x, y));
 }
 
 TCoord
-TFigure::distance(TCoord x, TCoord y)
+TFigure::distance(const TPoint &pos)
 {
   TRectangle r;
   getShape(&r);
-  return r.isInside(x, y) ? INSIDE : OUT_OF_RANGE;
+  return r.isInside(pos) ? INSIDE : OUT_OF_RANGE;
 }
     
 void

@@ -35,14 +35,14 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 //cout << "TRotateTool::mouseEvent" << endl;
 
-  TCoord x, y;
+  TPoint pos;
   
   switch(me.type) {
     case TMouseEvent::LDOWN: {
-      fe->mouse2sheet(me.x, me.y, &x, &y);
+      fe->mouse2sheet(me.pos, &pos);
       if (figure) {
-        if (rotx - fe->fuzziness*2 <= x && x <= rotx + fe->fuzziness*2 &&
-            roty - fe->fuzziness*2 <= y && y <= roty + fe->fuzziness*2)
+        if (rotx - fe->fuzziness*2 <= pos.x && pos.x <= rotx + fe->fuzziness*2 &&
+            roty - fe->fuzziness*2 <= pos.y && pos.y <= roty + fe->fuzziness*2)
         {
           cerr << "going to move rotation center" << endl;
           state = MOVE_CENTER;
@@ -50,7 +50,7 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         }
       }
 
-      TFigure *f = fe->findFigureAt(x, y);
+      TFigure *f = fe->findFigureAt(pos);
       if (!f) {
         figure = 0;
         fe->invalidateWindow();
@@ -82,7 +82,7 @@ cout << "figure " << f << " has no matrix" << endl;
 
         figure = f;
       }
-      rotd0=atan2(y - roty, x - rotx);
+      rotd0=atan2(pos.y - roty, pos.x - rotx);
       if (f->mat) {
 //        cout << "save old matrix" << endl;
         oldmatrix = *f->mat;
@@ -100,12 +100,12 @@ cout << "figure " << f << " has no matrix" << endl;
     case TMouseEvent::MOVE:
       if (!figure || state==NONE)
         break;
-      fe->mouse2sheet(me.x, me.y, &x, &y);
+      fe->mouse2sheet(me.pos, &pos);
       // fe->sheet2grid(x, y, &x, &y);
 
       switch(state) {
         case ROTATE: {
-          rotd=atan2(y - roty, x - rotx);
+          rotd=atan2(pos.y - roty, pos.x - rotx);
 //          cerr << "rotd="<<rotd<<", rotd0="<<rotd0<<" -> " << (rotd-rotd0) << "\n";
           rotd-=rotd0;
           if (!figure->mat)
@@ -120,11 +120,11 @@ cout << "figure " << f << " has no matrix" << endl;
           figure->mat->multiply(&oldmatrix);
 
           fe->invalidateWindow();
-        } break;
+        } break;
         case MOVE_CENTER:
 //cout << "center is now at " << x << ", " << y << endl;
-          rotx = x;
-          roty = y;
+          rotx = pos.x;
+          roty = pos.y;
           fe->invalidateWindow();
           break;
     }

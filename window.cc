@@ -196,13 +196,13 @@ TWindow::getRootPos(int *x,int *y)
     if (!p)
       break;
     if (p->nswindow) {
-      NSPoint np;
-      np.x = *x;
-      np.y = p->h-*y;
-      np = [p->nswindow convertBaseToScreen: np];
+      NSRect nr;
+      nr.origin.x = *x;
+      nr.origin.y = p->h-*y;
+      nr = [p->nswindow convertRectToScreen: nr];
 //cout << "nswindow " << p->getTitle() << " on screen " << np.x << ", " << np.y << endl;
-      *x = np.x;
-      *y = np.y;
+      *x = nr.origin.x;
+      *y = nr.origin.y;
       return;
     }
 //cout << "toad window " << p->getTitle() << " on screen " << p->x << ", " << p->y << endl;
@@ -984,12 +984,11 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   nsevent = anEvent;
   if (aWindow) {
-    NSPoint pt = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
-    x = pt.x;
-    y = pt.y;
+    NSPoint p = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
+    pos.x = p.x;
+    pos.y = p.y;
 // cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
-    x -= aWindow->getOriginX();
-    y -= aWindow->getOriginY();
+    pos -= aWindow->getOrigin();
   }
   window = aWindow;
   dblClick = false;

@@ -249,11 +249,11 @@ TColorDialog::createBitmaps()
 void
 TColorDialog::mouseLDown(const TMouseEvent &m)
 {
-  if (m.x>=8 && m.x<=8+256 &&
-      m.y>=8 && m.y<=8+256) 
+  if (m.pos.x>=8 && m.pos.x<=8+256 &&
+      m.pos.y>=8 && m.pos.y<=8+256) 
   {
-    TCoord x = m.x - 8.0 - 128.0;
-    TCoord y = m.y - 8.0 - 128.0;
+    TCoord x = m.pos.x - 8.0 - 128.0;
+    TCoord y = m.pos.y - 8.0 - 128.0;
     TCoord s = hypot(x, y);
     if (s>128.0)
       s=128.0;
@@ -265,10 +265,10 @@ TColorDialog::mouseLDown(const TMouseEvent &m)
     hsv2rgb();
   } else
   
-  if (m.x>=8+256+8 && m.x<=8+256+8+16 &&
-      m.y>=8 && m.y<=8+256)
+  if (m.pos.x>=8+256+8 && m.pos.x<=8+256+8+16 &&
+      m.pos.y>=8 && m.pos.y<=8+256)
   {
-    value = (8 + 256 - m.y) * 100 / 255;
+    value = (8 + 256 - m.pos.y) * 100 / 255;
   }
 }
 
@@ -282,8 +282,8 @@ TColorDialog::mouseMove(const TMouseEvent &me)
 void
 TColorDialog::mouseMDown(const TMouseEvent &m)
 {
-  if (ORIGCOLOR_X+64 <= m.x && m.x <= ORIGCOLOR_X+64 + ORIGCOLOR_W &&
-      ORIGCOLOR_Y    <= m.y && m.y <= ORIGCOLOR_Y + ORIGCOLOR_H )
+  if (ORIGCOLOR_X+64 <= m.pos.x && m.pos.x <= ORIGCOLOR_X+64 + ORIGCOLOR_W &&
+      ORIGCOLOR_Y    <= m.pos.y && m.pos.y <= ORIGCOLOR_Y + ORIGCOLOR_H )
   {
     startDrag(new TDnDColor(rgb), m.modifier());
   }

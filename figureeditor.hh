@@ -327,7 +327,7 @@ class TFigureEditor:
     void group();
     void ungroup();
     
-    TFigure* findFigureAt(TCoord x, TCoord y);
+    TFigure* findFigureAt(TPoint pos);
 
     static const unsigned STATE_NONE = 0;
     
@@ -358,7 +358,7 @@ class TFigureEditor:
 
     TFigureSet selection;
 
-    void paint();
+    void paint() override;
     
     void paintGrid(TPenBase &pen);
     void paintSelection(TPenBase &pen);
@@ -366,17 +366,11 @@ class TFigureEditor:
     virtual void print(TPenBase &pen, TFigureModel *model, bool withSelection=false, bool justSelection=false);
     
     void resize();
-    void mouseEvent(const TMouseEvent&);
-    void keyEvent(const TKeyEvent&);
-    
-    void mouseLDown(const TMouseEvent &);
-    void mouseMove(const TMouseEvent &);
-    void mouseLUp(const TMouseEvent &);
-    void mouseRDown(const TMouseEvent &);
-    void keyDown(TKey, char*, unsigned);
+    void mouseEvent(const TMouseEvent&) override;
+    void keyEvent(const TKeyEvent&) override;
 
-    virtual void mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy);
-    virtual void sheet2grid(TCoord sx, TCoord sy, TCoord *gx, TCoord *gy);
+    virtual void mouse2sheet(TPoint mouse, TPoint *sheet);
+    virtual void sheet2grid(TPoint sheet, TPoint *grid);
     virtual void minimalAreaSize(TCoord *x1, TCoord *y1, TCoord *x2, TCoord *y2);
     
     bool restore(TInObjectStream&);

@@ -410,7 +410,7 @@ TTextArea::mouseLDown(const TMouseEvent &m)
 {
   if (!isEnabled())
     return;
-  _goto_pixel(m.x, m.y);
+  _goto_pixel(m.pos);
   _bos = _eos = _pos;
   blink.visible=true;
   setFocus();
@@ -421,7 +421,7 @@ TTextArea::mouseMove(const TMouseEvent &m)
 {
   if (!isEnabled())
     return;
-  _goto_pixel(m.x, m.y);
+  _goto_pixel(m.pos);
   if (_eos != _pos) {
     _eos = _pos;
     invalidateWindow(true);
@@ -438,14 +438,14 @@ TTextArea::mouseLUp(const TMouseEvent &)
  * Set cursor based on pixel coordinates.
  */
 void
-TTextArea::_goto_pixel(int x, int y)
+TTextArea::_goto_pixel(TPoint pos)
 {
-x-=2-_tx;
-y-=2;
-  int h = font->getHeight();
-  y /= h;
+pos.x-=2-_tx;
+pos.y-=2;
+  TCoord h = font->getHeight();
+  pos.y /= h;
 
-  setCursor(getCursorX(), y + _ty); // outch! overhead!
+  setCursor(getCursorX(), pos.y + _ty); // outch! overhead!
 
 //  string line = model->getValue().substr(_bol, _eol==string::npos ? _eol : _eol-_bol);
   string line;
@@ -465,12 +465,12 @@ y-=2;
   }
   if (p==line.size()) {
     w2 = font->getTextWidth(line);
-    if (w2<=x)
+    if (w2<=pos.x)
       w1 = w2;
   }
 //cerr << "x-w1=" << (x-w1) << ", w2-x=" << (w2-x) << endl;
 
-  if ( x-w1 < w2-x ) {
+  if ( x-w1 < w2-pos.x ) {
     utf8dec(line, &p);
     _cxpx = w1;
     cx--;
@@ -482,7 +482,7 @@ y-=2;
   
 //cerr << "position " << p << ", " << y << endl;
 
-  setCursor(cx, y + _ty);
+  setCursor(cx, pos.y + _ty);
 }
 
 void

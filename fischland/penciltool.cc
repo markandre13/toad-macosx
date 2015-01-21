@@ -129,7 +129,10 @@ TPencilTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 static timeval t0;
 
   TCoord x, y;
-  fe->mouse2sheet(me.x, me.y, &x, &y);
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
+  x = pos.x;
+  y = pos.y;
 
   switch(me.type) {
     case TMouseEvent::ENTER:

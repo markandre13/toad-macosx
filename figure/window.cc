@@ -43,9 +43,9 @@ TFWindow::paint(TPenBase&, EPaintType)
 }
 
 TCoord
-TFWindow::distance(TCoord x, TCoord y)
+TFWindow::distance(const TPoint &pos)
 {
-  return super::distance(x,y);
+  return super::distance(pos);
 }
 
 void

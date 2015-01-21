@@ -125,7 +125,7 @@ TTreeAdapter::mouseEvent(const TMouseEvent &me, int col, int row, int w, int h)
 //cout << "    model="<<model<<endl;
   if (model->_getDown(model->at(row))) {
     TRectangle r(model->getRowDepth(row)*12+3-1, 0, 10, h);
-    if (!r.isInside(me.x, me.y))
+    if (!r.isInside(me.pos))
       return;
     DBM(cout << "open/close branch" << endl;)
     table->setRowOpen(row, !table->isRowOpen(row));

@@ -87,6 +87,7 @@ class TMatrix2D:
     void map(TCoord inX, TCoord inY, long *outX, long *outY) const;
     void map(TCoord inX, TCoord inY, float *outX, float *outY) const;
     void map(TCoord inX, TCoord inY, double *outX, double *outY) const;
+    void map(const TPoint &in, TPoint *out) const { map(in.x, in.y, &out->x, &out->y); }
  
     SERIALIZABLE_INTERFACE(toad::, TMatrix2D);
 };

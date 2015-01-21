@@ -72,8 +72,7 @@ PDnDColor TDnDColor::convertData(TDnDObject &drop)
   rgb.g = drop.flatdata[2];
   rgb.b = drop.flatdata[4];
   result = new TDnDColor(rgb);
-  result->x = drop.x;
-  result->y = drop.y;
+  result->pos = drop.pos;
   return result;
 }
 

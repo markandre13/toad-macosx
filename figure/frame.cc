@@ -71,7 +71,7 @@ TFFrame::getShape(TRectangle *r)
 }
 
 TCoord
-TFFrame::distance(TCoord mx, TCoord my)
+TFFrame::distance(const TPoint &m)
 {
 //  cout << __PRETTY_FUNCTION__ << endl;
 #if 1
@@ -80,14 +80,14 @@ TFFrame::distance(TCoord mx, TCoord my)
     TCoord fh = font->getHeight();
     TCoord tw = font->getTextWidth(text);
     TRectangle r(min(p1.x,p2.x)+5-1, min(p1.y,p2.y)-fh/2, tw+2, fh);
-    if (r.isInside(mx, my))
+    if (r.isInside(m))
       return INSIDE;
   }
 #endif
   filled = false;
 //cout << "is " << mx << "," << my
 //     <<" in " << x << "," << y << "," << w << "," << h << endl;
-  return TFRectangle::distance(mx,my);
+  return TFRectangle::distance(m);
 }
 
 unsigned
@@ -139,7 +139,7 @@ flag = true;
     case TFigureEditor::STATE_CREATE:
     case TFigureEditor::STATE_EDIT:
 cout << "create/edit frame " << this << endl;
-      if (distance(m.x,m.y)>RANGE) {
+      if (distance(m.pos)>RANGE) {
         e->invalidateFigure(this);
         cout << "stop" << endl;
         return STOP|REPEAT;

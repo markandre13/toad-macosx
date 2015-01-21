@@ -121,10 +121,9 @@ class TMouseEvent
   public:
     NSEvent *nsevent;
     TMouseEvent(NSEvent *ne, TWindow *window);
-    TMouseEvent(const TMouseEvent &me, TCoord x, TCoord y) {
+    TMouseEvent(const TMouseEvent &me, TPoint p) {
       nsevent = me.nsevent;
-      this->x = x;
-      this->y = y;
+      pos = p;
       _modifier = me._modifier;
       dblClick = me.dblClick;
       window = me.window;
@@ -138,7 +137,7 @@ class TMouseEvent
     EType type;  
   
     TWindow *window; // information for the mouse event filter
-    TCoord x, y;
+    TPoint pos;
     TCoord pressure();
     TCoord rotation();
     TCoord tilt();
@@ -326,6 +325,7 @@ class TWindow:
     void getOrigin(TCoord *x, TCoord *y) const;
     TCoord getOriginX() const { return origin.x; }
     TCoord getOriginY() const { return origin.y; }
+    TPoint getOrigin() const { return origin; }
     
     void setBackground(TColor::EColor c) {
       const TRGB *a = TColor::lookup(c);

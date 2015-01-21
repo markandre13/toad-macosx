@@ -1,3 +1,5 @@
+#if 0
+
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
  * Copyright (C) 1996-2005 by Mark-André Hopf <mhopf@mark13.org>
@@ -242,9 +244,9 @@ cout << "mouseLDown, polygon.size()=" << polygon.size() << endl;
     TPolygon::iterator p(polygon.end());
     --p;
 #if 1
-    if (p->x == m.x && p->y == m.y) {
+    if (*p == m.pos) {
       --p;
-      if (p->x == m.x && p->y == m.y) {
+      if (*p == m.pos) {
         flag0 = true;
         cout << "flag 0" << endl;
       }
@@ -253,8 +255,8 @@ cout << "mouseLDown, polygon.size()=" << polygon.size() << endl;
   }
 
   if (polygon.size()==0)
-    polygon.addPoint(m.x, m.y);
-  polygon.addPoint(m.x, m.y);
+    polygon.addPoint(m.pos);
+  polygon.addPoint(m.pos);
     // editor->getWindow()->setMouseMoveMessages(TWindow::TMMM_ALL);
   return CONTINUE;
 }
@@ -804,3 +806,5 @@ TFBezier::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
   }
   return CONTINUE;
 }
+
+#endif

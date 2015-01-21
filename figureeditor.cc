@@ -1240,92 +1240,20 @@ TFigureEditor::keyEvent(const TKeyEvent &ke)
 {
   if (!model)
     return;
-  if (tool) {
+  if (tool)
     tool->keyEvent(this, ke);
-  } else {
-    TWindow::keyEvent(ke);
-  }
 }
 
 void
-TFigureEditor::keyDown(TKey key, char *s, unsigned m)
+TFigureEditor::mouse2sheet(TPoint mouse, TPoint *sheet)
 {
-  if (!window || !model || tool)
-    return;
-
-  if (key == TK_ESCAPE) {
-#if 0
-    if (operation==OP_CREATE) {
-      stopOperation();
-      deleteSelection();
-    } else {
-#endif
-      stopOperation();
-      clearSelection();
-#if 0
-    }
-#endif
-    return;
-  }
-
-redo:
-  switch(operation) {
-    case OP_SELECT: {
-      if (state!=STATE_EDIT) {
-        if (m & MK_CONTROL) {
-          switch(key) {
-            case 'x':
-            case 'X':
-              selectionCut();
-              break;
-            case 'c':
-            case 'C':
-              selectionCopy();
-              break;
-            case 'v':
-            case 'V':
-              selectionPaste();
-              break;
-          }
-        } else {
-          switch(key) {
-            case TK_DELETE:
-            case TK_BACKSPACE:
-              deleteSelection();
-              break;
-          }
-        }
-        break;
-      }
-
-      if (state==STATE_NONE) {
-        if (key==TK_DELETE || key==TK_BACKSPACE)
-          deleteSelection();
-        break;
-      }
-      assert(gadget!=NULL);
-      unsigned r = gadget->keyDown(this,key,s,m);
-      if (r & TFigure::DELETE)
-        deleteFigure(gadget); 
-      if (r & TFigure::STOP)  
-        stopOperation();
-      if (r & TFigure::REPEAT)
-        goto redo;
-    } break;
-  }
-}
-void
-TFigureEditor::mouse2sheet(TCoord mx, TCoord my, TCoord *sx, TCoord *sy)
-{
-  mx-=visible.x;
-  my-=visible.y;
+  mouse-=visible.origin();
   if (mat) {
     TMatrix2D m(*mat);
     m.invert();
-    m.map(mx, my, &mx, &my);
+    m.map(mouse, &mouse);
   }
-  *sx = mx;
-  *sy = my;
+  *sheet = mouse;
 }
 
 void
@@ -1335,10 +1263,8 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
   if (!model)
     return;
 
-  TCoord x, y;
-  getOrigin(&x, &y);
-  x += me.x;
-  y += me.y;
+  TPoint pos = getOrigin();
+  pos += me.pos;
   
   switch(me.type) {
     case TMouseEvent::LDOWN:
@@ -1352,17 +1278,17 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     ...
 */
       if (row_header_renderer &&
-          x < visible.x &&
-          y >= visible.y ) 
+          pos.x < visible.x &&
+          pos.y >= visible.y ) 
       {
-        TMouseEvent me2(me, x, me.y);
+        TMouseEvent me2(me, TPoint(pos.x, me.pos.y));
         row_header_renderer->mouseEvent(me2);
       } else
       if (col_header_renderer &&
-          x >= visible.x &&
-          y < visible.y ) 
+          pos.x >= visible.x &&
+          pos.y < visible.y ) 
       {
-        TMouseEvent me2(me, me.x, y);
+        TMouseEvent me2(me, TPoint(me.pos.x, pos.y));
         row_header_renderer->mouseEvent(me2);
       } else {
         if (!tool) {
@@ -1372,10 +1298,7 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
       }
       break;
     default:
-      if (!tool) {
-        super::mouseEvent(me);
-        return;
-      }
+      ;
   }
   
   if (!tool)
@@ -1404,649 +1327,19 @@ TFigureEditorHeaderRenderer::mouseEvent(const TMouseEvent &me)
  * Return the closest point to (inX, inY) on the grid in (outX, outY)
  */
 void
-TFigureEditor::sheet2grid(TCoord inX, TCoord inY, TCoord *outX, TCoord *outY)
+TFigureEditor::sheet2grid(TPoint in, TPoint *out)
 {
 TPoint gridorigin(0.5, 0.5);
   if (!preferences->drawgrid) {
-    *outX = inX;
-    *outY = inY;
+    *out = in;
     return;
   }
   if (state!=STATE_ROTATE && state!=STATE_MOVE_ROTATE) {
     int g = preferences->gridsize;
-    *outX = round(inX/g)*g+gridorigin.x;
-    *outY = round(inY/g)*g+gridorigin.y;
+    out->x = round(in.x/g)*g+gridorigin.x;
+    out->y = round(in.y/g)*g+gridorigin.y;
   } else {
-    *outX = inX;
-    *outY = inY;
-  }
-}
-
-namespace {
-  bool mouseMoved;
-}
-
-void
-TFigureEditor::mouseLDown(const TMouseEvent &me)
-{
-  if (!window || !model)
-    return;
-  setFocus();
-
-  if (preferences)
-    preferences->setCurrent(this);
-
-  TCoord mx, my;
-  unsigned m = me.modifier();
-  mouse2sheet(me.x, me.y, &mx, &my);
-  TCoord x, y;
-  sheet2grid(mx, my, &x, &y);
-
-//cerr << "mouse down at " << mx << ", " << my << endl;
-//cerr << " with grid at " << x << ", " << y << endl;
-
-  down_x = x;
-  down_y = y;
-
-  // handle special operation modes
-  //--------------------------------
-redo:
-
-  switch(state) {
-
-    case STATE_NONE: {
-       cout << "  STATE_NONE" << endl;
-      switch(operation) {
-        case OP_SELECT: {
-            cout << "    OP_SELECT" << endl;
-
-          // handle the handles
-          //--------------------
-          if ( !selection.empty() && !(m&MK_DOUBLE) ) {
-            for(TFigureSet::iterator p=selection.begin();
-                p!=selection.end();
-                ++p)
-            {
-              // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-              TCoord x, y;
-              if ((*p)->mat) {
-                TMatrix2D m(*(*p)->mat);
-                m.invert();
-                m.map(mx, my, &x, &y);
-              } else {
-                x = mx;
-                y = my;
-              }
-
-              // loop over all handles
-              unsigned h = 0;
-              while(true) {
-                if (!(*p)->getHandle(h,&memo_pt))
-                  break;
-                if (memo_pt.x-fuzziness<=x && x<=memo_pt.x+fuzziness && 
-                    memo_pt.y-fuzziness<=y && y<=memo_pt.y+fuzziness) {
-                  #if VERBOSE
-                    cout << "      found handle at cursor => STATE_MOVE_HANDLE" << endl;
-                  #endif
-                  handle = h;
-                  gadget = *p;
-                  #if VERBOSE
-                  cout << "      handle " << h << " @ " << memo_pt.x << ", " << memo_pt.y << endl;
-                  #endif
-                  state = STATE_MOVE_HANDLE;
-                  tht = gadget->startTranslateHandle();
-                  mouseMoved = false;
-                  if (selection.size()>1) {
-                    clearSelection();
-                    selection.insert(gadget);
-                    sigSelectionChanged();
-                  }
-                  invalidateFigure(gadget);
-                  return;
-                }
-                h++;
-              }
-            }
-          } // end of handling the handles
-
-          // selection, start movement, start edit
-          //--------------------------------------
-          TFigure *g = findFigureAt(mx, my);
-//cout << "found  figure " << g << endl;
-          if (g) {
-            #if VERBOSE
-              cout << "      gadget at cursor";
-            #endif
-            TFigureSet::iterator gi = selection.find(g);
-            
-            if (m & MK_DOUBLE) {
-              #if VERBOSE
-                cout << ", double click => ";
-              #endif
-              if (model->startInPlace(g, this)) {
-                #if VERBOSE
-                  cout << "STATE_EDIT" << endl;
-                #endif
-                clearSelection();
-                sigSelectionChanged();
-                gadget = g;
-                invalidateFigure(gadget);
-                state = STATE_EDIT;
-                goto redo;
-              }
-              #if VERBOSE
-                cout << "not editing" << endl;
-              #endif
-            } else 
-            
-            if (m & MK_CONTROL) {
-              #if VERBOSE
-                cout << ", control => ";
-              #endif
-              if (! (m&MK_SHIFT)) {
-                #if VERBOSE
-                  cout << "  adding object to selection" << endl;
-                #endif
-                if (gi==selection.end()) {
-                  selection.insert(g);
-                } else {
-                  selection.erase(gi);
-                }
-                invalidateFigure(g);
-                sigSelectionChanged();
-              } else {
-                state =  STATE_SELECT_RECT;
-                select_x = x;
-                select_y = y;
-              }
-            } else {
-              #if VERBOSE
-                cout << " => ";
-              #endif
-              if (gi==selection.end()) {
-                clearSelection();
-                selection.insert(g);
-                invalidateFigure(g);
-                sigSelectionChanged();
-                if (m&MK_SHIFT) {
-                  state =  STATE_SELECT_RECT;
-                  select_x = x;
-                  select_y = y;
-                } else {
-                  memo_x = memo_y = 0;
-                  state = STATE_MOVE;
-                  TUndoManager::beginUndoGrouping();
-                }
-              } else {
-                if (m&MK_SHIFT) {
-                  clearSelection();
-                  selection.insert(g);
-                  invalidateFigure(g);
-                  sigSelectionChanged();
-                  state =  STATE_SELECT_RECT;
-                  select_x = x;
-                  select_y = y;
-                } else {
-                  state = STATE_MOVE;
-                  memo_x = memo_y = 0;
-                  TUndoManager::beginUndoGrouping();
-                  #if VERBOSE
-                    cout << "STATE_MOVE" << endl;
-                  #endif
-                }
-              }
-            }
-          } else {
-            // no gaget at cursor
-          
-            #if VERBOSE
-              cout << "      nothing at cursor => STATE_SELECT_RECT" << endl;
-            #endif
-            if (!(m & MK_CONTROL)) {
-              if (clearSelection())
-                sigSelectionChanged();
-            }
-            state =  STATE_SELECT_RECT;
-            select_x = x;
-            select_y = y;
-          }
-        } break; // end of OP_SELECT
-
-        case OP_ROTATE: {
-          if (gadget) {
-            if (rotx-fuzziness*2 <= mx && mx<=rotx+fuzziness*2 &&
-                roty-fuzziness*2 <= my && my<=roty+fuzziness*2)
-            {
-//              cerr << "going to move rotation center" << endl;
-              state = STATE_MOVE_ROTATE;
-              return;
-            }
-          }
-        
-          TFigure *g2 = gadget;
-          gadget = 0;
-          TFigure *g = findFigureAt(mx, my);
-          gadget = g2;
-          if (g) {
-            state = STATE_ROTATE;
-            if (gadget!=g) {
-              // a new figure was selected, setup a new rotation center
-              TRectangle r;
-              g->getShape(&r);
-              rotx = r.x + r.w/2;
-              roty = r.y + r.h/2;
-              if (g->mat) {
-                g->mat->map(rotx, roty, &rotx, &roty);
-              }
-              gadget = g;
-            }
-            rotd0=atan2(static_cast<double>(my - roty), 
-                        static_cast<double>(mx - rotx));
-            rotd = 0.0;
-            invalidateWindow(visible);
-//            cerr << "state = STATE_ROTATE" << endl;
-          }
-          return; 
-        } break; // end of OP_ROTATE
-      }
-    } break; // end of STATE_NONE
-    
-    case STATE_CREATE: 
-    case STATE_EDIT: {
-      assert(gadget!=NULL);
-      #if VERBOSE
-      if (state==STATE_CREATE)
-        cout << "  STATE_CREATE" << endl;
-      else
-        cout << "  STATE_EDIT" << endl;
-      #endif
-      TMouseEvent me2(me, x, y);
-      unsigned r = gadget->mouseLDown(this, me2);
-      if (r & TFigure::DELETE) {
-        #if VERBOSE
-          cout << "    delete gadget" << endl;
-        #endif
-        deleteFigure(gadget);
-      }
-      if (r & TFigure::STOP) {
-        #if VERBOSE
-          cout << "    stop" << endl;
-        #endif
-        stopOperation();
-      }
-      if (r & TFigure::REPEAT) {
-        if (m & MK_DOUBLE) {
-          cerr << "TFigureEditor: kludge: avoiding endless loop bug\n";
-          break;
-        }
-        #if VERBOSE
-          cout << "    repeat event" << endl;
-        #endif
-        goto redo;
-      }
-    } break;
-  }
-}
-
-void
-TFigureEditor::mouseMove(const TMouseEvent &me)
-{
-//cout << "mouseMove for window " << window->getTitle() << endl;
-  #if VERBOSE
-    cout << __PRETTY_FUNCTION__ << endl;
-  #endif
-
-  if (!window || !model)
-    return;
-
-  TCoord mx, my;
-  unsigned m = me.modifier();
-  mouse2sheet(me.x, me.y, &mx, &my);
-  TCoord x, y;
-  sheet2grid(mx, my, &x, &y);
-
-redo:
-
-  switch(state) {
-    case STATE_CREATE: 
-    case STATE_EDIT: {
-      #if VERBOSE
-        if (state==STATE_CREATE)
-          cout << "  STATE_CREATE => mouseMove to gadget" << endl;
-        else
-          cout << "  STATE_EDIT => mouseMove to gadget" << endl;
-      #endif
-      assert(gadget!=NULL);
-      TMouseEvent me2(me, x, y);
-      unsigned r = gadget->mouseMove(this, me2);
-      if (r & TFigure::DELETE) {
-        #if VERBOSE
-          cout << "    delete gadget" << endl;
-        #endif
-        deleteFigure(gadget);
-      }
-      if (r & TFigure::STOP) {
-        #if VERBOSE
-          cout << "    stop" << endl;
-        #endif
-        stopOperation();
-      }
-      if (r & TFigure::REPEAT) {
-        #if VERBOSE
-          cout << "    repeat event" << endl;
-        #endif
-        goto redo;
-      }
-      return;
-    } break;
-
-    case STATE_MOVE: {
-#if VERBOSE
-      cout << "  STATE_MOVE => moving selection" << endl;
-#endif
-      TCoord dx = x-down_x; down_x=x;
-      TCoord dy = y-down_y; down_y=y;
-      memo_x+=dx;
-      memo_y+=dy;
-      model->translate(selection, dx, dy);
-    } break;
-
-    case STATE_MOVE_HANDLE: {
-      #if VERBOSE
-        cout << "  STATE_MOVE_HANDLE => moving handle" << endl;
-      #endif
-      
-      if (!mouseMoved) {
-        if (down_x!=x || down_y != y) {
-          mouseMoved = true;
-          TUndoManager::beginUndoGrouping();
-        }
-      }
-
-      if (mouseMoved) {
-        /* copied from findFigureAt */
-        TCoord x2, y2;
-        if (tht && gadget->mat) {
-          TMatrix2D m(*gadget->mat);
-          m.invert();
-          m.map(x, y, &x2, &y2);
-        } else {
-          x2 = x;
-          y2 = y;
-        }
-
-        model->translateHandle(gadget, handle, x2, y2, m);
-      }
-    } break;
-
-    case STATE_SELECT_RECT: {
-      // don't start the rectangle select, when there's still something
-      // selected and the mouse was only moved a little bit due to a
-      // shacky hand
-      if (selection.begin() != selection.end()) {
-        TCoord dx = down_x - x;
-        TCoord dy = down_y - y;
-        if (dx<0) dx=-dx;
-        if (dy<0) dy=-dy;
-        if (dx<2 || dy<2)
-          break;
-        if (!(m&MK_CONTROL)) {
-          clearSelection();
-          sigSelectionChanged();
-        }
-      }
-      #if VERBOSE
-        cout << "  STATE_SELECT_RECT => redrawing rectangle" << endl;
-      #endif
-      if (select_x != x || select_y != y) {
-        TRectangle r;
-        
-        r.set(down_x, down_y, x-down_x, y-down_y);
-        if (mat) {
-          mat->map(r.x, r.y, &r.x, &r.y);
-          mat->map(r.w, r.h, &r.w, &r.h);
-        }
-        r.x+=window->getOriginX()+visible.x;
-        r.y+=window->getOriginY()+visible.y;
-        r.w++;
-        r.h++;
-        invalidateWindow(r);
-        
-        r.set(down_x, down_y, select_x-down_x, select_y-down_y);
-        if (mat) {
-          mat->map(r.x, r.y, &r.x, &r.y);
-          mat->map(r.w, r.h, &r.w, &r.h);
-        }
-        r.x+=window->getOriginX()+visible.x;
-        r.y+=window->getOriginY()+visible.y;
-        r.w++;
-        r.h++;
-        invalidateWindow(r);
-        
-        select_x = x;
-        select_y = y;
-      }
-    } break;
-    
-    case STATE_ROTATE: {
-      rotd=atan2(static_cast<double>(my - roty), 
-                 static_cast<double>(mx - rotx));
-//      cerr << "rotd="<<rotd<<", rotd0="<<rotd0<<" -> " << (rotd-rotd0) << "\n";
-      rotd-=rotd0;
-      invalidateWindow(visible);
-    } break;
-    
-    case STATE_MOVE_ROTATE: {
-      rotx = mx;
-      roty = my;
-      invalidateWindow(visible);
-    } break;
-  }
-}
-
-void
-TFigureEditor::mouseLUp(const TMouseEvent &me)
-{
-#if VERBOSE
-  cout << __PRETTY_FUNCTION__ << endl;
-#endif
-
-  if (!window || !model)
-    return;
-
-  TCoord mx, my;
-  unsigned m = me.modifier();
-  mouse2sheet(me.x, me.y, &mx, &my);
-  TCoord x, y;
-  sheet2grid(mx, my, &x, &y);
-
-redo:
-
-  switch(state) {
-    case STATE_CREATE:
-    case STATE_EDIT: {
-      assert(gadget!=NULL);
-      TMouseEvent me2(me, x, y);
-      unsigned r = gadget->mouseLUp(this, me2);
-      if (r & TFigure::DELETE) {
-        #if VERBOSE
-          cout << "    delete gadget" << endl;
-        #endif
-        deleteFigure(gadget);
-      }
-      if (r & TFigure::STOP) {
-        #if VERBOSE
-          cout << "    stop" << endl;
-        #endif
-        stopOperation();
-        updateScrollbars();
-      }
-      if (r & TFigure::REPEAT) {
-        #if VERBOSE
-          cout << "    repeat event" << endl;
-        #endif
-        goto redo;
-      }
-      return;
-    } break;
-
-    case STATE_MOVE: {
-      #if VERBOSE
-        cout << "  STATE_MOVE => STATE_NONE" << endl;
-      #endif
-      TUndoManager::endUndoGrouping();
-      state = STATE_NONE;
-    } break;
-
-    case STATE_MOVE_HANDLE: {
-      #if VERBOSE
-        cout << "  STATE_MOVE_HANDLE => updating scrollbars, STATE_NONE" << endl;
-      #endif
-
-      if (mouseMoved) {      
-        /* copied from findFigureAt */            
-        TCoord x2, y2;
-        if (tht && gadget->mat) {
-          TMatrix2D m(*gadget->mat);
-          m.invert();
-          m.map(x, y, &x2, &y2);
-        } else {
-          x2 = x;
-          y2 = y;
-        }
-
-        model->translateHandle(gadget, handle, x2, y2,m);
-        TUndoManager::endUndoGrouping();
-      }
-      invalidateFigure(gadget);
-
-      state = STATE_NONE;
-      gadget->endTranslateHandle();
-      gadget = 0;
-      handle = -1;
-      updateScrollbars();
-    } break;
-
-    case STATE_SELECT_RECT: {
-      #if VERBOSE
-        cout << "  STATE_SELECT_RECT => ";
-      #endif
-      TRectangle r;
-      
-      r.set(down_x, down_y, x-down_x, y-down_y);
-      if (mat) {
-        mat->map(r.x, r.y, &r.x, &r.y);
-        mat->map(r.w, r.h, &r.w, &r.h);
-      }
-      r.x+=window->getOriginX()+visible.x;
-      r.y+=window->getOriginY()+visible.y;
-      r.w++;
-      r.h++;
-      invalidateWindow(r);
-        
-      r.set(down_x, down_y, select_x-down_x, select_y-down_y);
-      if (mat) {
-        mat->map(r.x, r.y, &r.x, &r.y);
-        mat->map(r.w, r.h, &r.w, &r.h);
-      }
-      r.x+=window->getOriginX()+visible.x;
-      r.y+=window->getOriginY()+visible.y;
-      r.w++;
-      r.h++;
-      invalidateWindow(r);
-
-      bool selecting = true;
-      if (selection.begin() != selection.end()) {
-        TCoord dx = down_x - x;
-        TCoord dy = down_y - y;
-        if (dx<0) dx=-dx;
-        if (dy<0) dy=-dy;
-        if (dx<2 || dy<2)
-          selecting = false;
-      }
-      if (selecting) {
-        TFigureModel::iterator p, e;
-        p = model->begin();
-        e = model->end();
-        TRectangle r1(TPoint(down_x,down_y), TPoint(x,y));
-        TRectangle r2;
-        while(p!=e) {
-          (*p)->getShape(&r2);
-          if (r1.isInside( r2.x, r2.y ) &&
-              r1.isInside( r2.x+r2.w, r2.y+r2.h ) )
-          {
-            selection.insert(*p);
-          }
-          p++;
-        }
-        #if VERBOSE
-          cout << selection.size() << " objects selected, STATE_NONE" << endl;
-        #endif
-      }
-      state = STATE_NONE;
-    } break;
-    
-    case STATE_ROTATE: {
-#if 1
-      TMatrix2D *m = new TMatrix2D();
-      m->translate(rotx, roty);
-      m->rotate(rotd);
-      m->translate(-rotx, -roty);
-      if (gadget->mat) {
-        m->multiply(gadget->mat);
-        delete gadget->mat;
-      }
-      gadget->mat = m;
-#else
-      if (!gadget->mat)
-        gadget->mat = new TMatrix2D();
-      gadget->mat->translate(rotx, roty);
-      gadget->mat->rotate(rotd);
-      gadget->mat->translate(-rotx, -roty);
-#endif
-      state = STATE_NONE;
-      invalidateWindow(visible);
-    } break;
-    
-    case STATE_MOVE_ROTATE: {
-/*      if (!gadget->mat)
-        gadget->mat = new TMatrix2D();
-      gadget->mat->translate(rotx, roty);
-      gadget->mat->rotate(rotd);
-      gadget->mat->translate(-rotx, -roty);
-*/
-      state = STATE_NONE;
-    } break;
-  }
-}
-
-void
-TFigureEditor::mouseRDown(const TMouseEvent &me)
-{
-  if (!window || !model)
-    return;
-
-//  stopOperation();
-//  clearSelection();
-  setFocus();
-  TCoord mx, my;
-  mouse2sheet(me.x, me.y, &mx, &my);
-  TFigure *f = findFigureAt(mx, my);
-  if (f) {
-    if (state==STATE_NONE) {
-      clearSelection();
-      selection.insert(f);
-      invalidateFigure(f);
-    }
-    TMouseEvent me2(me, mx, my);
-    unsigned op = f->mouseRDown(this, me2);
-    if (op & TFigure::STOP) {
-      stopOperation();
-      clearSelection();
-    }
-    if (op & TFigure::DELETE) {
-      deleteSelection();
-    }
+    *out = in;
   }
 }
 
@@ -2153,11 +1446,15 @@ TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *m
  * This method doesn't find gadgets which are currently created or edited.
  */
 TFigure*
-TFigureEditor::findFigureAt(TCoord mx, TCoord my)
+TFigureEditor::findFigureAt(TPoint m)
 {
 #if VERBOSE
-  cerr << "TFigureEditor::findFigureAt(" << mx << ", " << my << ")\n";
+  cerr << "TFigureEditor::findFigureAt " << m << endl;
 #endif
+
+TCoord mx = m.x;
+TCoord my = m.y;
+
   double distance = INFINITY;
   TFigureModel::const_iterator p,b,found;
   p = found = model->end();

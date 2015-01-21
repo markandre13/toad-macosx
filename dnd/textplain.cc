@@ -53,8 +53,7 @@ TDnDTextPlain::convertData(TDnDObject &drop)
     return result;
 
   result = new TDnDTextPlain(drop.flatdata);
-  result->x = drop.x;
-  result->y = drop.y;
+  result->pos = drop.pos;
   return result;
 }
 

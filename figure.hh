@@ -149,7 +149,7 @@ class TFigure:
 
     // stage 1: select:
     virtual double _distance(TFigureEditor *fe, TCoord x, TCoord y);
-    virtual double distance(TCoord x, TCoord y);
+    virtual TCoord distance(const TPoint &pos);
     
     // stage 2: move
     virtual void translate(TCoord dx, TCoord dy);
@@ -262,7 +262,7 @@ class TFRectangle:
     void paint(TPenBase &, EPaintType);
     void getShape(TRectangle*);
 
-    TCoord distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     void translate(TCoord dx, TCoord dy);
     bool getHandle(unsigned n, TPoint *p);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
@@ -286,7 +286,7 @@ class TFPolygon:
     typedef TColoredFigure super;
   public:
     void paint(TPenBase &, EPaintType);
-    TCoord distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     void getShape(TRectangle*);
     void translate(TCoord dx, TCoord dy);
     bool getHandle(unsigned n, TPoint *p);
@@ -337,7 +337,7 @@ class TFLine:
     void setAttributes(const TFigureAttributes*);
     void getAttributes(TFigureAttributes*) const;
     void paint(TPenBase &, EPaintType);
-    double distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
 
     static void drawArrow(TPenBase &pen,
                           const TPoint &p0, const TPoint &p1, 
@@ -412,7 +412,7 @@ class TFCircle:
       TFRectangle(x,y,w,h) {}
     void paint(TPenBase &, EPaintType);
     
-    TCoord distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     
     TCloneable* clone() const { return new TFCircle(*this); }
     const char * getClassName() const { return "toad::TFCircle"; } 
@@ -450,7 +450,7 @@ class TFText:
 
     void paint(TPenBase &, EPaintType);
 
-    double distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     bool getHandle(unsigned n, TPoint *p);
 
     bool startInPlace();
@@ -491,7 +491,7 @@ class TFFrame:
     void paint(TPenBase &, EPaintType);
 
     void getShape(TRectangle*);
-    TCoord distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     unsigned stop(TFigureEditor*);
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
     bool getHandle(unsigned n, TPoint *p);
@@ -516,7 +516,7 @@ class TFWindow:
     TFWindow();
 
     void paint(TPenBase&, EPaintType);
-    double distance(TCoord x, TCoord y);
+    TCoord distance(const TPoint &pos) override;
     void translate(TCoord dx, TCoord dy);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
     

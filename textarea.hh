@@ -151,7 +151,7 @@ class TTextArea:
     
     void resize();
     void paint();
-    void _goto_pixel(int x, int y);
+    void _goto_pixel(TPoint pos);
     void _get_line(string *line, 
                    size_t bol, size_t eol,
                    int *sx,

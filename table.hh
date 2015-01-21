@@ -590,7 +590,7 @@ class TTable:
     //! true: the current mouse position with button pressed will always be selected
     bool selectionFollowsMouse;
     
-    bool mouse2field(TCoord mx, TCoord my, size_t *fx, size_t *fy, TCoord *rfx=0, TCoord *rfy=0);
+    bool mouse2field(TPoint mousepos, size_t *fx, size_t *fy, TPoint *fieldpos=0);
   protected:
     void _moveCursor(size_t newcx, size_t newcy, unsigned modifier);
     void _setSXSY(size_t x, size_t y);

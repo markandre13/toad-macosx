@@ -49,9 +49,9 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
 }
 
 TCoord 
-TFRectangle::distance(TCoord mx, TCoord my)
+TFRectangle::distance(const TPoint &pos)
 {
-  if (filled && TRectangle(p1, p2).isInside(mx, my))
+  if (filled && TRectangle(p1, p2).isInside(pos))
     return INSIDE;
 
   TCoord x1,y1,x2,y2;
@@ -72,7 +72,7 @@ TFRectangle::distance(TCoord mx, TCoord my)
       x1=p1.x; y1=p1.y;
       break;
     }
-    d = distance2Line(mx,my, x1,y1, x2,y2);
+    d = distance2Line(pos.x, pos.y, x1,y1, x2,y2);
     if (d<min)
       min = d;
   }
@@ -143,8 +143,7 @@ TFRectangle::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
-      p1.x = p2.x = m.x;
-      p1.y = p2.y = m.y;
+      p1 = p2 = m.pos;
       editor->invalidateFigure(this);
       break;
     default:
@@ -159,8 +158,7 @@ TFRectangle::mouseMove(TFigureEditor *editor, TMouseEvent &m)
   switch(editor->state) {
     case TFigureEditor::STATE_CREATE:
       editor->invalidateFigure(this);
-      p2.x = m.x;
-      p2.y = m.y;
+      p2 = m.pos;
       editor->invalidateFigure(this);
       break;
     default:

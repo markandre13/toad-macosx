@@ -74,8 +74,7 @@ TPopupMenu::~TPopupMenu()
 void
 TPopupMenu::open(TMouseEvent &event)
 {
-  x = event.x;
-  y = event.y;
+  pos = event.pos;
   modifier = event.modifier();
   placeWindow(PLACE_CORNER_MOUSE_POINTER, 0);
   createWindow();
@@ -83,10 +82,9 @@ TPopupMenu::open(TMouseEvent &event)
 }
 
 void
-TPopupMenu::open(int x, int y, unsigned modifier)
+TPopupMenu::open(TPoint pos, unsigned modifier)
 {
-  this->x = x;
-  this->y = y;
+  this->pos = pos;
   this->modifier = modifier;
   placeWindow(PLACE_CORNER_MOUSE_POINTER, 0);
   createWindow();

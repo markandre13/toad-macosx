@@ -90,7 +90,7 @@ void
 TFCreateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 //cout << "TFCreateTool::mouseEvent " << mousename(me.type) << " at " << statename(fe->state) << endl;
-  TCoord x0, y0, x1, y1;
+  TPoint p0, p1;
   unsigned r;
 
 redo:
@@ -101,8 +101,8 @@ redo:
         case TMouseEvent::LDOWN: {
 //          cout << "TFCreateTool: LDOWN" << endl;
 //          cout << "TFCreateTool: start create" << endl;
-          fe->mouse2sheet(me.x, me.y, &x0, &y0);
-          fe->sheet2grid(x0, y0, &x1, &y1);
+          fe->mouse2sheet(me.pos, &p0);
+          fe->sheet2grid(p0, &p1);
           fe->clearSelection();
           figure = static_cast<TFigure*>(tmpl->clone());
           fe->setCurrent(figure);
@@ -112,7 +112,7 @@ redo:
           figure->setAttributes(fe->getAttributes());
           figure->startCreate();
           fe->state = TFigureEditor::STATE_START_CREATE;
-          TMouseEvent me2(me, x1, y1);
+          TMouseEvent me2(me, p1);
           r = figure->mouseLDown(fe, me2);
           fe->state = TFigureEditor::STATE_CREATE;
           if (r & TFigure::DELETE) {
@@ -148,9 +148,9 @@ redo:
       break;
     
     case TFigureEditor::STATE_CREATE:
-      fe->mouse2sheet(me.x, me.y, &x0, &y0);
-      fe->sheet2grid(x0, y0, &x1, &y1);
-      TMouseEvent me2(me, x1, y1);
+      fe->mouse2sheet(me.pos, &p0);
+      fe->sheet2grid(p0, &p1);
+      TMouseEvent me2(me, p1);
       switch(me.type) {
         case TMouseEvent::LDOWN:
 //          cout << "TFCreateTool: mouseLDown during create" << endl;

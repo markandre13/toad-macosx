@@ -46,7 +46,24 @@ struct TPoint:
   void set(TCoord a, TCoord b) { x=a;y=b; }
   bool operator==(const TPoint &p) { return x==p.x && y==p.y; }
   bool operator!=(const TPoint &p) { return x!=p.x || y!=p.y; }
+  const TPoint& operator+=(const TPoint &a) {
+    x += a.x;
+    y += a.y;
+    return *this;
+  }
+  const TPoint& operator-=(const TPoint &a) {
+    x -= a.x;
+    y -= a.y;
+    return *this;
+  }
 };
+
+inline TPoint operator-(const TPoint &a, const TPoint &b) {
+  return TPoint(a.x-b.x, a.y-b.y);
+}
+inline TPoint operator+(const TPoint &a, const TPoint &b) {
+  return TPoint(a.x+b.x, a.y+b.y);
+}
 
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
@@ -85,11 +102,13 @@ struct TRectangle
   TRectangle(TCoord x, TCoord y, TCoord w, TCoord h) { set(x, y, w, h); }
   TRectangle(const TPoint &p1, const TPoint &p2){ set(p1,p2); }
   TRectangle(const Box &b) { set(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1); }
+  TPoint origin() const { return TPoint(x, y); }
   bool operator==(const TRectangle &r) const { return x==r.x && y==r.y && w==r.w && h==r.h; }
   bool isEmpty() const { return w<=0 || h<=0; }
   void set(TCoord x, TCoord y, TCoord w, TCoord h); // { this->x=x; this->y=y; this->w=w; this->h=h; }
   void set(const TPoint&, const TPoint&);
   bool isInside(TCoord px, TCoord py) const { return x<=px && px<=x+w && y<=py && py<=y+h; }
+  bool isInside(TPoint p) const { return isInside(p.x, p.y); }
   bool intersects(const TRectangle &r) const;
 };
 
@@ -108,6 +127,7 @@ class TPolygon:
     void addPoint(const TPoint &p) { push_back(p); }
     void addPoint(TCoord x, TCoord y) { push_back(TPoint(x,y)); }
     bool isInside(TCoord x, TCoord y) const;
+    bool isInside(const TPoint &p) const { return isInside(p.x, p.y); }
     bool getShape(TRectangle *r) const;
 };
 

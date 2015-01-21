@@ -332,9 +332,9 @@ TColorPickTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   if (me.type!=TMouseEvent::LDOWN)
     return;
     
-  TCoord x, y;
-  fe->mouse2sheet(me.x, me.y, &x, &y);
-  TFigure *f = fe->findFigureAt(x, y);
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
+  TFigure *f = fe->findFigureAt(pos);
   if (f) {
     TToolBox::preferences->setAllReasons();
     f->getAttributes(TToolBox::preferences);
@@ -356,8 +356,8 @@ serialize.registerObject(new TFPath());
   static TFCreateTool ftext(new TFText);
   static TFCreateTool fpoly(new TFPolygon);
   static TFCreateTool fline(new TFLine);
-  static TFCreateTool fbezierline(new TFBezierline);
-  static TFCreateTool fbezier(new TFBezier);
+//  static TFCreateTool fbezierline(new TFBezierline);
+//  static TFCreateTool fbezier(new TFBezier);
 
   assert(toolbox==0);
   toolbox = this;

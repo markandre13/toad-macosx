@@ -125,10 +125,10 @@ TColorSelector::paint()
 void
 TColorSelector::mouseLDown(const TMouseEvent &m)
 {
-  if (m.x<border ||
-      m.y<border ||
-      m.x>w2-border ||
-      m.y>h-border)  
+  if (m.pos.x<border ||
+      m.pos.y<border ||
+      m.pos.x>w2-border ||
+      m.pos.y>h-border)  
   {
     return;
   }
@@ -149,10 +149,10 @@ TColorSelector::mouseLDown(const TMouseEvent &m)
 void
 TColorSelector::mouseMDown(const TMouseEvent &m)
 {
-  if (m.x<border ||
-      m.y<border ||
-      m.x>w2-border ||
-      m.y>h-border)  
+  if (m.pos.x<border ||
+      m.pos.y<border ||
+      m.pos.x>w2-border ||
+      m.pos.y>h-border)  
   {
     startDrag(new TDnDColor(linecolor), m.modifier());
   } else {
@@ -167,10 +167,10 @@ TColorSelector::dropColor(const PDnDColor &drop)
     return;
   }
 
-  if (drop->x<border ||
-      drop->y<border ||
-      drop->x>w2-border ||
-      drop->y>h-border)  
+  if (drop->pos.x<border ||
+      drop->pos.y<border ||
+      drop->pos.x>w2-border ||
+      drop->pos.y>h-border)  
   {
     linecolor.set(drop->rgb.r, drop->rgb.g, drop->rgb.b);
     if (gedit)

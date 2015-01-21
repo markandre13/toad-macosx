@@ -416,8 +416,8 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
       p!=polygon.end();
       ++p, ++i)
   {
-    if (p->x-editor->fuzziness<=m.x && m.x<=p->x+editor->fuzziness &&
-        p->y-editor->fuzziness<=m.y && m.y<=p->y+editor->fuzziness)
+    if (p->x-editor->fuzziness<=m.pos.x && m.pos.x<=p->x+editor->fuzziness &&
+        p->y-editor->fuzziness<=m.pos.y && m.pos.y<=p->y+editor->fuzziness)
     {
 //      cerr << "found handle " << i << endl;
       found = true;
@@ -437,8 +437,8 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
       action->sigClicked,
       figure, this,
       edit, editor,
-      _x, m.x,
-      _y, m.y,
+      _x, m.pos.x,
+      _y, m.pos.y,
       edit->invalidateFigure(figure);
       figure->insertPointNear(_x, _y);
       edit->invalidateFigure(figure); 
@@ -467,7 +467,7 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
   menu = new TMyPopupMenu(editor, "popup");
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
-  menu->open(m.x, m.y, m.modifier());
+  menu->open(m.pos, m.modifier());
   return NOTHING;
 }
  

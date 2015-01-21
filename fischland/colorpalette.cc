@@ -180,7 +180,7 @@ TColorPalette::loadPalette(const string &filename)
 }
 
 TColorPalette::TNamedColor *
-TColorPalette::mouse2color(int mx, int my)
+TColorPalette::mouse2color(TPoint m)
 {
   if (!ppalette)
     return 0;
@@ -197,7 +197,7 @@ TColorPalette::mouse2color(int mx, int my)
       p!=ppalette->rgb.end();
       ++p)
   {
-    if (x<=mx && mx<=x+fw && y<=my && my<=y+fh) {
+    if (x<=m.x && m.x<=x+fw && y<=m.y && m.y<=y+fh) {
       return &(*p);
     } 
     x+=fw;
@@ -259,7 +259,7 @@ TColorPalette::paint()
 void
 TColorPalette::mouseLDown(const TMouseEvent &m)
 {
-  TNamedColor *color = mouse2color(m.x, m.y);
+  TNamedColor *color = mouse2color(m.pos);
   if (!color)
     return;
   colorname = color->name;
@@ -274,7 +274,7 @@ TColorPalette::mouseLDown(const TMouseEvent &m)
 void
 TColorPalette::mouseMDown(const TMouseEvent &m)
 {
-  TNamedColor *color = mouse2color(m.x, m.y);
+  TNamedColor *color = mouse2color(m.pos);
   if (!color)
     return;  
   startDrag(new TDnDColor(*color), m.modifier());
@@ -283,7 +283,7 @@ TColorPalette::mouseMDown(const TMouseEvent &m)
 void
 TColorPalette::dropColor(const PDnDColor &drop)
 {
-  TNamedColor *color = mouse2color(drop->x, drop->y);
+  TNamedColor *color = mouse2color(drop->pos);
   if (!color)
     return;
 //  *color = drop->rgb;

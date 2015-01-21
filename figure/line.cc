@@ -161,7 +161,7 @@ TFLine::paint(TPenBase &pen, EPaintType)
 }
 
 TCoord 
-TFLine::distance(TCoord mx, TCoord my)
+TFLine::distance(const TPoint &pos)
 {
   TPolygon::const_iterator p(polygon.begin()), e(polygon.end());
   TCoord x1,y1,x2,y2;
@@ -177,7 +177,7 @@ TFLine::distance(TCoord mx, TCoord my)
     y1=y2;
     x2=p->x;
     y2=p->y;
-    d = distance2Line(mx,my, x1,y1, x2,y2);
+    d = distance2Line(pos.x, pos.y, x1,y1, x2,y2);
     if (d<min)
       min = d;
     ++p;
