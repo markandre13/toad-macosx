@@ -77,9 +77,6 @@ cout << "mapped rectangle "
         } else {
 cout << "figure " << f << " has no matrix" << endl;
         }
-        
-        rotx -= 50;
-
         figure = f;
       }
       rotd0=atan2(pos.y - roty, pos.x - rotx);
