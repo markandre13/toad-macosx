@@ -34,7 +34,7 @@ class TFischEditor:
   public TFigureEditor
 {
     PEditModel editmodel;
-    bool modified2;
+    bool modified2; // figureditor has it's own modified flag
     
     // speed up painting:
     TFigure *first_figure, *last_figure;

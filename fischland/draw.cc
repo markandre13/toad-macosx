@@ -969,6 +969,10 @@ TTestWindow::paint()
 }
 #endif
 
+static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
+  return s.add(c);
+}
+
 TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   super(p, t)
 {
@@ -1077,6 +1081,13 @@ TCLOSURE1(
   CONNECT(a->sigClicked, this, closeRequest);
   
   a = new TAction(this, "edit|insert_image");
+#if 1
+  connect(a->sigClicked, [me] {
+    TFImage *img = new TFImage();
+    img->startInPlace();
+    me->addFigure(img);
+  });
+#else  
   TCLOSURE1(
     a->sigClicked,
     gw, me,
@@ -1084,7 +1095,7 @@ TCLOSURE1(
     img->startInPlace();
     gw->addFigure(img);
   )
-
+#endif
   a = new TAction(this, "slide|slides");
   CONNECT(a->sigClicked, this, menuSlides);
 

@@ -24,6 +24,8 @@
 #include <toad/window.hh>
 #include <toad/pen.hh>
 
+#include <toad/connect.hh>
+
 using namespace toad;
 
 namespace {
@@ -159,8 +161,8 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
     case TMouseEvent::LDOWN:
       handle=-1;
       for(int i=0; i<4; ++i) {
-        if(p[i].x-2<=me.x && me.x <= p[i].x+2 &&
-           p[i].y-2<=me.y && me.y <= p[i].y+2)
+        if(p[i].x-2<=me.pos.x && me.pos.x <= p[i].x+2 &&
+           p[i].y-2<=me.pos.y && me.pos.y <= p[i].y+2)
         {
           handle = i;
           break;
@@ -170,7 +172,7 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
     case TMouseEvent::MOVE:
       if (handle==-1)
         break;
-      p[handle].set(me.x, me.y);
+      p[handle] = me.pos;
       invalidateWindow();
       break;
     case TMouseEvent::LUP:
