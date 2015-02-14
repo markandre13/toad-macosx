@@ -800,7 +800,8 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
     } else {
       cout << "  not a toad window" << endl;
     }
-    if (twindow != lastMouse) {
+    cout << "  twindow="<<twindow<<", lastMouse="<<lastMouse<<", mouseOver="<<mouseOver<<endl;
+    if (mouseOver != lastMouse) {
       if (lastMouse && lastMouse->_inside) {
 //cout << "leave " << lastMouse->getTitle() << endl;
 cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab)"<<endl;
@@ -811,13 +812,13 @@ cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab
       }
       if (mouseOver && !mouseOver->_inside) {
 //cout << "enter " << twindow->getTitle() << endl;
-cout << "set "<<twindow<<" " << twindow->getTitle() << "->inside=true (grab)"<<endl;
-        twindow->_inside = true;
-        TMouseEvent me2(me.nsevent, twindow);
+cout << "set "<<mouseOver<<" " << mouseOver->getTitle() << "->inside=true (grab)"<<endl;
+        mouseOver->_inside = true;
+        TMouseEvent me2(me.nsevent, mouseOver);
         me2.type = TMouseEvent::ENTER;
-        _doMouse2(twindow, me2);
+        _doMouse2(mouseOver, me2);
       }
-      lastMouse = twindow;
+      lastMouse = mouseOver;
     }
   } else {
     CGPoint point = [twindow->nsview convertPoint:[me.nsevent locationInWindow] fromView:nil];
