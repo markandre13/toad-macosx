@@ -139,37 +139,37 @@ toad::mainLoop()
 // sometimes we got the busy caret after the application was drawn
 // on the screen. inspector couldn't locate the source so this is
 // another try to hunt it down. (doesn't hang so far thus...)
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
   NSApplication *app = [NSApplication sharedApplication];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
   [NSBundle loadNibNamed:@"myMain" owner: app];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
  
   [app finishLaunching];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
  
   do {
     [pool release];
     pool = [[NSAutoreleasePool alloc] init];
  
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
     NSEvent *event =
       [app
          nextEventMatchingMask:NSAnyEventMask
          untilDate:[NSDate distantFuture]
          inMode:NSDefaultRunLoopMode
          dequeue:YES];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
  
     [app sendEvent:event];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
     [app updateWindows];
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
   } while(true);
-cerr << __FILE__ << ":" << __LINE__ << endl;
+//cerr << __FILE__ << ":" << __LINE__ << endl;
   [pool release];
 #endif
 }
