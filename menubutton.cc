@@ -18,7 +18,7 @@
  * MA  02111-1307,  USA
  */
 
-#define DBM(CMD)
+#define DBM(CMD) CMD
 
 // debugging code added to implement popup menus
 #define DBM2(X)
@@ -465,7 +465,7 @@ TMenuButton::dropKeyboard()
   }
 }
 
-const char * statename(EMenuHelperState n) {
+static const char * statename(EMenuHelperState n) {
   static const char* a[] = {
     "MHS_WAIT",
     "MHS_DOWN",
@@ -638,7 +638,7 @@ void TMenuButton::mouseEnter(const TMouseEvent &m)
       }
       break;
     default:
-      cout << __PRETTY_FUNCTION__ << ": unexpected state " << statename(master->state) << endl;
+      cout << "TMenuButton::mouseEnter " << getTitle() << ": unexpected state " << statename(master->state) << endl;
   }
   DBM(cerr << "- TMenuButton::mouseEnter " << getTitle() << ": state " << statename(master->state) << endl;)
 }

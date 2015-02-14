@@ -783,14 +783,18 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
 //      cout << "  not a toad window" << endl;
     }
     if (twindow != lastMouse) {
-      if (lastMouse) {
+      if (lastMouse && lastMouse->_inside) {
 //cout << "leave " << lastMouse->getTitle() << endl;
+cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab)"<<endl;
+        lastMouse->_inside = false;
         TMouseEvent me2(me.nsevent, lastMouse);
         me2.type = TMouseEvent::LEAVE;
         _doMouse2(lastMouse, me2);
       }
-      if (twindow) {
+      if (twindow && !twindow->_inside) {
 //cout << "enter " << twindow->getTitle() << endl;
+cout << "set "<<twindow<<" " << twindow->getTitle() << "->inside=true (grab)"<<endl;
+        twindow->_inside = true;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::ENTER;
         _doMouse2(twindow, me2);
@@ -802,6 +806,7 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
     CGRect rect = [twindow->nsview bounds];
     if ([twindow->nsview mouse:point inRect:[twindow->nsview bounds]]) {
       if (!twindow->_inside) {
+cout << "set "<<twindow<<" " << twindow->getTitle() << "->inside=true"<<endl;
         twindow->_inside = true;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::ENTER;
@@ -809,12 +814,16 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
       }
     } else {
       if (twindow->_inside) {
+cout << "set "<<twindow<<" " << twindow->getTitle() <<"->inside=false"<<endl;
         twindow->_inside = false;
         TMouseEvent me2(me.nsevent, twindow);
         me2.type = TMouseEvent::LEAVE;
         _doMouse2(twindow, me2);
       }
     }    
+    if (me.type == TMouseEvent::ENTER ||
+        me.type == TMouseEvent::LEAVE)
+      return;
   }
 
   _doMouse2(twindow, me);
@@ -842,7 +851,7 @@ if (me.type == TMouseEvent::LUP)
 - (void) mouseEntered:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  twindow->_inside = true;
+//  twindow->_inside = true;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::ENTER;
   _doMouse(twindow, me);
@@ -853,7 +862,7 @@ if (me.type == TMouseEvent::LUP)
 - (void) mouseExited:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  twindow->_inside = false;
+//  twindow->_inside = false;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::LEAVE;
   _doMouse(twindow, me);
@@ -891,7 +900,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, this);
   me.type = type;
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
-  _inside = true;
+//  _inside = true;
   _doMouse(this, me);
   executeMessages();
 }
@@ -903,6 +912,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   twindow->_up(TMouseEvent::LUP, theEvent);
   TOAD_DBG_LEAVE
 }
+
 - (void) rightMouseUp:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
@@ -910,6 +920,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   twindow->_up(TMouseEvent::RUP, theEvent);
   TOAD_DBG_LEAVE
 }
+
 - (void) otherMouseUp:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
@@ -917,6 +928,7 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   twindow->_up(TMouseEvent::MUP, theEvent);
   TOAD_DBG_LEAVE
 }
+
 void
 TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 {
