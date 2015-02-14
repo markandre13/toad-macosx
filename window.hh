@@ -134,7 +134,8 @@ class TMouseEvent
       LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
       ROLL_UP, ROLL_DOWN
     };
-    EType type;  
+    EType type;
+    const char* name() const;
   
     TWindow *window; // information for the mouse event filter
     TPoint pos;

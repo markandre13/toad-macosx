@@ -521,7 +521,7 @@ TWindow::destroyParentless()
 {
   @public
     TWindow *twindow;
-    NSTrackingRectTag trackAll;
+//    NSTrackingRectTag trackAll;
 }
 @end
 
@@ -575,7 +575,7 @@ TWindow::destroyParentless()
 - (void)setWindow: (TWindow*)aWindow {
   twindow = aWindow;
 }
-
+/*
 - (void) initTrackAll:(NSRect)frame {
   trackAll = [self addTrackingRect: frame
               owner: self
@@ -584,6 +584,7 @@ TWindow::destroyParentless()
   // [self translateOriginToPoint: NSMakePoint(-0.5, -0.5)];
   // [self setBoundsOrigin: NSMakePoint(-0.5, -0.5)];
 }
+*/
 // TRUE: (0,0) is in the upper-left-corner
 - (BOOL)isFlipped {
   return TRUE;
@@ -602,11 +603,13 @@ TWindow::destroyParentless()
   TOAD_DBG_ENTER
 //  printf("%s: (%f,%f)\n", __FUNCTION__, newSize.width, newSize.height);
   [super setFrameSize:newSize];
+/*
   [self removeTrackingRect: trackAll];
   trackAll = [self addTrackingRect: NSMakeRect(0, 0, newSize.width, newSize.height)
               owner: self
               userData: NULL
               assumeInside: NO];
+*/
   twindow->w = newSize.width;
   twindow->h = newSize.height;
   twindow->doResize();
@@ -738,9 +741,24 @@ static void _doMouse2(TWindow *twindow, TMouseEvent &me)
   twindow->mouseEvent(me);
 }
 
+const char*
+TMouseEvent::name() const
+{
+  static const char *name[11] = {
+    "MOVE", "ENTER", "LEAVE",
+    "LDOWN", "MDOWN", "RDOWN",
+    "LUP", "MUP", "RUP",
+    "ROLL_UP", "ROLL_DOWN"
+  };
+  if (type>=0 && type<=10)
+    return name[type];
+  return "?";
+}
+
 // handle grabPopUp mouse and enter/leave event generation
 static void _doMouse(TWindow *twindow, TMouseEvent &me)
 {
+cout << "_doMouse " << twindow << " " << twindow->getTitle() << " " << me.name() << endl;
 /*
 if (me.type == TMouseEvent::LUP)
 {
@@ -777,10 +795,10 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
       }
     }
     if (mouseOver) {
-//      cout << "  mouse over title=" << mouseOver->getTitle() << endl;
+      cout << "  mouse over title=" << mouseOver->getTitle() << endl;
       twindow = mouseOver;
-//    } else {
-//      cout << "  not a toad window" << endl;
+    } else {
+      cout << "  not a toad window" << endl;
     }
     if (twindow != lastMouse) {
       if (lastMouse && lastMouse->_inside) {
@@ -791,7 +809,7 @@ cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab
         me2.type = TMouseEvent::LEAVE;
         _doMouse2(lastMouse, me2);
       }
-      if (twindow && !twindow->_inside) {
+      if (mouseOver && !mouseOver->_inside) {
 //cout << "enter " << twindow->getTitle() << endl;
 cout << "set "<<twindow<<" " << twindow->getTitle() << "->inside=true (grab)"<<endl;
         twindow->_inside = true;
@@ -1173,7 +1191,7 @@ TWindow::createWindow()
   }
   // we must create the tracking window after the view was added to it's
   // parent, otherwise tracking does not work
-  [nsview initTrackAll: NSMakeRect(0,0,w,h)];
+//  [nsview initTrackAll: NSMakeRect(0,0,w,h)];
 
   TFocusManager::newWindow(this);
   if (flagShell)
