@@ -138,7 +138,7 @@ class TFigure:
      */
     TMatrix2D *cmat;
   
-    // editor related stuff per gadget for manipulation
+    // editor related stuff per figure for manipulation
     //-------------------------------------------------
     static const unsigned NOTHING  = 0;
     static const unsigned CONTINUE = 1; // continue editing

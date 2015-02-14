@@ -61,6 +61,7 @@ class TSelectionTool:
     }
     static TSelectionTool* getTool();
   
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     
     void setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me);

@@ -40,11 +40,42 @@ TSelectionTool::stop(TFigureEditor *fe)
 }
 
 void
+TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
+{
+  if (fe->state != TFigureEditor::STATE_EDIT) {
+    cout << "no editing" << endl;
+    return;
+  }
+  if (tmpsel.begin()==tmpsel.end()) {
+    cout << "no keyevent to figure" << endl;
+    return;
+  }
+  cout << "key event to figure" << endl;
+  TFigure *figure = *tmpsel.begin();
+  switch(ke.type) {
+    case TKeyEvent::DOWN:
+      unsigned r = figure->keyDown(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+      if (r & TFigure::STOP) {
+        fe->state = TFigureEditor::STATE_NONE;
+        fe->invalidateWindow();
+      }
+      break;
+  }
+}
+
+void
 TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   TFigure *figure;
   TPoint p;
   TRectangle r;
+
+  if (fe->state == TFigureEditor::STATE_EDIT) {
+cout << "TSelectionTool: ignore mouse in edit mode" << endl;
+//    figure = tmpsel.begin();
+//    unsigned r = figure->mouseEventn(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+    return;
+  }
 
   switch(me.type) {
     case TMouseEvent::LDOWN:
@@ -60,6 +91,37 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       // find figure under mouse
       fe->mouse2sheet(me.pos, &p);
       figure = fe->findFigureAt(p);
+
+      if (figure &&
+          me.dblClick &&
+          figure->startInPlace())
+      {
+        // FIXME: selection- & createtool should now delegate to edittool?
+        cout << "TSelectionTool: figure shall be edited" << endl;
+        fe->state = TFigureEditor::STATE_EDIT;
+        fe->clearSelection();
+        tmpsel.clear();
+        tmpsel.insert(figure);
+        fe->invalidateWindow();
+        break;
+      }
+      
+#if 0
+        TFigureEditEvent ee;
+        ee.model = fe->getModel(); // why???
+        ee.editor = fe;
+        ee.type = TFigureEditEvent::START_IN_PLACE;
+        if (figure->editEvent(ee)) {
+          fe->clearSelection();
+#endif
+#if 0
+          fe->clearSelection();
+          sigSelectionChanged();
+          gadget = g;
+          invalidateFigure(gadget);
+          state = STATE_EDIT;
+          goto redo;
+#endif
 
       // if figure not part of selection and not shift
       if (fe->selection.find(figure) == fe->selection.end() &&
@@ -368,6 +430,18 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 bool
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
+  if (fe->state == TFigureEditor::STATE_EDIT) {
+    TFigure *figure = *tmpsel.begin();
+    pen.push();
+    if (figure->mat)
+      pen.multiply(figure->mat);
+    if (figure->cmat)
+      pen.multiply(figure->cmat);
+    figure->paint(pen, TFigure::EDIT);
+    pen.pop();
+    return true;
+  }
+
   // 'down' means that the user is holding the mouse button,
   // draw the interactive selection rectangle
   if (down) {

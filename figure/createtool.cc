@@ -223,6 +223,7 @@ TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   }
 
   unsigned r = figure->keyDown(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+
   if (r & TFigure::DELETE) {
 //        cout << "  delete figure" << endl;
     fe->deleteFigure(figure);
