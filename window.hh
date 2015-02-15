@@ -142,12 +142,13 @@ class TMouseEvent
     TCoord pressure();
     TCoord rotation();
     TCoord tilt();
-    unsigned modifier() const;
+    unsigned modifier() const { return __modifier; }
     enum EPointingDeviceType {
       // unknown, pen, cursor, eraser
     };
     // true when double click
     bool dblClick;
+    unsigned __modifier;
     static unsigned _modifier;
 };
 

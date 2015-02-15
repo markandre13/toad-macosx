@@ -811,6 +811,14 @@ cout << "set "<<mouseOver<<" " << mouseOver->getTitle() << "->inside=true (grab)
       mouseOver->_inside = true;
       TMouseEvent me2(me.nsevent, mouseOver);
       me2.type = TMouseEvent::ENTER;
+      if (me.type == TMouseEvent::LDOWN ||
+          me.type == TMouseEvent::MDOWN ||
+          me.type == TMouseEvent::RDOWN )
+      {
+        // mouse enter & down at the same time -> remove the button
+        // information from the modifier
+        me2.__modifier &= ~(MK_LBUTTON|MK_MBUTTON|MK_RBUTTON);
+      }
       _doMouse2(mouseOver, me2);
     }
     lastMouse = mouseOver;
@@ -994,17 +1002,12 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   }
   window = aWindow;
   dblClick = false;
+  __modifier = [nsevent modifierFlags] 
+           | _modifier
+           | (dblClick ? MK_DOUBLE : 0);
 }
 
 unsigned TMouseEvent::_modifier = 0;
-
-unsigned
-TMouseEvent::modifier() const
-{
-  return  [nsevent modifierFlags] 
-          | _modifier
-          | (dblClick ? MK_DOUBLE : 0);
-}
 
 void
 TWindow::_windowWillMove(NSNotification *notification)
