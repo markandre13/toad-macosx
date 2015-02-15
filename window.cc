@@ -701,7 +701,6 @@ static TRegion *updateRegion = 0;
   ke.type = TKeyEvent::DOWN;
   //twindow->keyEvent(ke);
   TFocusManager::handleEvent(ke);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -713,7 +712,6 @@ static TRegion *updateRegion = 0;
   ke.type = TKeyEvent::UP;
   //twindow->keyEvent(ke);
   TFocusManager::handleEvent(ke);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -874,7 +872,6 @@ if (me.type == TMouseEvent::LUP)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::ENTER;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -885,7 +882,6 @@ if (me.type == TMouseEvent::LUP)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::LEAVE;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -921,7 +917,6 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
 //  _inside = true;
   _doMouse(this, me);
-  executeMessages();
 }
 
 - (void) mouseUp:(NSEvent*)theEvent
@@ -955,7 +950,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   me.type = type;
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
   _doMouse(this, me);
-  executeMessages();
 }
 
 - (void) mouseDragged:(NSEvent*)theEvent
@@ -964,7 +958,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -974,7 +967,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 - (void) otherMouseDragged:(NSEvent*)theEvent
@@ -983,7 +975,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 
@@ -995,7 +986,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::MOVE;
   _doMouse(twindow, me);
-  executeMessages();
   TOAD_DBG_LEAVE
 }
 

@@ -133,9 +133,8 @@ toad::initialize(int argc, char *argv[])
 bool
 toad::mainLoop()
 {
-#if 0
-  return NSApplicationMain(global_argc,  (const char **) global_argv);
-#else
+  // this replaces NSApplicationMain(global_argc,  (const char **) global_argv);
+
 // sometimes we got the busy caret after the application was drawn
 // on the screen. inspector couldn't locate the source so this is
 // another try to hunt it down. (doesn't hang so far thus...)
@@ -168,10 +167,10 @@ toad::mainLoop()
 //cerr << __FILE__ << ":" << __LINE__ << endl;
     [app updateWindows];
 //cerr << __FILE__ << ":" << __LINE__ << endl;
+    executeMessages();
   } while(true);
 //cerr << __FILE__ << ":" << __LINE__ << endl;
   [pool release];
-#endif
 }
 
 void
