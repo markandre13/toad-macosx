@@ -210,7 +210,7 @@ TWindow::getRootPos(int *x,int *y)
 }
 
 void
-TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
+TWindow::placeWindow(EWindowPlacement how, TWindow *parent, TCoord dx, TCoord dy)
 {
   TCoord px, py;
   TCoord sw, sh;
@@ -294,6 +294,9 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent)
     case PLACE_TOOLTIP:
       break;
   }
+  
+  x+=dx;
+  y-=dy; // inverted Y-coord on Cocoa
 }
 
 /**

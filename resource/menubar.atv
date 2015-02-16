@@ -170,6 +170,12 @@ toad::TMenuLayout{
       }
     }
     toad::TMenuEntry {
+      name = "group"
+      label = "Group"
+      shortcut = "Ctrl+G"
+      icon = ""
+    }
+    toad::TMenuEntry {
       name = "order"
       label = "Order"
       shortcut = ""
@@ -198,12 +204,6 @@ toad::TMenuLayout{
         shortcut = "Shift+PgUp"
         icon = ""
       }
-    }
-    toad::TMenuEntry {
-      name = "group"
-      label = "Group"
-      shortcut = "Ctrl+G"
-      icon = ""
     }
     toad::TMenuEntry {
       name = "ungroup"

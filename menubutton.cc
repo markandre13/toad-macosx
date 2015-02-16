@@ -669,17 +669,10 @@ TMenuButton::openPopup()
     popup->btnmaster = this;
     popup->root.down = node->down;
 
-/*
-    int x,y;
-    getRootPos(&x, &y);
     if (master->vertical)
-      popup->setPosition(x+getWidth(), y);
+      popup->placeWindow(PLACE_PULLDOWN, this, getWidth(), -getHeight());
     else
-      popup->setPosition(x, y-getHeight());
-*/
-//popup->setPosition(10,20);
-//    popup->setSize(80,200);
-    popup->placeWindow(PLACE_PULLDOWN, this); // FIXME
+      popup->placeWindow(PLACE_PULLDOWN, this);
 
     popup->createWindow();
     DBM(cerr << "- openPopup " << this << "\n";)

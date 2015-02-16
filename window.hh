@@ -278,7 +278,7 @@ class TWindow:
       PLACE_PULLDOWN,
       PLACE_TOOLTIP
     };
-    void placeWindow(EWindowPlacement how, TWindow *parent=NULL);
+    void placeWindow(EWindowPlacement how, TWindow *parent=NULL, TCoord dx=0.0, TCoord dy=0.0);
     void windowEvent(const TWindowEvent &we);
     virtual void mouseEvent(const TMouseEvent &);
     virtual void mouseMove(const TMouseEvent &);
