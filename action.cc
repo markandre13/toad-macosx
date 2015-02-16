@@ -53,6 +53,10 @@ TAction::TAction(TInteractor *parent, const string &id, EActivation a)
   has_focus = false;
   has_domain_focus = true;
   enabled = true;
+
+  // FIXME: I need to throw some more brain on this statement
+  if (a==PARENT_FOCUS && parent && parent->getParent()==NULL) a = DOMAIN_FOCUS;
+
   activation = a;
   bitmap = 0;
   type = BUTTON;

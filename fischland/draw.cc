@@ -993,7 +993,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   mb->loadLayout(RESOURCE("menubar.atv"));
 
   TAction *a;
-  a = new TAction(this, "file|new", TAbstractChoice::DOMAIN_FOCUS);
+  a = new TAction(this, "file|new");
   CONNECT(a->sigClicked, this, menuNew);
   a = new TAction(this, "file|newview");
   CONNECT(a->sigClicked, this, menuNewView);
