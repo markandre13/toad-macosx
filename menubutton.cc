@@ -18,7 +18,7 @@
  * MA  02111-1307,  USA
  */
 
-#define DBM(CMD) CMD
+#define DBM(CMD)
 
 // debugging code added to implement popup menus
 #define DBM2(X)
@@ -624,7 +624,7 @@ void TMenuButton::mouseEnter(const TMouseEvent &m)
     case MHS_DOWN_N_OUTSIDE:
     case MHS_DOWN_N_HOLD:
       if (m.modifier()&(MK_LBUTTON|MK_RBUTTON) && node->isEnabled()) {
-cout << "  mouseEnter with mouse pressed" << endl;
+        DBM(cout << "  mouseEnter with mouse pressed" << endl;)
         stopat = this;
         if (master->active) {
           #warning "here is a dirty hack to avoid an unwanted close in deactivate"

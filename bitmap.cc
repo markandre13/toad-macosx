@@ -26,7 +26,7 @@ using namespace toad;
 
 TBitmap::~TBitmap()
 {
-  cerr << "release bitmap=" << this << ", image=" << img << endl;
+//  cerr << "release bitmap=" << this << ", image=" << img << endl;
   if (img)
     [img release];
 }

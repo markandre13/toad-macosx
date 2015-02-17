@@ -728,7 +728,9 @@ static void _doMouse2(TWindow *twindow, TMouseEvent &me)
       [[NSCursor arrowCursor] set];
   }
   
-  if (me.type == TMouseEvent::MOVE && !twindow->_allMouseMoveEvents)
+  if (me.type == TMouseEvent::MOVE &&
+      !(me.modifier() & MK_LBUTTON|MK_MBUTTON|MK_RBUTTON) &&
+      !twindow->_allMouseMoveEvents)
     return;
 
   me.window = twindow;
@@ -797,20 +799,18 @@ if (me.type == TMouseEvent::LUP || me.type == TMouseEvent::LDOWN) {
     }
   }
 
-cout << "_doMouse " << twindow << " " << twindow->getTitle() << " " << me.name() << ", over=" << (mouseOver?mouseOver->getTitle():"NULL") << endl;
+//cout << "_doMouse " << twindow << " " << twindow->getTitle() << " " << me.name() << ", over=" << (mouseOver?mouseOver->getTitle():"NULL") << endl;
 
   if (mouseOver != lastMouse) {
     if (lastMouse && lastMouse->_inside) {
-//cout << "leave " << lastMouse->getTitle() << endl;
-cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab)"<<endl;
+//cout << "set "<<lastMouse<<" " << lastMouse->getTitle() << "->inside=false (grab)"<<endl;
       lastMouse->_inside = false;
       TMouseEvent me2(me.nsevent, lastMouse);
       me2.type = TMouseEvent::LEAVE;
       _doMouse2(lastMouse, me2);
     }
     if (mouseOver && !mouseOver->_inside) {
-//cout << "enter " << twindow->getTitle() << endl;
-cout << "set "<<mouseOver<<" " << mouseOver->getTitle() << "->inside=true (grab)"<<endl;
+//cout << "set "<<mouseOver<<" " << mouseOver->getTitle() << "->inside=true (grab)"<<endl;
       mouseOver->_inside = true;
       TMouseEvent me2(me.nsevent, mouseOver);
       me2.type = TMouseEvent::ENTER;
@@ -826,15 +826,19 @@ cout << "set "<<mouseOver<<" " << mouseOver->getTitle() << "->inside=true (grab)
     }
     lastMouse = mouseOver;
   }
+  
+  if (me.type == TMouseEvent::ENTER ||
+      me.type == TMouseEvent::LEAVE)
+    return;
 
   if (grabPopupWindow) {
     if (mouseOver) {
-      cout << "  mouse over title=" << mouseOver->getTitle() << endl;
+//      cout << "  mouse over title=" << mouseOver->getTitle() << endl;
       twindow = mouseOver;
-    } else {
-      cout << "  not a toad window" << endl;
+//    } else {
+//      cout << "  not a toad window" << endl;
     }
-    cout << "  twindow="<<twindow<<", lastMouse="<<lastMouse<<", mouseOver="<<mouseOver<<endl;
+//    cout << "  twindow="<<twindow<<", lastMouse="<<lastMouse<<", mouseOver="<<mouseOver<<endl;
   }
 
   _doMouse2(twindow, me);
@@ -862,7 +866,6 @@ if (me.type == TMouseEvent::LUP)
 - (void) mouseEntered:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-//  twindow->_inside = true;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::ENTER;
   _doMouse(twindow, me);
@@ -872,7 +875,6 @@ if (me.type == TMouseEvent::LUP)
 - (void) mouseExited:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-//  twindow->_inside = false;
   TMouseEvent me(theEvent, twindow);
   me.type = TMouseEvent::LEAVE;
   _doMouse(twindow, me);
@@ -909,7 +911,6 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent me(theEvent, this);
   me.type = type;
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
-//  _inside = true;
   _doMouse(this, me);
 }
 
@@ -984,7 +985,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
 - (void) scrollWheel:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-//  cout << "scrollwheel" << [theEvent deltaX] << ", " << [theEvent deltaY] << ", " << [theEvent deltaZ] << endl;
   if ([theEvent deltaY] > 0.0) {
     twindow->_up(TMouseEvent::ROLL_UP, theEvent);
   } else {
