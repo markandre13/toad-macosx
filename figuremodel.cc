@@ -565,6 +565,44 @@ TFigureModel::group(TFigureSet &set)
   return group;
 }
 
+TFigure*
+TFigureModel::transform(TFigureSet &set, TFTransform *transform)
+{
+//  TUndoGroup *undo = new TUndoGroup(this);
+  
+  unsigned count = 0;
+  unsigned depth = 0;
+//  TFGroup *group = new TFGroup();
+//  undo->setGroup(group);
+  TStorage::iterator last;
+  for(TStorage::iterator p = storage.begin();
+      p!=storage.end(); ++depth)
+  {
+    if (set.find(*p)!=set.end()) {
+      transform->add(*p);
+//      undo->insert(*p, depth);
+      unsigned pi = p - storage.begin();
+      storage.erase(p);
+      last = p = storage.begin() + pi;
+      ++count;
+    } else {
+      ++p;
+    }
+  }
+  
+//  TUndoManager::registerUndo(this, undo);
+  
+  transform->init();
+  storage.insert(last, transform);
+  
+  type = GROUP;
+  figures.clear();
+  figure = transform;
+  sigChanged();
+  
+  return transform;
+}
+
 /**
  * Ungroup a given set of figures.
  *

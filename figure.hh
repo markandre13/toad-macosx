@@ -569,6 +569,38 @@ class TFGroup:
     void modelChanged();
 };
 
+class TFTransform:
+  public TFigure
+{
+    TFigureModel figures;
+    TPoint orig[4];
+    TPoint handle[4];
+
+    TPoint A, C, Du, E, F, G, H;
+    void prepare();
+    
+    TPoint transform(const TPoint&) const;
+  public:
+    void add(TFigure *f) { figures.add(f); }
+    void init();
+    void paint(TPenBase&, EPaintType) override;
+    void getShape(TRectangle*) override;
+
+    void translate(TCoord dx, TCoord dy);
+    TCoord _distance(TFigureEditor *fe, TCoord mx, TCoord my) override;
+    bool getHandle(unsigned n, TPoint *p) override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
+
+    TCloneable* clone() const { return new TFTransform(*this); }
+    const char * getClassName() const { return "toad::TFTransformPerspective"; }
+    void store(TOutObjectStream&) const;
+    bool restore(TInObjectStream&);
+};
+
+// class TFTransformPerspective
+// class TFTransformBezier
+// ...
+
 class TFImage:
   public TFigure
 {

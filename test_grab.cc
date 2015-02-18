@@ -63,90 +63,75 @@ TCoord B(long i, long n, TCoord t)
   return C(n, i) * pow(t, i) * pow(1-t, n-i);
 }
 
-TPoint pE, pF, pG, pH, pJ, pK;
+TPoint E, F, G, H, J, K;
 
 // two vanishing point perspective
-TPoint transferPoint (TCoord xI, TCoord yI, TPoint *source, TPoint *destination)
+static TPoint
+transferPoint (const TPoint &I, TPoint *source, TPoint *destination)
 {
     TCoord ADDING = 0.001; // to avoid dividing by zero
 
-    TCoord xA = source[0].x;
-    TCoord yA = source[0].y;
+    TPoint A = source[0];
+    TPoint C = source[2];
 
-    TCoord xC = source[2].x;
-    TCoord yC = source[2].y;
-
-    TCoord xAu = destination[0].x;
-    TCoord yAu = destination[0].y;
-
-    TCoord xBu = destination[1].x;
-    TCoord yBu = destination[1].y;
-
-    TCoord xCu = destination[2].x;
-    TCoord yCu = destination[2].y;
-
-    TCoord xDu = destination[3].x;
-    TCoord yDu = destination[3].y;
+    TPoint Au = destination[0];
+    TPoint Bu = destination[1];
+    TPoint Cu = destination[2];
+    TPoint Du = destination[3];
 
     // if points are the same, have to add a ADDING to avoid dividing by zero
-    if (xBu==xCu) xCu+=ADDING;
-    if (xAu==xDu) xDu+=ADDING;
-    if (xAu==xBu) xBu+=ADDING;
-    if (xDu==xCu) xCu+=ADDING;
-    TCoord kBC = (yBu-yCu)/(xBu-xCu);
-    TCoord kAD = (yAu-yDu)/(xAu-xDu);
-    TCoord kAB = (yAu-yBu)/(xAu-xBu);
-    TCoord kDC = (yDu-yCu)/(xDu-xCu);
+    if (Bu.x==Cu.x) Cu.x+=ADDING;
+    if (Au.x==Du.x) Du.x+=ADDING;
+    if (Au.x==Bu.x) Bu.x+=ADDING;
+    if (Du.x==Cu.x) Cu.x+=ADDING;
+    TCoord kBC = (Bu.y-Cu.y)/(Bu.x-Cu.x);
+    TCoord kAD = (Au.y-Du.y)/(Au.x-Du.x);
+    TCoord kAB = (Au.y-Bu.y)/(Au.x-Bu.x);
+    TCoord kDC = (Du.y-Cu.y)/(Du.x-Cu.x);
 
     if (kBC==kAD) kAD+=ADDING;
-    TCoord xE = (kBC*xBu - kAD*xAu + yAu - yBu) / (kBC-kAD);
-    TCoord yE = kBC*(xE - xBu) + yBu;
-pE.set(xE, yE);
+    E.x = (kBC*Bu.x - kAD*Au.x + Au.y - Bu.y) / (kBC-kAD);
+    E.y = kBC*(E.x - Bu.x) + Bu.y;
 
     if (kAB==kDC) kDC+=ADDING;
-    TCoord xF = (kAB*xBu - kDC*xCu + yCu - yBu) / (kAB-kDC);
-    TCoord yF = kAB*(xF - xBu) + yBu;
-pF.set(xF, yF);
+    F.x = (kAB*Bu.x - kDC*Cu.x + Cu.y - Bu.y) / (kAB-kDC);
+    F.y = kAB*(F.x - Bu.x) + Bu.y;
 
-    if (xE==xF) xF+=ADDING;
-    TCoord kEF = (yE-yF) / (xE-xF);
+    if (E.x==F.x) F.x+=ADDING;
+    TCoord kEF = (E.y-F.y) / (E.x-F.x);
 
     if (kEF==kAB) kAB+=ADDING;
-    TCoord xG = (kEF*xDu - kAB*xAu + yAu - yDu) / (kEF-kAB);
-    TCoord yG = kEF*(xG - xDu) + yDu;
-pG.set(xG, yG);
+    G.x = (kEF*Du.x - kAB*Au.x + Au.y - Du.y) / (kEF-kAB);
+    G.y = kEF*(G.x - Du.x) + Du.y;
 
     if (kEF==kBC) kBC+=ADDING;
-    TCoord xH = (kEF*xDu - kBC*xBu + yBu - yDu) / (kEF-kBC);
-    TCoord yH = kEF*(xH - xDu) + yDu;
-pH.set(xH, yH);
+    H.x = (kEF*Du.x - kBC*Bu.x + Bu.y - Du.y) / (kEF-kBC);
+    H.y = kEF*(H.x - Du.x) + Du.y;
 
-    TCoord rG = (yC-yI)/(yC-yA);
-    TCoord rH = (xI-xA)/(xC-xA);
+// ---
 
-    TCoord xJ = (xG-xDu)*rG + xDu;
-    TCoord yJ = (yG-yDu)*rG + yDu;
-pJ.set(xJ, yJ);
+    TCoord rG = (C.y-I.y)/(C.y-A.y);
+    TCoord rH = (I.x-A.x)/(C.x-A.x);
 
-    TCoord xK = (xH-xDu)*rH + xDu;
-    TCoord yK = (yH-yDu)*rH + yDu;
-pK.set(xK, yK);
+    J.x = (G.x-Du.x)*rG + Du.x;
+    J.y = (G.y-Du.y)*rG + Du.y;
 
+    K.x = (H.x-Du.x)*rH + Du.x;
+    K.y = (H.y-Du.y)*rH + Du.y;
 
-    if (xF==xJ) xJ+=ADDING;
-    if (xE==xK) xK+=ADDING;
-    TCoord kJF = (yF-yJ) / (xF-xJ); //23
-    TCoord kKE = (yE-yK) / (xE-xK); //12
+    if (F.x==J.x) J.x+=ADDING;
+    if (E.x==K.x) K.x+=ADDING;
+    TCoord kJF = (F.y-J.y) / (F.x-J.x); //23
+    TCoord kKE = (E.y-K.y) / (E.x-K.x); //12
 
     TCoord xKE;
     if (kJF==kKE) kKE+=ADDING;
-    TCoord xIu = (kJF*xF - kKE*xE + yE - yF) / (kJF-kKE);
-    TCoord yIu = kJF * (xIu - xJ) + yJ;
 
-    return TPoint(xIu, yIu); 
-//    b.x=Math.round(b.x);
-//    b.y=Math.round(b.y);
-//    return b;
+    TPoint Iu;
+    Iu.x = (kJF*F.x - kKE*E.x + E.y - F.y) / (kJF-kKE);
+    Iu.y = kJF * (Iu.x - J.x) + J.y;
+
+    return Iu;
 }
 
 
@@ -206,7 +191,7 @@ for(int i=0; i<=3; ++i) {
   
   TPoint r[4];
   for(int k=0; k<4; ++k) {
-    TPoint pt = transferPoint(q[k].x, q[k].y, p0, p);
+    TPoint pt = transferPoint(q[k], p0, p);
     r[k].x = pt.x;
     r[k].y = pt.y;
   }
@@ -216,12 +201,12 @@ for(int i=0; i<=3; ++i) {
   pen.fillBezier(r, 4);
 
 pen.setColor(0,0,0);
-pen.drawString(pE.x, pE.y, "E"); // top/bottom
-pen.drawString(pF.x, pF.y, "F"); // left/right
-pen.drawString(pG.x, pG.y, "G");
-pen.drawString(pH.x, pH.y, "H");
-pen.drawString(pJ.x, pJ.y, "J");
-pen.drawString(pK.x, pK.y, "K");
+pen.drawString(E.x, E.y, "E"); // top/bottom
+pen.drawString(F.x, F.y, "F"); // left/right
+pen.drawString(G.x, G.y, "G");
+pen.drawString(H.x, H.y, "H");
+pen.drawString(J.x, J.y, "J");
+pen.drawString(K.x, K.y, "K");
 
 #endif
   

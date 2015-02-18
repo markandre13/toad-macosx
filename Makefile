@@ -22,6 +22,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
 	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
+	   figure/transform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
 	   stacktrace.cc \
 	   \
@@ -806,6 +807,22 @@ figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/line.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 figure/line.o: include/toad/figuretool.hh include/toad/core.hh
 figure/line.o: include/toad/pen.hh
+figure/transform.o: include/toad/figure.hh include/toad/penbase.hh
+figure/transform.o: include/toad/color.hh include/toad/types.hh
+figure/transform.o: include/toad/io/serializable.hh
+figure/transform.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/transform.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/transform.o: include/toad/window.hh include/toad/interactor.hh
+figure/transform.o: include/toad/cursor.hh include/toad/region.hh
+figure/transform.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+figure/transform.o: include/toad/model.hh include/toad/connect.hh
+figure/transform.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
+figure/transform.o: include/toad/undo.hh include/toad/boolmodel.hh
+figure/transform.o: include/toad/textmodel.hh include/toad/integermodel.hh
+figure/transform.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+figure/transform.o: include/toad/figure/createtool.hh
+figure/transform.o: include/toad/figuretool.hh include/toad/core.hh
+figure/transform.o: include/toad/pen.hh
 figure/rectangle.o: include/toad/figure.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh

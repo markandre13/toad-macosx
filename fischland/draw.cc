@@ -824,9 +824,9 @@ TMainWindow::menuCopyright()
   messageBox(
     this, 
     "Fischland -- Copyright",
-    "Fischland v0.6 -- A 2D vector graphics editor\n"
+    "Fischland alpha -- A 2D vector graphics editor\n"
     "\n"
-    "Copyright (C) 2003-2005 by Mark-André Hopf <mhopf@mark13.org>\n"
+    "Copyright (C) 2003-2015 by Mark-André Hopf <mhopf@mark13.org>\n"
     "Visit http://www.mark13.org/fischland/.\n"
     "\n"
     "Pencil curve smoothing code was taken from Xara LX,\n"
@@ -998,75 +998,6 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   a = new TAction(this, "file|newview");
   CONNECT(a->sigClicked, this, menuNewView);
 
-#if 0
-a = new TAction(this, "file|xxx");
-TCLOSURE1(
-  a->sigClicked,
-  e, me,
-  
-  e->addFigure(new TFRectangle(50,50,100,50));
-  TFigure *f = new TFRectangle(50,50,100,50);
-  e->addFigure(f);
-  
-  TRotateTool *t = TRotateTool::getTool();
-  e->setTool(t);
-  
-  TMouseEvent me(0,0);
-  TRectangle v(e->getVisible());
-
-  // rotate by 90°
-  me.type = TMouseEvent::LDOWN;
-  me.x    = 50 + v.x;
-  me.y    = 50 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::MOVE;
-  me.x    = 125 + v.x;
-  me.y    =  25 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::LUP;
-  me.x    = 125 + v.x;
-  me.y    =  25 + v.y;
-  t->mouseEvent(e, me);
-  
-  // move origin
-  me.type = TMouseEvent::LDOWN;
-  me.x    = 100 + v.x;
-  me.y    =  75 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::MOVE;
-  me.x    =  75 + v.x;
-  me.y    =  25 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::LUP;
-  me.x    =  75 + v.x;
-  me.y    =  25 + v.y;
-  t->mouseEvent(e, me);
-  
-  // rotate again
-  me.type = TMouseEvent::LDOWN;
-  me.x    = 125 + v.x;
-  me.y    =  25 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::MOVE;
-  me.x    = 125 + v.x;
-  me.y    =   0 + v.y;
-  t->mouseEvent(e, me);
-
-  me.type = TMouseEvent::LUP;
-  me.x    = 125 + v.x;
-  me.y    =   0 + v.y;
-  t->mouseEvent(e, me);
-  
-  TWindow *w = new TTestWindow(0, t, f);
-  w->createWindow();
-);
-#endif
-  
   a = new TAction(this, "file|open");
   CONNECT(a->sigClicked, this, menuOpen);
   a = new TAction(this, "file|save");
@@ -1081,21 +1012,20 @@ TCLOSURE1(
   CONNECT(a->sigClicked, this, closeRequest);
   
   a = new TAction(this, "edit|insert_image");
-#if 1
   connect(a->sigClicked, [me] {
     TFImage *img = new TFImage();
     img->startInPlace();
     me->addFigure(img);
   });
-#else  
-  TCLOSURE1(
-    a->sigClicked,
-    gw, me,
-    TFImage *img = new TFImage();
-    img->startInPlace();
-    gw->addFigure(img);
-  )
-#endif
+  
+  a = new TAction(this, "object|transform|perspective");
+  connect(a->sigClicked, [me] {
+    if (me->getModel() && !me->selection.empty()) {
+      cout << "perspective" << endl;
+      me->getModel()->transform(me->selection, new TFTransform);
+    }
+  });
+
   a = new TAction(this, "slide|slides");
   CONNECT(a->sigClicked, this, menuSlides);
 

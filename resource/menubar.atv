@@ -176,6 +176,37 @@ toad::TMenuLayout{
       icon = ""
     }
     toad::TMenuEntry {
+      name = "ungroup"
+      label = "Ungroup"
+      shortcut = "Shift+Ctrl+G"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "transform"
+      label = "Transform"
+      icon = ""
+      toad::TMenuEntry {
+        name = "linear"
+        label = "Linear"
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "perspective"
+        label = "Perspective"
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "bezier"
+        label = "Beziér"
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "whirl"
+        label = "Whirl"
+        icon = ""
+      }
+    }
+    toad::TMenuEntry {
       name = "order"
       label = "Order"
       shortcut = ""
@@ -204,12 +235,6 @@ toad::TMenuLayout{
         shortcut = "Shift+PgUp"
         icon = ""
       }
-    }
-    toad::TMenuEntry {
-      name = "ungroup"
-      label = "Ungroup"
-      shortcut = "Shift+Ctrl+G"
-      icon = ""
     }
     toad::TMenuEntry {
       name = "path"
