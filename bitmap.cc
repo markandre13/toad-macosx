@@ -98,3 +98,17 @@ TBitmap::setPixel(TCoord x, TCoord y, TCoord r, TCoord g, TCoord b)
   CGContextAddRect(ctx, CGRectMake(x, height - y - 1, 1, 1));
   CGContextDrawPath(ctx, kCGPathFill);
 }
+
+void
+TBitmap::getPixel(TCoord x, TCoord y, TCoord *r, TCoord *g, TCoord *b)
+{
+  if (!img || x<0 || y<0 || x>=width || y>=height) {
+    *r = *g = *b = 0;
+    return;
+  }
+  NSUInteger data[6]; // FIXME: hardcoded format
+  [img getPixel: data atX: x y: y];
+  *r = data[0]/255.0;
+  *g = data[1]/255.0;
+  *b = data[2]/255.0;
+}

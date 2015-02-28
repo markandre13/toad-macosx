@@ -79,6 +79,44 @@ class TFigureEditEvent
     TMouseEvent *mouse;
 };
 
+// wrapper for NSBezierPath or cairo_path_t
+class TPath
+{
+    NSBezierPath *path;
+    
+  public:
+    TPath() { path = [[NSBezierPath alloc] init]; }
+    ~TPath() { [path dealloc]; }
+    
+    void move(const TPoint &p) { [path moveToPoint: p]; }
+    void line(const TPoint &p) { [path lineToPoint: p]; }
+    void curve(const TPoint &p0, const TPoint &p1, const TPoint &p2) {
+      [path curveToPoint: p0 controlPoint1: p1 controlPoint2: p2];
+    }
+    void close() { [path closePath]; }
+    
+    void stroke() { [path stroke]; }
+    
+    TRectangle bounds() const {
+      NSRect r = [path bounds];
+      return TRectangle(r.origin.x, r.origin.y, r.size.width, r.size.height);
+    }
+    TRectangle editBounds() const {
+      NSRect r = [path controlPointBounds];
+      return TRectangle(r.origin.x, r.origin.y, r.size.width, r.size.height);
+    }
+    enum EType {
+      MOVE = NSMoveToBezierPathElement,
+      LINE = NSLineToBezierPathElement,
+      CURVE = NSCurveToBezierPathElement,
+      CLOSE = NSClosePathBezierPathElement
+    };
+    int size() const { return [path elementCount]; }
+    EType point(int idx, TPoint *pts=0) { 
+      return (EType)[path elementAtIndex: idx associatedPoints: pts];
+    }
+};
+
 /**
  * \ingroup figure
  *
@@ -90,6 +128,8 @@ class TFigure:
     TFigure();
     TFigure(const TFigure &);
     virtual ~TFigure();
+    
+    virtual TPath *getPath() { return NULL; }
 
     virtual bool editEvent(TFigureEditEvent &ee);
     
@@ -121,7 +161,10 @@ class TFigure:
      */
     virtual void getShape(TRectangle*) = 0;
 
-  public:    
+  public:
+  
+    // FIXME: the base class of TFigure shouldn't have any attributes
+  
     /**
      * 'true' when TFigureEditor is allowed to delete this object.
      */

@@ -54,6 +54,7 @@ class TBitmap:
     unsigned getWidth() const { return width; }
     unsigned getHeight() const { return height; }
     void setPixel(TCoord x, TCoord y, TCoord r, TCoord g, TCoord b);
+    void getPixel(TCoord x, TCoord y, TCoord *r, TCoord *g, TCoord *b);
     unsigned width, height;
   private:
     TBitmap(const TBitmap&) {}

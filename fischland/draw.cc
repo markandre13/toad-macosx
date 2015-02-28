@@ -1319,6 +1319,8 @@ void test_dialog();
 void test_cursor();
 void test_colordialog();
 void test_grab();
+void test_path();
+void test_image();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1369,6 +1371,18 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-grab")==0) {
       toad::initialize(argc, argv);
       test_grab();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-path")==0) {
+      toad::initialize(argc, argv);
+      test_path();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-image")==0) {
+      toad::initialize(argc, argv);
+      test_image();
       toad::terminate();
       return 0;
     }
