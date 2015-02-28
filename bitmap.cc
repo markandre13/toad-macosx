@@ -92,11 +92,12 @@ TBitmap::setPixel(TCoord x, TCoord y, TCoord r, TCoord g, TCoord b)
     CGContextAddRect(ctx, CGRectMake(0, 0, width, height));
     CGContextDrawPath(ctx, kCGPathFill);
   }
-
-  CGContextRef ctx = (CGContextRef)[[NSGraphicsContext graphicsContextWithBitmapImageRep:img] graphicsPort];
-  CGContextSetRGBFillColor(ctx, r, g, b, 1.0);
-  CGContextAddRect(ctx, CGRectMake(x, height - y - 1, 1, 1));
-  CGContextDrawPath(ctx, kCGPathFill);
+  NSUInteger data[4];
+  data[0] = r*255;
+  data[1] = g*255;
+  data[2] = b*255;
+  data[3] = 255;
+  [img setPixel: data atX: x y: y];
 }
 
 void
@@ -106,7 +107,7 @@ TBitmap::getPixel(TCoord x, TCoord y, TCoord *r, TCoord *g, TCoord *b)
     *r = *g = *b = 0;
     return;
   }
-  NSUInteger data[6]; // FIXME: hardcoded format
+  NSUInteger data[4];
   [img getPixel: data atX: x y: y];
   *r = data[0]/255.0;
   *g = data[1]/255.0;

@@ -54,16 +54,18 @@ class TMyWindow:
   public TWindow
 {
     int handle;
+    bool bitmapDirty;
   public:
     TMyWindow(TWindow *parent, const string &title):
       TWindow(parent, title)
     {
       setSize(800, 600);
       handle = -1;
+      bitmapDirty = true;
     }
     
     void paint() override;
-    void paintTransform(TPen &pen);
+    void transformBitmap();
     void mouseEvent(const TMouseEvent&) override;
 };
 
@@ -86,6 +88,7 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
       if (handle==-1)
         break;
       dst[handle] = me.pos;
+      bitmapDirty = true;
       invalidateWindow();
       break;
     case TMouseEvent::LUP:
@@ -202,14 +205,17 @@ format(const char *fmt, ...)
 }
 
 void
-TMyWindow::paintTransform(TPen &pen)
+TMyWindow::transformBitmap()
 {
+  if (bdst.img) {
+    unsigned char *data = [bdst.img bitmapData];
+    memset(data, 0, 4* bdst.width* bdst.height);
+  }
+
   TPoint A(dst[0]);
   TPoint B(dst[1]);
   TPoint C(dst[2]);
   TPoint D(dst[3]);
-  
-pen.setColor(0.5, 0.5, 0.5);
 
   TPoint p0=dst[0], p1=dst[0];
   for(int i=1; i<4; ++i) {
@@ -238,8 +244,9 @@ pen.setColor(0.5, 0.5, 0.5);
       TCoord r,g,b;
       bsrc.getPixel(x*bsrc.width, y*bsrc.height, &r, &g ,&b);
 //cout << a*174 << ", " << b*255 << endl;
-      pen.setColor(r,g,b);
-      pen.fillRectangle(Q.x, Q.y, 1,1);
+//      pen.setColor(r,g,b);
+//      pen.fillRectangle(Q.x, Q.y, 1,1);
+      bdst.setPixel(Q.x, Q.y, r, g, b);
     }
   }
 }
@@ -247,21 +254,16 @@ pen.setColor(0.5, 0.5, 0.5);
 void
 TMyWindow::paint()
 {
+  if (bitmapDirty) {
+    transformBitmap();
+    bitmapDirty = false;
+  }
+
   TPen pen(this);
   pen.translate(0.5, 0.5);
 
-#if 0
-  for(TCoord x=0; x<174; ++x) {
-    for(int y=0; y<255; ++y) {
-      TCoord r,g,b;
-      bsrc.getPixel(x,y,&r,&g,&b);
-      bdst.setPixel(x+200, y+20, r,g,b);
-    }
-  }
   pen.drawBitmap(0,0,bdst);
-#endif
   pen.drawBitmap(0,0,bsrc);
-  paintTransform(pen);
   
   TPoint A(dst[0]);
   TPoint B(dst[1]);
