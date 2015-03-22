@@ -2,6 +2,12 @@
 
 namespace fischland {
 
+/**
+ * Split a Bézier Curve at a.
+ * \param[in]  a 5 points of a cubic bézier curve
+ * \param[out] p 7 points of two cubic bézier curves
+ * \param[int] u a value between 0 and 1
+ */
 void
 divideBezier(const TPoint *a, TPoint *p, TCoord u)
 {
@@ -42,6 +48,9 @@ divideBezier(const TPoint *a, TPoint *p, TCoord u)
   p[3].y = p[2].y+(p[4].y-p[2].y)*u;
 }
 
+/**
+ * Split a path of bézier curves at u
+ */
 void
 divideBezier(const TFPath *a, TPoint *p, TCoord u)
 {
