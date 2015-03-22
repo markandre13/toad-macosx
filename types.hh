@@ -45,8 +45,6 @@ struct TPoint:
   TPoint(const TPoint &p) {x=p.x; y=p.y;}
   TPoint(TCoord inX, TCoord inY) { x=inX; y=inY; }
   void set(TCoord a, TCoord b) { x=a;y=b; }
-  bool operator==(const TPoint &p) { return x==p.x && y==p.y; }
-  bool operator!=(const TPoint &p) { return x!=p.x || y!=p.y; }
   const TPoint& operator+=(const TPoint &a) {
     x += a.x;
     y += a.y;
@@ -57,13 +55,28 @@ struct TPoint:
     y -= a.y;
     return *this;
   }
+  TPoint operator-() {
+    return TPoint(-x, -y);
+  }
 };
 
+inline bool operator==(const TPoint &a, const TPoint &b) {
+  return a.x==b.x && a.y==b.y;
+}
+inline bool operator!=(const TPoint &a, const TPoint &b) {
+  return a.x!=b.x || a.y!=b.y;
+}
 inline TPoint operator-(const TPoint &a, const TPoint &b) {
   return TPoint(a.x-b.x, a.y-b.y);
 }
 inline TPoint operator+(const TPoint &a, const TPoint &b) {
   return TPoint(a.x+b.x, a.y+b.y);
+}
+inline TPoint operator*(TCoord a, const TPoint &b) {
+  return TPoint(a*b.x, a*b.y);
+}
+inline TPoint operator*(const TPoint &b, TCoord a) {
+  return TPoint(a*b.x, a*b.y);
 }
 
 inline ostream& operator<<(ostream &s, const TPoint& p) {
@@ -93,6 +106,7 @@ struct Box
   bool isInsideOf(const Box &box) const { return x1 >= box.x1 && y1 >= box.y1 && x2 <= box.x2 && y2 <= box.y2; }
   bool isOverlapping(const Box &box) const { return x2 > box.x1 && y2 > box.y1 && x1 < box.x2 && y1 < box.y2; }
   bool isOverlapping(const TRectangle &rectangle) const;
+  bool intersects(const Box &r) const;
   void translate(TCoord dx, TCoord dy) { x1 += dx; y1 += dy; x2 += dx; y2 += dy; }
 };
 
