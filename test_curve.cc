@@ -18,6 +18,34 @@
  */
 
 /*
+ * Paper.js - The Swiss Army Knife of Vector Graphics Scripting.
+ * http://paperjs.org/
+ *
+ * Copyright (c) 2011 - 2014, Juerg Lehni & Jonathan Puckey
+ * http://scratchdisk.com/ & http://jonathanpuckey.com/
+ *
+ * All rights reserved.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */   
+
+
+/*
   playing around with paths
   o cairo/cocoa compatible path representation
   o bézier curve intersection
@@ -353,6 +381,7 @@ divideBezier(const TPoint *a, TPoint *p, TCoord min, TCoord max)
 }
 
 // Curve intersection using Bézier clipping by T.W.Sederberg and T.Nishita
+// written with looking at the code of paperjs and inkscape
 
 /**
  * \param p line to be clipped
@@ -487,6 +516,8 @@ clipToFatLine(const TPoint *p, const TPoint *q, TPen &pen, unsigned depth, TCoor
 
 unsigned deeptimer;
 
+static const TCoord tolerance = 10e-6;
+
 void
 bezierClipping(TPen &pen,
                const TPoint *p,
@@ -503,7 +534,6 @@ bezierClipping(TPen &pen,
     return;
   }
 
-TCoord tolerance = 0.000001;
 
   TPoint pClipped[4];
   
@@ -511,12 +541,12 @@ TCoord tolerance = 0.000001;
   if (q[0].x == q[3].x && qMax - qMin <= tolerance && depth > 3) {
     pMaxNew = pMinNew = (pMax + pMin) / 2.0;
     pDiff = 0.0;
-cout << "depth " << depth << ": nothing to clip" << endl;
+//cout << "depth " << depth << ": nothing to clip" << endl;
   } else {
     TCoord pMinClip, pMaxClip;
     clipToFatLine(p, q, pen, depth, &pMinClip, &pMaxClip);
     if (pMinClip > pMaxClip) {
-      cout << "no fat line overlap" << endl;
+//      cout << "no fat line overlap" << endl;
       return;
     }
 
@@ -527,19 +557,19 @@ cout << "depth " << depth << ": nothing to clip" << endl;
 
     pMinNew = pMax * pMinClip + pMin * (1 - pMinClip);
     pMaxNew = pMax * pMaxClip + pMin * (1 - pMaxClip);
-cout << "depth " << depth << ": clipped to " << pMinNew << "-" << pMaxNew << " (diff=" << pDiff << ")" << endl;
+//cout << "depth " << depth << ": clipped to " << pMinNew << "-" << pMaxNew << " (diff=" << pDiff << ")" << endl;
   }
 
   if (oldPDiff > 0.5 && pDiff > 0.5) {
     TPoint o[7];
     if (pMaxNew - pMinNew > qMax - qMin) {
-cout << "  subdivide p" << endl;
+//cout << "  subdivide p" << endl;
       divideBezier(p, o, 0.5);
       TCoord pMiddle =  pMinNew + (pMaxNew - pMinNew) / 2;
       bezierClipping(pen, q, o  , Q, P, qMin, qMax, pMinNew, pMiddle, pDiff, depth+1);
       bezierClipping(pen, q, o+3, Q, P, qMin, qMax, pMiddle, pMaxNew, pDiff, depth+1);
     } else {
-cout << "  subdivide q" << endl;
+//cout << "  subdivide q" << endl;
       divideBezier(q, o, 0.5);
       TCoord qMiddle =  qMin + (qMax - qMin) / 2;
       bezierClipping(pen, o  , p, Q, P, qMin, qMiddle, pMinNew, pMaxNew, pDiff, depth+1);
@@ -557,13 +587,111 @@ cout << "  subdivide q" << endl;
       pt += P[j] * B(j, 3, t1);
     pen.setColor(1,0,0);
     pen.drawCircle(pt.x-2, pt.y-2, 3,3);
-    cout << "got one at " << t1 << endl;
+//    cout << "got one at " << t1 << endl;
     return;
   }
   if (pDiff > 0)
     bezierClipping(pen, q, p, Q, P, qMin, qMax, pMinNew, pMaxNew, pDiff, depth+1);
 }
 
+/**
+   * Solves the quadratic polynomial with coefficients a, b, c for roots
+   * (zero crossings) and and returns the solutions in an array.
+   *
+   * a*x^2 + b*x + c = 0
+   */
+static int
+solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots) {
+  // After Numerical Recipes in C, 2nd edition, Press et al.,
+  // 5.6, Quadratic and Cubic Equations
+  // If problem is actually linear, return 0 or 1 easy roots
+  if (fabs(a) < tolerance) {
+    if (fabs(b) >= tolerance) {
+      roots[0] = -c / b;
+      return 1;
+    }
+    // If all the coefficients are 0, infinite values are possible!
+    if (fabs(c) < tolerance)
+      return -1; // Infinite solutions
+    return 0; // 0 solutions
+  }
+  TCoord q = b * b - 4 * a * c;
+  if (q < 0)
+    return 0; // 0 solutions
+  q = sqrt(q);
+  if (b < 0)
+    q = -q;
+  q = (b + q) * -0.5;
+  int n = 0;
+  if (fabs(q) >= tolerance)
+    roots[n++] = c / q;
+  if (fabs(a) >= tolerance)
+    roots[n++] = q / a;
+  return n; // 0, 1 or 2 solutions
+}
+
+
+// Code ported and further optimised from:
+// http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
+static void
+add(TCoord value, TCoord padding, int coord, TPoint &min, TPoint &max) {
+  TCoord left = value - padding, 
+         right = value + padding;
+  if (coord==0) {
+    if (left < min.x) 
+      min.x = left; 
+    if (right > max.x)
+      max.x = right; 
+  } else {
+    if (left < min.y) 
+      min.y = left; 
+    if (right > max.y)
+      max.y = right; 
+  }
+}
+
+static void
+_addBounds(TCoord v0, TCoord v1, TCoord v2, TCoord v3, int coord, TCoord padding, TPoint &min, TPoint &max)
+{
+  // Calculate derivative of our bezier polynomial, divided by 3.
+  // Doing so allows for simpler calculations of a, b, c and leads to the
+  // same quadratic roots.
+  TCoord a = 3 * (v1 - v2) - v0 + v3,
+         b = 2 * (v0 + v2) - 4 * v1,
+         c = v1 - v0;
+  TCoord roots[2];
+  int count = solveQuadratic(a, b, c, roots);
+  // Add some tolerance for good roots, as t = 0, 1 are added
+  // separately anyhow, and we don't want joins to be added with radii
+  // in getStrokeBounds()
+  TCoord tMin = tolerance,
+         tMax = 1 - tMin;
+  // Only add strokeWidth to bounds for points which lie  within 0 < t < 1
+  // The corner cases for cap and join are handled in getStrokeBounds()
+  add(v3, 0, coord, min, max);
+  for (int i = 0; i < count; i++) {
+     TCoord t = roots[i],
+            u = 1 - t;
+     // Test for good roots and only add to bounds if good.
+     if (tMin < t && t < tMax) {
+       // Calculate bezier polynomial at t.
+       add(u * u * u * v0
+           + 3 * u * u * t * v1
+           + 3 * u * t * t * v2
+           + t * t * t * v3,
+           padding, coord, min, max);
+     }
+  }
+}
+
+TRectangle bounds(const TPoint *v)
+{
+  TPoint min = v[0];
+  TPoint max = v[0];
+  _addBounds(v[0].x, v[1].x, v[2].x, v[3].x, 0, 0, min, max);
+  _addBounds(v[0].y, v[1].y, v[2].y, v[3].y, 1, 0, min, max);
+  return TRectangle(min.x, min.y, max.x - min.x, max.y - min.y);
+}
 
 void
 TMyWindow::paint()
@@ -608,6 +736,16 @@ cout << "paint --------------------- " << endl;
   bezierClipping(pen, curve.data(), curve.data()+4, curve.data(), curve.data()+4);
   if (deeptimer)
     cout << deeptimer << " times too deep" << endl;
+
+  pen.setColor(1,0.5,0);
+
+  TRectangle r = bounds(curve.data());
+cout << "bounds: " << r << endl;
+
+//r.w=100;
+//r.h=100;
+  pen.drawRectangle(r);
+//  pen.drawRectangle(bounds(curve.data()+4));
 }
 
 } // unnamed namespace
