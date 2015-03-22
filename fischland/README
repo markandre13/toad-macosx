@@ -206,3 +206,18 @@ TToolBox
   TPenTool
   TPencilTool
   TFillTool
+
+Curve Intersection Algorithms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+o Bézier Subdivision (that's the one I implemented)
+  Subdivide the Bézier and check their bounding boxes for overlaps.
+  (Overlapping bounding boxes are faster to calculate than overlapping
+  convex hulls.)
+o Interval Subdivision
+o Implizitation (fastest for n<=4)
+o Bézier Clipping (fastest for n>=5)
+
+Convex Hull Algorithms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+o Graham's Scan Algorithm
+o Andrew's Scan Algorithm

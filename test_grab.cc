@@ -43,7 +43,7 @@ class TMyWindow:
     void mouseEvent(const TMouseEvent&) override;
 };
 
-// Fakult‰t
+// Fakult√§t
 long fak(long n) {
   long r=1;
   for(long i=2; i<=n; ++i)

@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2015 by Mark-AndrÃ© Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -37,17 +37,17 @@ TBitmap bdst;
 
 TPoint src[4] = {
   { 0, 0 },
-  { 174, 0 },
-  { 174, 255 },
-  { 0, 255 }
+  { 375, 0 },
+  { 375, 297 },
+  { 0, 297 }
 };
 
 TPoint dst[5] = {
   { 360, 20 },
-  { 360+174, 20 },
-  { 360+174, 20+255 },
-  { 360, 20+255 },
-  { 360+174/2, 20+255/2 },
+  { 360+375, 20 },
+  { 360+375, 20+297 },
+  { 360, 20+297 },
+  { 360+375/2, 20+297/2 },
 };
 
 class TMyWindow:
@@ -283,8 +283,8 @@ TMyWindow::paint()
     F = Q + (D-C);
   intersection(A,D, F,Q, &I, &b);
 
-  pen.setColor(1,0,0);
-  pen.drawPolygon(src, 4);
+//  pen.setColor(1,0,0);
+//  pen.drawPolygon(src, 4);
   pen.setColor(0,0.5,1);
   pen.drawPolygon(dst, 4);
   pen.drawCircle(dst[4].x-3, dst[4].y-3, 7, 7);
@@ -316,7 +316,7 @@ void
 test_image()
 {
   TMyWindow wnd(NULL, "test image");
-  bsrc.load("test.jpg"); // 174x255
+  bsrc.load("test.jpg"); // 375x297
   bdst.width = 800;
   bdst.height = 600;
   
