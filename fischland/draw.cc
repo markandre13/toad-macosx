@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2015 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -912,63 +912,6 @@ TMainWindow::editorModified()
   }
 }
 
-#if 0
-class TTestWindow: public TWindow
-{
-    TRotateTool *t;
-    TFigure *f;
-  public:
-    TTestWindow(TWindow *p, TRotateTool *t, TFigure *f):TWindow(p, "Test") {
-      this->t = t;
-      this->f = f;
-    }
-    void paint();
-};
-
-void
-TTestWindow::paint()
-{
-  TPen pen(this);
-  
-  pen.multiply(&t->oldmatrix);
-  pen.drawRectangle(50,50,100,50);
-  pen.identity();
-
-  // correct result
-  pen.setColor(0,1,0);
-
-  pen.translate(t->rotx, t->roty);
-  pen.rotate(t->rotd);
-  pen.translate(-t->rotx, -t->roty);
-
-  pen.multiply(&t->oldmatrix);
-
-  pen.drawRectangle(50,50,100,50);
-  
-  //
-//  pen.setColor(0,0,1);
-//  pen.identity();
-//  pen.drawRectangle(50,50,100,50);
-
-  // wrong result
-  pen.setColor(1,0,0);
-  pen.identity();
-
-  TMatrix2D m;
-  m.translate(t->rotx, t->roty);
-  m.rotate(t->rotd);
-  m.translate(-t->rotx, -t->roty);
-
-  m.multiply(&t->oldmatrix);
-
-  pen.multiply(&m);
-
-//pen.multiply(&t->oldmatrix);
-
-  pen.drawRectangle(50,50,100,50);
-}
-#endif
-
 static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
   return s.add(c);
 }
@@ -1149,168 +1092,6 @@ TMainWindow::menuLayers()
 
 TCursor *fischland::cursor[16];
 
-void
-foo(){exit(0);}
-
-#define TEST06 1
-
-#ifdef TEST01
-
-class TMyWindow:
-  public TWindow
-{
-    TPushButton *btn;
-    TWindow *wnd;
-    bool open;
-  public:
-    TMyWindow(TWindow *p, const string &t): TWindow(p, t) {
-      // setBackground(0,0,255);
-      btn = new TPushButton(this, "Open");
-      btn->setShape(100,15,100,25);
-      CONNECT(btn->sigClicked, this, button);
-
-      open = false;
-      wnd = 0;
-    }
-    
-    void paint() {
-      cout << "TMyWindow::paint()" << endl;
-      TPen pen(this);
-      pen.drawLine(0,0,100,100);
-    }
-    
-    void button() {
-      cout << "button pressed" << endl;
-      open = !open;
-      btn->setTitle(open ? "Close" : "Open");
-      if (open) {
-        if (!wnd) {
-          wnd = new TWindow(this, "popup");
-          wnd->setBackground(255,0,0);
-          wnd->flagPopup = true;
-          wnd->placeWindow(PLACE_PULLDOWN, btn);
-          
-          TWindow *a = new TWindow(wnd, "button");
-          a->setBackground(0,0,255);
-          a->setShape(10, 40, 40, 70);
-          
-          wnd->createWindow();
-          a->setPosition(5,5);
-        } else {
-          wnd->setMapped(true);
-        }
-      } else {
-#if 1        
-        delete wnd;
-        wnd = 0;
-#else
-        wnd->setMapped(false);
-#endif
-      }
-    }
-    
-};
-#endif
-
-#ifdef TEST06
-
-class TMyWindow:
-  public TWindow
-{
-  public:
-    TMyWindow(TWindow *p, const string &t): TWindow(p, t) {
-//      setBackground(0,0,0);
-        setSize(640,480);
-    }
-    void paint() {
-      TPen pen(this);
-      pen.setColor(1,0,0);
-      pen.drawRectangle(100.5,100.5,49,99);
-      
-//      CGContextClipToRect(pen.ctx, CGRectMake(101,101,48,98));
-      pen.setClipRect(TRectangle(101,101,48,98));
-      
-      pen.setColor(0,0,1);
-      pen.fillRectangle(50,50,100,200);
-      
-//      pen.drawString(20,20, "Ärgerlich");
-#if 0      
-      pen.identity();
-      
-      pen.setColor(1.0, 0.5, 0);
-      pen.drawRectanglePC(0,0,100,50);
-
-      pen.translate(100,50);
-
-      pen.setColor(1,1,0);
-      pen.drawRectanglePC(0,0,100,50);
-
-      pen.rotate(2.0*M_PI / 360.0 * 20.0);
-
-      pen.setColor(0.5,1,0.5);
-      pen.drawRectanglePC(0,0,100,50);
-
-      pen.rotate(2.0*M_PI / 360.0 * 20.0);
-
-      pen.setColor(0,1,1);
-      pen.drawRectanglePC(0,0,100,50);
-
-      pen.push();
-
-      pen.translate(100,50);
-
-      pen.setColor(0,0.5,1);
-      pen.drawRectanglePC(0,0,100,50);
-
-      pen.rotate(2.0*M_PI / 360.0 * 20.0);
-
-      pen.setColor(0,0,1);
-      pen.drawRectanglePC(0,0,100,50);
-      
-      pen.pop();
-      
-      pen.setColor(1,1,1);
-      pen.drawRectanglePC(5,5,90,40);
-      
-      const TMatrix2D *m = pen.getMatrix();
-      pen.setMatrix(*m);
-      
-      pen.drawRectanglePC(10,10,80,30);
-      
-      pen.identity();
-      
-      pen.translate(0.5, 0.5);
-      
-      pen.setLineStyle(TPen::DASH);
-      
-      pen.drawRectanglePC(5,5, 90, 40);
-      
-      pen.setLineStyle(TPen::SOLID);
-      pen.drawRectangle(10,10,80,30);
-
-      pen.setFillColor(1,0.5,0);
-
-      pen.fillRectangle(10,60,20,20);
-      pen.drawRectangle(10,60,20,20);
-
-      pen.fillCircle(35,60,20,20);
-      pen.drawCircle(35,60,20,20);
-      
-      TPolygon p;
-      p.addPoint(10,145);
-      p.addPoint(10,85);
-      p.addPoint(70,85);
-      p.addPoint(80,145);
-      
-      pen.fillPolyBezier(p);
-      pen.drawLines(p);
-      
-      pen.drawString(10,150, "Hä");
-#endif
-    }
-};
-#endif
-
 void test_combobox();
 void test_timer();
 void test_table();
@@ -1321,6 +1102,7 @@ void test_colordialog();
 void test_grab();
 void test_path();
 void test_image();
+void test_curve();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1386,165 +1168,14 @@ main(int argc, char **argv, char **envv)
       toad::terminate();
       return 0;
     }
+    if (strcmp(argv[1], "--test-curve")==0) {
+      toad::initialize(argc, argv);
+      test_curve();
+      toad::terminate();
+      return 0;
+    }
   }
 
-#if 0
-
-#ifdef TEST01
-  toad::initialize(argc, argv);
-  TWindow *w0 = new TMyWindow(0, "TEST01");
-  toad::mainLoop();
-  toad::terminate();
-#endif
-
-#ifdef TEST02
-  toad::initialize(argc, argv);
-  TWindow *w = new TWindow(0, "combobox test");
-  w->setBackground(0,0,255);
-  
-  TComboBox *cb = new TComboBox(w, "combobox");
-  cb->setShape(10,10,300,20);
-#if 0
-  TTable *cb = new TTable(w, "table");
-  cb->setShape(10,10,300,180);
-#else
-  cb->setAdapter(new TZoomAdapter);
-  cb->getSelectionModel()->select(0,0);
-#endif
-  toad::mainLoop();
-  toad::terminate();
-#endif
-
-#if TEST03
-  // springlayout
-  toad::initialize(argc, argv); {
-    TWindow *wnd = new TWindow(NULL,"form example");
-    TWindow *btn;
-    btn = new TMenuBar(wnd, "menubar");
-    TAction *a;
-    a = new TAction(wnd, "file|open");
-    a = new TAction(wnd, "file|save");
-    a = new TAction(wnd, "file|save as..");
-    a = new TAction(wnd, "file|quit");
-    connect(a->sigClicked, foo);
-    btn = new TPushButton(wnd, "toolbar");
-    btn = new TPushButton(wnd, "clientarea");
-    btn = new TPushButton(wnd, "statusbar");
-    TScrollBar *sb;
-    sb = new TScrollBar(wnd, "horizontal");
-    sb = new TScrollBar(wnd, "vertical");
-    TSpringLayout *form = new TSpringLayout;
-    form->attach("menubar", TSpringLayout::TOP|TSpringLayout::LEFT|TSpringLayout::RIGHT);
-    form->attach("toolbar", TSpringLayout::LEFT|TSpringLayout::RIGHT);
-    form->attach("toolbar", TSpringLayout::TOP, "menubar");
-
-    form->attach("vertical", TSpringLayout::LEFT);
-    form->attach("vertical", TSpringLayout::TOP, "menubar");
-    form->attach("vertical", TSpringLayout::BOTTOM, "horizontal");
-
-    form->attach("horizontal", TSpringLayout::LEFT, "vertical");
-    form->attach("horizontal", TSpringLayout::RIGHT);
-    form->attach("horizontal", TSpringLayout::BOTTOM, "statusbar");
-
-    form->attach("clientarea", TSpringLayout::LEFT, "vertical");
-    form->attach("clientarea", TSpringLayout::RIGHT);
-    form->attach("clientarea", TSpringLayout::TOP, "menubar");
-    form->attach("clientarea", TSpringLayout::BOTTOM, "horizontal");
-
-    form->attach("statusbar", TSpringLayout::LEFT|TSpringLayout::RIGHT|TSpringLayout::BOTTOM);
-
-    wnd->setLayout(form);
-
-    toad::mainLoop();
-  } toad::terminate();
-  return 0;
-#endif
-
-#ifdef TEST04
-  // mouse test
-  toad::initialize(argc, argv);
-  class TMyWindow: public TWindow {
-    public:
-      TMyWindow(TWindow *w, const string &t):TWindow(w,t){
-        // setAllMouseMoveEvents(true);
-      }
-      void paint(){}
-      void mouseEvent(const TMouseEvent &me) {
-        switch(me.type) {
-          case TMouseEvent::MOVE:
-            cout << "MOVE" << endl;
-            break;
-          case TMouseEvent::ENTER:
-            cout << "ENTER" << endl;
-            break;
-          case TMouseEvent::LEAVE:
-            cout << "LEAVE" << endl;
-            break;
-          case TMouseEvent::LDOWN:
-            cout << "LDOWN" << endl;
-            break;
-          case TMouseEvent::MDOWN:
-            cout << "MDOWN" << endl;
-            break;
-          case TMouseEvent::RDOWN:
-            cout << "RDOWN" << endl;
-            break;
-          case TMouseEvent::LUP:
-            cout << "LUP" << endl;
-            break;
-          case TMouseEvent::MUP:
-            cout << "MUP" << endl;
-            break;
-          case TMouseEvent::RUP:
-            cout << "RUP" << endl;
-            break;
-          case TMouseEvent::ROLL_UP:
-            cout << "ROLL UP" << endl;
-            break;
-          case TMouseEvent::ROLL_DOWN:
-            cout << "ROLL DOWN" << endl;
-            break;
-        }
-        cout <<" "<<x<<", "<<y;
-        unsigned m = me.modifier();
-        if (m&MK_SHIFT)
-          cout<<" MK_SHIFT";
-        if (m&MK_CONTROL)
-          cout<<" MK_CONTROL";
-        if (m&MK_ALT)
-          cout<<" MK_ALT";
-        if (m&MK_ALTGR)
-          cout<<" MK_ALTGR";
-        if (m&MK_LBUTTON)
-          cout<<" MK_LBUTTON";
-        if (m&MK_MBUTTON)
-          cout<<" MK_MBUTTON";
-        if (m&MK_RBUTTON)
-          cout<<" MK_RBUTTON";
-        if (m&MK_DOUBLE)
-          cout<<" MK_DOUBLE";
-        cout << endl;
-      }
-  };
-  TMyWindow wnd(0, "test 0");
-  toad::mainLoop();
-#endif
-
-#ifdef TEST05
-  toad::initialize(argc, argv);
-  TWindow *w0 = new TTextArea(0, "TEST05");
-  toad::mainLoop();
-  toad::terminate();
-#endif
-
-#ifdef TEST06
-  toad::initialize(argc, argv);
-  TWindow *w0 = new TMyWindow(0, "TEST06");
-  toad::mainLoop();
-  toad::terminate();
-#endif
-
-#else
   toad::initialize(argc, argv);
 
 //    createMemoryFiles();
@@ -1793,5 +1424,4 @@ main(int argc, char **argv, char **envv)
   bmp_vlogo = 0;
   toad::terminate();
   return 0;
-#endif
 }
