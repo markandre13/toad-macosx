@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>fischland</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.myCocoaApplication</string>
+	<string>org.mark13.toad</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
