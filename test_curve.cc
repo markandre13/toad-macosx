@@ -380,6 +380,12 @@ divideBezier(const TPoint *a, TPoint *p, TCoord min, TCoord max)
     p[i] = o1[i];
 }
 
+/****************************************************************************
+ *                                                                          *
+ *                         CURVE-CURVE-INTERSECTION                         *
+ *                                                                          *
+ ****************************************************************************/
+
 // Curve intersection using Bézier clipping by T.W.Sederberg and T.Nishita
 // written with looking at the code of paperjs and inkscape
 
@@ -517,6 +523,8 @@ clipToFatLine(const TPoint *p, const TPoint *q, TPen &pen, unsigned depth, TCoor
 unsigned deeptimer;
 
 static const TCoord tolerance = 10e-6;
+static const TCoord epsilon = 1e-12;
+static const TCoord machine_epsilon = 1.12e-16;
 
 void
 bezierClipping(TPen &pen,
@@ -533,7 +541,6 @@ bezierClipping(TPen &pen,
     ++deeptimer;
     return;
   }
-
 
   TPoint pClipped[4];
   
@@ -594,12 +601,22 @@ bezierClipping(TPen &pen,
     bezierClipping(pen, q, p, Q, P, qMin, qMax, pMinNew, pMaxNew, pDiff, depth+1);
 }
 
+/****************************************************************************
+ *                                                                          *
+ *                          CURVE-LINE-INTERSECTION                         *
+ *                                                                          *
+ ****************************************************************************/
+static inline bool
+isZero(TCoord a) {
+  return fabs(a) <= epsilon;
+}
+
 /**
-   * Solves the quadratic polynomial with coefficients a, b, c for roots
-   * (zero crossings) and and returns the solutions in an array.
-   *
-   * a*x^2 + b*x + c = 0
-   */
+ * Solves the quadratic polynomial with coefficients a, b, c for roots
+ * (zero crossings) and and returns the solutions in an array.
+ *
+ * a*x^2 + b*x + c = 0
+ */
 static int
 solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots) {
   // After Numerical Recipes in C, 2nd edition, Press et al.,
@@ -629,6 +646,172 @@ solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots) {
     roots[n++] = q / a;
   return n; // 0, 1 or 2 solutions
 }
+
+static int 
+solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots, TCoord min, TCoord max)
+{
+  int i, j, n = solveQuadratic(a, b, c, roots);
+cout << "n=" << n << endl;
+  for(i=0, j=0; i<n; ++i) {
+    cout << i << ":" << roots[i] << endl;
+    if (j!=i)
+      roots[j] = roots[i];
+    if (roots[i]>=min && roots[i]<=max)
+      ++j;
+  }
+  return j;
+}
+
+static int
+solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TCoord max)
+{
+  TCoord x, b1, c2;
+  int count = 0;
+  if (a == 0) {
+    a = b;
+    b1 = c;
+    c2 = d;
+    x = INFINITY;
+  } else if (d == 0) {
+    b1 = b;
+    c2 = c;
+    x = 0;
+  } else {
+    TCoord ec = 1 + machine_epsilon,
+            x0, q, qd, t, r, s, tmp;
+    x = -(b / a) / 3;
+    tmp = a * x,
+    b1 = tmp + b,
+    c2 = b1 * x + c,
+    qd = (tmp + b1) * x + c2,
+    q = c2 * x + d;
+    t = q /a;
+    r = pow(fabs(t), 1/3);
+    s = t < 0 ? -1 : 1;
+    t = -qd / a;
+    r = t > 0 ? 1.3247179572 * ::max(r, sqrt(t)) : r;
+    x0 = x - s * r;
+    if (x0 != x) {
+      do {
+        x = x0;
+        tmp = a * x,
+        b1 = tmp + b,
+        c2 = b1 * x + c,
+        qd = (tmp + b1) * x + c2,
+        q = c2 * x + d;
+        x0 = qd == 0 ? x : x - q / qd / ec;
+        if (x0 == x) {
+          x = x0;
+          break;
+        }
+      } while (s * x0 > s * x);
+      if (fabs(a) * x * x > fabs(d / x)) {
+        c2 = -d / x;
+        b1 = (c2 - c) / x;
+      }
+    }
+  }
+  count = solveQuadratic(a, b1, c2, roots, min, max);
+  if (x!=INFINITY && (count == 0 || x != roots[count - 1])
+                  && (x >= min && x <= max))
+  {
+      cout << "x:" << x << endl;
+      roots[count++] = x;
+  }
+  return count;
+}
+
+
+// Converts from the point coordinates (p1, c1, c2, p2) for one axis to
+// the polynomial coefficients and solves the polynomial for val
+int
+solveCubic(TPoint *v, int coord, TCoord val, TCoord *roots, TCoord min, TCoord max) {
+  TCoord p1, c1, c2, p2, a, b, c;
+  if (!coord) {
+    p1 = v[0].x;
+    c1 = v[1].x;
+    c2 = v[2].x;
+    p2 = v[3].x;
+  } else {
+    p1 = v[0].y;
+    c1 = v[1].y;
+    c2 = v[2].y;
+    p2 = v[3].y;
+  }
+  c = 3 * (c1 - p1),
+  b = 3 * (c2 - c1) - c,
+  a = p2 - p1 - c - b;
+  // If both a and b are near zero, we should treat the curve as a line in
+  // order to find the right solutions in some edge-cases in
+  // Curve.getParameterOf()
+  if (isZero(a) && isZero(b))
+    a = b = 0;
+  return solveCubic(a, b, c, p1 - val, roots, min, max);
+}
+
+void // curve, line
+intersectCurveLine(TPen &pen, TPoint *vc, TPoint *vl) {
+  TCoord lx1 = vl[0].x, ly1 = vl[0].y,
+         lx2 = vl[1].x, ly2 = vl[1].y,
+         // Rotate both curve and line around l1 so that line is on x axis.
+         ldx = lx2 - lx1,
+         ldy = ly2 - ly1,
+         // Calculate angle to the x-axis (1, 0).
+         angle = atan2(-ldy, ldx),
+         sin = ::sin(angle),
+         cos = ::cos(angle),
+         // (rlx1, rly1) = (0, 0)
+         rlx2 = ldx * cos - ldy * sin;
+  // rotated line: The curve values for the rotated line.
+  TPoint rvl[2] = {{0, 0}, {rlx2, 0}};
+  // rotated curve: Calculate the curve values of the rotated curve.
+  TPoint rvc[4];
+  for(int i = 0; i < 4; ++i) {
+      TCoord x = vc[i].x - lx1,
+             y = vc[i].y - ly1;
+      rvc[i].x = x * cos - y * sin;
+      rvc[i].y = y * cos + x * sin;
+  }
+  
+  pen.push();
+  pen.translate(0,300);
+  pen.setColor(1,0,0);
+  pen.drawBezier(rvc, 4);
+  pen.drawLines(rvl, 2);
+  pen.pop();
+  
+  TCoord roots[4];
+  int count = solveCubic(rvc, 1, 0, roots, 0, 1);
+
+cout << "curve & line have " << count << " intersections" << endl;
+
+  // NOTE: count could be -1 for infinite solutions, but that should only
+  // happen with lines, in which case we should not be here.
+  for (int i = 0; i < count; ++i) {
+    TCoord tc = roots[i];
+#if 0
+           x = Curve.evaluate(rvc, tc, 0).x;
+    // We do have a point on the infinite line. Check if it falls on
+    // the line *segment*.
+    if (x >= 0 && x <= rlx2) {
+      // Find the parameter of the intersection on the rotated line.
+      TCoord tl = Curve.getParameterOf(rvl, x, 0),
+             t1 = flip ? tl : tc,
+             t2 = flip ? tc : tl;
+      addLocation(locations, include,
+                  curve1, t1, Curve.evaluate(v1, t1, 0),
+                  curve2, t2, Curve.evaluate(v2, t2, 0));
+    }
+#endif
+  }
+}
+
+/****************************************************************************
+ *                                                                          *
+ *                                  BOUNDS                                  *
+ *                                                                          *
+ ****************************************************************************/
+
 
 
 // Code ported and further optimised from:
@@ -720,25 +903,30 @@ cout << "paint --------------------- " << endl;
 
   pen.setColor(TColor::FIGURE_SELECTION);
   pen.drawLines(curve.data(), 4);
-  pen.drawLines(curve.data()+4, 4);
+//  pen.drawLines(curve.data()+4, 4);
   for(auto p: curve)
     pen.drawRectangle(p.x-2, p.y-2, 5, 5);
 
   pen.setColor(0,0,0);
   pen.drawBezier(curve.data(), 4);
-  pen.drawBezier(curve.data()+4, 4);
+//  pen.drawBezier(curve.data()+4, 4);
+  
+  pen.setColor(0,1,0);
+  pen.drawLines(curve.data()+4, 2);
   
   for(auto p: curve)
     cout << "{"<<p.x<<","<<p.y<<"},";
   cout<<endl;
-
+/*
   deeptimer=0;
   bezierClipping(pen, curve.data(), curve.data()+4, curve.data(), curve.data()+4);
   if (deeptimer)
     cout << deeptimer << " times too deep" << endl;
+*/
+
+  intersectCurveLine(pen, curve.data(), curve.data()+4);
 
   pen.setColor(1,0.5,0);
-
   TRectangle r = bounds(curve.data());
 cout << "bounds: " << r << endl;
 
