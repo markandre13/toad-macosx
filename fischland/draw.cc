@@ -1103,6 +1103,7 @@ void test_grab();
 void test_path();
 void test_image();
 void test_curve();
+void test_text();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1171,6 +1172,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-curve")==0) {
       toad::initialize(argc, argv);
       test_curve();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-text")==0) {
+      toad::initialize(1, argv);
+      test_text();
       toad::terminate();
       return 0;
     }

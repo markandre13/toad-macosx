@@ -71,16 +71,18 @@ TFont::~TFont()
 void
 TFont::setFont(const string &fn)
 {
+//cout << "TFont::setFont(\""<<fn<<"\")"<<endl;
   fcname = fn;
   if (nsfont)
     [nsfont release];
+    
+  // hack: we just take the first font in the list
   string family;
-  string::const_iterator p0=fn.begin(), p=p0, p1;
+  string::const_iterator p0=fn.begin(), p=p0, p1=fn.end();
   for(; p!=fn.end(); ++p) {
     if (*p == ',') {
       if (family.empty())
         family = string(p0, p);
-//      cout << "family: " << string(p0, p) << endl;
       p0 = p + 1;
     } else
     if (*p == ':') {
@@ -89,23 +91,51 @@ TFont::setFont(const string &fn)
   }
   if (family.empty())
     family = string(p0, p);
-//  cout << "family: " << string(p0, p) << endl;
-  p0=p+1;
-  for(; p!=fn.end(); ++p) {
-    if (*p=='=') {
-      p1=p;
+
+  int size = 0; // FIXME: TCoord
+  unsigned traits = 0;
+  int weight = 5; // normal
+  
+  size_t n0=fn.find_first_of(":"), n1, n2;
+  while(n0!=string::npos) {
+    n1 = fn.find_first_of(":=", n0+1);
+    string o0, o1;
+    if (n1==string::npos) {
+      o0=fn.substr(n0+1);
+      n0=n1;
+    } else
+    if (fn[n1]==':') {
+      o0=fn.substr(n0+1, n1-n0-1);
+      n0=n1;
+    } else
+    if (fn[n1]=='=') {
+      o0 = fn.substr(n0+1, n1-n0-1);
+      n2 = fn.find_first_of(":", n1);
+      o1 = fn.substr(n1+1, n2-n1-1);
+      n0=n2;
+    }
+    
+    if (o0=="size") {
+      size = atoi(o1.c_str());
+    } else
+    if (o0=="italic") {
+      traits |= NSItalicFontMask;
+    } else
+    if (o0=="bold") {
+      traits |= NSBoldFontMask;
     }
   }
-  int size = 0;
-  if (*p1 && string(p0, p1)=="size") {
-    size = atoi(string(p1+1, p).c_str());
-  }
+
   if (family.empty())
     family = "Helvetica";
   if (size==0)
     size = 12;
-//cout << "TFont::setFont(" << fn << ") -> " << family << ", " << size << endl;
-  nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: family.c_str()] size:size];
+//cout << "TFont::setFont(" << fn << ") -> " << family << ", " << size << ", " << traits << endl;
+  NSFontManager *fm = [NSFontManager sharedFontManager];
+  nsfont = [fm fontWithFamily: [NSString stringWithUTF8String: family.c_str()]
+                       traits: traits
+                       weight: weight
+                         size:size];
   if (!nsfont) {
     cerr << "failed to find font '" << family << "', using 'Helvetica instead" << endl;
     nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: "Helvetica"] size:size];
