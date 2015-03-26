@@ -94,7 +94,27 @@ TFont::setFont(const string &fn)
 
   int size = 0; // FIXME: TCoord
   unsigned traits = 0;
-  int weight = 5; // normal
+
+/*		xft/cocoa	css
+  thin		1		100
+  extralight	2		200
+  ultralight	3
+  light		4		300
+  book		5		400
+  regular	6
+  normal	7		400
+  medium	8		500
+  demibold	9		600
+  semibold	10
+  bold		11		700
+  extrabold	12
+  ultrabold	13
+  heavy		14		800
+  black		15		900
+  
+  only approx., real values depend on font
+*/
+  int weight = 5; // book
   
   size_t n0=fn.find_first_of(":"), n1, n2;
   while(n0!=string::npos) {

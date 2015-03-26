@@ -36,12 +36,14 @@ struct TTextAttribute
 {
   TTextAttribute() {
     bold=false;
+    italic=false;
     face="times";
     size=12;
   }
   TTextAttribute(const TTextAttribute *a) {
     if (!a) {
       bold=false;
+      italic=false;
       face="times";
       size=12;
       return;
@@ -94,13 +96,12 @@ struct TTextFragment
 struct TPreparedLine
 {
   vector<TTextFragment> fragments;
-  vector<TCoord> xpos; // obsolete me
 };
 
 struct TPreparedDocument
 {
   vector<TPreparedLine> lines;
-  vector<TCoord> xpos;
+  vector<TPoint> pos;
 };
 
 class TTextEditor
@@ -119,8 +120,8 @@ class TTextEditor2:
       TWindow(parent, title)
     {
       setSize(800,400);
-      line = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br />"
-             "\"Merry Xmas you <i>little</i> shit.\"<br />"
+      line = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
+             "\"Merry Xmas you <i>little</i> shit.\"<br/>"
              "Is not what we want to hear from Santa.";
       xpos.resize(3);
       xpos[CURSOR] = 2;
@@ -250,54 +251,52 @@ TTextEditor2::keyDown(TKey key,char*,unsigned)
 }
 
 void
-prepareHTMLText(TPen &pen, const string &line, const vector<size_t> &xpos, TPreparedLine *prepared)
+prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPreparedDocument *prepared)
 {
-  if (line.empty())
+  if (text.empty())
     return;
 
-cout << "--------------------------" << endl;
-    
-  prepared->xpos.resize(xpos.size(), 0);
+  prepared->pos.resize(xpos.size());
 
   string face="times";
   pen.setFont(face);
 
   TCoord x=0;
   size_t x0=0, x1=0;
-  size_t eol=line.size();
+  size_t eol=text.size();
   int c;
   TCoord w;
   
-  prepared->xpos[CURSOR] = 0;
-
+  prepared->lines.push_back(TPreparedLine());
+  TPreparedLine *line = &prepared->lines.back();
   TTextFragment *fragment = 0;
 
   while(x0<eol) {
     x1=x0;
     while(x1<eol) {
-      c = line[x1];
+      c = text[x1];
       if (c=='<' || c=='&')
         break;
-      utf8inc(line, &x1);
+      utf8inc(text, &x1);
     }
     if (x1>x0) {
       if (!fragment || fragment->text) {
-        prepared->fragments.push_back(TTextFragment(fragment));
-        fragment = &prepared->fragments.back();
+        line->fragments.push_back(TTextFragment(fragment));
+        fragment = &line->fragments.back();
         fragment->attr.setFont(pen);
       }
-      fragment->text = line.data()+x0;
-printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
+      fragment->text = text.data()+x0;
+//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
       fragment->size = x1-x0;
 
       for(auto &pos: xpos) {
         if (x0<=pos && pos<x1) {
-          prepared->xpos[&pos-xpos.data()] = x + pen.getTextWidth(line.substr(x0, pos-x0));
-printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->xpos[&pos-xpos.data()]);
+          prepared->pos[&pos-xpos.data()].x = x + pen.getTextWidth(text.substr(x0, pos-x0));
+//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->xpos[&pos-xpos.data()]);
         }
       }
 
-      w = pen.getTextWidth(line.substr(x0, x1-x0));
+      w = pen.getTextWidth(text.substr(x0, x1-x0));
       fragment->x = x;
       fragment->width=w;
       x+=w;
@@ -308,10 +307,19 @@ printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos
 
     x0=x1;
     if (c=='<') {
-      prepared->fragments.push_back(TTextFragment(fragment));
-      fragment = &prepared->fragments.back();
-      taginc(line, &x1);
-      string tag = line.substr(x0,x1-x0);
+      taginc(text, &x1);
+      string tag = text.substr(x0,x1-x0);
+      x0=x1;
+      
+      if (tag=="<br/>") {
+        prepared->lines.push_back(TPreparedLine());
+        line = &prepared->lines.back();
+        x=0;
+      }
+      line->fragments.push_back(TTextFragment(fragment));
+      fragment = &line->fragments.back();
+      if (tag=="<br/>") {
+      } else
       if (tag=="<sup>") {
         fragment->attr.size-=2;
         fragment->attr.setFont(pen);
@@ -336,25 +344,24 @@ printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos
         fragment->attr.bold = false;
         fragment->attr.setFont(pen);
       }
-printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
-      x0=x1;
+//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
     } else
     if (c=='&') {
       for(auto &pos: xpos) {
         if (x0==pos) {
-          prepared->xpos[&pos-xpos.data()] = x;
-printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
+          prepared->pos[&pos-xpos.data()].x = x;
+//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
         }
       }
-      entityinc(line, &x1);
+      entityinc(text, &x1);
 
       if (!fragment || fragment->text) {
-        prepared->fragments.push_back(TTextFragment(fragment));
-        fragment = &prepared->fragments.back();
+        line->fragments.push_back(TTextFragment(fragment));
+        fragment = &line->fragments.back();
         fragment->x = x;
       }
 
-      string sub=line.substr(x0+1, x1-x0-2);
+      string sub=text.substr(x0+1, x1-x0-2);
       if (sub=="times") {
         fragment->text="×";
         fragment->size=strlen(fragment->text);
@@ -371,7 +378,7 @@ printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
         fragment->text="&";
         fragment->size=1;
       }
-printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
+//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
       w = pen.getTextWidth(fragment->text, fragment->size);
       fragment->width+=w;
       x += w;
@@ -380,27 +387,32 @@ printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragm
   }
   for(auto &pos: xpos) {
     if (x0==pos) {
-printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
-      prepared->xpos[&pos-xpos.data()] = x;
+//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
+      prepared->pos[&pos-xpos.data()].x = x;
     }
   }
 }
 
 void
-renderPrepared(TPen &pen, TPreparedLine *prepared)
+renderPrepared(TPen &pen, TPreparedDocument *document)
 {
-cout << "we have " << prepared->fragments.size() << " fragments" << endl;
-  for(auto p: prepared->fragments) {
-    p.attr.setFont(pen);
-    if (!p.text)
-      pen.drawString(p.x, 32, "null");
-    else
-      pen.drawString(p.x, 32, p.text, p.size);
+//cout << "we have " << prepared->fragments.size() << " fragments" << endl;
+  TCoord y=72;
+  for(auto line: document->lines) {
+    for(auto fragment: line.fragments) {
+      fragment.attr.setFont(pen);
+      if (!fragment.text)
+        pen.drawString(fragment.x, y, "null");
+      else
+        pen.drawString(fragment.x, y, fragment.text, fragment.size);
+    }
+    y+=16;
   }
   pen.setColor(0,0,0);
-  pen.drawLine(prepared->xpos[CURSOR], 32, prepared->xpos[CURSOR], 32+pen.getHeight());
-  pen.drawLine(prepared->xpos[SELECTION_BGN], 32+pen.getHeight(),
-               prepared->xpos[SELECTION_END], 32+pen.getHeight());
+  pen.drawLine(document->pos[CURSOR].x, 72,
+               document->pos[CURSOR].x, 72+pen.getHeight());
+  pen.drawLine(document->pos[SELECTION_BGN].x, 72+pen.getHeight(),
+               document->pos[SELECTION_END].x, 72+pen.getHeight());
 }
 
 void
@@ -416,7 +428,7 @@ TTextEditor2::paint()
   pen.drawLine(x,0,x,h);
 
   // parsed text
-  TPreparedLine prepared;
+  TPreparedDocument prepared;
   prepareHTMLText(pen, line, xpos, &prepared);
   renderPrepared(pen, &prepared);
 }
