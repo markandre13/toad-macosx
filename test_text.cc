@@ -95,6 +95,7 @@ struct TTextFragment
 
 struct TPreparedLine
 {
+  TPoint origin;
   vector<TTextFragment> fragments;
 };
 
@@ -138,7 +139,13 @@ class TTextEditor2:
 //   o before the character before a tag
 //   o after the tag
 //   o tags following one after another will be treated as one tag
-
+// CHANGE THIS: that rule was from thunderbird but it felt weird and felt
+// weird and libreoffice has this the other way arround
+//
+// also:
+// libreoffic: <sup> & <sub>
+//   raise/lower 33% (of what?)
+//   relative font size 58%
 inline void
 taginc(const string &text, size_t *cx)
 {
@@ -292,6 +299,7 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       for(auto &pos: xpos) {
         if (x0<=pos && pos<x1) {
           prepared->pos[&pos-xpos.data()].x = x + pen.getTextWidth(text.substr(x0, pos-x0));
+          prepared->pos[&pos-xpos.data()].y = line->origin.y;
 //printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->xpos[&pos-xpos.data()]);
         }
       }
@@ -311,8 +319,9 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       string tag = text.substr(x0,x1-x0);
       x0=x1;
       
-      if (tag=="<br/>") {
+      if (tag=="<br/>") { // FIXME: the <br/> must be treated like a character
         prepared->lines.push_back(TPreparedLine());
+        prepared->lines.back().origin.y = line->origin.y += 16;
         line = &prepared->lines.back();
         x=0;
       }
@@ -350,6 +359,7 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       for(auto &pos: xpos) {
         if (x0==pos) {
           prepared->pos[&pos-xpos.data()].x = x;
+          prepared->pos[&pos-xpos.data()].y = line->origin.y;
 //printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
         }
       }
@@ -389,6 +399,7 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
     if (x0==pos) {
 //printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
       prepared->pos[&pos-xpos.data()].x = x;
+      prepared->pos[&pos-xpos.data()].y = line->origin.y;
     }
   }
 }
@@ -397,22 +408,21 @@ void
 renderPrepared(TPen &pen, TPreparedDocument *document)
 {
 //cout << "we have " << prepared->fragments.size() << " fragments" << endl;
-  TCoord y=72;
   for(auto line: document->lines) {
     for(auto fragment: line.fragments) {
       fragment.attr.setFont(pen);
       if (!fragment.text)
-        pen.drawString(fragment.x, y, "null");
+        pen.drawString(fragment.x, line.origin.y, "null");
       else
-        pen.drawString(fragment.x, y, fragment.text, fragment.size);
+        pen.drawString(fragment.x, line.origin.y, fragment.text, fragment.size);
     }
-    y+=16;
   }
+  
   pen.setColor(0,0,0);
-  pen.drawLine(document->pos[CURSOR].x, 72,
-               document->pos[CURSOR].x, 72+pen.getHeight());
-  pen.drawLine(document->pos[SELECTION_BGN].x, 72+pen.getHeight(),
-               document->pos[SELECTION_END].x, 72+pen.getHeight());
+  pen.drawLine(document->pos[CURSOR].x, document->pos[CURSOR].y,
+               document->pos[CURSOR].x, document->pos[CURSOR].y+pen.getHeight());
+  pen.drawLine(document->pos[SELECTION_BGN].x, pen.getHeight(),
+               document->pos[SELECTION_END].x, pen.getHeight());
 }
 
 void
@@ -428,6 +438,7 @@ TTextEditor2::paint()
   pen.drawLine(x,0,x,h);
 
   // parsed text
+  pen.translate(0,72);
   TPreparedDocument prepared;
   prepareHTMLText(pen, line, xpos, &prepared);
   renderPrepared(pen, &prepared);
