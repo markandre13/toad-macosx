@@ -42,76 +42,6 @@ class TPenBase;
 class TFont;
 class TMatrix2D;
 
-#if 0
-
-class TFontManager
-{
-  public:
-    virtual ~TFontManager();
-    virtual void drawString(TPenBase *pen, int x, int y, const char *str, size_t len, bool transparent) = 0;
-    virtual int getHeight(TFont *font) = 0;
-    virtual int getAscent(TFont *font) = 0;
-    virtual int getDescent(TFont *font) = 0;
-    virtual int getTextWidth(TFont *font, const char *text, size_t n) = 0;
-
-    int getTextWidth(TFont *font, const char *text) {
-      return getTextWidth(font, text, strlen(text));
-    }
-    int getTextWidth(TFont *font, const string &text) {
-      return getTextWidth(font, text.c_str(), text.size());
-    }
-    
-    virtual void freeCoreFont(TFont*) = 0;
-    
-    virtual string getName() const = 0;
-    virtual FcConfig* getFcConfig() = 0;    
-    static bool setDefaultByName(const string &engine);
-    static TFontManager* getDefault();
-};
-
-
-class TFontManagerX11:
-  public TFontManager
-{
-  public:
-    void init() const;
-    void drawString(TPenBase *pen, int x, int y, const char *str, size_t len, bool transparent);
-    int getHeight(TFont *font);
-    int getAscent(TFont *font);
-    int getDescent(TFont *font);
-    int getTextWidth(TFont *font, const char *text, size_t n);
-
-    string getName() const { return "x11"; }
-    FcConfig* getFcConfig();
-    
-  protected:
-    bool allocate(TFont *font, const TMatrix2D *mat);
-    void freeCoreFont(TFont *font);
-    static bool buildFontList(FcConfig *config);
-};
-
-class TFontManagerFT:
-  public TFontManager
-{
-  public:
-    void init() const;
-    void drawString(TPenBase *pen, int x, int y, const char *str, size_t len, bool transparent);
-    int getHeight(TFont *font);
-    int getAscent(TFont *font);
-    int getDescent(TFont *font);
-    int getTextWidth(TFont *font, const char *text, size_t n);
-
-    string getName() const { return "freetype"; }
-    FcConfig* getFcConfig();
-    
-  protected:
-    bool allocate(TFont *font, const TMatrix2D *mat);
-    void freeCoreFont(TFont *font);
-    static bool buildFontList(FcConfig *config);
-};
-
-#endif
-
 class TFont:
   public TSmartObject
 {
@@ -138,15 +68,15 @@ public:
     void setSlant(int slant);
     int getSlant() const;
 
-//    FcPattern *font;
-
     TCoord getHeight();
     TCoord getAscent();
     TCoord getDescent();
-    TCoord getTextWidth(const char *text);
     TCoord getTextWidth(const char *text, size_t n);
+    TCoord getTextWidth(const char *text) {
+      return getTextWidth(text, strlen(text));
+    }
     TCoord getTextWidth(const string &text) {
-      return getTextWidth(text.c_str());
+      return getTextWidth(text.c_str(), text.size());
     }
     
     static TFont default_font;

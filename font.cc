@@ -230,29 +230,17 @@ TFont::getDescent() {
 }
 
 TCoord
-TFont::getTextWidth(const char *text)
+TFont::getTextWidth(const char *text, size_t len)
 {
   if (!nsfont)
     return 0;
-  // widthOfString is deprecated sind Mac OS X v10.4 and not available to 64bit applications
-  // return [nsfont widthOfString: [NSString stringWithUTF8String: text]];
-  NSDictionary *attributes = [NSDictionary dictionaryWithObject: nsfont forKey: NSFontAttributeName];
-  NSSize size = [[NSString stringWithUTF8String: text] sizeWithAttributes: attributes];
-  //  [attributes release]; DONT!!!
+  NSDictionary *attributes = [NSDictionary dictionaryWithObject: nsfont
+                                                         forKey: NSFontAttributeName];
+  NSString *x = [NSString alloc];
+  NSSize size = [[x initWithBytes: text
+                           length: len
+                         encoding: NSUTF8StringEncoding] sizeWithAttributes: attributes];
+  [x release];
+  // [attributes release]; // managed via the autorelease pool
   return size.width;
-}
-
-TCoord
-TFont::getTextWidth(const char *text, size_t n) {
-  TCoord w;
-  char *t = 0;
-  if (strlen(text)>n) {
-    t = strdup(text);
-    t[n] = 0;
-    w = getTextWidth(t);
-    free(t);
-  } else {
-    w = getTextWidth(text);
-  }
-  return w;
 }
