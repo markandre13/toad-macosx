@@ -83,6 +83,11 @@ inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }
 
+struct TSize:
+  public CGSize
+{
+};
+
 struct TRectangle;
 
 struct Box 

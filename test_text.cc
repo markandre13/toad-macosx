@@ -84,11 +84,12 @@ struct TTextFragment
   TTextFragment(const TTextFragment *t): attr(t?&t->attr:0) {
     text=0;
   }
-  TCoord x,y,width,height; // we might not nees all these
+  TPoint origin;
+  TSize size;
 
   // the text to be displayed
   const char *text;
-  size_t size;
+  size_t length;
 
   TTextAttribute attr;
 };
@@ -96,13 +97,30 @@ struct TTextFragment
 struct TPreparedLine
 {
   TPoint origin;
+  TSize size;
+  
+  size_t text;
   vector<TTextFragment> fragments;
+};
+
+// marker for cursors, selections, ...
+// apple pages selection
+// o blue selection background
+// o selection disables other background
+// o selection is line height (inclusive leading)
+// o cursor is text height, not line height
+struct TMarker
+{
+  TPoint pos;
+  size_t idx;
+  TPreparedLine *line;
+  TTextFragment *fragment;
 };
 
 struct TPreparedDocument
 {
   vector<TPreparedLine> lines;
-  vector<TPoint> pos;
+  vector<TMarker> pos;
 };
 
 class TTextEditor
@@ -127,7 +145,7 @@ class TTextEditor2:
       xpos.resize(3);
       xpos[CURSOR] = 2;
       xpos[SELECTION_BGN] = 2;
-      xpos[SELECTION_END] = 8;
+      xpos[SELECTION_END] = 88;
     }
     
     void paint() override;
@@ -284,6 +302,7 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
   
   prepared->lines.push_back(TPreparedLine());
   TPreparedLine *line = &prepared->lines.back();
+  line->text = 0;
   TTextFragment *fragment = 0;
 
   while(x0<eol) {
@@ -302,19 +321,19 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       }
       fragment->text = text.data()+x0;
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
-      fragment->size = x1-x0;
+      fragment->length = x1-x0;
 
       for(auto &pos: xpos) {
         if (x0<=pos && pos<x1) {
-          prepared->pos[&pos-xpos.data()].x = x + pen.getTextWidth(text.substr(x0, pos-x0));
-          prepared->pos[&pos-xpos.data()].y = line->origin.y;
+          prepared->pos[&pos-xpos.data()].pos.x = x + pen.getTextWidth(text.substr(x0, pos-x0));
+          prepared->pos[&pos-xpos.data()].pos.y = line->origin.y;
 //printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
         }
       }
 
       w = pen.getTextWidth(text.substr(x0, x1-x0));
-      fragment->x = x;
-      fragment->width=w;
+      fragment->origin.x = x;
+      fragment->size.width=w;
       x+=w;
     }
 
@@ -322,8 +341,8 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
 
     for(auto &pos: xpos) {
       if (x0==pos) {
-        prepared->pos[&pos-xpos.data()].x = x;
-        prepared->pos[&pos-xpos.data()].y = line->origin.y;
+        prepared->pos[&pos-xpos.data()].pos.x = x;
+        prepared->pos[&pos-xpos.data()].pos.y = line->origin.y;
 //printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
       }
     }
@@ -334,9 +353,11 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       x0=x1;
       
       if (tag=="<br/>") { // FIXME: the <br/> must be treated like a character
+        line->size.width=x;
         prepared->lines.push_back(TPreparedLine());
         prepared->lines.back().origin.y = line->origin.y += 16;
         line = &prepared->lines.back();
+        line->text = x0;
         x=0;
       }
       line->fragments.push_back(TTextFragment(fragment));
@@ -345,17 +366,21 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       } else
       if (tag=="<sup>") {
         fragment->attr.size-=2;
+        fragment->origin.y+=2;
         fragment->attr.setFont(pen);
       } else
       if (tag=="</sup>") {
         fragment->attr.size+=2;
+        fragment->origin.y-=2;
         fragment->attr.setFont(pen);
       } else
       if (tag=="<i>") {
         fragment->attr.italic=true;
+        fragment->attr.size=48;
         fragment->attr.setFont(pen);
       } else
       if (tag=="</i>") {
+        fragment->attr.size=12;
         fragment->attr.italic=false;
         fragment->attr.setFont(pen);
       } else
@@ -375,54 +400,90 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       if (!fragment || fragment->text) {
         line->fragments.push_back(TTextFragment(fragment));
         fragment = &line->fragments.back();
-        fragment->x = x;
+        fragment->origin.x = x;
       }
 
       string sub=text.substr(x0+1, x1-x0-2);
       if (sub=="times") {
         fragment->text="×";
-        fragment->size=strlen(fragment->text);
       } else
       if (sub=="gt") {
         fragment->text=">";
-        fragment->size=1;
       } else
       if (sub=="lt") {
         fragment->text="<";
-        fragment->size=1;
       } else
       if (sub=="amp") {
         fragment->text="&";
-        fragment->size=1;
       }
+      if (fragment->text)
+        fragment->length=strlen(fragment->text);
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
-      w = pen.getTextWidth(fragment->text, fragment->size);
-      fragment->width+=w;
+      w = pen.getTextWidth(fragment->text, fragment->length);
+      fragment->size.width+=w;
       x += w;
       x0=x1;
     }
   }
+  line->size.width = x;
 }
 
 void
-renderPrepared(TPen &pen, TPreparedDocument *document)
+renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpos)
 {
+cout << "render-------------" << endl;
 //cout << "we have " << prepared->fragments.size() << " fragments" << endl;
-  for(auto line: document->lines) {
-    for(auto fragment: line.fragments) {
+//  pen.setColor(164,205,1);
+  pen.setColor(0.64,0.8,1);
+//  pen.setColor(0,1,1);
+/*
+  pen.fillRectangle(document->pos[SELECTION_BGN].pos.x,
+                    document->pos[SELECTION_BGN].pos.y,
+                    document->pos[SELECTION_END].pos.x - document->pos[SELECTION_BGN].pos.x,
+                    pen.getHeight());
+  pen.setColor(0,0,0);
+*/
+  cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
+//  for(auto &&line: document->lines) {
+  for(vector<TPreparedLine>::const_iterator line = document->lines.begin();
+      line != document->lines.end();
+      ++line)
+  {
+    size_t textend = (line+1 == document->lines.end()) ? string::npos : (line+1)->text;
+    cout << "  line " << line->text << " - " << textend << endl;
+    
+    TCoord s0=0, s1=line->size.width;
+    bool s=false;
+    if (line->text < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
+      s=true;
+      s0 = document->pos[SELECTION_BGN].pos.x;
+      cout << "    begin" << endl;
+    }
+    if (line->text < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
+      s=true;
+      s1 = document->pos[SELECTION_END].pos.x;
+      cout << "    end" << endl;
+    }
+    if (!s && xpos[SELECTION_BGN] < line->text && textend < xpos[SELECTION_END]) {
+      s=true;
+    }
+    if (s) {
+      pen.setColor(0.64,0.8,1);
+      pen.fillRectangle(s0, line->origin.y, s1-s0, 16);
+      pen.setColor(0,0,0);
+    }
+
+    for(auto fragment: line->fragments) {
       fragment.attr.setFont(pen);
       if (!fragment.text)
-        pen.drawString(fragment.x, line.origin.y, "null");
+        pen.drawString(fragment.origin.x, line->origin.y, "null");
       else
-        pen.drawString(fragment.x, line.origin.y, fragment.text, fragment.size);
+        pen.drawString(fragment.origin.x, line->origin.y, fragment.text, fragment.length);
     }
   }
-  
   pen.setColor(0,0,0);
-  pen.drawLine(document->pos[CURSOR].x, document->pos[CURSOR].y,
-               document->pos[CURSOR].x, document->pos[CURSOR].y+pen.getHeight());
-  pen.drawLine(document->pos[SELECTION_BGN].x, pen.getHeight(),
-               document->pos[SELECTION_END].x, pen.getHeight());
+  pen.drawLine(document->pos[CURSOR].pos.x, document->pos[CURSOR].pos.y,
+               document->pos[CURSOR].pos.x, document->pos[CURSOR].pos.y+pen.getHeight());
 }
 
 void
@@ -441,7 +502,7 @@ TTextEditor2::paint()
   pen.translate(0,72);
   TPreparedDocument prepared;
   prepareHTMLText(pen, line, xpos, &prepared);
-  renderPrepared(pen, &prepared);
+  renderPrepared(pen, &prepared, xpos);
 }
 
 int 
