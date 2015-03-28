@@ -177,6 +177,7 @@ tagdec(const string &text, size_t *cx)
 {
   int state=1;
   while(state) {
+    utf8dec(text, cx);
     switch(state) {
       case 1:
         switch(text[*cx]) {
@@ -194,7 +195,6 @@ tagdec(const string &text, size_t *cx)
             break;
         } break;
     }
-    utf8dec(text, cx);
   }
 }
 
@@ -220,11 +220,12 @@ xmlinc(const string &text, size_t *cx)
 {
   if (text[*cx]=='&') {
     entityinc(text, cx);
+  } else
+  if (text[*cx]=='<') {
+    taginc(text, cx);
+    utf8inc(text, cx);
   } else {
     utf8inc(text, cx);
-    if (text[*cx]=='<') {
-      taginc(text, cx);
-    }
   }
 }
 
@@ -232,9 +233,16 @@ inline void
 xmldec(const string &text, size_t *cx)
 {
   utf8dec(text, cx);
-  switch(text[*cx]) {
-    case '>': tagdec(text, cx); break;
-    case ';': entitydec(text, cx); break;
+  if (text[*cx]==';') {
+    entitydec(text, cx);
+  }
+  if (*cx>0) {
+    size_t x = *cx;
+    utf8dec(text, &x);
+    if (text[x]=='>') {
+      *cx = x;
+      tagdec(text, cx);
+    }
   }
 }
 
@@ -262,7 +270,7 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
 {
   if (text.empty())
     return;
-
+//cout << "------------------------------------------------------" << endl;
   prepared->pos.resize(xpos.size());
 
   string face="times";
@@ -293,14 +301,14 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
         fragment->attr.setFont(pen);
       }
       fragment->text = text.data()+x0;
-//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
+//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
       fragment->size = x1-x0;
 
       for(auto &pos: xpos) {
         if (x0<=pos && pos<x1) {
           prepared->pos[&pos-xpos.data()].x = x + pen.getTextWidth(text.substr(x0, pos-x0));
           prepared->pos[&pos-xpos.data()].y = line->origin.y;
-//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->xpos[&pos-xpos.data()]);
+//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
         }
       }
 
@@ -309,11 +317,17 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       fragment->width=w;
       x+=w;
     }
-//    pen.drawString(x,32, line.substr(x0, x1-x0));
-
-    // prepare this for multiple cursors
 
     x0=x1;
+
+    for(auto &pos: xpos) {
+      if (x0==pos) {
+        prepared->pos[&pos-xpos.data()].x = x;
+        prepared->pos[&pos-xpos.data()].y = line->origin.y;
+//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
+      }
+    }
+
     if (c=='<') {
       taginc(text, &x1);
       string tag = text.substr(x0,x1-x0);
@@ -356,13 +370,6 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
     } else
     if (c=='&') {
-      for(auto &pos: xpos) {
-        if (x0==pos) {
-          prepared->pos[&pos-xpos.data()].x = x;
-          prepared->pos[&pos-xpos.data()].y = line->origin.y;
-//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
-        }
-      }
       entityinc(text, &x1);
 
       if (!fragment || fragment->text) {
@@ -393,13 +400,6 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       fragment->width+=w;
       x += w;
       x0=x1;
-    }
-  }
-  for(auto &pos: xpos) {
-    if (x0==pos) {
-//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
-      prepared->pos[&pos-xpos.data()].x = x;
-      prepared->pos[&pos-xpos.data()].y = line->origin.y;
     }
   }
 }
