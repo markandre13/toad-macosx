@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2015 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -152,15 +152,31 @@ TFont::setFont(const string &fn)
     size = 12;
 //cout << "TFont::setFont(" << fn << ") -> " << family << ", " << size << ", " << traits << endl;
   NSFontManager *fm = [NSFontManager sharedFontManager];
-  nsfont = [fm fontWithFamily: [NSString stringWithUTF8String: family.c_str()]
+  NSString *nstr = [NSString stringWithUTF8String: family.c_str()];
+  nsfont = [fm fontWithFamily: nstr
                        traits: traits
                        weight: weight
                          size:size];
   if (!nsfont) {
     cerr << "failed to find font '" << family << "', using 'Helvetica instead" << endl;
-    nsfont = [NSFont fontWithName: [NSString stringWithUTF8String: "Helvetica"] size:size];
+    [nstr release];
+    nstr = [NSString stringWithUTF8String: "Helvetica"];
+    nsfont = [fm fontWithFamily: nstr
+                         traits: traits
+                         weight: weight
+                           size:size];
   }
   [nsfont retain];
+  [nstr release];
+  
+  NSDictionary *attributes =
+    [NSDictionary dictionaryWithObject: nsfont
+                                forKey: NSFontAttributeName];
+
+  NSLayoutManager *layoutManager = [[[NSLayoutManager alloc] init] autorelease];
+  height = [layoutManager defaultLineHeightForFont: nsfont];
+  baseline = [layoutManager defaultBaselineOffsetForFont: nsfont];
+  // [attributes release]; // managed via the autorelease pool
 }
 
 const char*
@@ -212,21 +228,6 @@ int
 TFont::getSlant() const
 {
   return 0;
-}
-
-TCoord
-TFont::getHeight() { 
-  return ([nsfont ascender] + [nsfont leading] - [nsfont descender]);
-}
-
-TCoord
-TFont::getAscent() {
-  return ([nsfont ascender] + [nsfont leading]);
-}
-
-TCoord
-TFont::getDescent() {
-  return (-[nsfont descender]);
 }
 
 TCoord

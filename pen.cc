@@ -371,7 +371,7 @@ NSImage* newImage = [[NSImage alloc] initWithSize: [myImage size]];
 }
 
 void
-TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transparent)
+TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparent)
 {
 #if 0
   // create font descriptor
@@ -409,68 +409,70 @@ TPen::vdrawString(TCoord x, TCoord y, char const *aText, int len, bool transpare
 #endif
 #if 0
   // Cocoa
-  char *t = 0;
-  if (strlen(aText)!=len) {
-    t = strdup(aText);
-    t[len] = 0;
-  }
-  if (!transparent) {
-    TRGBA stroke2 = stroke, fill2 = fill;
-    setColor(fill2.r, fill2.g, fill2.b);    
-    fillRectanglePC(x,y,getTextWidth(t?t:aText),getHeight());
-    setLineColor(stroke2.r, stroke2.g, stroke2.b);
-    setFillColor(fill2.r, fill2.g, fill2.b);
-  }
   NSDictionary *textAttributes =
     [NSDictionary dictionaryWithObjectsAndKeys:
       font->nsfont,
         NSFontAttributeName,
-      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue:  stroke.b alpha: 1.0],
+      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue: stroke.b alpha: 1.0],
         NSForegroundColorAttributeName,
       nil];
-  [[NSString stringWithUTF8String: t?t:aText]
+  NSString *nstr = [ [NSString alloc] 
+                  initWithBytes: text
+                         length: len
+                       encoding: NSUTF8StringEncoding];
+
+  if (!transparent) {
+    NSSize size = [nstr sizeWithAttributes: textAttributes];
+    TRGBA stroke2 = stroke, fill2 = fill;
+    setColor(fill2.r, fill2.g, fill2.b);    
+    fillRectanglePC(x,y,size.width,font->height);
+    setLineColor(stroke2.r, stroke2.g, stroke2.b);
+    setFillColor(fill2.r, fill2.g, fill2.b);
+  }
+  
+  [nstr
     drawAtPoint: NSMakePoint(x, y)
     withAttributes: textAttributes];
 
-  if (t)
-    free(t);
+  [nstr release];
 #endif
 #if 1
-  // CoreText
-  char *t = 0;
-  if (strlen(aText)!=len) {
-    t = strdup(aText);
-    t[len] = 0;
-  }
-  if (!transparent) {
-    TRGBA stroke2 = stroke, fill2 = fill;
-    setColor(fill2.r, fill2.g, fill2.b);    
-    fillRectanglePC(x,y,getTextWidth(t?t:aText),getHeight());
-    setLineColor(stroke2.r, stroke2.g, stroke2.b);
-    setFillColor(fill2.r, fill2.g, fill2.b);
-  }
+  // CoreText works better in flipped coordinate systems
   NSDictionary *textAttributes =
     [NSDictionary dictionaryWithObjectsAndKeys:
       font->nsfont,
         NSFontAttributeName,
-      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue:  stroke.b alpha: 1.0],
+      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue: stroke.b alpha: 1.0],
         NSForegroundColorAttributeName,
       nil];
+  NSString *nstr = [ [NSString alloc] 
+                  initWithBytes: text
+                         length: len
+                       encoding: NSUTF8StringEncoding];
+
+  if (!transparent) {
+    NSSize size = [nstr sizeWithAttributes: textAttributes];
+    TRGBA stroke2 = stroke, fill2 = fill;
+    setColor(fill2.r, fill2.g, fill2.b);    
+    fillRectanglePC(x,y,size.width,font->height);
+    setLineColor(stroke2.r, stroke2.g, stroke2.b);
+    setFillColor(fill2.r, fill2.g, fill2.b);
+  }
   NSAttributedString *attrString = 
     [[NSAttributedString alloc]
-      initWithString:[NSString stringWithUTF8String: t?t:aText]
+      initWithString: nstr
       attributes:textAttributes];
 
   CGAffineTransform m = { 1, 0, 0, -1, 0, 0 };
   CGContextSetTextMatrix(ctx, m);
 
   CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attrString);
-  CGContextSetTextPosition(ctx, x, y + [font->nsfont pointSize]);
+  CGContextSetTextPosition(ctx, x, y + font->baseline);
   CTLineDraw(line, ctx);
   CFRelease(line);
 
-  if (t)
-    free(t);
+  [nstr release];
+  // [textAttributes release]; // managed via the autorelease pool
 #endif
 }
 

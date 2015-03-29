@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2005 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2015 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,13 @@ class TFont:
 public:
     NSFont *nsfont;
 
+    // NSFont's ascender, descender, leading methods seem to be unreliable. 
+    // E.g.  helvetica's ascender is inside 'Ä' while arial's ascender is
+    // above 'Ä'. When using NSLayoutManager's defaultLineHeightForFont,
+    // defaultBaselineOffsetForFont methods we get better results.
+    TCoord height;
+    TCoord baseline;
+
 //  public:
     string fcname;
 
@@ -68,9 +75,9 @@ public:
     void setSlant(int slant);
     int getSlant() const;
 
-    TCoord getHeight();
-    TCoord getAscent();
-    TCoord getDescent();
+    TCoord getHeight() const { return height; }
+    TCoord getAscent() const { return baseline; }
+    TCoord getDescent() const { return height - baseline; }
     TCoord getTextWidth(const char *text, size_t n);
     TCoord getTextWidth(const char *text) {
       return getTextWidth(text, strlen(text));
