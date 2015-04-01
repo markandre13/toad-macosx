@@ -24,7 +24,15 @@
 #include <toad/pen.hh>
 #include <toad/utf8.hh>
 
+//#define OLD_TOAD 1
+
 using namespace toad;
+
+#ifdef OLD_TOAD
+struct TSize {
+  TCoord width, height;
+};
+#endif
 
 enum {
   CURSOR,
@@ -61,8 +69,21 @@ struct TTextAttribute
   bool italic:1;
   TRGB bcolor;
   TRGB fcolor;
-  void setFont(TPen &pen);
+  void setFont(TFont &font);
+  void setFont(TPen  &pen);
 };
+
+void
+TTextAttribute::setFont(TFont &font)
+{
+  ostringstream fontname;
+  fontname << face << ":size=" << size;
+  if (bold)
+    fontname << ":bold";
+  if (italic)
+    fontname << ":italic";
+  font.setFont(fontname.str());
+}
 
 void
 TTextAttribute::setFont(TPen &pen)
@@ -86,6 +107,7 @@ struct TTextFragment
   }
   TPoint origin;
   TSize size;
+  TCoord ascent, descent;
 
   // the text to be displayed
   const char *text; // FIXME: should be offset
@@ -96,13 +118,20 @@ struct TTextFragment
 
 struct TPreparedLine
 {
+  ~TPreparedLine();
   TPoint origin;
   TSize size;
   TCoord ascent, descent;
   
   size_t text;
-  vector<TTextFragment> fragments;
+  vector<TTextFragment*> fragments;
 };
+
+TPreparedLine::~TPreparedLine()
+{
+  for(auto p: fragments)
+    delete p;
+}
 
 // marker for cursors, selections, ...
 // apple pages selection
@@ -120,15 +149,22 @@ struct TMarker
   }
   TPoint pos;
   size_t idx;
-  size_t line; // FIXME: pointer & TPreparedDocument.lines takes pointers too
-  TTextFragment *fragment; // TPreparedLine.fragments must take pointers for this to work
+  TPreparedLine *line;
+  TTextFragment *fragment;
 };
 
 struct TPreparedDocument
 {
-  vector<TPreparedLine> lines;
+  ~TPreparedDocument();
+  vector<TPreparedLine*> lines;
   vector<TMarker> pos;
 };
+
+TPreparedDocument::~TPreparedDocument()
+{
+  for(auto p: lines)
+    delete p;
+}
 
 class TTextEditor
 {
@@ -150,13 +186,18 @@ class TTextEditor2:
              "\"Merry Xmas you <i>fittle</i> shit.\"<br/>"
              "Is not what we want to hear from Santa.";
       xpos.resize(3);
-      xpos[CURSOR] = 2;
-      xpos[SELECTION_BGN] = 2;
-      xpos[SELECTION_END] = 88;
+      xpos[CURSOR] = 0;
+      xpos[SELECTION_BGN] = 0;
+      xpos[SELECTION_END] = 0;
     }
     
     void paint() override;
+#ifndef OLD_TOAD
     void keyDown(TKey key,char*,unsigned) override;
+#else
+    void keyDown(const TKeyEvent &ke) override;
+#endif
+    void mouseLDown(const TMouseEvent&) override;
 };
 
 // o an entity is treated like a character
@@ -272,26 +313,7 @@ xmldec(const string &text, size_t *cx)
 }
 
 void
-TTextEditor2::keyDown(TKey key,char*,unsigned)
-{
-  switch(key) {
-    case TK_RIGHT:
-      if (xpos[CURSOR]<line.size())
-        xmlinc(line, &xpos[CURSOR]);
-      break;
-    case TK_LEFT:
-      if (xpos[CURSOR]>0)
-        xmldec(line, &xpos[CURSOR]);
-      break;
-    case TK_UP:
-      xpos[SELECTION_END] = xpos[CURSOR];
-      break;
-  }
-  invalidateWindow();
-}
-
-void
-prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPreparedDocument *prepared)
+prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *prepared)
 {
   if (text.empty())
     return;
@@ -299,7 +321,8 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
   prepared->pos.resize(xpos.size());
 
   string face="times";
-  pen.setFont(face);
+  TFont font;
+  font.setFont(face);
 
   TCoord x=0;
   size_t x0=0, x1=0;
@@ -307,8 +330,8 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
   int c;
   TCoord w;
   
-  prepared->lines.push_back(TPreparedLine());
-  TPreparedLine *line = &prepared->lines.back();
+  prepared->lines.push_back(new TPreparedLine());
+  TPreparedLine *line = prepared->lines.back();
   line->text = 0;
   
   line->ascent  = 0;
@@ -325,13 +348,13 @@ prepareHTMLText(TPen &pen, const string &text, const vector<size_t> &xpos, TPrep
       utf8inc(text, &x1);
     }
     if (x1>x0) {
-      line->ascent  = max(line->ascent,  pen.getAscent());
-      line->descent = max(line->descent, pen.getDescent());
-cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
+      line->ascent  = max(line->ascent,  font.getAscent());
+      line->descent = max(line->descent, font.getDescent());
+//cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
       if (!fragment || fragment->text) {
-        line->fragments.push_back(TTextFragment(fragment));
-        fragment = &line->fragments.back();
-        fragment->attr.setFont(pen);
+        line->fragments.push_back(new TTextFragment(fragment));
+        fragment = line->fragments.back();
+        fragment->attr.setFont(font);
       }
       fragment->text = text.data()+x0;
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
@@ -339,15 +362,19 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
 
       for(auto &pos: xpos) {
         if (x0<=pos && pos<x1) {
-          prepared->pos[&pos-xpos.data()].pos.x = x + pen.getTextWidth(text.substr(x0, pos-x0));
-          prepared->pos[&pos-xpos.data()].pos.y = line->origin.y;
-          prepared->pos[&pos-xpos.data()].line  = prepared->lines.size()-1;
+          prepared->pos[&pos-xpos.data()].pos.x    = x + font.getTextWidth(text.substr(x0, pos-x0));
+          prepared->pos[&pos-xpos.data()].pos.y    = line->origin.y;
+          prepared->pos[&pos-xpos.data()].line     = line;
+          prepared->pos[&pos-xpos.data()].fragment = fragment;
 //printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
         }
       }
-      w = pen.getTextWidth(text.substr(x0, x1-x0));
+      w = font.getTextWidth(text.substr(x0, x1-x0));
       fragment->origin.x = x;
       fragment->size.width=w;
+      fragment->size.height=font.getHeight();
+      fragment->ascent =  font.getAscent();
+      fragment->descent = font.getDescent();
       x+=w;
     }
 
@@ -357,7 +384,8 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
       if (x0==pos) {
         prepared->pos[&pos-xpos.data()].pos.x = x;
         prepared->pos[&pos-xpos.data()].pos.y = line->origin.y;
-        prepared->pos[&pos-xpos.data()].line  = prepared->lines.size()-1;
+        prepared->pos[&pos-xpos.data()].line  = line;
+        prepared->pos[&pos-xpos.data()].fragment = fragment;
 //printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
       }
     }
@@ -370,45 +398,45 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
       if (tag=="<br/>") { // FIXME: the <br/> must be treated like a character
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
-        prepared->lines.push_back(TPreparedLine());
-        prepared->lines.back().origin.y = line->origin.y + line->size.height;
-        line = &prepared->lines.back();
+        prepared->lines.push_back(new TPreparedLine());
+        prepared->lines.back()->origin.y = line->origin.y + line->size.height;
+        line = prepared->lines.back();
         line->text = x0;
         line->ascent  = 0;
         line->descent = 0;
         x=0;
       }
-      line->fragments.push_back(TTextFragment(fragment));
-      fragment = &line->fragments.back();
+      line->fragments.push_back(new TTextFragment(fragment));
+      fragment = line->fragments.back();
       if (tag=="<br/>") {
       } else
       if (tag=="<sup>") {
         fragment->attr.size-=2;
         fragment->origin.y+=2;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       } else
       if (tag=="</sup>") {
         fragment->attr.size+=2;
         fragment->origin.y-=2;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       } else
       if (tag=="<i>") {
         fragment->attr.italic=true;
         fragment->attr.size=48;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       } else
       if (tag=="</i>") {
         fragment->attr.size=12;
         fragment->attr.italic=false;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       } else
       if (tag=="<b>") {
         fragment->attr.bold = true;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       } else
       if (tag=="</b>") {
         fragment->attr.bold = false;
-        fragment->attr.setFont(pen);
+        fragment->attr.setFont(font);
       }
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
     } else
@@ -416,8 +444,8 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
       entityinc(text, &x1);
 
       if (!fragment || fragment->text) {
-        line->fragments.push_back(TTextFragment(fragment));
-        fragment = &line->fragments.back();
+        line->fragments.push_back(new TTextFragment(fragment));
+        fragment = line->fragments.back();
         fragment->origin.x = x;
       }
 
@@ -437,8 +465,11 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
       if (fragment->text)
         fragment->length=strlen(fragment->text);
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
-      w = pen.getTextWidth(fragment->text, fragment->length);
+      w = font.getTextWidth(fragment->text, fragment->length);
       fragment->size.width+=w;
+      fragment->size.height=font.getHeight();
+      fragment->ascent =  font.getAscent();
+      fragment->descent = font.getDescent();
       x += w;
       x0=x1;
     }
@@ -450,10 +481,10 @@ cout << "line: " << line << ", " << line->ascent << ", " << line->descent << end
 void
 renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpos)
 {
-cout << "render-------------" << endl;
-cout << "we have " << document->lines.size() << " lines" << endl;
+///cout << "render-------------" << endl;
+//cout << "we have " << document->lines.size() << " lines" << endl;
 //  pen.setColor(164,205,1);
-  pen.setColor(0.64,0.8,1);
+//  pen.setColor(0.64,0.8,1);
 //  pen.setColor(0,1,1);
 /*
   pen.fillRectangle(document->pos[SELECTION_BGN].pos.x,
@@ -462,27 +493,30 @@ cout << "we have " << document->lines.size() << " lines" << endl;
                     pen.getHeight());
   pen.setColor(0,0,0);
 */
-  cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
-  cout << "cursor " <<  document->pos[CURSOR].line << " " << document->lines[document->pos[CURSOR].line].size.height << endl;
+//  cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
+//  cout << "cursor " <<  document->pos[CURSOR].line << " " << document->pos[CURSOR].line->size.height << endl;
 //  for(auto &&line: document->lines) {
-  for(vector<TPreparedLine>::const_iterator line = document->lines.begin();
-      line != document->lines.end();
-      ++line)
+  for(vector<TPreparedLine*>::const_iterator p = document->lines.begin();
+      p != document->lines.end();
+      ++p)
   {
-    size_t textend = (line+1 == document->lines.end()) ? string::npos : (line+1)->text;
-    cout << "  line " << line->text << " - " << textend << ", height=" << line->size.height << endl;
+    vector<TPreparedLine*>::const_iterator pe = p;
+    ++pe;
+    size_t textend = (pe == document->lines.end()) ? string::npos : (*pe)->text;
+    TPreparedLine *line = *p;
+//    cout << "  line " << line->text << " - " << textend << ", height=" << line->size.height << endl;
     
     TCoord s0=0, s1=line->size.width;
     bool s=false;
     if (line->text < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
       s=true;
       s0 = document->pos[SELECTION_BGN].pos.x;
-      cout << "    begin" << endl;
+//      cout << "    begin" << endl;
     }
     if (line->text < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
       s=true;
       s1 = document->pos[SELECTION_END].pos.x;
-      cout << "    end" << endl;
+//      cout << "    end" << endl;
     }
     if (!s && xpos[SELECTION_BGN] < line->text && textend < xpos[SELECTION_END]) {
       s=true;
@@ -494,14 +528,14 @@ cout << "we have " << document->lines.size() << " lines" << endl;
     }
 
     for(auto fragment: line->fragments) {
-      fragment.attr.setFont(pen);
+      fragment->attr.setFont(pen);
       
       TCoord y = line->origin.y + line->ascent - pen.getAscent();
       
-      if (!fragment.text)
-        pen.drawString(fragment.origin.x, y, "null");
+      if (!fragment->text)
+        pen.drawString(fragment->origin.x, y, "null");
       else
-        pen.drawString(fragment.origin.x, y, fragment.text, fragment.length);
+        pen.drawString(fragment->origin.x, y, fragment->text, fragment->length);
     }
   }
 
@@ -511,86 +545,22 @@ cout << "we have " << document->lines.size() << " lines" << endl;
   cout << "document->pos[CURSOR].line->ascent      = " << document->pos[CURSOR].line->ascent << endl;
   cout << "document->pos[CURSOR].line->descent     = " << document->pos[CURSOR].line->descent << endl;
   cout << "document->pos[CURSOR].line->size.height = " << document->pos[CURSOR].line->size.height << endl;
-*/  
-  pen.drawLine(document->pos[CURSOR].pos.x, document->pos[CURSOR].pos.y,
-               document->pos[CURSOR].pos.x, document->pos[CURSOR].pos.y+document->lines[document->pos[CURSOR].line].size.height);
-}
-
-float lineheight(NSFont *myFont)
-{
-  NSLayoutManager *layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-  return [layoutManager defaultLineHeightForFont: myFont];
-}
-
-float baseline(NSFont *myFont)
-{
-  NSLayoutManager *layoutManager = [[[NSLayoutManager alloc] init] autorelease];
-  return [layoutManager defaultBaselineOffsetForFont: myFont];
+*/
+  // when there's no selection, draw cursor
+  if (xpos[SELECTION_BGN] == xpos[SELECTION_END]) {
+    TCoord cy = document->pos[CURSOR].pos.y+
+                document->pos[CURSOR].line->ascent-
+                document->pos[CURSOR].fragment->ascent;
+    pen.drawLine(document->pos[CURSOR].pos.x, cy,
+                 document->pos[CURSOR].pos.x, cy + document->pos[CURSOR].fragment->size.height);
+  }
 }
 
 void
 TTextEditor2::paint()
 {
   TPen pen(this);
-#if 0
-  pen.setFont("arial:size=12");
-  pen.drawRectangle(50,150,100,pen.getHeight());
-  pen.drawString(50,150, "Holger");
-  pen.setFont("helvetica:size=12");
-  pen.drawRectangle(50,50,100,pen.getHeight());
-  pen.drawString(50,50, "Holger");
-#endif
-#if 0
-  TCoord y;
-  for(int i=0; i<2; ++i) {
-    if (i==0) {
-      pen.translate(0,8);
-      pen.setFont("arial:size=48");
-    } else {
-      pen.setFont("helvetica:size=48");
-      pen.translate(0,140);
-    }
-    y = 0;
-    pen.setColor(0,0,0);
-    pen.drawString(0, y, "Äpfelig");
-    pen.setColor(1,0,0);
-    y = 0;
-    pen.drawLine(0,y,640,y);
-    y = pen.getAscent();
-    pen.drawLine(0,y,640,y);
-    y = pen.getHeight();
-    pen.drawLine(0,y,640,y);
-
-    pen.setColor(0,0.5,1);
-    y = baseline(pen.font->nsfont) - [pen.font->nsfont ascender];
-    pen.drawLine(0,y,340,y);
-
-    y = baseline(pen.font->nsfont) - [pen.font->nsfont descender];
-    pen.drawLine(0,y,340,y);
-
-    y = baseline(pen.font->nsfont) - [pen.font->nsfont xHeight];
-    pen.drawLine(0,y,340,y);
-
-    y = baseline(pen.font->nsfont) - [pen.font->nsfont capHeight];
-    pen.drawLine(0,y,340,y);
-
-//    CGFontMetrics *m = CGFontGetHMetricsPtr(font_face->cgFont);
   
-    cout << "ascender  : " << [pen.font->nsfont ascender] << endl
-         << "capheight : " << [pen.font->nsfont capHeight] << endl
-         << "descender : " << [pen.font->nsfont descender] << endl
-         << "xheight   : " << [pen.font->nsfont xHeight] << endl
-         << "leading   : " << [pen.font->nsfont leading] << endl
-         << "pointsize : " << [pen.font->nsfont pointSize] << endl
-         << "x         : " << ([pen.font->nsfont ascender]-[pen.font->nsfont descender]*2) << endl
-         << "lineheight: " << lineheight(pen.font->nsfont) << endl
-         << "lineheight: " << pen.getHeight() << endl
-         << "baseline  : " << baseline(pen.font->nsfont) << endl
-         << "b         : " << [pen.font->nsfont boundingRectForFont].size.height << endl
-         << endl;
-  }  
-#endif
-#if 1
   pen.drawString(0,0,line);
   
   // raw text
@@ -601,11 +571,93 @@ TTextEditor2::paint()
   // parsed text
   pen.translate(0,72);
   TPreparedDocument prepared;
-  prepareHTMLText(pen, line, xpos, &prepared);
+  prepareHTMLText(line, xpos, &prepared);
   renderPrepared(pen, &prepared, xpos);
+}
+
+#ifndef OLD_TOAD
+void
+TTextEditor2::keyDown(TKey key, char *str, unsigned modifier)
+{
+#else
+void
+TTextEditor2::keyDown(const TKeyEvent &ke)
+{
+  TKey key = ke.key();
+  string str = ke.str();
+  unsigned modifier = ke.modifier();
+#endif
+  // return on deadkeys
+  if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
+    return;
+
+  bool move = false;
+  size_t oldcursor = xpos[CURSOR];
+  size_t sb = xpos[SELECTION_BGN];
+  size_t se = xpos[SELECTION_END];
+  if (modifier & MK_SHIFT) {
+    if (sb==se) {
+      // start a new selection
+      sb=se=oldcursor;
+    }
+  } else {
+    // clear an old selection
+    xpos[SELECTION_BGN] = xpos[SELECTION_END] = 0;
+  }
+
+  switch(key) {
+    case TK_RIGHT:
+      move = true;
+      if (xpos[CURSOR]<line.size())
+        xmlinc(line, &xpos[CURSOR]);
+      break;
+    case TK_LEFT:
+      move = true;
+      if (xpos[CURSOR]>0)
+        xmldec(line, &xpos[CURSOR]);
+      break;
+  }
+  
+  if ((modifier & MK_SHIFT) && move) {
+    // adjust selection
+    if (sb==oldcursor)
+      sb=xpos[CURSOR];
+    else
+      se=xpos[CURSOR];
+    if (sb>se) {
+      size_t a = sb; sb=se; se=a;
+    }
+    xpos[SELECTION_BGN] = sb;
+    xpos[SELECTION_END] = se;
+  }
+  
+  invalidateWindow();
+}
+
+void
+foo(TPreparedDocument &document, vector<size_t> xpos, TPoint &pos)
+{
+  for(auto line: document.lines) {
+  }
+}
+
+void
+TTextEditor2::mouseLDown(const TMouseEvent &me)
+{
+  TPreparedDocument document;
+  prepareHTMLText(line, xpos, &document);
+#ifndef OLD_TOAD
+  TPoint pos(me.pos.x, me.pos.y-72);
+  foo(document, xpos, pos);
+#else
+  TPoint pos(me.x, me.y-72);
+  foo(document, xpos, pos);
 #endif
 }
 
+
+
+#ifndef OLD_TOAD
 int 
 test_text()
 {
@@ -613,3 +665,14 @@ test_text()
   toad::mainLoop();
   return 0;
 }
+#else
+int
+main(int argc, char **argv, char **envv)
+{
+  toad::initialize(argc, argv, envv); {
+  TTextEditor2 wnd(NULL, "TextEditor II");
+  toad::mainLoop();
+  } toad::terminate();
+  return 0;
+}
+#endif
