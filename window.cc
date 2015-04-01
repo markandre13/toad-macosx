@@ -545,7 +545,12 @@ TWindow::destroyParentless()
 - (void)unmarkText {}
 - (NSArray*) validAttributesForMarkedText { return [NSArray array]; }
 - (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return nil; }
-- (void)insertText: (id)str replacementRange:(NSRange) replacement {}
+
+static string ndkstr;
+
+- (void)insertText: str replacementRange:(NSRange) replacement {
+  ndkstr =  [str UTF8String];
+}
 - (NSUInteger)characterIndexForPoint:(NSPoint)aPoint { return NSNotFound; }
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return NSMakeRect(0,0,0,0); }
 - (void)doCommandBySelector:(SEL)aSelector {}
@@ -1502,8 +1507,11 @@ TWindow::getOrigin(TCoord *x, TCoord *y) const
 const char*
 TKeyEvent::getString() const
 {
+#if 0
   NSString *ns = [nsevent charactersIgnoringModifiers];
   return [ns UTF8String];
+#endif
+  return ndkstr.c_str();
 }
 
 TKey 
