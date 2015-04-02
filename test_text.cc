@@ -637,7 +637,33 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
 void
 foo(TPreparedDocument &document, vector<size_t> xpos, TPoint &pos)
 {
+  cout << "-------------- foo -------------" << endl;
   for(auto line: document.lines) {
+    cout << "line " << line->origin.y << ", " << line->size.height << endl;
+    if (line->origin.y <= pos.y && pos.y < line->origin.y + line->size.height) {
+      cout << "  found a line" << endl;
+      for(auto fragment: line->fragments) {
+        cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
+        if (fragment->origin.x <= pos.x && pos.x < fragment->origin.x + fragment->size.width) {
+          cout << "    found a fragment" << endl;
+          TFont font;
+          fragment->attr.setFont(font);
+          size_t i;
+          for(i=1; i<fragment->length; ++i) {
+            TCoord w = font.getTextWidth(fragment->text, i);
+            cout << "      " << i << ": " << font.getTextWidth(fragment->text, i) << " '" <<fragment->text[i] << "' (" << (pos.x-fragment->origin.x) << ")" << endl;
+            if (pos.x < fragment->origin.x + w) {
+              break;
+            }
+          }
+          --i;
+          // xpos[CURSOR] = fragment->text + i;
+          cout << "        found character " << i << " -> '" << fragment->text[i] << "'" << endl;
+          break;
+        }
+      }
+      break;
+    }
   }
 }
 
