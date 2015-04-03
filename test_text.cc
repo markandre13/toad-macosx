@@ -24,6 +24,9 @@
 #include <toad/pen.hh>
 #include <toad/utf8.hh>
 
+#include <vector>
+#include <map>
+
 //#define OLD_TOAD 1
 
 using namespace toad;
@@ -240,27 +243,215 @@ class TTextEditor2:
 // libreoffic: <sup> & <sub>
 //   raise/lower 33% (of what?)
 //   relative font size 58%
-inline void
-taginc(const string &text, size_t *cx)
+struct TTag
 {
+  TTag() { open=close=false; }
+  string name;
+  map<string, string> attribute;
+  bool open:1;
+  bool close:1;
+};
+
+ostream& operator<<(ostream &s, const TTag& tag) {
+  s<<'<';
+  if (!tag.open && tag.close)
+    s<<'/';
+  s<<tag.name;
+  for(auto p: tag.attribute)
+    if (p.second.find('"')==string::npos)
+      s<<" "<<p.first<<"=\""<<p.second<<"\"";
+    else
+      s<<" "<<p.first<<"='"<<p.second<<"'";
+  if (tag.open && tag.close)
+    s<<'/';
+  s<<'>';
+  return s;
+}
+
+/**
+ *
+ * accept misformed tags but don't add misformed attributes to 'tag'
+ */
+inline void
+taginc(const string &text, size_t *cx, TTag *tag=0)
+{
+  if (tag)
+    tag->open=true;
+  string attribute, value;
   int state=1;
+  ++(*cx);
   while(state) {
+    int c = text[*cx];
     switch(state) {
-      case 1:
-        switch(text[*cx]) {
+      case 1: // <...
+        switch(c) {
+          case '/':
+            if (tag) {
+              tag->close = true;
+              tag->open = false;
+            }
+            state=2;
+            break;
           case '>':
             state=0;
             break;
-          case '"':
+          case ' ': case '\t': case '\n': case '\r':
+            state = 2;
+            break;
+          default:
+            if (tag)
+              tag->name.append(1, c);
             state=2;
+        } break;
+        
+      case 2: // <tag...
+        switch(c) {
+          case '/':
+            state=3;
+            break;
+          case '>':
+            state=0;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            state=5;
+            break;
+          default:
+            if (tag)
+              tag->name.append(1, c);
+        } break;
+        
+      case 3: // <tag/...>
+        switch(c) {
+          case '>':
+            if (tag)
+              tag->close=true;
+            state=0;
             break;
         } break;
-      case 2:
-        switch(text[*cx]) {
+
+      case 4: // <tag...>
+        switch(c) {
+          case '>':
+            state=0;
+            break;
+        } break;
+        
+      case 5: // <tag ...
+        switch(c) {
+          case '>':
+            state = 0;
+            break;
+          case '/':
+            state = 3;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            break;
+          default:
+            if (tag) {
+              attribute.clear();
+              value.clear();
+              attribute.append(1, c);
+            }
+            state = 6;
+        } break;
+
+      case 6: // <tag attr...
+        switch(c) {
+          case '>':
+            state = 0;
+            break;
+          case '/':
+            state = 3;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            state=7;
+            break;
+          case '=':
+            state=8;
+            break;
+          default:
+            if (tag)
+              attribute.append(1, c);
+        } break;
+        
+      case 7: // <tag attr ...
+        switch(c) {
+          case '>':
+            state = 0;
+            break;
+          case '/':
+            state = 3;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            break;
+          case '=':
+            state = 8;
+            break;
+          default:
+            state = 4;
+        } break;
+        
+      case 8: // tag attr = ?
+        switch(c) {
+          case '>':
+            state = 0;
+            break;
+          case '/':
+            state = 3;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            break;
           case '"':
-            state=1;
+            state = 9;
             break;
+          case '\'':
+            state = 10;
+            break;
+          default:
+            state = 4;
         } break;
+        
+      case 9: // <tag attr = "?
+        switch(c) {
+          case '"':
+            state = 11;
+            break;
+          default:
+            if (tag)
+              value.append(1, c);
+        } break;
+        
+      case 10: // <tag attr = '?
+        switch(c) {
+          case '\'':
+            state = 11;
+            break;
+          default:
+            if (tag)
+              value.append(1, c);
+        } break;
+        
+      case 11: // <tag attr = "value"?
+        switch(c) {
+          case '>':
+            if (tag)
+              tag->attribute[attribute]=value;
+            state = 0;
+            break;
+          case '/':
+            if (tag)
+              tag->attribute[attribute]=value;
+            state = 3;
+            break;
+          case ' ': case '\t': case '\n': case '\r':
+            if (tag)
+              tag->attribute[attribute]=value;
+            state = 5;
+            break;
+          default:
+            state = 4;
+        }
+        break;
     }
     utf8inc(text, cx);
   }
@@ -316,8 +507,10 @@ xmlinc(const string &text, size_t *cx)
     entityinc(text, cx);
   } else
   if (text[*cx]=='<') {
-    taginc(text, cx);
-    utf8inc(text, cx);
+    TTag tag;
+    taginc(text, cx, &tag);
+    if (tag.name!="br")
+      utf8inc(text, cx);
   } else {
     utf8inc(text, cx);
   }
@@ -399,11 +592,12 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
     x0=x1;
 
     if (c=='<') {
-      taginc(text, &x1);
-      string tag = text.substr(x0,x1-x0);
+      TTag tag;
+      taginc(text, &x1, &tag);
+cout << "TAG: "<<tag<< endl;
       x0=x1;
       
-      if (tag=="<br/>") { // FIXME: the <br/> must be treated like a character
+      if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
         document->lines.push_back(new TPreparedLine());
@@ -416,35 +610,41 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       }
       line->fragments.push_back(new TTextFragment(fragment));
       fragment = line->fragments.back();
-      if (tag=="<br/>") {
+      if (tag.name=="br") {
       } else
-      if (tag=="<sup>") {
-        fragment->attr.size-=2;
-        fragment->origin.y+=2;
-        fragment->attr.setFont(font);
+      if (tag.name=="sup") {
+        if (tag.open) {
+          fragment->attr.size-=2;
+          fragment->origin.y+=2;
+          fragment->attr.setFont(font);
+        }
+        if (tag.close) {
+          fragment->attr.size+=2;
+          fragment->origin.y-=2;
+          fragment->attr.setFont(font);
+        }
       } else
-      if (tag=="</sup>") {
-        fragment->attr.size+=2;
-        fragment->origin.y-=2;
-        fragment->attr.setFont(font);
+      if (tag.name=="i") {
+        if (tag.open) {
+          fragment->attr.italic=true;
+          fragment->attr.size=48;
+          fragment->attr.setFont(font);
+        }
+        if (tag.close) {
+          fragment->attr.size=12;
+          fragment->attr.italic=false;
+          fragment->attr.setFont(font);
+        }
       } else
-      if (tag=="<i>") {
-        fragment->attr.italic=true;
-        fragment->attr.size=48;
-        fragment->attr.setFont(font);
-      } else
-      if (tag=="</i>") {
-        fragment->attr.size=12;
-        fragment->attr.italic=false;
-        fragment->attr.setFont(font);
-      } else
-      if (tag=="<b>") {
-        fragment->attr.bold = true;
-        fragment->attr.setFont(font);
-      } else
-      if (tag=="</b>") {
-        fragment->attr.bold = false;
-        fragment->attr.setFont(font);
+      if (tag.name=="b") {
+        if (tag.open) {
+          fragment->attr.bold = true;
+          fragment->attr.setFont(font);
+        }
+        if (tag.close) {
+          fragment->attr.bold = false;
+          fragment->attr.setFont(font);
+        }
       }
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
     } else
@@ -570,7 +770,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 {
   setSize(800,400);
   text = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
-         "\"Merry Xmas you <i>fittle</i> shit.\"<br/>"
+         "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is not what we want to hear from Santa.";
   xpos.resize(3);
   xpos[CURSOR] = 0;
