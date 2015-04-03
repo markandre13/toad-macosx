@@ -158,39 +158,66 @@ struct TPreparedDocument
 {
   ~TPreparedDocument();
   vector<TPreparedLine*> lines;
-  vector<TMarker> pos;
+  vector<TMarker> marker;
+  void clear();
+  TPreparedLine* lineBefore(TPreparedLine*) const;
+  TPreparedLine* lineAfter(TPreparedLine*) const;
 };
 
+void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
+void lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x);
+
 TPreparedDocument::~TPreparedDocument()
+{
+  clear();
+}
+
+void
+TPreparedDocument::clear()
 {
   for(auto p: lines)
     delete p;
 }
 
-class TTextEditor
+TPreparedLine*
+TPreparedDocument::lineBefore(TPreparedLine *line) const
 {
-};
+  TPreparedLine *before = 0;
+  for(auto p: lines) {
+    if (p==line)
+      return before;
+    before = p;
+  }
+  return 0;
+}
+
+TPreparedLine*
+TPreparedDocument::lineAfter(TPreparedLine *line) const
+{
+  if (!line)
+    return 0;
+  TPreparedLine *before = 0;
+  for(auto p: lines) {
+    if (before==line)
+      return p;
+    before = p;
+  }
+  return 0;
+}
 
 class TTextEditor2:
   public TWindow
 {
-    string text;
+    string text; // the text to be displayed & edited (will be replaced by TTextModel)
 
-    vector<size_t> xpos;
+    vector<size_t> xpos;        // positions relative to text
+    TPreparedDocument document; // data for screen representation of the text
+    
+    bool updown;                // 'true' when moving the cursor up and down
+    TCoord updown_x;              // the x position while moving up and down
 
   public:
-    TTextEditor2(TWindow *parent, const string &title):
-      TWindow(parent, title)
-    {
-      setSize(800,400);
-      text = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
-             "\"Merry Xmas you <i>fittle</i> shit.\"<br/>"
-             "Is not what we want to hear from Santa.";
-      xpos.resize(3);
-      xpos[CURSOR] = 0;
-      xpos[SELECTION_BGN] = 0;
-      xpos[SELECTION_END] = 0;
-    }
+    TTextEditor2(TWindow *parent, const string &title);
     
     void paint() override;
 #ifndef OLD_TOAD
@@ -314,13 +341,11 @@ xmldec(const string &text, size_t *cx)
 }
 
 void
-prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *prepared)
+prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
   if (text.empty())
     return;
 //cout << "------------------------------------------------------" << endl;
-  prepared->pos.resize(xpos.size());
-
   string face="times";
   TFont font;
   font.setFont(face);
@@ -331,8 +356,8 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
   int c;
   TCoord w;
   
-  prepared->lines.push_back(new TPreparedLine());
-  TPreparedLine *line = prepared->lines.back();
+  document->lines.push_back(new TPreparedLine());
+  TPreparedLine *line = document->lines.back();
   line->text = 0;
   
   line->ascent  = 0;
@@ -362,15 +387,6 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
       fragment->length = x1-x0;
 
-      for(auto &pos: xpos) {
-        if (x0<=pos && pos<x1) {
-          prepared->pos[&pos-xpos.data()].pos.x    = x + font.getTextWidth(text.substr(x0, pos-x0));
-          prepared->pos[&pos-xpos.data()].pos.y    = line->origin.y;
-          prepared->pos[&pos-xpos.data()].line     = line;
-          prepared->pos[&pos-xpos.data()].fragment = fragment;
-//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
-        }
-      }
       w = font.getTextWidth(text.substr(x0, x1-x0));
       fragment->origin.x = x;
       fragment->size.width=w;
@@ -382,16 +398,6 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
 
     x0=x1;
 
-    for(auto &pos: xpos) {
-      if (x0==pos) {
-        prepared->pos[&pos-xpos.data()].pos.x = x;
-        prepared->pos[&pos-xpos.data()].pos.y = line->origin.y;
-        prepared->pos[&pos-xpos.data()].line  = line;
-        prepared->pos[&pos-xpos.data()].fragment = fragment;
-//printf("%s:%u: x0=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, pos, x);
-      }
-    }
-
     if (c=='<') {
       taginc(text, &x1);
       string tag = text.substr(x0,x1-x0);
@@ -400,9 +406,9 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       if (tag=="<br/>") { // FIXME: the <br/> must be treated like a character
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
-        prepared->lines.push_back(new TPreparedLine());
-        prepared->lines.back()->origin.y = line->origin.y + line->size.height;
-        line = prepared->lines.back();
+        document->lines.push_back(new TPreparedLine());
+        document->lines.back()->origin.y = line->origin.y + line->size.height;
+        line = document->lines.back();
         line->text = x0;
         line->ascent  = 0;
         line->descent = 0;
@@ -513,12 +519,12 @@ renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpo
     bool s=false;
     if (line->text < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
       s=true;
-      s0 = document->pos[SELECTION_BGN].pos.x;
+      s0 = document->marker[SELECTION_BGN].pos.x;
 //      cout << "    begin" << endl;
     }
     if (line->text < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
       s=true;
-      s1 = document->pos[SELECTION_END].pos.x;
+      s1 = document->marker[SELECTION_END].pos.x;
 //      cout << "    end" << endl;
     }
     if (!s && xpos[SELECTION_BGN] < line->text && textend < xpos[SELECTION_END]) {
@@ -551,12 +557,27 @@ renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpo
 */
   // when there's no selection, draw cursor
   if (xpos[SELECTION_BGN] == xpos[SELECTION_END]) {
-    TCoord cy = document->pos[CURSOR].pos.y+
-                document->pos[CURSOR].line->ascent-
-                document->pos[CURSOR].fragment->ascent;
-    pen.drawLine(document->pos[CURSOR].pos.x, cy,
-                 document->pos[CURSOR].pos.x, cy + document->pos[CURSOR].fragment->size.height);
+    TCoord cy = document->marker[CURSOR].pos.y+
+                document->marker[CURSOR].line->ascent-
+                document->marker[CURSOR].fragment->ascent;
+    pen.drawLine(document->marker[CURSOR].pos.x, cy,
+                 document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
   }
+}
+
+TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
+  TWindow(parent, title)
+{
+  setSize(800,400);
+  text = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
+         "\"Merry Xmas you <i>fittle</i> shit.\"<br/>"
+         "Is not what we want to hear from Santa.";
+  xpos.resize(3);
+  xpos[CURSOR] = 0;
+  xpos[SELECTION_BGN] = 0;
+  xpos[SELECTION_END] = 0;
+  prepareHTMLText(text, xpos, &document);
+  updateMarker(text, &document, xpos);
 }
 
 void
@@ -573,9 +594,7 @@ TTextEditor2::paint()
 
   // parsed text
   pen.translate(0,72);
-  TPreparedDocument prepared;
-  prepareHTMLText(text, xpos, &prepared);
-  renderPrepared(pen, &prepared, xpos);
+  renderPrepared(pen, &document, xpos);
 }
 
 #ifndef OLD_TOAD
@@ -620,6 +639,26 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         xmldec(text, &xpos[CURSOR]);
       break;
   }
+  switch(key) {
+    case TK_DOWN:
+      if (!updown) {
+        updown = true;
+        updown_x = document.marker[CURSOR].pos.x;
+      }
+      lineToCursor(document.lineAfter(document.marker[CURSOR].line), text, document, xpos, updown_x);
+      move = true;
+      break;
+    case TK_UP:
+      if (!updown) {
+        updown = true;
+        updown_x = document.marker[CURSOR].pos.x;
+      }
+      lineToCursor(document.lineBefore(document.marker[CURSOR].line), text, document, xpos, updown_x);
+      move = true;
+      break;
+    default:
+      updown = false;
+  }
   
   if ((modifier & MK_SHIFT) && move) {
     // adjust selection
@@ -633,48 +672,104 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
     xpos[SELECTION_BGN] = sb;
     xpos[SELECTION_END] = se;
   }
-  
+
   invalidateWindow();
+  updateMarker(text, &document, xpos);
 }
 
 void
-foo(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
+lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x)
 {
-  cout << "-------------- foo -------------" << endl;
-  for(auto line: document.lines) {
-    cout << "line " << line->origin.y << ", " << line->size.height << endl;
-    if (line->origin.y <= pos.y && pos.y < line->origin.y + line->size.height) {
-      cout << "  found a line" << endl;
-      for(auto fragment: line->fragments) {
-        cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
-        if (/*fragment->origin.x <= pos.x && */ pos.x < fragment->origin.x + fragment->size.width) {
-          cout << "    found a fragment: " << endl;
-          TFont font;
-          fragment->attr.setFont(font);
-          size_t i0, i1;
-          TCoord x0=0.0, x1;
-          for(i0=0; i0<fragment->length; ) {
-            i1 = i0;
-            utf8inc(fragment->text, &i1);
-char str[16];
-memset(str, 0, sizeof(str));
-memcpy(str, fragment->text+i0, i1-i0);
-            TCoord x1 = font.getTextWidth(fragment->text, i1);
-            TCoord m = (x1-x0)/2 + x0;
+//cout << "------------------------- lineToCursor ---------------------" << endl;
+  if (!line)
+    return;
+  for(auto fragment: line->fragments) {
+//    cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
+    if (x < fragment->origin.x + fragment->size.width) {
+//      cout << "    found a fragment: " << endl;
+      TFont font;
+      fragment->attr.setFont(font);
+      size_t i0, i1;
+      TCoord x0=0.0, x1;
+      for(i0=0; i0<fragment->length; ) {
+        i1 = i0;
+        utf8inc(fragment->text, &i1);
+//char str[16];
+//memset(str, 0, sizeof(str));
+//memcpy(str, fragment->text+i0, i1-i0);
+        TCoord x1 = font.getTextWidth(fragment->text, i1);
+        TCoord m = (x1-x0)/2 + x0;
             
-            cout << "      " << i0 << ": " << font.getTextWidth(fragment->text, i0) << " '" <<str << "' (" << (pos.x-fragment->origin.x) << "), m=" << m << endl;
-            if (pos.x <= fragment->origin.x + m) {
-              xpos[CURSOR] = fragment->offset + i0;
-              cout << "        found character " << i0 << " -> '" << str << "'" << endl;
-              return;
-            }
-            i0 = i1;
-            x0 = x1;
-          }
-          cout << "not here" << endl;
+//        cout << "      " << i0 << ": " << font.getTextWidth(fragment->text, i0) << " '" <<str << "' (" << (x-fragment->origin.x) << "), m=" << m << endl;
+        if (x <= fragment->origin.x + m) {
+          xpos[CURSOR] = fragment->offset + i0;
+//          cout << "        found character " << i0 << " -> '" << str << "'" << endl;
+          return;
         }
+        i0 = i1;
+        x0 = x1;
       }
+//      cout << "not here" << endl;
+    }
+  }
+//  cout << "no fragment...?" << endl;
+  xpos[CURSOR] = line->fragments.back()->offset +
+                 line->fragments.back()->length;
+}
+
+// pos to xpos
+void
+positionToCursor(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
+{
+//  cout << "-------------- foo -------------" << endl;
+  for(auto line: document.lines) {
+//    cout << "line " << line->origin.y << ", " << line->size.height << endl;
+    if (line->origin.y <= pos.y && pos.y < line->origin.y + line->size.height) {
+      lineToCursor(line, text, document, xpos, pos.x);
+//      cout << "  found a line" << endl;
       break;
+    }
+  }
+}
+
+void
+updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos)
+{
+//  cout << "--------------- updateMarker ----------------" << endl;
+  document->marker.resize(xpos.size());
+  for(vector<TPreparedLine*>::const_iterator pl = document->lines.begin();
+      pl != document->lines.end();
+      ++pl)
+  {
+    vector<TPreparedLine*>::const_iterator pe = pl;
+    ++pe;
+    size_t textend = (pe == document->lines.end()) ? string::npos : (*pe)->text;
+        TPreparedLine *line = *pl;
+//    cout << "  line " << line->text << " - " << textend << endl;
+    for(auto &pos: xpos) {
+      if (line->text<=pos && pos<textend) {
+//        cout << "    pos="<<pos<<endl;
+//        for(auto fragment: line->fragments) {
+//          cout << "    " << fragment->offset << endl;
+          vector<TTextFragment*>::const_iterator p;
+          for(p = line->fragments.begin()+1;
+              p != line->fragments.end();
+              ++p)
+          {
+            if (pos<(*p)->offset) {
+              break;
+            }
+          }
+          --p;
+//          cout << "    in fragment : " << (*p)->offset << ", " << (*p)->text << endl;
+          TFont font;
+          (*p)->attr.setFont(font);
+          document->marker[&pos-xpos.data()].pos.x    = (*p)->origin.x + font.getTextWidth(text.substr((*p)->offset, pos-(*p)->offset));
+          document->marker[&pos-xpos.data()].pos.y    = line->origin.y;
+          document->marker[&pos-xpos.data()].line     = line;
+          document->marker[&pos-xpos.data()].fragment = *p;
+//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
+      }
     }
   }
 }
@@ -682,15 +777,14 @@ memcpy(str, fragment->text+i0, i1-i0);
 void
 TTextEditor2::mouseLDown(const TMouseEvent &me)
 {
-  TPreparedDocument document;
-  prepareHTMLText(text, xpos, &document);
 #ifndef OLD_TOAD
   TPoint pos(me.pos.x, me.pos.y-72);
-  foo(text, document, xpos, pos);
+  positionToCursor(text, document, xpos, pos);
 #else
   TPoint pos(me.x, me.y-72);
-  foo(text, document, xpos, pos);
+  positionToCursor(text, document, xpos, pos);
 #endif
+  updateMarker(text, &document, xpos);
   invalidateWindow();
 }
 
