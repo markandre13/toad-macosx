@@ -329,6 +329,7 @@ class TWindow:
     TCoord getOriginY() const { return origin.y; }
     TPoint getOrigin() const { return origin; }
     
+    void setTitle(const string &title) override;
     void setBackground(TColor::EColor c) {
       const TRGB *a = TColor::lookup(c);
       _bg.r = a->r / 255.0;

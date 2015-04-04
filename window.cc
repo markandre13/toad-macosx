@@ -1121,7 +1121,6 @@ TWindow::~TWindow()
 //cerr << "leave TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
 }
 
-
 void
 TWindow::createWindow()
 {
@@ -1275,6 +1274,13 @@ TWindow::doModalLoop()
     [pool release];
   }
   destroyWindow();
+}
+
+void
+TWindow::setTitle(const string &title) {
+  TInteractor::setTitle(title);
+  if (nswindow)
+    [nswindow setTitle: [NSString stringWithUTF8String: title.c_str()]];
 }
 
 void
