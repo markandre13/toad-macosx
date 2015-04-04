@@ -517,18 +517,39 @@ xmlinc(const string &text, size_t *cx)
 }
 
 inline void 
-xmldec(const string &text, size_t *cx)
+xmldec(const string &text, size_t *offset)
 {
-  utf8dec(text, cx);
-  if (text[*cx]==';') {
-    entitydec(text, cx);
+//cout << "---------- xmldec at " << *offset << " '" << text[*offset] << "'" << endl;
+  if (*offset==0)
+    return;
+  utf8dec(text, offset);
+  if (text[*offset]==';') {
+    entitydec(text, offset);
   }
-  if (*cx>0) {
-    size_t x = *cx;
-    utf8dec(text, &x);
-    if (text[x]=='>') {
-      *cx = x;
-      tagdec(text, cx);
+  if (*offset>0) {
+//WAIT A SEC!!! WE COULD ALSO USE THE TPREPAREDDOCUMENT STRUCTURE FOR
+//THE CURSOR MOVEMENT. XMLDEC & XMLINC CAN BE RESTRICTED TO UPDATE (MOVE)
+//TPREPAREDDOCUMENT
+    size_t o2 = *offset;
+//cout << "  o2="<<o2<< " '" << text[o2] << "'" << endl;
+    if (text[o2]!='>')
+      utf8dec(text, &o2);
+//cout << "  o2="<<o2<< " '" << text[o2] << "'" << endl;
+    if (text[o2]=='>') {
+      size_t o1=o2;
+//cout << "  o1="<<o1<< " '" << text[o1] << "'" << endl;
+      tagdec(text, &o1);
+//cout << "  o1="<<o1<< " '" << text[o1] << "'" << endl;
+      size_t o0 = o1;
+      TTag tag;
+      taginc(text, &o0, &tag);
+//      cout << "BACK: " << tag << ", offset=" << *offset << ", o2=" << o2 << ", o1=" << o1 << endl;
+      if (*offset!=o2 && tag.name=="br") {
+//        *offset = o2;
+      } else {
+        // move before tag
+        *offset = o1;
+      }
     }
   }
 }
