@@ -542,6 +542,7 @@ TMainWindow::menuNewView()
 bool
 TMainWindow::_check()
 {
+  editor->getTool()->stop(editor);
   if (editor->isModified() && editmodel->_toad_ref_cntr<=2) {
     unsigned r = messageBox(NULL,
       "Figure is modified",
