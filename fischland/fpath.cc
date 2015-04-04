@@ -25,6 +25,22 @@
 
 #include <cmath>
 
+/**
+ *
+ * TPolygon polygon;
+ * vector<byte> corner;
+ *
+ * polygon point: 0 1 2 3 4 5 6 7 9 10
+ * beziér curve : ╰─────┴─────┴─────╯
+ * corner       : ╰─╯ ╰───╯ ╰───╯ ╰─╯
+ *                 0    1     2    3
+ * corner values: 4 = smooth point (the corner is in the middle of both direction points)
+ *                3 = corner point, direction points before and after corner
+ *                2 = one direction point after corner
+ *                1 = one direction point before corner
+ *                0 = no direction points
+ */
+
 TFPath::TFPath()
 {
   closed = false;
