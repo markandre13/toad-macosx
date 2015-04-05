@@ -36,6 +36,7 @@ class TBitmap;
 class TPen:
   public TPenBase
 {
+  public:
     TWindow *window;
     CGContextRef ctx; // Quartz2D Graphics Context
 
