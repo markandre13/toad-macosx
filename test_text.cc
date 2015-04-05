@@ -904,6 +904,7 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
 //cout << "------------------------- lineToCursor ---------------------" << endl;
   if (!line)
     return;
+  size_t offset = 0;
   for(auto fragment: line->fragments) {
 //    cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
     if (x < fragment->origin.x + fragment->size.width) {
@@ -923,9 +924,9 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
             
 //        cout << "      " << i0 << ": " << font.getTextWidth(fragment->text, i0) << " '" <<str << "' (" << (x-fragment->origin.x) << "), m=" << m << endl;
         if (x <= fragment->origin.x + m) {
-          xpos[CURSOR] = fragment->offset + i0;
+          offset = fragment->offset + i0;
 //          cout << "        found character " << i0 << " -> '" << str << "'" << endl;
-          return;
+          goto adjust;
         }
         i0 = i1;
         x0 = x1;
@@ -934,8 +935,24 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
     }
   }
 //  cout << "no fragment...?" << endl;
-  xpos[CURSOR] = line->fragments.back()->offset +
-                 line->fragments.back()->length;
+  offset = line->fragments.back()->offset +
+           line->fragments.back()->length;
+
+adjust:
+  if (offset>0) {
+    size_t o0 = offset;
+    utf8dec(text, &o0);
+    if (text[o0]=='>') {
+      tagdec(text, &o0);
+      TTag tag;
+      size_t o1 = o0;
+      taginc(text, &o1, &tag);
+      if (tag.name!="br")
+        offset=o0;
+    }
+  }
+  
+  xpos[CURSOR] = offset;
 }
 
 // pos to xpos
