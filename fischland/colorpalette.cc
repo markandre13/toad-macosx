@@ -38,7 +38,7 @@ TColorPalette::TColorPalette(TWindow *parent, const string &title,
   
   fw = fh = 12;
   
-  int x, y, w, h;
+  TCoord x, y, w, h;
 
   TPushButton *btn;
   TFatCheckButton *fcb;
@@ -65,12 +65,12 @@ TColorPalette::TColorPalette(TWindow *parent, const string &title,
   btn->setShape(4+w+h+1,y+1,h-2,h-2);
   btn->setLabel("-");
 
-  rectColors.set(4,y+h+4, getWidth()-4-4, getHeight() - 4 - h - 4 - 4 - h - 4);
+  rectColors.set(4.5,y+h+4.5, getWidth()-4-4, getHeight() - 4 - h - 4 - 4 - h - 4);
 
   TScrollBar *sb = new TScrollBar(this, "updown", &position);
   rectColors.w -= sb->getWidth()+2;
   sb->setShape(rectColors.x+rectColors.w, rectColors.y,
-               -1, rectColors.h);
+               sb->getWidth(), rectColors.h);
   position.setValue(0);
   connect(position.sigChanged, this, &TWindow::invalidateWindow, true);
   
@@ -78,7 +78,7 @@ TColorPalette::TColorPalette(TWindow *parent, const string &title,
   h = tf->getHeight();
   y = getHeight() - 4 - h;
   w = getWidth() - 4 - h - h - 4;
-  tf->setShape(4+h,y,w-h,-1);
+  tf->setShape(4+h,y,w-h,tf->getHeight());
 
   fcb = new TFatCheckButton(this, "linecolor", &doLineColor);
   fcb->setToolTip("set as line color");
@@ -224,7 +224,7 @@ TColorPalette::paint()
     pen.fillRectangle(rectCurrent);
   }
   
-  int x, y;
+  TCoord x, y;
   x = rectColors.x;
   y = rectColors.y;
   
