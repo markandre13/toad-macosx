@@ -168,7 +168,7 @@ struct TPreparedDocument
 };
 
 void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
-void lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x);
+size_t lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x);
 
 TPreparedDocument::~TPreparedDocument()
 {
@@ -228,7 +228,7 @@ class TTextEditor2:
 #else
     void keyDown(const TKeyEvent &ke) override;
 #endif
-    void mouseLDown(const TMouseEvent&) override;
+    void mouseEvent(const TMouseEvent&) override;
 };
 
 // o an entity is treated like a character
@@ -866,7 +866,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         updown = true;
         updown_x = document.marker[CURSOR].pos.x;
       }
-      lineToCursor(document.lineAfter(document.marker[CURSOR].line), text, document, xpos, updown_x);
+      xpos[CURSOR]=lineToCursor(document.lineAfter(document.marker[CURSOR].line), text, document, xpos, updown_x);
       move = true;
       break;
     case TK_UP:
@@ -874,7 +874,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         updown = true;
         updown_x = document.marker[CURSOR].pos.x;
       }
-      lineToCursor(document.lineBefore(document.marker[CURSOR].line), text, document, xpos, updown_x);
+      xpos[CURSOR]=lineToCursor(document.lineBefore(document.marker[CURSOR].line), text, document, xpos, updown_x);
       move = true;
       break;
     default:
@@ -898,12 +898,10 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   updateMarker(text, &document, xpos);
 }
 
-void
+size_t
 lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x)
 {
 //cout << "------------------------- lineToCursor ---------------------" << endl;
-  if (!line)
-    return;
   size_t offset = 0;
   for(auto fragment: line->fragments) {
 //    cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
@@ -952,22 +950,24 @@ adjust:
     }
   }
   
-  xpos[CURSOR] = offset;
+  return offset;
 }
 
 // pos to xpos
-void
-positionToCursor(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
+size_t
+positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
 {
 //  cout << "-------------- foo -------------" << endl;
   for(auto line: document.lines) {
 //    cout << "line " << line->origin.y << ", " << line->size.height << endl;
     if (line->origin.y <= pos.y && pos.y < line->origin.y + line->size.height) {
-      lineToCursor(line, text, document, xpos, pos.x);
+      return lineToCursor(line, text, document, xpos, pos.x);
 //      cout << "  found a line" << endl;
       break;
     }
   }
+  cout << "positionToCursor failed" << endl;
+  return 0;
 }
 
 void
@@ -1013,15 +1013,33 @@ updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xp
 }
 
 void
-TTextEditor2::mouseLDown(const TMouseEvent &me)
+TTextEditor2::mouseEvent(const TMouseEvent &me)
 {
 #ifndef OLD_TOAD
   TPoint pos(me.pos.x, me.pos.y-72);
-  positionToCursor(text, document, xpos, pos);
 #else
   TPoint pos(me.x, me.y-72);
-  positionToCursor(text, document, xpos, pos);
 #endif
+  switch(me.type) {
+    case TMouseEvent::LDOWN:
+      xpos[CURSOR] = xpos[SELECTION_BGN] = xpos[SELECTION_END] = positionToOffset(text, document, xpos, pos);
+      break;
+    case TMouseEvent::MOVE:
+      if (me.modifier() & MK_LBUTTON) {
+        size_t sb = xpos[CURSOR];
+        size_t se = positionToOffset(text, document, xpos, pos);
+        if (sb>se) {
+          size_t a = sb; sb=se; se=a;
+        }
+        xpos[SELECTION_BGN] = sb;
+        xpos[SELECTION_END] = se;
+      }
+      break;
+    case TMouseEvent::LUP:
+      break;
+    default:
+      return;
+  }
   updateMarker(text, &document, xpos);
   invalidateWindow();
 }
