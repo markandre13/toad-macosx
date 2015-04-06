@@ -54,8 +54,7 @@ TFCircle::paint(TPenBase &pen, EPaintType)
 TCoord
 TFCircle::distance(const TPoint &pos)
 {
-  TRectangle r;
-  getShape(&r);
+  TRectangle r = bounds();
   TCoord rx = 0.5*(r.w);
   TCoord ry = 0.5*(r.h);
   TCoord cx = (double)r.x+rx;

@@ -26,10 +26,12 @@
 
 using namespace toad;
 
-void
-TFPolygon::getShape(TRectangle *r)
+TRectangle
+TFPolygon::bounds() const
 {
-  polygon.getShape(r);
+  TRectangle r;
+  polygon.getShape(&r);
+  return r;
 }
 
 void 

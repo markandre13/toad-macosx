@@ -85,7 +85,7 @@ TFGroup::calcSize()
   
   while(p!=e) {
     TFigure *f = *p;
-    f->getShape(&r);
+    r = f->bounds();
 #if 0
     if (mat)
       m = *mat;

@@ -137,7 +137,7 @@ TFTransform::init()
   TPoint p1, p2;
   
   for(auto f: figures) {
-    f->getShape(&r);
+    r = f->bounds();
     m.identity();
     if (f->mat)
       m.multiply(f->mat);
@@ -195,8 +195,7 @@ TFTransform::paint(TPenBase &pen, EPaintType type)
   }
 #if 1
   for(auto p: figures) {
-    TRectangle r;
-    p->getShape(&r);
+    TRectangle r = p->bounds();
     
     TPoint l[4];
     l[0].set(r.x, r.y);
@@ -230,8 +229,8 @@ TFTransform::paint(TPenBase &pen, EPaintType type)
 #endif
 }
 
-void
-TFTransform::getShape(TRectangle *r)
+TRectangle
+TFTransform::bounds() const
 {
   TPoint p0, p1;
   p0 = p1 = E;
@@ -245,7 +244,7 @@ TFTransform::getShape(TRectangle *r)
     if (p1.x > handle[i].x) p1.x = handle[i].x;
     if (p1.y > handle[i].y) p1.y = handle[i].y;
   }
-  r->set(p0.x, p0.y, p1.x-p0.x, p1.y-p0.y);
+  return TRectangle(p0.x, p0.y, p1.x-p0.x, p1.y-p0.y);
 }
 
 bool

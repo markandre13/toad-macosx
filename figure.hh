@@ -123,7 +123,8 @@ class TFigure:
      * \li
      *    paint a marker with the default implementation of 'paintSelection'
      */
-    virtual void getShape(TRectangle*) = 0;
+    virtual TRectangle bounds() const = 0;
+    virtual TRectangle editBounds() const;
 
   public:
   
@@ -266,22 +267,22 @@ class TFRectangle:
       p2.x = x+w;
       p2.y = y+h;
     }
-    void paint(TPenBase &, EPaintType);
-    void getShape(TRectangle*);
+    void paint(TPenBase &, EPaintType) override;
+    TRectangle bounds() const override;
 
     TCoord distance(const TPoint &pos) override;
-    void translate(TCoord dx, TCoord dy);
-    bool getHandle(unsigned n, TPoint *p);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
+    void translate(TCoord dx, TCoord dy) override;
+    bool getHandle(unsigned n, TPoint *p) override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
 
     SERIALIZABLE_INTERFACE(toad::, TFRectangle);    
     
   protected:
     TPoint p1, p2;
 
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
-    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
+    unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
 };
 
 /**
@@ -292,21 +293,21 @@ class TFPolygon:
 {
     typedef TColoredFigure super;
   public:
-    void paint(TPenBase &, EPaintType);
+    void paint(TPenBase &, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
-    void getShape(TRectangle*);
-    void translate(TCoord dx, TCoord dy);
-    bool getHandle(unsigned n, TPoint *p);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
+    TRectangle bounds() const override;
+    void translate(TCoord dx, TCoord dy) override;
+    bool getHandle(unsigned n, TPoint *p) override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     TPolygon polygon;
     
     SERIALIZABLE_INTERFACE(toad::, TFPolygon);
   protected:
     // polygon creation
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
-    unsigned keyDown(TFigureEditor *editor, TKey key, char *str, unsigned);
-    unsigned mouseRDown(TFigureEditor *editor, TMouseEvent &);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
+    unsigned keyDown(TFigureEditor *editor, TKey key, char *str, unsigned) override;
+    unsigned mouseRDown(TFigureEditor *editor, TMouseEvent &) override;
     virtual void _insertPointNear(TCoord, TCoord, bool filled);
   public:
     virtual void insertPointNear(TCoord, TCoord);
@@ -497,7 +498,7 @@ class TFFrame:
     };
     void paint(TPenBase &, EPaintType);
 
-    void getShape(TRectangle*);
+    TRectangle bounds() const override;
     TCoord distance(const TPoint &pos) override;
     unsigned stop(TFigureEditor*);
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
@@ -591,17 +592,17 @@ class TFTransform:
     void add(TFigure *f) { figures.add(f); }
     void init();
     void paint(TPenBase&, EPaintType) override;
-    void getShape(TRectangle*) override;
+    TRectangle bounds() const override;
 
-    void translate(TCoord dx, TCoord dy);
+    void translate(TCoord dx, TCoord dy) override;
     TCoord _distance(TFigureEditor *fe, TCoord mx, TCoord my) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
 
-    TCloneable* clone() const { return new TFTransform(*this); }
-    const char * getClassName() const { return "toad::TFTransformPerspective"; }
-    void store(TOutObjectStream&) const;
-    bool restore(TInObjectStream&);
+    TCloneable* clone() const override { return new TFTransform(*this); }
+    const char * getClassName() const override { return "toad::TFTransformPerspective"; }
+    void store(TOutObjectStream&) const override;
+    bool restore(TInObjectStream&) override;
 };
 
 // class TFTransformPerspective
@@ -619,17 +620,17 @@ class TFImage:
   public:
     TFImage();
     TFImage(const string &filename);
-    bool startInPlace();
+    bool startInPlace() override;
 
-    void paint(TPenBase &, EPaintType);
-    void getShape(TRectangle*);
+    void paint(TPenBase &, EPaintType) override;
+    TRectangle bounds() const override;
     
-    bool editEvent(TFigureEditEvent &ee);
+    bool editEvent(TFigureEditEvent &ee) override;
 
-    TCloneable* clone() const { return new TFImage(*this); }
-    const char * getClassName() const { return "toad::TFImage"; } 
-    void store(TOutObjectStream&) const;
-    bool restore(TInObjectStream&);
+    TCloneable* clone() const override { return new TFImage(*this); }
+    const char * getClassName() const override { return "toad::TFImage"; } 
+    void store(TOutObjectStream&) const override;
+    bool restore(TInObjectStream&) override;
 };
 
 } // namespace toad

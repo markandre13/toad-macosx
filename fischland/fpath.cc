@@ -70,10 +70,12 @@ TFPath::getAttributes(TFigureAttributes *preferences) const
 }
 
 
-void
-TFPath::getShape(toad::TRectangle *r)
+TRectangle
+TFPath::bounds() const
 {
-  polygon.getShape(r);
+  TRectangle r;
+  polygon.getShape(&r);
+  return r;
 }
 
 void

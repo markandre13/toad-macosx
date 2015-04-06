@@ -1351,7 +1351,7 @@ TFigureEditor::invalidateFigure(TFigure* figure)
   TRectangle r;
 //figure->getShape(&r);
 //cout << figure->getClassName() << ": invalidate shape " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
-  getFigureShape(figure, &r, mat);
+  getFigureEditShape(figure, &r, mat);
   r.x+=window->getOriginX() + visible.x;
   r.y+=window->getOriginY() + visible.y;
   if (r.x < visible.x ) {
@@ -1388,8 +1388,20 @@ TFigureEditor::invalidateFigure(TFigure* figure)
 void
 TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
-  figure->getShape(r);
+  *r = figure->bounds();
+  _getFigureShape(figure, r, mat);
+}
 
+void
+TFigureEditor::getFigureEditShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
+{
+  *r = figure->editBounds();
+  _getFigureShape(figure, r, mat);
+}
+
+void
+TFigureEditor::_getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
+{
   if (mat || figure->mat || figure->cmat) {
     TMatrix2D m;
     if (mat)
@@ -1552,7 +1564,7 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
         ++p)
     {
       TCoord ax1, ay1, ax2, ay2;
-      (*p)->getShape(&r);
+      r=(*p)->editBounds();
       ax1=r.x;
       ay1=r.y;
       ax2=r.x+r.w-1;

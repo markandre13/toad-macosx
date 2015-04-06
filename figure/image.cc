@@ -63,18 +63,20 @@ TFImage::startInPlace()
   return false;
 }
 
-void
-TFImage::getShape(TRectangle *r)
+TRectangle
+TFImage::bounds() const
 {
-  r->x = x;
-  r->y = y;
+  TRectangle r;
+  r.x = x;
+  r.y = y;
   if (bitmap) {
-    r->w = bitmap->getWidth();
-    r->h = bitmap->getHeight();
+    r.w = bitmap->getWidth();
+    r.h = bitmap->getHeight();
   } else {
-    r->w = 32;
-    r->h = 32;
+    r.w = 32;
+    r.h = 32;
   }
+  return r;
 }
 
 bool

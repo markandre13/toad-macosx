@@ -539,8 +539,7 @@ TDefaultTableHeaderRenderer::getWidth()
       p!=figures.end();
       ++p)
   {
-    TRectangle r;
-    (*p)->getShape(&r);
+    TRectangle r = (*p)->bounds();
     if (w<r.w)
       w = r.w;
   }
@@ -558,8 +557,7 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
   TCoord x=0, y;
   if (idx<figures.size() && figures[idx]) {
     fig = figures[idx];
-    TRectangle r;
-    fig->getShape(&r);
+    TRectangle r = fig->bounds();
     x = (w - r.w)/2;
     y = (h - r.h)/2;
   } else

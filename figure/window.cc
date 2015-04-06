@@ -56,9 +56,7 @@ TFWindow::translate(TCoord dx, TCoord dy)
     return;
   }
   super::translate(dx, dy);
-  TRectangle r;
-  getShape(&r);
-  window->setShape(r);
+  window->setShape(bounds());
 }
 
 void
@@ -69,9 +67,7 @@ TFWindow::translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned m)
     return;
   }
   super::translateHandle(handle, mx, my, m);
-  TRectangle r;
-  getShape(&r);
-  window->setShape(r);
+  window->setShape(bounds());
 }
 
 void 

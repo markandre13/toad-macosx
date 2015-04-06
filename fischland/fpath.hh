@@ -31,15 +31,15 @@ class TFPath:
   public:
     typedef TColoredFigure super;
     TFPath();
-    void paint(TPenBase&, EPaintType);
-    void paintSelection(TPenBase &pen, int handle);
-    void getShape(toad::TRectangle *r);
+    void paint(TPenBase&, EPaintType) override;
+    void paintSelection(TPenBase &pen, int handle) override;
+    TRectangle bounds() const override;
 
-    void translate(TCoord dx, TCoord dy);
-    bool getHandle(unsigned handle, TPoint *p);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
+    void translate(TCoord dx, TCoord dy) override;
+    bool getHandle(unsigned handle, TPoint *p) override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
-    unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseRDown(TFigureEditor*, TMouseEvent &) override;
     
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
     void addPoint(TCoord x, TCoord y) { polygon.addPoint(x,y); }

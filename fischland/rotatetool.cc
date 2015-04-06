@@ -59,8 +59,7 @@ TRotateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 //cout << "got figure" << endl;
       if (figure!=f) {
         // a new figure was selected, setup a new rotation center
-        TRectangle r;
-        f->getShape(&r);
+        TRectangle r = f->bounds();
         rotx = r.x + r.w/2;
         roty = r.y + r.h/2;
 
@@ -164,8 +163,7 @@ TRotateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   if (figure->mat)
     pen.multiply(figure->mat);
 
-  TRectangle r;
-  figure->getShape(&r);
+  TRectangle r = figure->bounds();
   for(int i=0; i<=4; ++i) {
     switch(i) {
       case 0: x = r.x;       y = r.y;       break;

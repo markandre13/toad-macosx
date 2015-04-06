@@ -168,9 +168,7 @@ TFigure::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 TCoord
 TFigure::distance(const TPoint &pos)
 {
-  TRectangle r;
-  getShape(&r);
-  return r.isInside(pos) ? INSIDE : OUT_OF_RANGE;
+  return bounds().isInside(pos) ? INSIDE : OUT_OF_RANGE;
 }
     
 void
@@ -285,8 +283,7 @@ TFigure::paintSelection(TPenBase &pen, int handle)
   
   // no handles found, use the figures shape instead
   if (h==0) {
-    TRectangle r;
-    getShape(&r);
+    TRectangle r = bounds();
     int x, y;
     for(int i=0; i<4; ++i) {
       switch(i) {
@@ -305,6 +302,17 @@ TFigure::paintSelection(TPenBase &pen, int handle)
 
   if (m0)
     pen.pop();
+}
+
+TRectangle
+TFigure::editBounds() const
+{
+  TRectangle r = bounds();
+  r.x-=2;
+  r.y-=2;
+  r.w+=4;
+  r.h+=4;
+  return r;
 }
 
 /**

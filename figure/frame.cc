@@ -60,14 +60,15 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
   }
 }
 
-void
-TFFrame::getShape(TRectangle *r)
+TRectangle
+TFFrame::bounds() const
 {
   PFont font = new TFont(fontname);
   TCoord a = font->getHeight()/2;
-  TFRectangle::getShape(r);
-  r->y-=a;
-  r->h+=a;
+  TRectangle r = TFRectangle::bounds();
+  r.y-=a;
+  r.h+=a;
+  return r;
 }
 
 TCoord

@@ -23,9 +23,10 @@
 
 using namespace toad;
 
-void TFRectangle::getShape(TRectangle *r)
+TRectangle
+TFRectangle::bounds() const
 {
-  r->set(p1,p2);
+  return TRectangle(p1,p2);
 }
 
 void 

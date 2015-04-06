@@ -219,7 +219,7 @@ TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       	  TRectangle r1(down, pos);
       	  TRectangle r2;
       	  for(auto p=fe->getModel()->begin(); p!=fe->getModel()->end(); ++p) {
-      	    (*p)->getShape(&r2);
+      	    r2 = (*p)->bounds();
       	    if (r1.isInside( r2.x, r2.y ) &&
       	        r1.isInside( r2.x+r2.w, r2.y+r2.h ) )
       	    {
@@ -468,7 +468,7 @@ arrangeHelper(TFigureModel::iterator p,
       if (pm!=wmap.end()) {
         gw->window = (*pm).second;
         TRectangle r;
-        gw->getShape(&r);
+        r = gw->bounds();
         gw->window->setShape(r.x,r.y,r.w,r.h);
         TLabelOwner *lo = dynamic_cast<TLabelOwner*>(gw->window);
         if (lo) {
