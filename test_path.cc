@@ -21,6 +21,10 @@
   Example for TOAD first data interface implementation:
 */
 
+//#import <AppKit/NSAttributedString.h>
+//#import <AppKit/NSPasteboard.h>
+//@import AppKit;
+
 #include <toad/window.hh>
 #include <toad/pen.hh>
 #include <toad/figure.hh>
@@ -177,9 +181,57 @@ TMyWindow::paint()
 
 } // unnamed namespace
 
+@interface foo: NSObject <NSPasteboardWriting>
+{
+}
+@end
+
+@implementation foo
+
+// types this object can provide to the pasteboard
+- (NSArray*) writableTypesForPasteboard: (NSPasteboard*)pasteboard
+{
+  cerr << "writableTypesForPasteboard" << endl;
+  return [NSArray arrayWithObjects:
+    [NSString stringWithUTF8String: "public.utf8-plain-text"],
+    nil];
+}
+
+// we create the data 
+- (NSPasteboardWritingOptions)writingOptionsForType: (NSString*)type
+                                         pasteboard: (NSPasteboard*)pasteboard
+{
+  cerr << "writingOptionsForType" << endl;
+  return NSPasteboardWritingPromised;
+}
+
+- (id)pasteboardPropertyListForType: (NSString *)type
+{
+  cerr << "pasteboardPropertyListForType " << [type UTF8String] << endl;
+  return [NSString stringWithUTF8String: "How cool is that?"];
+}
+@end
+
 void
 test_path()
 {
   TMyWindow wnd(NULL, "test path");
+
+  // com.adobe.pdf
+  // public.tiff
+  // public.png
+  // public.utf8-plain-text
+  
+  NSPasteboard *pboard = [NSPasteboard generalPasteboard];
+#if 0
+  NSString *string = [NSString stringWithUTF8String: "Vielleicht"];
+  [pboard declareTypes:[NSArray arrayWithObjects:NSStringPboardType, nil] owner:nil];
+  [pboard setString:string forType:NSStringPboardType];
+#else
+  [pboard clearContents];
+  [pboard writeObjects:
+    [NSArray arrayWithObjects: [[foo alloc] init], nil]
+  ];
+#endif
   toad::mainLoop();
 }
