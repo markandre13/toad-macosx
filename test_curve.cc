@@ -324,6 +324,22 @@ TCoord B(long i, long n, TCoord t)
   return C(n, i) * pow(t, i) * pow(1-t, n-i);
 }
 
+TPoint bez2point(TPoint *p, TCoord t)
+{
+  TCoord u=1-t;
+  TCoord u2=u*u;
+  TCoord t2=t*t;
+  return p[0]*u2*u+p[1]*t*u2*3+p[2]*t2*u*3+p[3]*t2*t;
+}
+
+TCoord bez2x(TPoint *p, TCoord t)
+{
+  TCoord u=1-t;
+  TCoord u2=u*u;
+  TCoord t2=t*t;
+  return p[0].x*u2*u+p[1].x*t*u2*3+p[2].x*t2*u*3+p[3].x*t2*t;
+}
+
 /**
  * Split a Bézier Curve at u.
  * \param[in]  a 4 points of a cubic bézier curve
@@ -789,20 +805,12 @@ cout << "curve & line have " << count << " intersections" << endl;
   // happen with lines, in which case we should not be here.
   for (int i = 0; i < count; ++i) {
     TCoord tc = roots[i];
-#if 0
-           x = Curve.evaluate(rvc, tc, 0).x;
-    // We do have a point on the infinite line. Check if it falls on
-    // the line *segment*.
-    if (x >= 0 && x <= rlx2) {
-      // Find the parameter of the intersection on the rotated line.
-      TCoord tl = Curve.getParameterOf(rvl, x, 0),
-             t1 = flip ? tl : tc,
-             t2 = flip ? tc : tl;
-      addLocation(locations, include,
-                  curve1, t1, Curve.evaluate(v1, t1, 0),
-                  curve2, t2, Curve.evaluate(v2, t2, 0));
+    TCoord x = bez2x(rvc, tc);
+    if (x>=0 && x<= rlx2) {
+      TPoint pt = bez2point(vc, tc);
+      pen.setColor(1,0,0);
+      pen.drawCircle(pt.x-2, pt.y-2, 3,3);
     }
-#endif
   }
 }
 
