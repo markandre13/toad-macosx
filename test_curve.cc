@@ -861,15 +861,17 @@ _addBounds(TCoord v0, TCoord v1, TCoord v2, TCoord v3, int coord, TCoord padding
   // The corner cases for cap and join are handled in getStrokeBounds()
   add(v3, 0, coord, min, max);
   for (int i = 0; i < count; i++) {
-     TCoord t = roots[i],
-            u = 1 - t;
+     TCoord t = roots[i];
      // Test for good roots and only add to bounds if good.
      if (tMin < t && t < tMax) {
        // Calculate bezier polynomial at t.
-       add(u * u * u * v0
-           + 3 * u * u * t * v1
-           + 3 * u * t * t * v2
-           + t * t * t * v3,
+       TCoord t2 = t*t,
+              u  = 1-t,
+              u2 = u*u;
+       add(u2 * u * v0
+           + 3 * u2 * t * v1
+           + 3 * u * t2 * v2
+           + t2 * t * v3,
            padding, coord, min, max);
      }
   }
