@@ -969,6 +969,38 @@ test_grab.o: include/toad/io/atvparser.hh include/toad/region.hh
 test_grab.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
 test_grab.o: include/toad/pointer.hh include/toad/matrix2d.hh
 test_grab.o: include/toad/connect.hh
+test_path.o: include/toad/window.hh include/toad/interactor.hh
+test_path.o: include/toad/types.hh include/toad/cursor.hh
+test_path.o: include/toad/color.hh include/toad/io/serializable.hh
+test_path.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_path.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
+test_path.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_path.o: include/toad/figure.hh include/toad/bitmap.hh
+test_path.o: include/toad/figuremodel.hh include/toad/model.hh
+test_path.o: include/toad/connect.hh
+test_image.o: include/toad/window.hh include/toad/interactor.hh
+test_image.o: include/toad/types.hh include/toad/cursor.hh
+test_image.o: include/toad/color.hh include/toad/io/serializable.hh
+test_image.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_image.o: include/toad/pen.hh include/toad/penbase.hh
+test_image.o: include/toad/font.hh include/toad/pointer.hh
+test_image.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+test_image.o: include/toad/connect.hh
+test_curve.o: include/toad/window.hh include/toad/interactor.hh
+test_curve.o: include/toad/types.hh include/toad/cursor.hh
+test_curve.o: include/toad/color.hh include/toad/io/serializable.hh
+test_curve.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_curve.o: include/toad/pen.hh include/toad/penbase.hh
+test_curve.o: include/toad/font.hh include/toad/pointer.hh
+test_curve.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+test_curve.o: include/toad/connect.hh
+test_text.o: include/toad/window.hh include/toad/interactor.hh
+test_text.o: include/toad/types.hh include/toad/cursor.hh
+test_text.o: include/toad/color.hh include/toad/io/serializable.hh
+test_text.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_text.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
+test_text.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_text.o: include/toad/utf8.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

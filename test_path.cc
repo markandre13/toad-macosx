@@ -60,7 +60,8 @@ class TMyWindow:
 
 // also try colored patterns
 
-#define PSIZE 16    // size of the pattern cell
+#define PSIZE 8.0
+    // size of the pattern cell
  
 static void drawStar(void *info, CGContextRef ctx)
 {
@@ -84,15 +85,18 @@ static void drawStar(void *info, CGContextRef ctx)
     CGContextClosePath(myContext);
     CGContextFillPath(myContext);
 #else
-  CGContextAddEllipseInRect(ctx, CGRectMake(4, 4, 8, 8));
+  TCoord a4=PSIZE/4;
+  TCoord a8=PSIZE/2;
+  TCoord a12=PSIZE-a4;
+  CGContextAddEllipseInRect(ctx, CGRectMake(a4, a4, a8, a8));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddEllipseInRect(ctx, CGRectMake(-4, -4, 8, 8));
+  CGContextAddEllipseInRect(ctx, CGRectMake(-a4, -a4, a8, a8));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddEllipseInRect(ctx, CGRectMake(-4, 12, 8, 8));
+  CGContextAddEllipseInRect(ctx, CGRectMake(-a4, a12, a8, a8));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddEllipseInRect(ctx, CGRectMake(12, 12, 8, 8));
+  CGContextAddEllipseInRect(ctx, CGRectMake(a12, a12, a8, a8));
   CGContextDrawPath(ctx, kCGPathFill);
-  CGContextAddEllipseInRect(ctx, CGRectMake(12, -4, 8, 8));
+  CGContextAddEllipseInRect(ctx, CGRectMake(a12, -a4, a8, a8));
   CGContextDrawPath(ctx, kCGPathFill);
 #endif
 }
@@ -101,6 +105,8 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
+//  TPen pen("output.pdf");
+  // pen.initClipboard();
 
 #if 0
   CGColorSpaceRef baseSpace = CGColorSpaceCreateDeviceRGB();
@@ -181,98 +187,9 @@ TMyWindow::paint()
 
 } // unnamed namespace
 
-@interface foo: NSObject <NSPasteboardWriting>
-{
-}
-@end
-
-string pdfStore;
-
-@implementation foo
-
-// types this object can provide to the pasteboard
-- (NSArray*) writableTypesForPasteboard: (NSPasteboard*)pasteboard
-{
-  cerr << "writableTypesForPasteboard" << endl;
-  return [NSArray arrayWithObjects:
-    [NSString stringWithUTF8String: "com.adobe.pdf"],
-    nil];
-}
-
-// we create the data 
-- (NSPasteboardWritingOptions)writingOptionsForType: (NSString*)type
-                                         pasteboard: (NSPasteboard*)pasteboard
-{
-  cerr << "writingOptionsForType" << endl;
-  return NSPasteboardWritingPromised;
-}
-
-- (id)pasteboardPropertyListForType: (NSString *)type
-{
-  cerr << "pasteboardPropertyListForType " << [type UTF8String] << endl;
-  return [NSData dataWithBytes: pdfStore.data() length: pdfStore.size()];
-}
-@end
-
-size_t putBytes(void *info, const void *buffer, size_t count)
-{
-//  cout << "  pdf put " << count << " bytes" << endl;
-  pdfStore.append((const char*)buffer, count);
-  return count;
-}
-
 void
 test_path()
 {
   TMyWindow wnd(NULL, "test path");
-
-  // com.adobe.pdf
-  // public.tiff
-  // public.png
-  // public.utf8-plain-text
-  
-  NSPasteboard *pboard = [NSPasteboard generalPasteboard];
-#if 0
-  NSString *string = [NSString stringWithUTF8String: "Vielleicht"];
-  [pboard declareTypes:[NSArray arrayWithObjects:NSStringPboardType, nil] owner:nil];
-  [pboard setString:string forType:NSStringPboardType];
-#else
-  CGDataConsumerCallbacks cb = { putBytes, 0 };
-  CGDataConsumerRef dc = CGDataConsumerCreate(0, &cb);
-  
-  CFMutableDictionaryRef myDictionary = CFDictionaryCreateMutable(NULL, 0,
-                        &kCFTypeDictionaryKeyCallBacks,
-                        &kCFTypeDictionaryValueCallBacks);
-  CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
-  CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
-  CGRect pdfPageRect = CGRectMake(0,0,640,480);
-  CGContextRef ctx = CGPDFContextCreate(dc, &pdfPageRect, myDictionary);
-  CFRelease(myDictionary);
-  
-  CFMutableDictionaryRef pdfPageDictionary = CFDictionaryCreateMutable(NULL, 0,
-                        &kCFTypeDictionaryKeyCallBacks,
-                        &kCFTypeDictionaryValueCallBacks);
-  CFDataRef pdfBoxData = CFDataCreate(NULL,(const UInt8 *)&pdfPageRect, sizeof (CGRect));
-  CFDictionarySetValue(pdfPageDictionary, kCGPDFContextMediaBox, pdfBoxData);
-  CGPDFContextBeginPage(ctx, pdfPageDictionary);
-
-  CGContextAddEllipseInRect(ctx, CGRectMake(0, 0, 640, 480));
-  CGContextDrawPath(ctx, kCGPathStroke);
-  CGContextAddEllipseInRect(ctx, CGRectMake(50, 50, 540, 380));
-  CGContextDrawPath(ctx, kCGPathStroke);
-  CGContextAddEllipseInRect(ctx, CGRectMake(100, 100, 440, 280));
-  CGContextDrawPath(ctx, kCGPathStroke);
-  
-  CGPDFContextEndPage(ctx);
-  CGContextRelease(ctx);
-  CFRelease(pdfPageDictionary);
-  CFRelease(pdfBoxData);
-
-  [pboard clearContents];
-  [pboard writeObjects:
-    [NSArray arrayWithObjects: [[foo alloc] init], nil]
-  ];
-
-#endif
   toad::mainLoop();
 }

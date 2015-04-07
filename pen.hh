@@ -44,6 +44,8 @@ class TPen:
     CGContextRef pdfContext;
     CFDataRef pdfBoxData;
     CFMutableDictionaryRef pdfPageDictionary;
+    
+    NSMutableData *clipboardData;
 
     NSBezierPath *clipPath;
     
@@ -53,10 +55,17 @@ class TPen:
     ELineStyle linestyle;
     
   public:
-    TPen(TWindow *);
-    TPen(TBitmap *);
-    TPen(const string &filename);
+    TPen();
+    TPen(TWindow *window) { initWindow(window); }
+    TPen(TBitmap *bitmap) { initBitmap(bitmap); }
+    TPen(const string &filename) { initPDFFile(filename); }
     ~TPen();
+    
+    void init();
+    void initWindow(TWindow*);
+    void initBitmap(TBitmap*);
+    void initPDFFile(const string &filename);
+    void initClipboard();
 
     void setFont(const string&);
 

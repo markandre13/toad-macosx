@@ -25,12 +25,32 @@
 
 using namespace toad;
 
-TPen::TPen(TWindow *w)
+TPen::TPen()
+{
+  font = 0;
+  linestyle = SOLID;
+  window = 0;
+  ctx = 0;
+  pdfContext = 0;
+  clipboardData = 0;
+}
+
+void
+TPen::init()
 {
   font = new TFont;
   linestyle = SOLID;
-  window = w;
+  window = 0;
+  ctx = 0;
   pdfContext = 0;
+  clipboardData = 0;
+}
+
+void
+TPen::initWindow(TWindow *w)
+{
+  init();
+  window = w;
   ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
 //  CGContextSetAllowsAntialiasing(ctx, FALSE);
   windowmatrix = CGContextGetCTM(ctx);
@@ -38,8 +58,10 @@ TPen::TPen(TWindow *w)
   setAlpha(1);
 }
 
-TPen::TPen(const string &filename)
+void
+TPen::initPDFFile(const string &filename)
 {
+  init();
   CGRect pdfPageRect = CGRectMake(0,0,640,480);
 
   CFStringRef path = CFStringCreateWithCString (NULL, filename.c_str(), kCFStringEncodingUTF8);
@@ -68,28 +90,111 @@ TPen::TPen(const string &filename)
   CGContextConcatCTM(pdfContext, m);
 
   ctx = pdfContext;
-
-  font = new TFont;
-  linestyle = SOLID;
-  window = 0;
   windowmatrix = CGContextGetCTM(ctx);
   setColor(0,0,0);
   setAlpha(1);
 }
 
-TPen::TPen(TBitmap *)
+@interface toadPDF2CB: NSObject <NSPasteboardWriting>
 {
-  pdfContext = 0;
+  NSData *data;
+}
+@end
+
+@implementation toadPDF2CB
+
+- (void)initWithData: (NSData*)inData;
+{
+  data = inData;
+}
+
+// types this object can provide to the pasteboard
+- (NSArray*) writableTypesForPasteboard: (NSPasteboard*)pasteboard
+{
+  cerr << "writableTypesForPasteboard" << endl;
+  return [NSArray arrayWithObjects:
+    [NSString stringWithUTF8String: "com.adobe.pdf"],
+    nil];
+}
+
+// we create the data 
+- (NSPasteboardWritingOptions)writingOptionsForType: (NSString*)type
+                                         pasteboard: (NSPasteboard*)pasteboard
+{
+  cerr << "writingOptionsForType" << endl;
+  return NSPasteboardWritingPromised;
+}
+
+- (id)pasteboardPropertyListForType: (NSString *)type
+{
+  cerr << "pasteboardPropertyListForType " << [type UTF8String] << endl;
+  return data;
+}
+@end
+
+static size_t
+putBytes(void *info, const void *bytes, size_t length)
+{
+  [(NSMutableData*)info appendBytes: bytes length: length];
+  return length;
+}
+
+void
+TPen::initClipboard()
+{
+  init();
+  clipboardData = [[NSMutableData alloc] init];
+  
+  static CGDataConsumerCallbacks cb = { putBytes, 0 };
+  CGDataConsumerRef dc = CGDataConsumerCreate(clipboardData, &cb);
+  
+  CFMutableDictionaryRef myDictionary = CFDictionaryCreateMutable(NULL, 0,
+                        &kCFTypeDictionaryKeyCallBacks,
+                        &kCFTypeDictionaryValueCallBacks);
+  CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
+  CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
+  CGRect pdfPageRect = CGRectMake(0,0,640,480);
+  pdfContext = CGPDFContextCreate(dc, &pdfPageRect, myDictionary);
+  CFRelease(myDictionary);
+  
+  pdfPageDictionary = CFDictionaryCreateMutable(NULL, 0,
+                        &kCFTypeDictionaryKeyCallBacks,
+                        &kCFTypeDictionaryValueCallBacks);
+  pdfBoxData = CFDataCreate(NULL,(const UInt8 *)&pdfPageRect, sizeof (CGRect));
+  CFDictionarySetValue(pdfPageDictionary, kCGPDFContextMediaBox, pdfBoxData);
+  CGPDFContextBeginPage(pdfContext, pdfPageDictionary);
+
+  CGAffineTransform m = { 1, 0, 0, -1, 0, pdfPageRect.size.height };
+  CGContextConcatCTM(pdfContext, m);
+
+  ctx = pdfContext;
+  windowmatrix = CGContextGetCTM(ctx);
+  setColor(0,0,0);
+  setAlpha(1);
+}
+
+void
+TPen::initBitmap(TBitmap *)
+{
+  init();
 }
 
 TPen::~TPen()
 {
   if (pdfContext) {
-cout << "end page" << endl;
     CGPDFContextEndPage(pdfContext);
     CGContextRelease(pdfContext);
     CFRelease(pdfPageDictionary);
     CFRelease(pdfBoxData);
+  }
+  if (clipboardData) {
+    NSPasteboard *pboard = [NSPasteboard generalPasteboard];
+    [pboard clearContents];
+    toadPDF2CB *f = [toadPDF2CB alloc];
+    [f initWithData: clipboardData];
+    [pboard writeObjects:
+      [NSArray arrayWithObjects: f, nil]
+    ];
   }
 }
 
