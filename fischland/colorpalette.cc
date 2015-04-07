@@ -69,7 +69,7 @@ TColorPalette::TColorPalette(TWindow *parent, const string &title,
 
   TScrollBar *sb = new TScrollBar(this, "updown", &position);
   rectColors.w -= sb->getWidth()+2;
-  sb->setShape(rectColors.x+rectColors.w, rectColors.y,
+  sb->setShape(floor(rectColors.x+rectColors.w), floor(rectColors.y),
                sb->getWidth(), rectColors.h);
   position.setValue(0);
   connect(position.sigChanged, this, &TWindow::invalidateWindow, true);

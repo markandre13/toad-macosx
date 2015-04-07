@@ -95,7 +95,6 @@ void
 TScrollBar::_drawSlider(TPen &pen, TRectangle &r)
 {
   TPoint p[6];
-
   // draw slider face
   //------------------
   pen.setColor(TColor::SLIDER_FACE);
@@ -104,61 +103,73 @@ TScrollBar::_drawSlider(TPen &pen, TRectangle &r)
   // draw border
   //-------------
   pen.setColor(0,0,0);
-  pen.drawRectangle(r.x, r.y, r.w, r.h);
-  
+  pen.drawRectangle(r.x+0.5, r.y+0.5, r.w-1, r.h-1);
+
   // draw shadow(s)
   //----------------
   pen.setColor(TColor::SLIDER_SHADOW);
   TCoord c;
-  if (bVertical)
-  {
-    c = r.y+r.h/2-2;
-    pen.fillRectangle(r.x+5, c+1, r.w-8, 5);
+  if (bVertical) {
+    c = floor(r.y+r.h/2)-2.5;
+    pen.fillRectangle(r.x+4.5, c+0.5, r.w-8, 5);
   } else {
-    c = r.x+r.w/2-2;
-    pen.fillRectangle(c+1, r.y+5, 5, r.h-8);
+    c = floor(r.x+r.w/2)-2.5;
+    pen.fillRectangle(c+0.5, r.y+4.5, 5, r.h-8);
   }
-
-  p[0].set(r.x+1    , r.y+r.h-2);
-  p[1].set(r.x+r.w-2, r.y+r.h-2);
-  p[2].set(r.x+r.w-2, r.y+1    );
-  p[3].set(r.x+r.w-3, r.y+2    );
-  p[4].set(r.x+r.w-3, r.y+r.h-3);
-  p[5].set(r.x+2    , r.y+r.h-3);
-  pen.drawLines(p,6);
   
+  //        2─3
+  //        │ │
+  // 0──────1 │
+  // │        │
+  // 5────────4
+  p[0].set(r.x+2.5      , r.y+r.h-2.5);
+  p[1].set(r.x+r.w-2.5, r.y+r.h-2.5);
+  p[2].set(r.x+r.w-2.5, r.y+2.5    );
+  p[3].set(r.x+r.w-1.5, r.y+1.5    );
+  p[4].set(r.x+r.w-1.5, r.y+r.h-1.5);
+  p[5].set(r.x+1.5    , r.y+r.h-1.5);
+  pen.fillPolygon(p,6);
+
   // draw light
   //------------
   pen.setColor(TColor::SLIDER_LIGHT);
+
   if (bVertical) {
-    pen.drawLine(r.x+4,c  , r.x+5+r.w-10,c  );
-    pen.drawLine(r.x+4,c+2, r.x+5+r.w-10,c+2);
-    pen.drawLine(r.x+4,c+4, r.x+5+r.w-10,c+4);
-    pen.drawLine(r.x+4,c  , r.x+4       ,c+5);
+    pen.drawLine(r.x+4.5,c  ,   r.x+5+r.w-10,c  );
+    pen.drawLine(r.x+4.5,c+2,   r.x+5+r.w-10,c+2);
+    pen.drawLine(r.x+4.5,c+4,   r.x+5+r.w-10,c+4);
+    pen.drawLine(r.x+4.5,c-0.5, r.x+4.5 ,c+5.5);
   } else {
     pen.drawLine(c  ,r.y+4, c  ,r.y+5+r.h-10);
     pen.drawLine(c+2,r.y+4, c+2,r.y+5+r.h-10);
     pen.drawLine(c+4,r.y+4, c+4,r.y+5+r.h-10);
-    pen.drawLine(c  ,r.y+4, c+5,r.y+4);
+    pen.drawLine(c  ,r.y+4.5, c+5.5,r.y+4.5);
   }
-  
-  p[0].set(r.x+1    , r.y+r.h-2);
-  p[1].set(r.x+1    , r.y+1    );
-  p[2].set(r.x+r.w-2, r.y+1    );
-  p[3].set(r.x+r.w-3, r.y+2    );
-  p[4].set(r.x+2    , r.y+2    );
-  p[5].set(r.x+2    , r.y+r.h-3);
-  pen.drawLines(p,6);
-  
+
+  // 1────────2
+  // │       /
+  // │ 4────3
+  // │ │
+  // │ 5
+  // │/ 
+  // 0
+  p[0].set(r.x+1.5    , r.y+r.h-1.5);
+  p[1].set(r.x+1.5    , r.y+1.5    );
+  p[2].set(r.x+r.w-1.5, r.y+1.5    );
+  p[3].set(r.x+r.w-2.5, r.y+2.5    );
+  p[4].set(r.x+2.5    , r.y+2.5    );
+  p[5].set(r.x+2.5    , r.y+r.h-2.5);
+  pen.fillPolygon(p,6);
+
   // draw sliders shadow
   //---------------------
   pen.setColor(TColor::BTNSHADOW);
   if (bVertical) {
-    pen.drawLine(r.x, r.y+r.h,     r.x+r.w-1, r.y+r.h);
-    pen.drawLine(r.x+2, r.y+r.h+1, r.x+r.w-1, r.y+r.h+1);
+    pen.drawLine(r.x+1, r.y+r.h+0.5, r.x+r.w, r.y+r.h+0.5);
+    pen.drawLine(r.x+2, r.y+r.h+1.5, r.x+r.w, r.y+r.h+1.5);
   } else {
-    pen.drawLine(r.x+r.w, r.y,     r.x+r.w, r.y+r.h-1);
-    pen.drawLine(r.x+r.w+1, r.y+2, r.x+r.w+1, r.y+r.h-1);
+    pen.drawLine(r.x+r.w+0.5, r.y+1, r.x+r.w+0.5, r.y+r.h);
+    pen.drawLine(r.x+r.w+1.5, r.y+2, r.x+r.w+1.5, r.y+r.h);
   }
 }
 
@@ -179,43 +190,48 @@ TScrollBar::_drawArea(TPen &pen)
   } else {
     v=0;
   }
-  
+
   if (bVertical) {
     // background
     //------------
     pen.setColor(TColor::BTNFACE);
-//pen.setColor(255,0,0);  // red
+//pen.setColor(1,0,0);  // red
     n = rectSlider.y-w-2;
     if (n>0)
-      pen.fillRectanglePC(v+1,w+1, w-2-v*2, n+1);
-//pen.setColor(255,128,0); // orange
+      pen.fillRectanglePC(v+0.5,w+0.5, w-1-v*2, n+2);
+//pen.setColor(1,0.5,0); // orange
     n += rectSlider.h + w + 2;
     m = h-w-n;
     if (m>0)
-      pen.fillRectanglePC(v+1, n, w-2-v*2, m);
+      pen.fillRectanglePC(v+0.5, n, w-1-v*2, m);
   
     // shadow
     //------------
     pen.setColor(TColor::BTNSHADOW);
 //pen.setColor(0,128,0); // dark green
+
+    // shadow left above slider ┌
     if (w+1<=rectSlider.y-1) {
-      p[0].set(w-2-v, w);
-      p[1].set(     v, w);
-      p[2].set(     v, rectSlider.y-1);
+      p[0].set(w-1-v    , w+0.5);
+      p[1].set(    v+0.5, w+0.5);
+      p[2].set(    v+0.5, rectSlider.y);
       pen.drawLines(p,3);
     }
+    // shadow left below slider │
 //pen.setColor(0,255,0); // bright green
-    pen.drawLine(v, rectSlider.y + rectSlider.h + 1,
-                 v, h-w-1 );
+    pen.drawLine(v+0.5, rectSlider.y + rectSlider.h,
+                 v+0.5, h-w );
 
     // light
     //------------
     pen.setColor(TColor::BTNLIGHT);
 //pen.setColor(0,0,255); // blue
-    pen.drawLine(w-1-v,0, w-1-v,rectSlider.y-1);
-    p[0].set(w-1-v,rectSlider.y+rectSlider.h+1);   // slider bottom, right
-    p[1].set(w-1-v,h-w-1);                       // bottom,right
-    p[2].set(1+v,h-w-1);                          // bottom,left
+    // light abover slider │
+    pen.drawLine(w-0.5-v,w+0.5, w-0.5-v,rectSlider.y);
+    // light below slider ┘
+    p[0].set(w-0.5-v,rectSlider.y+rectSlider.h+1);   // slider bottom, right
+    p[1].set(w-0.5-v,h-w-1.5);                       // bottom,right
+    p[2].set(1+v,h-w-1.5);                          // bottom,left
 //pen.setColor(0,128,255); // light blue
     pen.drawLines(p,3);
   } else {
@@ -225,32 +241,40 @@ TScrollBar::_drawArea(TPen &pen)
 
     // left side of the slider
     n = rectSlider.x-h;
+//pen.setColor(0,0,1);
     if (n>0)
-      pen.fillRectanglePC(h+1, v+1, n, h-v*2-2);
+      pen.fillRectangle(h+0.5, v+0.5, n, h-v*2-1);
 
     // right side of the slider
     n = rectSlider.x+rectSlider.w + 1;
     m = w - n - h;
-    pen.fillRectanglePC(n, v+1, m, h-v*2-2);
+    pen.fillRectangle(n, v+0.5, m, h-v*2-1);
   
     // shadow
     //------------
     pen.setColor(TColor::BTNSHADOW);
-    p[0].set(h,h-1-v);
-    p[1].set(h,v);
-    p[2].set(rectSlider.x,v);
+//pen.setColor(0,128,0);
+    // draw shadow left of slider ┌
+    p[0].set(h+0.5,h-0.5-v);
+    p[1].set(h+0.5,v+0.5);
+    p[2].set(rectSlider.x,v+0.5);
     pen.drawLines(p,3);
-    pen.drawLine(rectSlider.x+rectSlider.w+1, v,
-                 w-h-1, v);
+
+//pen.setColor(TColor::BTNSHADOW);
+    // draw shadow right of slider ─
+    pen.drawLine(rectSlider.x+rectSlider.w, v+0.5,
+                 w-h-1, v+0.5);
 
     // light
     //------------
     pen.setColor(TColor::BTNLIGHT);
-    pen.drawLine(h+1, h-1-v,
-                 rectSlider.x-1, h-1-v);
-    p[0].set(rectSlider.x+rectSlider.w+2,h-1-v);
-    p[1].set(w-h-1, h-1-v);
-    p[2].set(w-h-1,v+1);
+    // draw light left of slider ─
+    pen.drawLine(h+1           , h-0.5-v,
+                 rectSlider.x  , h-0.5-v);
+    // draw light right of slider ┘
+    p[0].set(rectSlider.x+rectSlider.w,h-0.5-v);
+    p[1].set(w-h-0.5, h-0.5-v);
+    p[2].set(w-h-0.5,v+1);
     pen.drawLines(p,3);
   }
 }
@@ -395,7 +419,6 @@ void
 TScrollBar::paint()
 {
   TPen pen(this);
-  pen.translate(0.5, 0.5);
   _drawArea(pen);
   _drawSlider(pen, rectSlider);
 //printf("paint: rectSlider: %i,%i,%i,%i\n", rectSlider.x,rectSlider.y,rectSlider.w,rectSlider.h);
