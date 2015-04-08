@@ -86,6 +86,13 @@ class TPen:
     void setMode(EMode);
     void setLineWidth(TCoord);
     void setLineStyle(ELineStyle);
+    
+    void move(const TPoint*);
+    void line(const TPoint*);
+    void curve(const TPoint*);
+    void close();
+    void stroke();
+    void fill();
 
     void vsetColor(TCoord r, TCoord g, TCoord b);
     void vsetLineColor(TCoord r, TCoord g, TCoord b);

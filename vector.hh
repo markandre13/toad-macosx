@@ -18,8 +18,8 @@
  * MA  02111-1307,  USA
  */
 
-#ifndef _TOAD_FIGURE_HH
-#define _TOAD_FIGURE_HH 1
+#ifndef _TOAD_VECTOR_HH
+#define _TOAD_VECTOR_HH 1
 
 #include <math.h>
 #include <toad/penbase.hh>
@@ -57,6 +57,8 @@ class TVectorPath
     void close() {  type.push_back(CLOSE); }
     TRectangle bounds() const;
     TRectangle editBounds() const;
+    
+    void apply(TPen &pen) const;
 };
 
 class TVectorOperation
@@ -70,7 +72,7 @@ class TVectorStrokeOp:
 {
 };
 
-class TVectorFillOp
+class TVectorFillOp:
   public TVectorOperation
 {
 };
@@ -84,4 +86,8 @@ class TVectorPainter
 class TVectorBuffer:
   public vector<TVectorPainter*>
 {
+};
+
 } // namespace
+
+#endif

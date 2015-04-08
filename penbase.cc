@@ -125,7 +125,7 @@ TPenBase::setFillColor(TColor::EColor c)
 void
 TPenBase::vdraw3DRectangle(TCoord x, TCoord y, TCoord w, TCoord h, bool inset)
 {
-  TRGBA stroke2 = stroke, fill2 = fill;
+  TRGBA rgba_stroke2 = rgba_stroke, rgba_fill2 = rgba_fill;
 
   ++w;
   ++h;
@@ -167,8 +167,8 @@ TPenBase::vdraw3DRectangle(TCoord x, TCoord y, TCoord w, TCoord h, bool inset)
   p[2].set(x+w-2,y+1);  
   drawLines(p,3);
 
-  setLineColor(stroke2.r, stroke2.g, stroke2.b);
-  setFillColor(fill2.r, fill2.g, fill2.b);
+  setLineColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
+  setFillColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
 }
 
 void

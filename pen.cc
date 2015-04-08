@@ -365,44 +365,79 @@ TPen::setFont(const string &fn)
 
 void
 TPen::vsetColor(TCoord r, TCoord g, TCoord b) {
-  stroke.r = fill.r = r;
-  stroke.g = fill.g = g;
-  stroke.b = fill.b = b;
+  rgba_stroke.r = rgba_fill.r = r;
+  rgba_stroke.g = rgba_fill.g = g;
+  rgba_stroke.b = rgba_fill.b = b;
   if (!ctx)
     return;
-  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
-  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
+  CGContextSetRGBStrokeColor(ctx, rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
+  CGContextSetRGBFillColor(ctx, rgba_fill.r, rgba_fill.g, rgba_fill.b, rgba_fill.a);
 }
 
 void
 TPen::vsetLineColor(TCoord r, TCoord g, TCoord b) {
-  stroke.r = r;
-  stroke.g = g;
-  stroke.b = b;
-  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
+  rgba_stroke.r = r;
+  rgba_stroke.g = g;
+  rgba_stroke.b = b;
+  CGContextSetRGBStrokeColor(ctx, rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
 }
 
 void
 TPen::vsetFillColor(TCoord r, TCoord g, TCoord b) {
-  fill.r = r;
-  fill.g = g;
-  fill.b = b;
-  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
+  rgba_fill.r = r;
+  rgba_fill.g = g;
+  rgba_fill.b = b;
+  CGContextSetRGBFillColor(ctx, rgba_fill.r, rgba_fill.g, rgba_fill.b, rgba_fill.a);
 }
 
 void
 TPen::setAlpha(TCoord a) {
-  stroke.a = fill.a = a;
-  CGContextSetRGBStrokeColor(ctx, stroke.r, stroke.g, stroke.b, stroke.a);
-  CGContextSetRGBFillColor(ctx, fill.r, fill.g, fill.b, fill.a);
+  rgba_stroke.a = rgba_fill.a = a;
+  CGContextSetRGBStrokeColor(ctx, rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
+  CGContextSetRGBFillColor(ctx, rgba_fill.r, rgba_fill.g, rgba_fill.b, rgba_fill.a);
 }
 
 TCoord
 TPen::getAlpha() const
 {
-  return stroke.a;
+  return rgba_stroke.a;
 }
 
+void
+TPen::move(const TPoint *pt)
+{
+  CGContextMoveToPoint(ctx, pt->x, pt->y);
+}
+
+void
+TPen::line(const TPoint *pt)
+{
+  CGContextAddLineToPoint(ctx, pt->x, pt->y);
+}
+
+void
+TPen::curve(const TPoint *pt)
+{
+  CGContextAddCurveToPoint(ctx, pt[0].x, pt[0].y, pt[1].x, pt[1].y, pt[2].x, pt[2].y);
+}
+
+void
+TPen::close()
+{
+  CGContextClosePath(ctx);
+}
+
+void
+TPen::stroke()
+{
+  CGContextDrawPath(ctx, kCGPathStroke);
+}
+
+void
+TPen::fill()
+{
+  CGContextDrawPath(ctx, kCGPathFill);
+}
 
 void
 TPen::vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
@@ -547,7 +582,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
     [NSDictionary dictionaryWithObjectsAndKeys:
       font->nsfont,
         NSFontAttributeName,
-      [NSColor colorWithDeviceRed: stroke.r green: stroke.g blue: stroke.b alpha: 1.0],
+      [NSColor colorWithDeviceRed: rgba_stroke.r green: rgba_stroke.g blue: rgba_stroke.b alpha: rgba_stroke.a],
         NSForegroundColorAttributeName,
       nil];
   NSString *nstr = [ [NSString alloc] 
@@ -557,11 +592,13 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
 
   if (!transparent) {
     NSSize size = [nstr sizeWithAttributes: textAttributes];
-    TRGBA stroke2 = stroke, fill2 = fill;
-    setColor(fill2.r, fill2.g, fill2.b);    
+    TRGBA rgba_stroke2 = rgba_stroke, rgba_fill2 = rgba_fill;
+    setColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
+    setAlpha(1);
     fillRectanglePC(x,y,size.width,font->height);
-    setLineColor(stroke2.r, stroke2.g, stroke2.b);
-    setFillColor(fill2.r, fill2.g, fill2.b);
+    setLineColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
+    setFillColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
+    setAlpha(rgba_stroke2.a);
   }
   NSAttributedString *attrString = 
     [[NSAttributedString alloc]

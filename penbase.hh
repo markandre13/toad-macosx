@@ -35,7 +35,7 @@ class TWindow;
 class TPenBase
 {
   protected:
-    TRGBA stroke, fill;
+    TRGBA rgba_stroke, rgba_fill;
   public:
     virtual ~TPenBase();
     PFont font;
