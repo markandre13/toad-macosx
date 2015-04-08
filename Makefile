@@ -45,7 +45,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 #fischland/fontdialog.cc
 
 SRC=$(SRC_SHARED) $(SRC_COCOA) $(SRC_FISH)
-CXX=g++ -ObjC++ -std=gnu++1y
+CXX=g++ -ObjC++ -std=gnu++14
 CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration
 
 OBJS    = $(SRC:.cc=.o)

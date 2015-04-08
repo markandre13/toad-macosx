@@ -649,14 +649,7 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
       rvc[i].x = x * cos - y * sin;
       rvc[i].y = y * cos + x * sin;
   }
-/*  
-  pen.push();
-  pen.translate(0,300);
-  pen.setColor(1,0,0);
-  pen.drawBezier(rvc, 4);
-  pen.drawLines(rvl, 2);
-  pen.pop();
-*/  
+
   TCoord roots[4];
   int count = solveCubic(rvc, 1, 0, roots, 0, 1);
 
@@ -666,8 +659,9 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
     TCoord tc = roots[i];
     TCoord x = bez2x(rvc, tc);
     if (x>=0 && x<= rlx2) {
-      ilist.add(TVectorPath::CURVE, vc, tc,     bez2point(vc, tc),
-                TVectorPath::LINE,  vl, x/rlx2, bez2point(vc, tc)); // FIXME
+      TCoord tl = x/rlx2;
+      ilist.add(TVectorPath::CURVE, vc, tc, bez2point(vc, tc),
+                TVectorPath::LINE,  vl, tl, TPoint(vl[0].x + tl * ldx, vl[0].y + tl * ldy)); // FIXME
     }
   }
 }

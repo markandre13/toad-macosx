@@ -89,6 +89,7 @@ for(TCoord x=0; x<320; x+=10) {
 }
   for(auto p: ilist) {
     gpen->drawRectangle(p.seg0.pt.x-1.5, p.seg0.pt.y-1.5, 4,4);
+    gpen->drawRectangle(p.seg1.pt.x-0.5, p.seg1.pt.y-0.5, 2,2);
   }
 }
 
