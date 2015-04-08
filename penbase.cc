@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2015 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,9 +18,21 @@
  * MA  02111-1307,  USA
  */
 
+#include <cstdarg>
 #include <toad/penbase.hh>
 
 using namespace toad;
+
+const char*
+format(const char *fmt, ...)
+{
+  static char buffer[8192];
+  va_list ap;
+  va_start(ap, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, ap);
+  va_end(ap);
+  return buffer;
+}
 
 /**
  * \class toad::TPenBase
@@ -51,7 +63,7 @@ using namespace toad;
  * 5 +---+---+---+---+---+
  * \endpre
  *
- * For those more comfortable with integer numbers *PC(...)
+ * For those more comfortable with integer numbers may use *PC(...)
  *
  *
  */

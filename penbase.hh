@@ -32,6 +32,13 @@ namespace toad {
 class TBitmap;
 class TWindow;
 
+/**
+ * format is a wrapper for printf
+ *
+ * pen.drawString(0, 0, format("time %us", t));
+ */
+const char* format(const char *fmt, ...);
+
 class TPenBase
 {
   protected:
