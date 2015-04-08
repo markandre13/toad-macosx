@@ -734,7 +734,7 @@ static void _doMouse2(TWindow *twindow, TMouseEvent &me)
   }
   
   if (me.type == TMouseEvent::MOVE &&
-      !(me.modifier() & MK_LBUTTON|MK_MBUTTON|MK_RBUTTON) &&
+      !(me.modifier() & (MK_LBUTTON|MK_MBUTTON|MK_RBUTTON)) &&
       !twindow->_allMouseMoveEvents)
     return;
 
