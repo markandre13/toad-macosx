@@ -59,6 +59,7 @@ class TVectorPath
     TRectangle editBounds() const;
     
     void apply(TPen &pen) const;
+    void subdivide();
 };
 
 class TVectorOperation

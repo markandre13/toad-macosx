@@ -127,39 +127,8 @@ function polygonArea(X, Y, numPoints)
 */
 
 // intersection of AB & CD
-TPoint
-intersection(const TPoint &a0,
-             const TPoint &a1,
-             const TPoint &b0,
-             const TPoint &b1,
-             TCoord *ra=NULL,
-             TCoord *rb=NULL)
-{
-  TCoord ax = a1.x - a0.x;
-  TCoord ay = a1.y - a0.y;
-  TCoord bx = b1.x - b0.x;
-  TCoord by = b1.y - b0.y;
-
-  if (ax==0.0 && by==0.0) {
-    return TPoint(a0.x, b0.y);
-  }
-  if (ay==0.0 && bx==0.0) {
-    return TPoint(b0.x, a0.y);
-  }
-
-  if (ax!=0.0) {
-    TCoord b = ((b0.x-a0.x)/ax*ay - b0.y + a0.y)/(by-bx/ax*ay);
-    TCoord a = (b0.x - a0.x + b * bx) / ax;
-    if (ra) *ra = a;
-    if (rb) *rb = b;
-    return TPoint(a0.x+a*ax, a0.y+a*ay);
-  }
-  TCoord a = ((a0.x-b0.x)/bx*by - a0.y + b0.y)/(ay-ax/bx*by);
-  TCoord b = (a0.x - b0.x + a * ax) / bx;
-  if (ra) *ra = a;
-  if (rb) *rb = b;
-  return TPoint(b0.x+b*bx, b0.y+b*by);
-}
+static const TCoord epsilon = 1e-12;
+static inline bool isZero(TCoord a) { return fabs(a) <= epsilon; }
 
 bool
 intersection(const TPoint &a0,
@@ -175,48 +144,20 @@ intersection(const TPoint &a0,
   TCoord bx = b1.x - b0.x;
   TCoord by = b1.y - b0.y;
 
-  if ((ax==0 && bx==0) ||
-      (ay==0 && by==0) ||
-      (ax !=0 && bx !=0 && ay/ax==by/bx) ||
-      (ay !=0 && by !=0 && ax/ay==bx/by))
+  TCoord cross = ax*by - ay*bx;
+  if (isZero(cross)) {
     return false;
-
-  if (ax==0.0 && by==0.0) {
-    r->set(a0.x, b0.y);
-    if (ra) *ra = (b0.y-a0.y)/ay;
-    return true;
   }
-  if (ay==0.0 && bx==0.0) {
-    r->set(b0.x, a0.y);
-    if (ra) *ra = (b0.x-a0.x)/ax;
-    return true;
-  }
-
-  if (ax!=0.0) {
-    TCoord b = ((b0.x-a0.x)/ax*ay - b0.y + a0.y)/(by-bx/ax*ay);
-    TCoord a = (b0.x - a0.x + b * bx) / ax;
-    if (ra) *ra = a;
-    if (rb) *rb = b;
-    r->set(a0.x+a*ax, a0.y+a*ay);
-    return true;
-  }
-  TCoord a = ((a0.x-b0.x)/bx*by - a0.y + b0.y)/(ay-ax/bx*by);
-  TCoord b = (a0.x - b0.x + a * ax) / bx;
+    
+  TCoord 
+    dx = a0.x - b0.x,
+    dy = a0.y - b0.y,
+    a = (bx * dy - by * dx) / cross,
+    b = (ax * dy - ay * dx) / cross;
   if (ra) *ra = a;
   if (rb) *rb = b;
-  r->set(b0.x+b*bx, b0.y+b*by);
+  if (r) r->set(a0.x + a * ax, a0.y + a * ay);
   return true;
-}
-
-string
-format(const char *fmt, ...)
-{
-  char buffer[8192];
-  va_list ap;
-  va_start(ap, fmt);
-  vsnprintf(buffer, sizeof(buffer), fmt, ap);
-  va_end(ap);
-  return buffer;
 }
 
 void

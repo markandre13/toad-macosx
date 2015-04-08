@@ -24,6 +24,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/transform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
+	   geometry.cc \
 	   stacktrace.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
@@ -872,6 +873,15 @@ figure/createtool.o: include/toad/floatmodel.hh
 figure/createtool.o: include/toad/figure/createtool.hh
 figure/createtool.o: include/toad/figuretool.hh include/toad/core.hh
 figure/createtool.o: include/toad/pen.hh
+geometry.o: include/toad/geometry.hh include/toad/types.hh
+geometry.o: include/toad/vector.hh include/toad/penbase.hh
+geometry.o: include/toad/color.hh include/toad/io/serializable.hh
+geometry.o: include/toad/io/atvparser.hh include/toad/font.hh
+geometry.o: include/toad/pointer.hh include/toad/matrix2d.hh
+geometry.o: include/toad/window.hh include/toad/interactor.hh
+geometry.o: include/toad/cursor.hh include/toad/region.hh
+geometry.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+geometry.o: include/toad/model.hh include/toad/connect.hh
 stacktrace.o: include/toad/stacktrace.hh
 test_table.o: include/toad/table.hh include/toad/pen.hh
 test_table.o: include/toad/penbase.hh include/toad/color.hh
@@ -977,7 +987,8 @@ test_path.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
 test_path.o: include/toad/pointer.hh include/toad/matrix2d.hh
 test_path.o: include/toad/figure.hh include/toad/bitmap.hh
 test_path.o: include/toad/figuremodel.hh include/toad/model.hh
-test_path.o: include/toad/connect.hh
+test_path.o: include/toad/connect.hh include/toad/vector.hh
+test_path.o: include/toad/geometry.hh
 test_image.o: include/toad/window.hh include/toad/interactor.hh
 test_image.o: include/toad/types.hh include/toad/cursor.hh
 test_image.o: include/toad/color.hh include/toad/io/serializable.hh
