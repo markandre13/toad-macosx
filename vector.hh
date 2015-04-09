@@ -60,6 +60,9 @@ class TVectorPath
     
     void apply(TPen &pen) const;
     void subdivide();
+
+  private:
+    void subdivideCutter(EType type, const TPoint *pt, const TRectangle &bounds, bool linesToBezier);
 };
 
 class TVectorOperation

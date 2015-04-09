@@ -58,6 +58,11 @@ void intersectLineLine(TIntersectionList &ilist, const TPoint *line0, TPoint *li
 
 TRectangle bounds(const TPoint *curve);
 
+void divideBezier(const TPoint *a, TPoint *p, TCoord min, TCoord max);
+void divideBezier(const TPoint *a, TPoint *p, TCoord u);
+TPoint bez2point(const TPoint *p, TCoord t);
+
+
 } // namespace
 
 #endif

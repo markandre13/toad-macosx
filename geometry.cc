@@ -131,6 +131,7 @@ distance2Line(const TPoint &p, const TPoint &p0, const TPoint &p1)
   if (bx==0.0 && by==0.0) {
     return sqrt(ax*ax+ay*ay);
   }
+  // FIXME: bx==0 || by==0
   TCoord lb = bx*bx+by*by;
 #if 0
   TCoord t = (bx * ax + by * ay ) / lb;
@@ -180,6 +181,7 @@ intersectLineLine(TIntersectionList &ilist, const TPoint *lineA, TPoint *lineB)
             TVectorPath::LINE, lineB, b, p);
 }
 
+/*
 // Fakultät
 long fak(long n) {
   long r=1;
@@ -189,16 +191,12 @@ long fak(long n) {
 }
 
 // Binomial Koeffizient
-TCoord C(long n, long i)
-{
-  return (TCoord)fak(n) / (TCoord)( fak(i) * fak(n-i) );
-}
+TCoord C(long n, long i) { return (TCoord)fak(n) / (TCoord)( fak(i) * fak(n-i) ); }
 
 // Bernsteinpolynom
-TCoord B(long i, long n, TCoord t)
-{
-  return C(n, i) * pow(t, i) * pow(1-t, n-i);
+TCoord B(long i, long n, TCoord t) { return C(n, i) * pow(t, i) * pow(1-t, n-i);
 }
+*/
 
 /**
  * \param[in] p four points of a cubic bézier curve
@@ -452,21 +450,12 @@ bezierClipping(const TPoint *p,
   if (max(qMax-qMin, pMaxNew-pMaxNew) < tolerance) {
     TCoord t1 = pMinNew + (pMaxNew - pMinNew) / 2;
     TCoord t2 = qMin + (qMax - qMin) / 2;
-/*
-    TPoint pt = P[0] * B(0, 3, t1);
-    for(int j=1; j<4; ++j)
-      pt += P[j] * B(j, 3, t1);
-    pen.setColor(1,0,0);
-    pen.drawCircle(pt.x-2, pt.y-2, 3,3);
-*/
     if (reverse)    
       ilist.add(TVectorPath::CURVE, Q, t2, bez2point(Q, t2),
                 TVectorPath::CURVE, P, t1, bez2point(P, t1));
     else
       ilist.add(TVectorPath::CURVE, P, t1, bez2point(P, t1),
                 TVectorPath::CURVE, Q, t2, bez2point(Q, t2));
-    
-//    cout << "got one at " << t1 << endl;
     return;
   }
   if (pDiff > 0)
