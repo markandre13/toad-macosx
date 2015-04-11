@@ -132,16 +132,24 @@ class TMouseEvent
     enum EType {
       MOVE, ENTER, LEAVE,
       LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
-      ROLL_UP, ROLL_DOWN
+      ROLL_UP, ROLL_DOWN,
+      TABLET_POINT, TABLET_PROXIMITY
     };
     EType type;
     const char* name() const;
   
     TWindow *window; // information for the mouse event filter
     TPoint pos;
-    TCoord pressure();
-    TCoord rotation();
-    TCoord tilt();
+    
+    // 0.0 - 1.0
+    float pressure() const;
+    // ie. the scrollwheel on a paintbrush
+    float tangentialPressure() const;
+    // 0° is north
+    float rotation() const;
+    // degree /100.0
+    TPoint tilt() const;
+    
     unsigned modifier() const { return __modifier; }
     enum EPointingDeviceType {
       // unknown, pen, cursor, eraser

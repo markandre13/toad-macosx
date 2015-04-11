@@ -228,25 +228,6 @@ TCoord bez2x(const TPoint *p, TCoord t)
 void
 divideBezier(const TPoint *a, TPoint *p, TCoord u)
 {
-  if (u==0.5) {
-    p[0] = a[0];
-    p[1].x = (a[0].x+a[1].x)*0.5;
-    p[1].y = (a[0].y+a[1].y)*0.5;
-    p[5].x = (a[2].x+a[3].x)*0.5;
-    p[5].y = (a[2].y+a[3].y)*0.5;
-    p[6] = a[3];
-  
-    TCoord cx = (a[1].x+a[2].x)*0.5;
-    TCoord cy = (a[1].y+a[2].y)*0.5;
-    p[2].x = (p[1].x+cx)*0.5;
-    p[2].y = (p[1].y+cy)*0.5;
-    p[4].x = (cx+p[5].x)*0.5;
-    p[4].y = (cy+p[5].y)*0.5;
-
-    p[3].x = (p[2].x+p[4].x)*0.5;
-    p[3].y = (p[2].y+p[4].y)*0.5;
-    return;
-  }
   p[0] = a[0];
   p[1].x = a[0].x + (a[1].x-a[0].x)*u;
   p[1].y = a[0].y + (a[1].y-a[0].y)*u;
@@ -726,6 +707,256 @@ bounds(const TPoint *v)
   _addBounds(v[0].x, v[1].x, v[2].x, v[3].x, 0, 0, min, max);
   _addBounds(v[0].y, v[1].y, v[2].y, v[3].y, 1, 0, min, max);
   return TRectangle(min.x, min.y, max.x - min.x, max.y - min.y);
+}
+
+// PathFitter from paper.js
+
+/*
+ * An Algorithm for Automatically Fitting Digitized Curves
+ * by Philip J. Schneider
+ * from "Graphics Gems", Academic Press, 1990
+ * This code is in the public domain.
+ */
+
+static inline
+TPoint normalize(const TPoint &p, TCoord d)
+{
+  return TPoint(p.x/d, p.y/d); // FIXME: I guessed this
+}
+
+static inline
+TPoint normalize(const TPoint &p)
+{
+  return normalize(p, sqrt(p.x*p.x+p.y*p.y)); // FIXME: I guessed this
+}
+
+static inline
+TCoord distance(const TPoint &a, const TPoint &b)
+{
+  TPoint p = b-a;
+  return sqrt(p.x*p.x+p.y*p.y);
+}
+
+static inline TPoint
+evaluate(size_t degree, const TPoint *curve, TCoord t)
+{
+  assert(degree==3);
+  return bez2point(curve, t);
+}
+
+static void
+addCurve(const TPoint *curve)
+{
+}
+
+static void
+generateBezier(const TPoint *points, size_t first, size_t last, const TCoord *uPrime, const TPoint &tan1, const TPoint &tan2, TPoint *curve)
+{
+  TCoord epsilon = 1e-12;
+  TPoint pt1 = points[first];
+  TPoint pt2 = points[last];
+  TCoord C[2][2] = {{0,0},{0,0}};
+  TCoord X[2] = {0,0};
+  
+  for(size_t i = 0, l = last - first + 1; i < l; i++) {
+    TCoord u = uPrime[i],
+           t = 1 - u,
+           b = 3 * u * t,
+           b0 = t * t * t,
+           b1 = b * t,
+           b2 = b * u,
+           b3 = u * u * u;
+    TPoint a1 = normalize(tan1, b1),
+           a2 = normalize(tan2, b2),
+           tmp = points[first + i] - pt1*(b0+b1) - pt2*(b2 + b3);
+    C[0][0] += dot(a1, a1);
+    C[0][1] += dot(a1, a2);
+    C[1][0] = C[0][1];
+    C[1][1] += dot(a2, a2);
+    X[0] += dot(a1, tmp);
+    X[1] += dot(a2, tmp);
+  }
+  
+  TCoord detC0C1 = C[0][0] * C[1][1] - C[1][0] * C[0][1],
+         alpha1, alpha2;
+  if (fabs(detC0C1) > epsilon) {
+    TCoord detC0X = C[0][0] * X[1] - C[1][0] * X[0],
+           detXC1 = X[0] * C[1][1] - X[1] * C[0][1];
+    alpha1 = detXC1 / detC0C1;
+    alpha2 = detC0X / detC0C1;
+  } else {
+    TCoord c0 = C[0][0] + C[0][1],
+           c1 = C[1][0] + C[1][1];
+    if (fabs(c0) > epsilon) {
+      alpha1 = alpha2 = X[0] / c0;
+    } else
+    if (fabs(c1) > epsilon) {
+      alpha1 = alpha2 = X[1] / c1;
+    } else {
+      alpha1 = alpha2 = 0;
+    }
+    
+    TCoord segLength = distance(pt2, pt1);
+    epsilon *= segLength;
+    if (alpha1 < epsilon || alpha2 < epsilon) {
+      alpha1 = alpha2 = segLength / 3;
+    }
+    
+    curve[0] = pt1;
+    curve[1] = pt1 + normalize(tan1, alpha1);
+    curve[2] = pt2 + normalize(tan2, alpha2);
+    curve[3] = pt2;
+  }
+}
+
+static TCoord
+findRoot(const TPoint *points, const TPoint *curve, const TPoint &point, TCoord u)
+{
+  TPoint curve1[4];
+  TPoint curve2[4];
+  for (size_t i = 0; i <= 2; i++) {
+    curve1[i] = (curve[i + 1] - curve[i])*3.0;
+  }
+  for (size_t i = 0; i <= 1; i++) {
+    curve2[i] = (curve1[i + 1] - curve1[i])*2.0;
+  }
+  TPoint pt = evaluate(3, curve, u),
+         pt1 = evaluate(2, curve1, u),
+         pt2 = evaluate(1, curve2, u),
+         diff = pt - point;
+  TCoord df = dot(pt1, pt1) + dot(diff, pt2);
+  if (fabs(df) < 0.000001)
+    return u;
+  return u - dot(diff, pt1)/df;
+}
+
+struct TMaxError
+{
+  size_t index;
+  TCoord error;
+};
+
+static TMaxError
+findMaxError(const TPoint *points, size_t first, size_t last, const TPoint *curve, const TCoord *u)
+{
+  TMaxError result;
+  result.index = floor((last - first + 1) / 2);
+  result.error = 0.0;
+  for(size_t i = first + 1; i < last; ++i) {
+    TPoint P = evaluate(3, curve, u[i - first]);
+    TPoint v = P - points[i];
+    TCoord dist = v.x * v.x + v.y * v.y;
+    if (dist >= result.error) {
+      result.error = dist;
+      result.index = i;
+    }
+  }
+  return result;
+}
+
+static void
+reparameterize(const TPoint *points, size_t first, size_t last, TCoord *u, const TPoint *curve)
+{
+  for(size_t i=first; i<=last; ++i)
+    u[i-first] = findRoot(points, curve, points[i], u[i-first]);
+}
+
+/**
+ * assign parameter values in [0,1] to the points
+ * u[0]=0.0 1st point
+ * u[x]=0.5 point in the middle of the path (when available)
+ * u[n]=1.0 last point
+ */
+static void
+chordLenghtParametrize(const TPoint *points, size_t first, size_t last, TCoord *u)
+{
+  // u[i] := distance from first to first+i
+  u[0] = 0;
+  for(size_t i= first + 1; i <= last; ++i) {
+    u[i-first] = u[i-first-1] + distance(points[i-1], points[i]);
+  }
+  // normalize
+  size_t m = last-first;
+  for(size_t i = 1; i <= m; i++) {
+    u[i] /= u[m];
+  }
+}
+
+/**
+ * \param first first point's index
+ * \param last  last point's index
+ * \param tan1  normalized tangent vector at first point
+ * \param tan2  normalized tangent vector at last point
+ */
+static void
+fitCubic(const TPoint *points, TCoord error, size_t first, size_t last, const TPoint &tan1, const TPoint &tan2)
+{
+  // not a curve, just two neigbouring points
+  if (last-first == 1) {
+    TCoord dist = distance(points[first], points[last]) / 3;
+    TPoint curve[4] = {
+      points[first],
+      points[first]+normalize(tan1, dist),
+      points[last]+normalize(tan2, dist),
+      points[last]
+    };
+    addCurve(curve);
+    return;
+  }
+  
+  TCoord uPrime[last-first+1];
+  chordLenghtParametrize(points, first, last, uPrime);
+  TCoord maxError = std::max(error, error*error);
+  size_t split = 0;
+  
+  // 5 iterations
+  for(int i=0; i<=4; ++i) {
+    TPoint curve[4];
+    generateBezier(points, first, last, uPrime, tan1, tan2, curve);
+    TMaxError max = findMaxError(points, first, last, curve, uPrime);
+    if (max.error < error) {
+      addCurve(curve);
+      return;
+    }
+    split = max.index;
+    if (max.error >= maxError)
+      break;
+    reparameterize(points, first, last, uPrime, curve);
+    maxError = max.error;
+  }
+  // we didn't find a good enough curve within five iteration
+  // split and try again on both sides
+  TPoint V1 = points[split - 1] - points[split],
+         V2 = points[split] - points[split + 1],
+         tanCenter = normalize((V1+V2)*0.5);
+  fitCubic(points, error, first, split, tan1, tanCenter);
+  fitCubic(points, error, split, last, -tanCenter, tan2);
+}
+
+void
+fitPath(const TPoint *inPoints, size_t size, TCoord tolerance)
+{
+  vector<TPoint> points;
+
+  // initialize
+  const TPoint *prev = nullptr;
+  for(size_t i=0; i<size; ++i) {
+    if (!prev || *prev!=inPoints[i]) {
+      points.push_back(inPoints[i]);
+      prev = inPoints+i;
+    }
+  }
+  
+  // FIXME: handle closed path
+  
+  size_t n = points.size()-1; // n := index of last point in points
+  if (n>1) {
+    fitCubic(points.data(), tolerance, 0,n, normalize(points[1]-points[0]), normalize(points[n-1] - points[n]));
+  }
+  
+  // FIXME: handle closed path
+  
+  // FIXME: return result
 }
 
 } // namespace

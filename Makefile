@@ -29,7 +29,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc \
-	   test_path.cc test_image.cc test_curve.cc test_text.cc
+	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc
 		
 SRC_COCOA=window.cc pen.cc
 
@@ -1012,6 +1012,16 @@ test_text.o: include/toad/io/atvparser.hh include/toad/region.hh
 test_text.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
 test_text.o: include/toad/pointer.hh include/toad/matrix2d.hh
 test_text.o: include/toad/utf8.hh
+test_tablet.o: include/toad/window.hh include/toad/interactor.hh
+test_tablet.o: include/toad/types.hh include/toad/cursor.hh
+test_tablet.o: include/toad/color.hh include/toad/io/serializable.hh
+test_tablet.o: include/toad/io/atvparser.hh include/toad/region.hh
+test_tablet.o: include/toad/pen.hh include/toad/penbase.hh
+test_tablet.o: include/toad/font.hh include/toad/pointer.hh
+test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
+test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+test_tablet.o: include/toad/model.hh include/toad/connect.hh
+test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

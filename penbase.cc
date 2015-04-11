@@ -24,7 +24,7 @@
 using namespace toad;
 
 const char*
-format(const char *fmt, ...)
+toad::format(const char *fmt, ...)
 {
   static char buffer[8192];
   va_list ap;

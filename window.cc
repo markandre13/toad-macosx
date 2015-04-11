@@ -755,15 +755,65 @@ static void _doMouse2(TWindow *twindow, TMouseEvent &me)
 const char*
 TMouseEvent::name() const
 {
-  static const char *name[11] = {
+  static const char *name[13] = {
     "MOVE", "ENTER", "LEAVE",
     "LDOWN", "MDOWN", "RDOWN",
     "LUP", "MUP", "RUP",
-    "ROLL_UP", "ROLL_DOWN"
+    "ROLL_UP", "ROLL_DOWN",
+    "TABLET_POINT", "TABLET_PROXIMITY"
   };
-  if (type>=0 && type<=10)
+  if (type>=0 && type<=12)
     return name[type];
   return "?";
+}
+
+float
+TMouseEvent::pressure() const
+{
+  float result = 0.0;
+  if ([nsevent type] != NSScrollWheel &&
+      [nsevent type] != NSTabletProximity)
+    result = [nsevent pressure];
+  return result;
+}
+
+float
+TMouseEvent::tangentialPressure() const
+{
+  float result = 0.0;
+  if ([nsevent type] != NSScrollWheel &&
+      [nsevent type] != NSTabletProximity &&
+      ([nsevent type] == NSTabletPoint ||
+       [nsevent subtype]==NSTabletPointEventSubtype))
+    result = [nsevent tangentialPressure];
+  return result;
+}
+
+float
+TMouseEvent::rotation() const
+{
+  float result = 0.0;
+  if ([nsevent type] != NSScrollWheel &&
+      [nsevent type] != NSTabletProximity &&
+      ([nsevent type] == NSTabletPoint ||
+       [nsevent subtype]==NSTabletPointEventSubtype))
+    result = [nsevent rotation];
+  return result;
+}
+
+TPoint
+TMouseEvent::tilt() const
+{
+  TPoint result;
+  if ([nsevent type] != NSScrollWheel &&
+      [nsevent type] != NSTabletProximity &&
+      ([nsevent type] == NSTabletPoint ||
+       [nsevent subtype]==NSTabletPointEventSubtype))
+  {
+    NSPoint p = [nsevent tilt];
+    result.set(p.x, p.y);
+  }
+  return result;
 }
 
 // handle grabPopUp mouse and enter/leave event generation
@@ -866,6 +916,20 @@ if (me.type == TMouseEvent::LDOWN)
 if (me.type == TMouseEvent::LUP)
   cerr << "_doMouse: LUP done -------------------------------------------------" << endl;
 */
+}
+
+- (void)tabletPoint:(NSEvent *)theEvent
+{
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::TABLET_POINT;
+  twindow->mouseEvent(me);
+}
+
+- (void)tabletProximity:(NSEvent *)theEvent
+{
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::TABLET_PROXIMITY;
+  twindow->mouseEvent(me);
 }
 
 - (void) mouseEntered:(NSEvent*)theEvent

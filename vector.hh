@@ -60,6 +60,13 @@ class TVectorPath
     
     void apply(TPen &pen) const;
     void subdivide();
+    
+    // reduce()
+    // void simplify(TCoord tolerance=2.5); <- convert points to bézier, it doesn't simplify béziers?
+    // tangent
+    // normal
+    // curvature
+    
 
   private:
     void subdivideCutter(EType type, const TPoint *pt, const TRectangle &bounds, bool linesToBezier);
