@@ -4,6 +4,10 @@
  * from "Graphics Gems", Academic Press, 1990
  */
 
+#include <toad/types.hh>
+
+using namespace toad;
+
 #ifndef GG_H
 
 #define GG_H 1
@@ -12,10 +16,12 @@
 /* 2d geometry types */
 /*********************/
 
+#if 0
 typedef struct Point2Struct {	/* 2d point */
 	double x, y;
 	} Point2;
 typedef Point2 Vector2;
+#endif
 
 typedef struct IntPoint2Struct {	/* 2d integer point */
 	int x, y;
@@ -24,11 +30,11 @@ typedef struct IntPoint2Struct {	/* 2d integer point */
 typedef struct Matrix3Struct {	/* 3-by-3 matrix */
 	double element[3][3];
 	} Matrix3;
-
+#if 0
 typedef struct Box2dStruct {		/* 2d box */
-	Point2 min, max;
+	TPoint min, max;
 	} Box2;
-	
+#endif
 
 /*********************/
 /* 3d geometry types */
@@ -52,8 +58,8 @@ typedef struct Box3dStruct {		/* 3d box */
 	Point3 min, max;
 	} Box3;
 
-typedef Point2 *BezierCurve;
-extern void FitCurve(Point2 *d, int nPts, double error);
+typedef TPoint *BezierCurve;
+extern void FitCurve(TPoint *d, int nPts, double error);
 
 /***********************/
 /* one-argument macros */
@@ -137,25 +143,8 @@ if (!(x)) fprintf(stderr," Assert failed: x\n");
 typedef int boolean;			/* boolean data type */
 typedef boolean flag;			/* flag data type */
 
-extern double V2SquaredLength(Vector2 *v), V2Length(Vector2 *a);
-extern double V2Dot(Vector2 *a, Vector2 *b), V2DistanceBetween2Points(Point2 *a, Point2 *b); 
-extern Vector2 *V2Negate(Vector2 *v), *V2Normalize(Vector2 *v), *V2Scale(Vector2 *v, double newlen), *V2Add(Vector2 *a, Vector2 *b, Vector2 *c), *V2Sub();
-
-#if 0
-extern Vector2 *V2Lerp(), *V2Combine(), *V2Mul(), *V2MakePerpendicular();
-extern Vector2 *V2New(), *V2Duplicate();
-extern Point2 *V2MulPointByMatrix();
-extern Matrix3 *V2MatMul();
-
-extern double V3SquaredLength(), V3Length();
-extern double V3Dot(), V3DistanceBetween2Points();
-extern Vector3 *V3Normalize(), *V3Scale(), *V3Add(), *V3Sub();
-extern Vector3 *V3Lerp(), *V3Combine(), *V3Mul(), *V3Cross();
-extern Vector3 *V3New(), *V3Duplicate();
-extern Point3 *V3MulPointByMatrix();
-extern Matrix4 *V3MatMul();
-
-extern double RegulaFalsi(), NewtonRaphson(), findroot();
-#endif
+extern double V2SquaredLength(TPoint *v), V2Length(TPoint *a);
+extern double V2Dot(TPoint *a, TPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
+extern TPoint *V2Negate(TPoint *v), *V2Normalize(TPoint *v), *V2Scale(TPoint *v, double newlen), *V2Add(TPoint *a, TPoint *b, TPoint *c), *V2Sub();
 
 #endif

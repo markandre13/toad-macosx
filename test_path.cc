@@ -245,30 +245,25 @@ TMyWindow::paint()
 
 #endif
   p.move(TPoint(10, 10));
-  p.curve(TPoint(310,190), TPoint(100,10), TPoint(10, 190));
-
+  p.curve(TPoint(310,10), TPoint(100,190), TPoint(10, 190));
+/*
   pen.setColor(1,0.5,0);
   p.apply(pen);
   pen.stroke();
-
+*/
   p.subdivide();
-
+/*
   pen.setColor(TColor::FIGURE_SELECTION);
   for(auto a: p.points) {
     pen.drawRectangle(a.x-1.5, a.y-1.5,4,4);
   }
-  
+*/  
   vector<TPoint> out;
 #if 0
   fitPath(p.points.data(), p.points.size(), 2.5, &out);
 #else
   pathOut = &out;
-  Point2 p2[p.points.size()];
-  for(size_t i=0; i<p.points.size(); ++i) {
-    p2[i].x = p.points[i].x;
-    p2[i].y = p.points[i].y;
-  }
-  FitCurve(p2, p.points.size(), 2.5);
+  FitCurve(p.points.data(), p.points.size(), 2.5);
   out.push_back(p.points.back());
 #endif
   pen.setColor(0,1,0);

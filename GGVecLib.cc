@@ -12,25 +12,25 @@ from "Graphics Gems", Academic Press, 1990
 /******************/
 
 /* returns squared length of input vector */	
-double V2SquaredLength(Vector2 *a) 
+double V2SquaredLength(TPoint *a) 
 {	return((a->x * a->x)+(a->y * a->y));
 	}
 
 /* returns length of input vector */
-double V2Length(Vector2 *a) 
+double V2Length(TPoint *a) 
 {
 	return(sqrt(V2SquaredLength(a)));
 	}
 	
 /* negates the input vector and returns it */
-Vector2 *V2Negate(Vector2 *v) 
+TPoint *V2Negate(TPoint *v) 
 {
 	v->x = -v->x;  v->y = -v->y;
 	return(v);
 	}
 
 /* normalizes the input vector and returns it */
-Vector2 *V2Normalize(Vector2 *v) 
+TPoint *V2Normalize(TPoint *v) 
 {
 double len = V2Length(v);
 	if (len != 0.0) { v->x /= len;  v->y /= len; }
@@ -39,7 +39,7 @@ double len = V2Length(v);
 
 
 /* scales the input vector to the new length and returns it */
-Vector2 *V2Scale(Vector2 *v, double newlen) 
+TPoint *V2Scale(TPoint *v, double newlen) 
 {
 double len = V2Length(v);
 	if (len != 0.0) { v->x *= newlen/len;   v->y *= newlen/len; }
@@ -47,7 +47,7 @@ double len = V2Length(v);
 	}
 
 /* return vector sum c = a+b */
-Vector2 *V2Add(Vector2 *a, Vector2 *b, Vector2 *c)
+TPoint *V2Add(TPoint *a, TPoint *b, TPoint *c)
 {
 	c->x = a->x+b->x;  c->y = a->y+b->y;
 	return(c);
@@ -55,15 +55,15 @@ Vector2 *V2Add(Vector2 *a, Vector2 *b, Vector2 *c)
 
 #if 0	
 /* return vector difference c = a-b */
-Vector2 *V2Sub(a, b, c)
-Vector2 *a, *b, *c;
+TPoint *V2Sub(a, b, c)
+TPoint *a, *b, *c;
 {
 	c->x = a->x-b->x;  c->y = a->y-b->y;
 	return(c);
 	}
 #endif
 /* return the dot product of vectors a and b */
-double V2Dot(Vector2 *a, Vector2 *b) 
+double V2Dot(TPoint *a, TPoint *b) 
 {
 	return((a->x*b->x)+(a->y*b->y));
 	}
@@ -71,8 +71,8 @@ double V2Dot(Vector2 *a, Vector2 *b)
 /* linearly interpolate between vectors by an amount alpha */
 /* and return the resulting vector. */
 /* When alpha=0, result=lo.  When alpha=1, result=hi. */
-Vector2 *V2Lerp(lo, hi, alpha, result) 
-Vector2 *lo, *hi, *result; 
+TPoint *V2Lerp(lo, hi, alpha, result) 
+TPoint *lo, *hi, *result; 
 double alpha;
 {
 	result->x = LERP(alpha, lo->x, hi->x);
@@ -83,8 +83,8 @@ double alpha;
 
 /* make a linear combination of two vectors and return the result. */
 /* result = (a * ascl) + (b * bscl) */
-Vector2 *V2Combine (a, b, result, ascl, bscl) 
-Vector2 *a, *b, *result;
+TPoint *V2Combine (a, b, result, ascl, bscl) 
+TPoint *a, *b, *result;
 double ascl, bscl;
 {
 	result->x = (ascl * a->x) + (bscl * b->x);
@@ -93,8 +93,8 @@ double ascl, bscl;
 	}
 
 /* multiply two vectors together component-wise */
-Vector2 *V2Mul (a, b, result) 
-Vector2 *a, *b, *result;
+TPoint *V2Mul (a, b, result) 
+TPoint *a, *b, *result;
 {
 	result->x = a->x * b->x;
 	result->y = a->y * b->y;
@@ -102,7 +102,7 @@ Vector2 *a, *b, *result;
 	}
 #endif
 /* return the distance between two points */
-double V2DistanceBetween2Points(Point2 *a, Point2 *b)
+double V2DistanceBetween2Points(TPoint *a, TPoint *b)
 {
 double dx = a->x - b->x;
 double dy = a->y - b->y;
@@ -110,8 +110,8 @@ double dy = a->y - b->y;
 	}
 #if 0
 /* return the vector perpendicular to the input vector a */
-Vector2 *V2MakePerpendicular(a, ap)
-Vector2 *a, *ap;
+TPoint *V2MakePerpendicular(a, ap)
+TPoint *a, *ap;
 {
 	ap->x = -a->y;
 	ap->y = a->x;
@@ -119,31 +119,31 @@ Vector2 *a, *ap;
 	}
 
 /* create, initialize, and return a new vector */
-Vector2 *V2New(x, y)
+TPoint *V2New(x, y)
 double x, y;
 {
-Vector2 *v = NEWTYPE(Vector2);
+TPoint *v = NEWTYPE(TPoint);
 	v->x = x;  v->y = y; 
 	return(v);
 	}
 	
 
 /* create, initialize, and return a duplicate vector */
-Vector2 *V2Duplicate(a)
-Vector2 *a;
+TPoint *V2Duplicate(a)
+TPoint *a;
 {
-Vector2 *v = NEWTYPE(Vector2);
+TPoint *v = NEWTYPE(TPoint);
 	v->x = a->x;  v->y = a->y; 
 	return(v);
 	}
 	
 /* multiply a point by a matrix and return the transformed point */
-Point2 *V2MulPointByMatrix(p, m)
-Point2 *p;
+TPoint *V2MulPointByMatrix(p, m)
+TPoint *p;
 Matrix3 *m;
 {
 double w;
-Point2 ptmp;
+TPoint ptmp;
 	ptmp.x = (p->x * m->element[0][0]) + 
              (p->y * m->element[1][0]) + m->element[2][0];
 	ptmp.y = (p->x * m->element[0][1]) + 
