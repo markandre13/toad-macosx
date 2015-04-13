@@ -642,8 +642,6 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
  *                                                                          *
  ****************************************************************************/
 
-
-
 // Code ported and further optimised from:
 // http://blog.hackers-cafe.net/2009/06/how-to-calculate-bezier-curves-bounding.html
 static void
@@ -709,6 +707,12 @@ bounds(const TPoint *v)
   return TRectangle(min.x, min.y, max.x - min.x, max.y - min.y);
 }
 
+/****************************************************************************
+ *                                                                          *
+ *                             POINTS TO BEZIER                             *
+ *                                                                          *
+ ****************************************************************************/
+
 // PathFitter from paper.js
 
 /*
@@ -738,15 +742,35 @@ TCoord distance(const TPoint &a, const TPoint &b)
 }
 
 static inline TPoint
-evaluate(size_t degree, const TPoint *curve, TCoord t)
+evaluate(size_t n, const TPoint *p, TCoord t)
 {
-  assert(degree==3);
-  return bez2point(curve, t);
+  switch(n) {
+    case 1:
+      return p[0]*(1-t)+p[1]*t;
+    case 2: {
+      TCoord u=1-t;
+      return p[0]*u*u+p[1]*t*u*2+p[2]*t*t;
+    }
+    case 3: {
+      TCoord u=1-t;
+      TCoord u2=u*u;
+      TCoord t2=t*t;
+      return p[0]*u2*u+p[1]*t*u2*3+p[2]*t2*u*3+p[3]*t2*t;
+    }
+    default:
+      cerr << "evaluate not implemented for n="<<n<<endl;
+      exit(1);
+  } 
 }
+
+vector<TPoint> *pathOut = 0;
 
 static void
 addCurve(const TPoint *curve)
 {
+  pathOut->push_back(curve[0]);
+  pathOut->push_back(curve[1]);
+  pathOut->push_back(curve[2]);
 }
 
 static void
@@ -934,8 +958,10 @@ fitCubic(const TPoint *points, TCoord error, size_t first, size_t last, const TP
 }
 
 void
-fitPath(const TPoint *inPoints, size_t size, TCoord tolerance)
+fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out)
 {
+  pathOut = out;
+
   vector<TPoint> points;
 
   // initialize

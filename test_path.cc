@@ -24,6 +24,8 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
+#include "GraphicsGems.h"
+
 using namespace toad;
 
 void
@@ -192,6 +194,15 @@ TVectorPath::subdivide()
   }
 }
 
+vector<TPoint> *pathOut;
+
+void DrawBezierCurve(int n, BezierCurve curve)
+{
+  cout << "DrawBezierCurve" << endl;
+  for(int i=0; i<n; ++i)
+    pathOut->push_back(TPoint(curve[i].x, curve[i].y));
+}
+
 namespace {
 
 class TMyWindow:
@@ -212,7 +223,9 @@ TMyWindow::paint()
 {
   TPen pen(this);
   TVectorPath p;
+  gpen = &pen;
 
+#if 0
   p.move(TPoint(120, 20));
   p.line(TPoint(300, 50));
   p.curve(TPoint(310,190), TPoint(10,190), TPoint(50, 30));
@@ -230,14 +243,43 @@ TMyWindow::paint()
   gpen = &pen;
   p.subdivide();  
 
+#endif
+  p.move(TPoint(10, 10));
+  p.curve(TPoint(310,190), TPoint(100,10), TPoint(10, 190));
+
   pen.setColor(1,0.5,0);
   p.apply(pen);
   pen.stroke();
+
+  p.subdivide();
 
   pen.setColor(TColor::FIGURE_SELECTION);
   for(auto a: p.points) {
     pen.drawRectangle(a.x-1.5, a.y-1.5,4,4);
   }
+  
+  vector<TPoint> out;
+#if 0
+  fitPath(p.points.data(), p.points.size(), 2.5, &out);
+#else
+  pathOut = &out;
+  Point2 p2[p.points.size()];
+  for(size_t i=0; i<p.points.size(); ++i) {
+    p2[i].x = p.points[i].x;
+    p2[i].y = p.points[i].y;
+  }
+  FitCurve(p2, p.points.size(), 2.5);
+  out.push_back(p.points.back());
+#endif
+  pen.setColor(0,1,0);
+  for(auto a: out) {
+    pen.drawRectangle(a.x-2.5, a.y-2.5,6,6);
+  }
+  
+  cout << "reduced " << p.points.size() << " to " << out.size() << endl;
+
+  pen.drawBezier(out.data(), out.size());
+
 /*  
   pen.setColor(1,0,0);
   pen.drawRectangle(p.bounds());
