@@ -990,7 +990,7 @@ test_path.o: include/toad/pointer.hh include/toad/matrix2d.hh
 test_path.o: include/toad/figure.hh include/toad/bitmap.hh
 test_path.o: include/toad/figuremodel.hh include/toad/model.hh
 test_path.o: include/toad/connect.hh include/toad/vector.hh
-test_path.o: include/toad/geometry.hh GraphicsGems.h
+test_path.o: include/toad/geometry.hh
 test_image.o: include/toad/window.hh include/toad/interactor.hh
 test_image.o: include/toad/types.hh include/toad/cursor.hh
 test_image.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1024,7 +1024,7 @@ test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
 test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
-FitCurves.o: GraphicsGems.h include/toad/types.hh
+FitCurves.o: include/toad/types.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

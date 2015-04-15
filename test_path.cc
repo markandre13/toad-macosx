@@ -24,8 +24,6 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
-#include "GraphicsGems.h"
-
 using namespace toad;
 
 void
@@ -195,8 +193,8 @@ TVectorPath::subdivide()
 }
 
 vector<TPoint> *pathOut;
-
-void DrawBezierCurve(int n, BezierCurve curve)
+extern void FitCurve(TPoint *d, int nPts, double error);
+void DrawBezierCurve(int n, TPoint* curve)
 {
   cout << "DrawBezierCurve" << endl;
   for(int i=0; i<n; ++i)
@@ -216,7 +214,6 @@ class TMyWindow:
     
     void paint() override;
 };
-
 
 void
 TMyWindow::paint()

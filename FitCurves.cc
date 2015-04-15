@@ -10,7 +10,8 @@
 /*  fit_cubic.c	*/									
 /*	Piecewise cubic fitting code	*/
 
-#include "GraphicsGems.h"					
+// #include "GraphicsGems.h"					
+#include <toad/types.hh>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -21,14 +22,14 @@ using namespace toad;
 /* Forward declarations */
 void			FitCurve(TPoint *d, int nPts, double error);
 static	void		FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, double error);
-static	void		Reparameterize(TPoint *d, int first, int last, double *u, BezierCurve bezCurve);
-static	double		NewtonRaphsonRootFind(BezierCurve Q, TPoint P, double u);
+static	void		Reparameterize(TPoint *d, int first, int last, double *u, TPoint *BezCurve);
+static	double		NewtonRaphsonRootFind(TPoint* Q, TPoint P, double u);
 static	TPoint		BezierII(int degree, TPoint *V, double t);
 static	double 		B0(double), B1(double), B2(double), B3(double);
 static	TPoint		ComputeLeftTangent(TPoint *d, int end);
 static	TPoint		ComputeRightTangent(TPoint *d, int end);
 static	TPoint		ComputeCenterTangent(TPoint *d, int center);
-static	double		ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint);
+static	double		ComputeMaxError(TPoint *d, int first, int last, TPoint* bezCurve, double *u, int *splitPoint);
 static	void		ChordLengthParameterize(TPoint *d, int first, int last, double *u);
 static	void		GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *curve);
 
@@ -36,11 +37,11 @@ static double V2SquaredLength(TPoint *v), V2Length(TPoint *a);
 static double V2Dot(TPoint *a, TPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
 static TPoint *V2Normalize(TPoint *v);
 
-#define MAXPOINTS	1000		/* The most points you can have */
+#define MAXPOINTS	1000		/* The most points you can have FIXME */
 
 static double epsilon = 1e-12;
 
-extern void DrawBezierCurve(int n, BezierCurve curve);
+extern void DrawBezierCurve(int n, TPoint *curve);
 
 /*
  *  FitCurve :
@@ -222,7 +223,7 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
  *   \param[inout] u Current parameter values
  *   \param bezCurve Current fitted curve
  */
-static void Reparameterize(TPoint *d, int first, int last, double *u, BezierCurve bezCurve)
+static void Reparameterize(TPoint *d, int first, int last, double *u, TPoint* bezCurve)
 {
     for (int i = first; i <= last; i++) {
 	u[i-first] = NewtonRaphsonRootFind(bezCurve, d[i], u[i-first]);
@@ -238,7 +239,7 @@ static void Reparameterize(TPoint *d, int first, int last, double *u, BezierCurv
  *  \param P Digitized point
  *  \param u Parameter value for "P"
  */
-static double NewtonRaphsonRootFind(BezierCurve Q, TPoint P, double u)
+static double NewtonRaphsonRootFind(TPoint* Q, TPoint P, double u)
 {
     double 		numerator, denominator;
     TPoint 		Q1[3], Q2[2];	/*  Q' and Q''			*/
@@ -415,7 +416,7 @@ static void ChordLengthParameterize(TPoint *d, int first, int last, double *u)
  *  \param u Parameterization of points
  *  \param splitPoint Point of maximum error
  */
-static double ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint)
+static double ComputeMaxError(TPoint *d, int first, int last, TPoint* bezCurve, double *u, int *splitPoint)
 {
     int		i;
     double	maxDist;	/*  Maximum error		*/
