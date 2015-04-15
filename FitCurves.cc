@@ -42,39 +42,6 @@ static double epsilon = 1e-12;
 
 extern void DrawBezierCurve(int n, BezierCurve curve);
 
-
-#ifdef TESTMODE
-
-
-/*
- *  main:
- *	Example of how to use the curve-fitting code.  Given an array
- *   of points and a tolerance (squared error between points and 
- *	fitted curve), the algorithm will generate a piecewise
- *	cubic Bezier representation that approximates the points.
- *	When a cubic is generated, the routine "DrawBezierCurve"
- *	is called, which outputs the Bezier curve just created
- *	(arguments are the degree and the control points, respectively).
- *	Users will have to implement this function themselves 	
- *   ascii output, etc. 
- *
- */
-main()
-{
-    static TPoint d[7] = {	/*  Digitized points */
-	{ 0.0, 0.0 },
-	{ 0.0, 0.5 },
-	{ 1.1, 1.4 },
-	{ 2.1, 1.6 },
-	{ 3.2, 1.1 },
-	{ 4.0, 0.2 },
-	{ 4.0, 0.0 },
-    };
-    double	error = 4.0;		/*  Squared error */
-    FitCurve(d, 7, error);		/*  Fit the Bezier curves */
-}
-#endif						 /* TESTMODE */
-
 /*
  *  FitCurve :
  *  	Fit a Bezier curve to a set of digitized points 
@@ -91,6 +58,7 @@ void FitCurve(TPoint *d, int nPts, double error)
     FitCubic(d, 0, nPts - 1, tHat1, tHat2, error);
 }
 
+
 /*
  *  FitCubic :
  *  	Fit a Bezier curve to a (sub)set of digitized points
@@ -101,62 +69,59 @@ void FitCurve(TPoint *d, int nPts, double error)
  */
 static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, double error)
 {
-    TPoint      curve[4];	/*Control points of fitted Bezier curve*/
-    double	*uPrime;	/*  Improved parameter values */
-    double	maxError;	/*  Maximum fitting error	 */
-    int		splitPoint;	/*  Point to split point set at	 */
-    int		nPts;		/*  Number of points in subset  */
-    double	iterationError; /*Error below which you try iterating  */
-    int		maxIterations = 4; /*  Max times to try iterating  */
-    TPoint	tHatCenter;   	/* Unit tangent vector at splitPoint */
-    int		i;		
+  TPoint        curve[4];	/*Control points of fitted Bezier curve*/
+  double	maxError;	/*  Maximum fitting error	 */
+  int		splitPoint;	/*  Point to split point set at	 */
+  int		nPts;		/*  Number of points in subset  */
+  double	iterationError; /*Error below which you try iterating  */
+  int		maxIterations = 4; /*  Max times to try iterating  */
+  TPoint	tHatCenter;   	/* Unit tangent vector at splitPoint */
+  int		i;		
 
-    iterationError = error * error;
-    nPts = last - first + 1;
+  iterationError = error * error;
+  nPts = last - first + 1;
 
-    /*  Use heuristic if region only has two points in it */
-    if (nPts == 2) {
-	double dist = V2DistanceBetween2Points(&d[last], &d[first]) / 3.0;
-	TPoint curve[4];
-	curve[0] = d[first];
-	curve[3] = d[last];
-	curve[1] = curve[0] + tHat1 * dist;
-	curve[2] = curve[3] + tHat2 * dist;
-	DrawBezierCurve(3, curve);
-	return;
+  /*  Use heuristic if region only has two points in it */
+  if (nPts == 2) {
+    double dist = V2DistanceBetween2Points(&d[last], &d[first]) / 3.0;
+    curve[0] = d[first];
+    curve[3] = d[last];
+    curve[1] = curve[0] + tHat1 * dist;
+    curve[2] = curve[3] + tHat2 * dist;
+    DrawBezierCurve(3, curve);
+    return;
+  }
+
+  /*  Parameterize points, and attempt to fit curve */
+  double u[last-first+1]; // parameter values for point
+  ChordLengthParameterize(d, first, last, u);
+  GenerateBezier(d, first, last, u, tHat1, tHat2, curve);
+
+  /*  Find max deviation of points to fitted curve */
+  maxError = ComputeMaxError(d, first, last, curve, u, &splitPoint);
+  if (maxError < error) {
+    DrawBezierCurve(3, curve);
+    return;
+  }
+
+  /*  If error not too large, try some reparameterization  */
+  /*  and iteration */
+  if (maxError < iterationError) {
+    for (i = 0; i < maxIterations; i++) {
+      Reparameterize(d, first, last, u, curve);
+      GenerateBezier(d, first, last, u, tHat1, tHat2, curve);
+      maxError = ComputeMaxError(d, first, last, curve, u, &splitPoint);
+      if (maxError < error) {
+        DrawBezierCurve(3, curve);
+        return;
+      }
     }
+  }
 
-    /*  Parameterize points, and attempt to fit curve */
-    double u[last-first+1]; // parameter values for point
-    ChordLengthParameterize(d, first, last, u);
-    GenerateBezier(d, first, last, u, tHat1, tHat2, curve);
-
-    /*  Find max deviation of points to fitted curve */
-    maxError = ComputeMaxError(d, first, last, curve, u, &splitPoint);
-    if (maxError < error) {
-		DrawBezierCurve(3, curve);
-		return;
-    }
-
-    /*  If error not too large, try some reparameterization  */
-    /*  and iteration */
-    if (maxError < iterationError) {
-		for (i = 0; i < maxIterations; i++) {
-	    	Reparameterize(d, first, last, u, curve);
-	    	GenerateBezier(d, first, last, uPrime, tHat1, tHat2, curve);
-	    	maxError = ComputeMaxError(d, first, last,
-				       curve, uPrime, &splitPoint);
-	    	if (maxError < error) {
-			DrawBezierCurve(3, curve);
-			return;
-	    }
-	}
-    }
-
-    /* Fitting failed -- split at max error point and fit recursively */
-    tHatCenter = ComputeCenterTangent(d, splitPoint);
-    FitCubic(d, first, splitPoint, tHat1, tHatCenter, error);
-    FitCubic(d, splitPoint, last, -tHatCenter, tHat2, error);
+  /* Fitting failed -- split at max error point and fit recursively */
+  tHatCenter = ComputeCenterTangent(d, splitPoint);
+  FitCubic(d, first, splitPoint, tHat1, tHatCenter, error);
+  FitCubic(d, splitPoint, last, -tHatCenter, tHat2, error);
 }
 
 
@@ -186,8 +151,8 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
  
     /* Compute the A's	*/
     for (i = 0; i < nPts; i++) {
-		A[i][0] = tHat1 * B1(uPrime[i]);
-		A[i][1] = tHat2 * B2(uPrime[i]);
+	A[i][0] = tHat1 * B1(uPrime[i]);
+	A[i][1] = tHat2 * B2(uPrime[i]);
     }
 
     /* Create the C and X matrices	*/
@@ -200,15 +165,15 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
 
     for (i = 0; i < nPts; i++) {
         C[0][0] += V2Dot(&A[i][0], &A[i][0]);
-		C[0][1] += V2Dot(&A[i][0], &A[i][1]);
-/*					C[1][0] += V2Dot(&A[i][0], &A[i][1]);*/	
-		C[1][0] = C[0][1];
-		C[1][1] += V2Dot(&A[i][1], &A[i][1]);
-		tmp = d[first + i] - (
-	          d[first]* B0(uPrime[i]) +
-		  d[first]* B1(uPrime[i]) +
-	          d[last] * B2(uPrime[i]) +
-	          d[last] * B3(uPrime[i]));
+	C[0][1] += V2Dot(&A[i][0], &A[i][1]);
+	// C[1][0] += V2Dot(&A[i][0], &A[i][1]);
+	C[1][0] = C[0][1];
+	C[1][1] += V2Dot(&A[i][1], &A[i][1]);
+	tmp = d[first + i]
+	      - d[first]* B0(uPrime[i])
+	      - d[first]* B1(uPrime[i])
+	      - d[last] * B2(uPrime[i])
+	      - d[last] * B3(uPrime[i]);
 	X[0] += V2Dot(&A[i][0], &tmp);
 	X[1] += V2Dot(&A[i][1], &tmp);
     }
@@ -227,15 +192,14 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
      * divide by zero in any subsequent NewtonRaphsonRootFind() call. */
     double segLength = V2DistanceBetween2Points(&d[last], &d[first]);
     epsilon = 1.0e-6 * segLength;
-    if (alpha_l < epsilon || alpha_r < epsilon)
-    {
-		/* fall back on standard (probably inaccurate) formula, and subdivide further if needed. */
-		double dist = segLength / 3.0;
-		bezCurve[0] = d[first];
-		bezCurve[3] = d[last];
-		bezCurve[1] = bezCurve[0] + tHat1 * dist;
-		bezCurve[2] = bezCurve[3] + tHat2 * dist;
-		return;
+    if (alpha_l < epsilon || alpha_r < epsilon) {
+	/* fall back on standard (probably inaccurate) formula, and subdivide further if needed. */
+	double dist = segLength / 3.0;
+	bezCurve[0] = d[first];
+	bezCurve[3] = d[last];
+	bezCurve[1] = bezCurve[0] + tHat1 * dist;
+	bezCurve[2] = bezCurve[3] + tHat2 * dist;
+	return;
     }
 
     /*  First and last control points of the Bezier curve are */
@@ -287,14 +251,14 @@ static double NewtonRaphsonRootFind(BezierCurve Q, TPoint P, double u)
     
     /* Generate control vertices for Q'	*/
     for (i = 0; i <= 2; i++) {
-		Q1[i].x = (Q[i+1].x - Q[i].x) * 3.0;
-		Q1[i].y = (Q[i+1].y - Q[i].y) * 3.0;
+	Q1[i].x = (Q[i+1].x - Q[i].x) * 3.0;
+	Q1[i].y = (Q[i+1].y - Q[i].y) * 3.0;
     }
     
     /* Generate control vertices for Q'' */
     for (i = 0; i <= 1; i++) {
-		Q2[i].x = (Q1[i+1].x - Q1[i].x) * 2.0;
-		Q2[i].y = (Q1[i+1].y - Q1[i].y) * 2.0;
+	Q2[i].x = (Q1[i+1].x - Q1[i].x) * 2.0;
+	Q2[i].y = (Q1[i+1].y - Q1[i].y) * 2.0;
     }
     
     /* Compute Q'(u) and Q''(u)	*/
@@ -330,15 +294,15 @@ static TPoint BezierII(int degree, TPoint *V, double t)
     assert(degree<4);
     TPoint Vtemp[4];     	/* Local copy of control points         */
     for (i = 0; i <= degree; i++) {
-		Vtemp[i] = V[i];
+	Vtemp[i] = V[i];
     }
 
     /* Triangle computation	*/
     for (i = 1; i <= degree; i++) {	
-		for (j = 0; j <= degree-i; j++) {
-	    	Vtemp[j].x = (1.0 - t) * Vtemp[j].x + t * Vtemp[j+1].x;
-	    	Vtemp[j].y = (1.0 - t) * Vtemp[j].y + t * Vtemp[j+1].y;
-		}
+	for (j = 0; j <= degree-i; j++) {
+	    Vtemp[j].x = (1.0 - t) * Vtemp[j].x + t * Vtemp[j+1].x;
+	    Vtemp[j].y = (1.0 - t) * Vtemp[j].y + t * Vtemp[j+1].y;
+	}
     }
 
     Q = Vtemp[0];
@@ -454,21 +418,21 @@ static void ChordLengthParameterize(TPoint *d, int first, int last, double *u)
 static double ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint)
 {
     int		i;
-    double	maxDist;		/*  Maximum error		*/
+    double	maxDist;	/*  Maximum error		*/
     double	dist;		/*  Current error		*/
-    TPoint	P;			/*  Point on curve		*/
-    TPoint	v;			/*  Vector from point to curve	*/
+    TPoint	P;		/*  Point on curve		*/
+    TPoint	v;		/*  Vector from point to curve	*/
 
     *splitPoint = (last - first + 1)/2;
     maxDist = 0.0;
     for (i = first + 1; i < last; i++) {
-		P = BezierII(3, bezCurve, u[i-first]);
-		v = P - d[i];
-		dist = V2SquaredLength(&v);
-		if (dist >= maxDist) {
-	    	maxDist = dist;
-	    	*splitPoint = i;
-		}
+	P = BezierII(3, bezCurve, u[i-first]);
+	v = P - d[i];
+	dist = V2SquaredLength(&v);
+	if (dist >= maxDist) {
+	    maxDist = dist;
+	    *splitPoint = i;
+	}
     }
     return (maxDist);
 }
@@ -476,21 +440,21 @@ static double ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCur
 /* returns squared length of input vector */	
 double V2SquaredLength(TPoint *a) 
 {	return((a->x * a->x)+(a->y * a->y));
-	}
+}
 
 /* returns length of input vector */
 double V2Length(TPoint *a) 
 {
 	return(sqrt(V2SquaredLength(a)));
-	}
+}
 	
 /* normalizes the input vector and returns it */
 TPoint *V2Normalize(TPoint *v) 
 {
-double len = V2Length(v);
+        double len = V2Length(v);
 	if (len != 0.0) { v->x /= len;  v->y /= len; }
 	return(v);
-	}
+}
 
 /* return the dot product of vectors a and b */
 double V2Dot(TPoint *a, TPoint *b) 
@@ -500,7 +464,7 @@ double V2Dot(TPoint *a, TPoint *b)
 /* return the distance between two points */
 double V2DistanceBetween2Points(TPoint *a, TPoint *b)
 {
-double dx = a->x - b->x;
-double dy = a->y - b->y;
-	return(sqrt((dx*dx)+(dy*dy)));
+    double dx = a->x - b->x;
+    double dy = a->y - b->y;
+    return(sqrt((dx*dx)+(dy*dy)));
 }
