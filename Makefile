@@ -31,8 +31,8 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
 	   \
-	   FitCurves.cc GGVecLib.cc
-		
+	   FitCurves.cc
+	
 SRC_COCOA=window.cc pen.cc
 
 SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
@@ -1025,7 +1025,6 @@ test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
 test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
 FitCurves.o: GraphicsGems.h include/toad/types.hh
-GGVecLib.o: GraphicsGems.h include/toad/types.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

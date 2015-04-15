@@ -31,9 +31,10 @@ static	TPoint		ComputeCenterTangent(TPoint *d, int center);
 static	double		ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint);
 static	void		ChordLengthParameterize(TPoint *d, int first, int last, double *u);
 static	void		GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *curve);
-static	TPoint		V2AddII(TPoint a, TPoint b);
-static	TPoint		V2ScaleIII(TPoint v, double s);
-static	TPoint		V2SubII(TPoint a, TPoint b);
+
+static double V2SquaredLength(TPoint *v), V2Length(TPoint *a);
+static double V2Dot(TPoint *a, TPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
+static TPoint *V2Normalize(TPoint *v);
 
 #define MAXPOINTS	1000		/* The most points you can have */
 
@@ -155,8 +156,7 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
     /* Fitting failed -- split at max error point and fit recursively */
     tHatCenter = ComputeCenterTangent(d, splitPoint);
     FitCubic(d, first, splitPoint, tHat1, tHatCenter, error);
-    V2Negate(&tHatCenter);
-    FitCubic(d, splitPoint, last, tHatCenter, tHat2, error);
+    FitCubic(d, splitPoint, last, -tHatCenter, tHat2, error);
 }
 
 
@@ -178,22 +178,16 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
     double 	X[2];			/* Matrix X			*/
     double 	det_C0_C1,		/* Determinants of matrices	*/
     	   	det_C0_X,
-	   		det_X_C1;
+	   	det_X_C1;
     double 	alpha_l,		/* Alpha values, left and right	*/
     	   	alpha_r;
     TPoint 	tmp;			/* Utility variable		*/
     nPts = last - first + 1;
-
  
     /* Compute the A's	*/
     for (i = 0; i < nPts; i++) {
-		TPoint		v1, v2;
-		v1 = tHat1;
-		v2 = tHat2;
-		V2Scale(&v1, B1(uPrime[i]));
-		V2Scale(&v2, B2(uPrime[i]));
-		A[i][0] = v1;
-		A[i][1] = v2;
+		A[i][0] = tHat1 * B1(uPrime[i]);
+		A[i][1] = tHat2 * B2(uPrime[i]);
     }
 
     /* Create the C and X matrices	*/
@@ -210,17 +204,11 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
 /*					C[1][0] += V2Dot(&A[i][0], &A[i][1]);*/	
 		C[1][0] = C[0][1];
 		C[1][1] += V2Dot(&A[i][1], &A[i][1]);
-
-		tmp = V2SubII(d[first + i],
-	        V2AddII(
-	          V2ScaleIII(d[first], B0(uPrime[i])),
-		    	V2AddII(
-		      		V2ScaleIII(d[first], B1(uPrime[i])),
-		        			V2AddII(
-	                  		V2ScaleIII(d[last], B2(uPrime[i])),
-	                    		V2ScaleIII(d[last], B3(uPrime[i]))))));
-	
-
+		tmp = d[first + i] - (
+	          d[first]* B0(uPrime[i]) +
+		  d[first]* B1(uPrime[i]) +
+	          d[last] * B2(uPrime[i]) +
+	          d[last] * B3(uPrime[i]));
 	X[0] += V2Dot(&A[i][0], &tmp);
 	X[1] += V2Dot(&A[i][1], &tmp);
     }
@@ -484,22 +472,35 @@ static double ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCur
     }
     return (maxDist);
 }
-static TPoint V2AddII(TPoint a, TPoint b)
-{
-    TPoint	c;
-    c.x = a.x + b.x;  c.y = a.y + b.y;
-    return (c);
-}
-static TPoint V2ScaleIII(TPoint v, double s)
-{
-    TPoint result;
-    result.x = v.x * s; result.y = v.y * s;
-    return (result);
-}
 
-static TPoint V2SubII(TPoint a, TPoint b)
+/* returns squared length of input vector */	
+double V2SquaredLength(TPoint *a) 
+{	return((a->x * a->x)+(a->y * a->y));
+	}
+
+/* returns length of input vector */
+double V2Length(TPoint *a) 
 {
-    TPoint	c;
-    c.x = a.x - b.x; c.y = a.y - b.y;
-    return (c);
+	return(sqrt(V2SquaredLength(a)));
+	}
+	
+/* normalizes the input vector and returns it */
+TPoint *V2Normalize(TPoint *v) 
+{
+double len = V2Length(v);
+	if (len != 0.0) { v->x /= len;  v->y /= len; }
+	return(v);
+	}
+
+/* return the dot product of vectors a and b */
+double V2Dot(TPoint *a, TPoint *b) 
+{
+	return((a->x*b->x)+(a->y*b->y));
+}
+/* return the distance between two points */
+double V2DistanceBetween2Points(TPoint *a, TPoint *b)
+{
+double dx = a->x - b->x;
+double dy = a->y - b->y;
+	return(sqrt((dx*dx)+(dy*dy)));
 }

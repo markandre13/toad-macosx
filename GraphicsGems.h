@@ -12,52 +12,6 @@ using namespace toad;
 
 #define GG_H 1
 
-/*********************/
-/* 2d geometry types */
-/*********************/
-
-#if 0
-typedef struct Point2Struct {	/* 2d point */
-	double x, y;
-	} Point2;
-typedef Point2 Vector2;
-#endif
-
-typedef struct IntPoint2Struct {	/* 2d integer point */
-	int x, y;
-	} IntPoint2;
-
-typedef struct Matrix3Struct {	/* 3-by-3 matrix */
-	double element[3][3];
-	} Matrix3;
-#if 0
-typedef struct Box2dStruct {		/* 2d box */
-	TPoint min, max;
-	} Box2;
-#endif
-
-/*********************/
-/* 3d geometry types */
-/*********************/
-
-typedef struct Point3Struct {	/* 3d point */
-	double x, y, z;
-	} Point3;
-typedef Point3 Vector3;
-
-typedef struct IntPoint3Struct {	/* 3d integer point */
-	int x, y, z;
-	} IntPoint3;
-
-
-typedef struct Matrix4Struct {	/* 4-by-4 matrix */
-	double element[4][4];
-	} Matrix4;
-
-typedef struct Box3dStruct {		/* 3d box */
-	Point3 min, max;
-	} Box3;
-
 typedef TPoint *BezierCurve;
 extern void FitCurve(TPoint *d, int nPts, double error);
 
@@ -142,9 +96,5 @@ if (!(x)) fprintf(stderr," Assert failed: x\n");
 #define OFF 		0
 typedef int boolean;			/* boolean data type */
 typedef boolean flag;			/* flag data type */
-
-extern double V2SquaredLength(TPoint *v), V2Length(TPoint *a);
-extern double V2Dot(TPoint *a, TPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
-extern TPoint *V2Negate(TPoint *v), *V2Normalize(TPoint *v), *V2Scale(TPoint *v, double newlen), *V2Add(TPoint *a, TPoint *b, TPoint *c), *V2Sub();
 
 #endif
