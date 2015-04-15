@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 using namespace toad;
 
@@ -29,7 +30,7 @@ static	TPoint		ComputeRightTangent(TPoint *d, int end);
 static	TPoint		ComputeCenterTangent(TPoint *d, int center);
 static	double		ComputeMaxError(TPoint *d, int first, int last, BezierCurve bezCurve, double *u, int *splitPoint);
 static	void		ChordLengthParameterize(TPoint *d, int first, int last, double *u);
-static	BezierCurve	GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2);
+static	void		GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *curve);
 static	TPoint		V2AddII(TPoint a, TPoint b);
 static	TPoint		V2ScaleIII(TPoint v, double s);
 static	TPoint		V2SubII(TPoint a, TPoint b);
@@ -99,7 +100,7 @@ void FitCurve(TPoint *d, int nPts, double error)
  */
 static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, double error)
 {
-    BezierCurve	bezCurve; /*Control points of fitted Bezier curve*/
+    TPoint      curve[4];	/*Control points of fitted Bezier curve*/
     double	*uPrime;	/*  Improved parameter values */
     double	maxError;	/*  Maximum fitting error	 */
     int		splitPoint;	/*  Point to split point set at	 */
@@ -127,13 +128,12 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
     /*  Parameterize points, and attempt to fit curve */
     double u[last-first+1]; // parameter values for point
     ChordLengthParameterize(d, first, last, u);
-    bezCurve = GenerateBezier(d, first, last, u, tHat1, tHat2);
+    GenerateBezier(d, first, last, u, tHat1, tHat2, curve);
 
     /*  Find max deviation of points to fitted curve */
-    maxError = ComputeMaxError(d, first, last, bezCurve, u, &splitPoint);
+    maxError = ComputeMaxError(d, first, last, curve, u, &splitPoint);
     if (maxError < error) {
-		DrawBezierCurve(3, bezCurve);
-		free((void *)bezCurve);
+		DrawBezierCurve(3, curve);
 		return;
     }
 
@@ -141,21 +141,18 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
     /*  and iteration */
     if (maxError < iterationError) {
 		for (i = 0; i < maxIterations; i++) {
-	    	Reparameterize(d, first, last, u, bezCurve);
-	    	free((void *)bezCurve);
-	    	bezCurve = GenerateBezier(d, first, last, uPrime, tHat1, tHat2);
+	    	Reparameterize(d, first, last, u, curve);
+	    	GenerateBezier(d, first, last, uPrime, tHat1, tHat2, curve);
 	    	maxError = ComputeMaxError(d, first, last,
-				       bezCurve, uPrime, &splitPoint);
+				       curve, uPrime, &splitPoint);
 	    	if (maxError < error) {
-			DrawBezierCurve(3, bezCurve);
-			free((void *)bezCurve);
+			DrawBezierCurve(3, curve);
 			return;
 	    }
 	}
     }
 
     /* Fitting failed -- split at max error point and fit recursively */
-    free((void *)bezCurve);
     tHatCenter = ComputeCenterTangent(d, splitPoint);
     FitCubic(d, first, splitPoint, tHat1, tHatCenter, error);
     V2Negate(&tHatCenter);
@@ -172,7 +169,7 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
  *  \param tHat1, tHat2 Unit tangents at endpoints
  *
  */
-static BezierCurve  GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2)
+static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *bezCurve)
 {
     int 	i;
     TPoint 	A[MAXPOINTS][2];	/* Precomputed rhs for eqn	*/
@@ -185,9 +182,6 @@ static BezierCurve  GenerateBezier(TPoint *d, int first, int last, double *uPrim
     double 	alpha_l,		/* Alpha values, left and right	*/
     	   	alpha_r;
     TPoint 	tmp;			/* Utility variable		*/
-    BezierCurve	bezCurve;	/* RETURN bezier curve ctl pts	*/
-
-    bezCurve = (TPoint *)malloc(4 * sizeof(TPoint));
     nPts = last - first + 1;
 
  
@@ -253,7 +247,7 @@ static BezierCurve  GenerateBezier(TPoint *d, int first, int last, double *uPrim
 		bezCurve[3] = d[last];
 		bezCurve[1] = bezCurve[0] + tHat1 * dist;
 		bezCurve[2] = bezCurve[3] + tHat2 * dist;
-		return (bezCurve);
+		return;
     }
 
     /*  First and last control points of the Bezier curve are */
@@ -264,7 +258,6 @@ static BezierCurve  GenerateBezier(TPoint *d, int first, int last, double *uPrim
     bezCurve[3] = d[last];
     bezCurve[1] = bezCurve[0] + tHat1 * alpha_l;
     bezCurve[2] = bezCurve[3] + tHat2 * alpha_r;
-    return (bezCurve);
 }
 
 
@@ -344,11 +337,10 @@ static TPoint BezierII(int degree, TPoint *V, double t)
 {
     int 	i, j;		
     TPoint 	Q;	        /* Point on curve at parameter t	*/
-    TPoint 	*Vtemp;		/* Local copy of control points		*/
 
     /* Copy array	*/
-    Vtemp = (TPoint *)malloc((unsigned)((degree+1) 
-				* sizeof (TPoint)));
+    assert(degree<4);
+    TPoint Vtemp[4];     	/* Local copy of control points         */
     for (i = 0; i <= degree; i++) {
 		Vtemp[i] = V[i];
     }
@@ -362,7 +354,6 @@ static TPoint BezierII(int degree, TPoint *V, double t)
     }
 
     Q = Vtemp[0];
-    free((void *)Vtemp);
     return Q;
 }
 
