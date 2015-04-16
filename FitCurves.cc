@@ -25,7 +25,6 @@ static	void		FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2
 static	void		Reparameterize(TPoint *d, int first, int last, double *u, TPoint *BezCurve);
 static	double		NewtonRaphsonRootFind(TPoint* Q, TPoint P, double u);
 static	TPoint		BezierII(int degree, TPoint *V, double t);
-static	double 		B0(double), B1(double), B2(double), B3(double);
 static	TPoint		ComputeLeftTangent(TPoint *d, int end);
 static	TPoint		ComputeRightTangent(TPoint *d, int end);
 static	TPoint		ComputeCenterTangent(TPoint *d, int center);
@@ -34,12 +33,8 @@ static	void		ChordLengthParameterize(TPoint *d, int first, int last, double *u);
 static	void		GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *curve);
 
 static double V2SquaredLength(TPoint *v), V2Length(TPoint *a);
-static double V2Dot(TPoint *a, TPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
+static double V2Dot(CGPoint *a, CGPoint *b), V2DistanceBetween2Points(TPoint *a, TPoint *b); 
 static TPoint *V2Normalize(TPoint *v);
-
-#define MAXPOINTS	1000		/* The most points you can have FIXME */
-
-static double epsilon = 1e-12;
 
 extern void DrawBezierCurve(int n, TPoint *curve);
 
@@ -125,6 +120,33 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
   FitCubic(d, splitPoint, last, -tHatCenter, tHat2, error);
 }
 
+/*
+ *  B0, B1, B2, B3 :
+ *	Bezier multipliers
+ */
+static inline double B0(double u)
+{
+    double tmp = 1.0 - u;
+    return (tmp * tmp * tmp);
+}
+
+
+static inline double B1(double u)
+{
+    double tmp = 1.0 - u;
+    return (3 * u * (tmp * tmp));
+}
+
+static inline double B2(double u)
+{
+    double tmp = 1.0 - u;
+    return (3 * u * u * tmp);
+}
+
+static inline double B3(double u)
+{
+    return (u * u * u);
+}
 
 /*
  *  GenerateBezier :
@@ -138,7 +160,6 @@ static void FitCubic(TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2,
 static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *bezCurve)
 {
     int 	i;
-    TPoint 	A[MAXPOINTS][2];	/* Precomputed rhs for eqn	*/
     int 	nPts;			/* Number of pts in sub-curve 	*/
     double 	C[2][2];		/* Matrix C			*/
     double 	X[2];			/* Matrix X			*/
@@ -149,6 +170,7 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
     	   	alpha_r;
     TPoint 	tmp;			/* Utility variable		*/
     nPts = last - first + 1;
+    CGPoint      A[nPts][2];		/* Precomputed rhs for eqn      */
  
     /* Compute the A's	*/
     for (i = 0; i < nPts; i++) {
@@ -192,7 +214,7 @@ static void GenerateBezier(TPoint *d, int first, int last, double *uPrime, TPoin
     /* (if alpha is 0, you get coincident control points that lead to
      * divide by zero in any subsequent NewtonRaphsonRootFind() call. */
     double segLength = V2DistanceBetween2Points(&d[last], &d[first]);
-    epsilon = 1.0e-6 * segLength;
+    double epsilon = 1.0e-6 * segLength;
     if (alpha_l < epsilon || alpha_r < epsilon) {
 	/* fall back on standard (probably inaccurate) formula, and subdivide further if needed. */
 	double dist = segLength / 3.0;
@@ -311,33 +333,6 @@ static TPoint BezierII(int degree, TPoint *V, double t)
 }
 
 
-/*
- *  B0, B1, B2, B3 :
- *	Bezier multipliers
- */
-static double B0(double u)
-{
-    double tmp = 1.0 - u;
-    return (tmp * tmp * tmp);
-}
-
-
-static double B1(double u)
-{
-    double tmp = 1.0 - u;
-    return (3 * u * (tmp * tmp));
-}
-
-static double B2(double u)
-{
-    double tmp = 1.0 - u;
-    return (3 * u * u * tmp);
-}
-
-static double B3(double u)
-{
-    return (u * u * u);
-}
 
 
 
@@ -458,7 +453,7 @@ TPoint *V2Normalize(TPoint *v)
 }
 
 /* return the dot product of vectors a and b */
-double V2Dot(TPoint *a, TPoint *b) 
+double V2Dot(CGPoint *a, CGPoint *b) 
 {
 	return((a->x*b->x)+(a->y*b->y));
 }
