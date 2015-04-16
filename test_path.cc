@@ -193,8 +193,8 @@ TVectorPath::subdivide()
 }
 
 vector<TPoint> *pathOut;
-extern void FitCurve(TPoint *d, int nPts, double error);
-void DrawBezierCurve(int n, TPoint* curve)
+extern void FitCurve(const TPoint *d, int nPts, double error);
+void DrawBezierCurve(int n, const TPoint* curve)
 {
   cout << "DrawBezierCurve" << endl;
   for(int i=0; i<n; ++i)
