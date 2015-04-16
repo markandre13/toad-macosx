@@ -713,8 +713,6 @@ bounds(const TPoint *v)
  *                                                                          *
  ****************************************************************************/
 
-// PathFitter from paper.js
-
 /*
  * An Algorithm for Automatically Fitting Digitized Curves
  * by Philip J. Schneider
@@ -722,267 +720,438 @@ bounds(const TPoint *v)
  * This code is in the public domain.
  */
 
-static inline
-TPoint normalize(const TPoint &p, TCoord d)
+/* returns squared length of input vector */	
+static inline double squaredLength(const TPoint &a) 
 {
-  return TPoint(p.x/d, p.y/d); // FIXME: I guessed this
+  return a.x*a.x+a.y*a.y;
 }
 
-static inline
-TPoint normalize(const TPoint &p)
+/* returns length of input vector */
+static inline double length(const TPoint &a) 
 {
-  return normalize(p, sqrt(p.x*p.x+p.y*p.y)); // FIXME: I guessed this
+  return sqrt(squaredLength(a));
 }
 
-static inline
-TCoord distance(const TPoint &a, const TPoint &b)
+/* return the distance between two points */
+static inline double distance(const TPoint &a, const TPoint &b)
 {
-  TPoint p = b-a;
-  return sqrt(p.x*p.x+p.y*p.y);
+  return length(a-b);
 }
-
-static inline TPoint
-evaluate(size_t n, const TPoint *p, TCoord t)
+	
+/* normalizes the input vector and returns it */
+static inline TPoint normalize(const TPoint &v) 
 {
-  switch(n) {
-    case 1:
-      return p[0]*(1-t)+p[1]*t;
-    case 2: {
-      TCoord u=1-t;
-      return p[0]*u*u+p[1]*t*u*2+p[2]*t*t;
-    }
-    case 3: {
-      TCoord u=1-t;
-      TCoord u2=u*u;
-      TCoord t2=t*t;
-      return p[0]*u2*u+p[1]*t*u2*3+p[2]*t2*u*3+p[3]*t2*t;
-    }
-    default:
-      cerr << "evaluate not implemented for n="<<n<<endl;
-      exit(1);
-  } 
-}
-
-vector<TPoint> *pathOut = 0;
-
-static void
-addCurve(const TPoint *curve)
-{
-  pathOut->push_back(curve[0]);
-  pathOut->push_back(curve[1]);
-  pathOut->push_back(curve[2]);
-}
-
-static void
-generateBezier(const TPoint *points, size_t first, size_t last, const TCoord *uPrime, const TPoint &tan1, const TPoint &tan2, TPoint *curve)
-{
-  TCoord epsilon = 1e-12;
-  TPoint pt1 = points[first];
-  TPoint pt2 = points[last];
-  TCoord C[2][2] = {{0,0},{0,0}};
-  TCoord X[2] = {0,0};
-  
-  for(size_t i = 0, l = last - first + 1; i < l; i++) {
-    TCoord u = uPrime[i],
-           t = 1 - u,
-           b = 3 * u * t,
-           b0 = t * t * t,
-           b1 = b * t,
-           b2 = b * u,
-           b3 = u * u * u;
-    TPoint a1 = normalize(tan1, b1),
-           a2 = normalize(tan2, b2),
-           tmp = points[first + i] - pt1*(b0+b1) - pt2*(b2 + b3);
-    C[0][0] += dot(a1, a1);
-    C[0][1] += dot(a1, a2);
-    C[1][0] = C[0][1];
-    C[1][1] += dot(a2, a2);
-    X[0] += dot(a1, tmp);
-    X[1] += dot(a2, tmp);
-  }
-  
-  TCoord detC0C1 = C[0][0] * C[1][1] - C[1][0] * C[0][1],
-         alpha1, alpha2;
-  if (fabs(detC0C1) > epsilon) {
-    TCoord detC0X = C[0][0] * X[1] - C[1][0] * X[0],
-           detXC1 = X[0] * C[1][1] - X[1] * C[0][1];
-    alpha1 = detXC1 / detC0C1;
-    alpha2 = detC0X / detC0C1;
+  TPoint result;
+  double len = length(v);
+  if (len != 0.0) {
+    result.x = v.x / len;
+    result.y = v.y / len;
   } else {
-    TCoord c0 = C[0][0] + C[0][1],
-           c1 = C[1][0] + C[1][1];
-    if (fabs(c0) > epsilon) {
-      alpha1 = alpha2 = X[0] / c0;
-    } else
-    if (fabs(c1) > epsilon) {
-      alpha1 = alpha2 = X[1] / c1;
-    } else {
-      alpha1 = alpha2 = 0;
-    }
-    
-    TCoord segLength = distance(pt2, pt1);
-    epsilon *= segLength;
-    if (alpha1 < epsilon || alpha2 < epsilon) {
-      alpha1 = alpha2 = segLength / 3;
-    }
-    
-    curve[0] = pt1;
-    curve[1] = pt1 + normalize(tan1, alpha1);
-    curve[2] = pt2 + normalize(tan2, alpha2);
-    curve[3] = pt2;
+    result.x = v.x;
+    result.y = v.y;
   }
+  return(result);
 }
 
-static TCoord
-findRoot(const TPoint *points, const TPoint *curve, const TPoint &point, TCoord u)
+/* return the dot product of vectors a and b */
+static inline double
+dot(const CGPoint &a, const CGPoint &b)
 {
-  TPoint curve1[4];
-  TPoint curve2[4];
-  for (size_t i = 0; i <= 2; i++) {
-    curve1[i] = (curve[i + 1] - curve[i])*3.0;
-  }
-  for (size_t i = 0; i <= 1; i++) {
-    curve2[i] = (curve1[i + 1] - curve1[i])*2.0;
-  }
-  TPoint pt = evaluate(3, curve, u),
-         pt1 = evaluate(2, curve1, u),
-         pt2 = evaluate(1, curve2, u),
-         diff = pt - point;
-  TCoord df = dot(pt1, pt1) + dot(diff, pt2);
-  if (fabs(df) < 0.000001)
-    return u;
-  return u - dot(diff, pt1)/df;
+  return a.x*b.x+a.y*b.y;
 }
 
-struct TMaxError
+/*
+ *  B0, B1, B2, B3 :
+ *	Bezier multipliers
+ */
+static inline double
+B0(double u)
 {
-  size_t index;
-  TCoord error;
-};
-
-static TMaxError
-findMaxError(const TPoint *points, size_t first, size_t last, const TPoint *curve, const TCoord *u)
-{
-  TMaxError result;
-  result.index = floor((last - first + 1) / 2);
-  result.error = 0.0;
-  for(size_t i = first + 1; i < last; ++i) {
-    TPoint P = evaluate(3, curve, u[i - first]);
-    TPoint v = P - points[i];
-    TCoord dist = v.x * v.x + v.y * v.y;
-    if (dist >= result.error) {
-      result.error = dist;
-      result.index = i;
-    }
-  }
-  return result;
+  double tmp = 1.0 - u;
+  return (tmp * tmp * tmp);
 }
 
-static void
-reparameterize(const TPoint *points, size_t first, size_t last, TCoord *u, const TPoint *curve)
+static inline double
+B1(double u)
 {
-  for(size_t i=first; i<=last; ++i)
-    u[i-first] = findRoot(points, curve, points[i], u[i-first]);
+  double tmp = 1.0 - u;
+  return (3 * u * (tmp * tmp));
 }
 
-/**
- * assign parameter values in [0,1] to the points
- * u[0]=0.0 1st point
- * u[x]=0.5 point in the middle of the path (when available)
- * u[n]=1.0 last point
+static inline double
+B2(double u)
+{
+  double tmp = 1.0 - u;
+  return (3 * u * u * tmp);
+}
+
+static inline double
+B3(double u)
+{
+  return (u * u * u);
+}
+
+/*
+ *  GenerateBezier :
+ *  Use least-squares method to find Bezier control points for region.
+ *  \param d Array of digitized points
+ *  \param first, last Indices defining region
+ *  \param uPrime Parameter values for region
+ *  \param tHat1, tHat2 Unit tangents at endpoints
+ *
  */
 static void
-chordLenghtParametrize(const TPoint *points, size_t first, size_t last, TCoord *u)
+generateBezier(const TPoint *d, int first, int last, const double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *bezCurve)
 {
-  // u[i] := distance from first to first+i
-  u[0] = 0;
-  for(size_t i= first + 1; i <= last; ++i) {
-    u[i-first] = u[i-first-1] + distance(points[i-1], points[i]);
+  int 	i;
+  int 	nPts;			/* Number of pts in sub-curve 	*/
+  double 	C[2][2];		/* Matrix C			*/
+  double 	X[2];			/* Matrix X			*/
+  double 	det_C0_C1,		/* Determinants of matrices	*/
+    	   	det_C0_X,
+	   	det_X_C1;
+  double 	alpha_l,		/* Alpha values, left and right	*/
+    	   	alpha_r;
+  TPoint 	tmp;			/* Utility variable		*/
+  nPts = last - first + 1;
+  CGPoint      A[nPts][2];		/* Precomputed rhs for eqn      */
+ 
+  /* Compute the A's	*/
+  for (i = 0; i < nPts; i++) {
+    A[i][0] = tHat1 * B1(uPrime[i]);
+    A[i][1] = tHat2 * B2(uPrime[i]);
   }
-  // normalize
-  size_t m = last-first;
-  for(size_t i = 1; i <= m; i++) {
-    u[i] /= u[m];
-  }
-}
 
-/**
- * \param first first point's index
- * \param last  last point's index
- * \param tan1  normalized tangent vector at first point
- * \param tan2  normalized tangent vector at last point
- */
-static void
-fitCubic(const TPoint *points, TCoord error, size_t first, size_t last, const TPoint &tan1, const TPoint &tan2)
-{
-  // not a curve, just two neigbouring points
-  if (last-first == 1) {
-    TCoord dist = distance(points[first], points[last]) / 3;
-    TPoint curve[4] = {
-      points[first],
-      points[first]+normalize(tan1, dist),
-      points[last]+normalize(tan2, dist),
-      points[last]
-    };
-    addCurve(curve);
+  /* Create the C and X matrices */
+  C[0][0] = 0.0;
+  C[0][1] = 0.0;
+  C[1][0] = 0.0;
+  C[1][1] = 0.0;
+  X[0]    = 0.0;
+  X[1]    = 0.0;
+
+  for (i = 0; i < nPts; i++) {
+    C[0][0] += dot(A[i][0], A[i][0]);
+    C[0][1] += dot(A[i][0], A[i][1]);
+    // C[1][0] += dot(A[i][0], A[i][1]);
+    C[1][0] = C[0][1];
+    C[1][1] += dot(A[i][1], A[i][1]);
+    tmp = d[first + i]
+          - d[first]* B0(uPrime[i])
+          - d[first]* B1(uPrime[i])
+          - d[last] * B2(uPrime[i])
+          - d[last] * B3(uPrime[i]);
+    X[0] += dot(A[i][0], tmp);
+    X[1] += dot(A[i][1], tmp);
+  }
+
+  /* Compute the determinants of C and X	*/
+  det_C0_C1 = C[0][0] * C[1][1] - C[1][0] * C[0][1];
+  det_C0_X  = C[0][0] * X[1]    - C[1][0] * X[0];
+  det_X_C1  = X[0]    * C[1][1] - X[1]    * C[0][1];
+
+  /* Finally, derive alpha values	*/
+  alpha_l = (det_C0_C1 == 0) ? 0.0 : det_X_C1 / det_C0_C1;
+  alpha_r = (det_C0_C1 == 0) ? 0.0 : det_C0_X / det_C0_C1;
+
+  /* If alpha negative, use the Wu/Barsky heuristic (see text) */
+  /* (if alpha is 0, you get coincident control points that lead to
+   * divide by zero in any subsequent NewtonRaphsonRootFind() call. */
+  double segLength = distance(d[last], d[first]);
+  double epsilon = 1.0e-6 * segLength;
+  if (alpha_l < epsilon || alpha_r < epsilon) {
+    /* fall back on standard (probably inaccurate) formula, and subdivide further if needed. */
+    double dist = segLength / 3.0;
+    bezCurve[0] = d[first];
+    bezCurve[3] = d[last];
+    bezCurve[1] = bezCurve[0] + tHat1 * dist;
+    bezCurve[2] = bezCurve[3] + tHat2 * dist;
     return;
   }
-  
-  TCoord uPrime[last-first+1];
-  chordLenghtParametrize(points, first, last, uPrime);
-  TCoord maxError = std::max(error, error*error);
-  size_t split = 0;
-  
-  // 5 iterations
-  for(int i=0; i<=4; ++i) {
-    TPoint curve[4];
-    generateBezier(points, first, last, uPrime, tan1, tan2, curve);
-    TMaxError max = findMaxError(points, first, last, curve, uPrime);
-    if (max.error < error) {
-      addCurve(curve);
-      return;
-    }
-    split = max.index;
-    if (max.error >= maxError)
-      break;
-    reparameterize(points, first, last, uPrime, curve);
-    maxError = max.error;
-  }
-  // we didn't find a good enough curve within five iteration
-  // split and try again on both sides
-  TPoint V1 = points[split - 1] - points[split],
-         V2 = points[split] - points[split + 1],
-         tanCenter = normalize((V1+V2)*0.5);
-  fitCubic(points, error, first, split, tan1, tanCenter);
-  fitCubic(points, error, split, last, -tanCenter, tan2);
+
+  /*  First and last control points of the Bezier curve are */
+  /*  positioned exactly at the first and last data points */
+  /*  Control points 1 and 2 are positioned an alpha distance out */
+  /*  on the tangent vectors, left and right, respectively */
+  bezCurve[0] = d[first];
+  bezCurve[3] = d[last];
+  bezCurve[1] = bezCurve[0] + tHat1 * alpha_l;
+  bezCurve[2] = bezCurve[3] + tHat2 * alpha_r;
 }
 
-void
-fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out)
+/*
+ *  Bezier :
+ *  	Evaluate a Bezier curve at a particular parameter value
+ *    \param degree The degree of the bezier curve
+ *    \param V      Array of control points
+ *    \param t      Parametric value to find point for
+ */
+static TPoint
+evaluateBezier(int degree, const TPoint *V, double t)
 {
-  pathOut = out;
+  int i, j;		
 
-  vector<TPoint> points;
+  /* Copy array	*/
+  CGPoint Vtemp[degree+1];     	/* Local copy of control points         */
+  for (i = 0; i <= degree; i++) {
+    Vtemp[i] = V[i];
+  }
 
-  // initialize
-  const TPoint *prev = nullptr;
-  for(size_t i=0; i<size; ++i) {
-    if (!prev || *prev!=inPoints[i]) {
-      points.push_back(inPoints[i]);
-      prev = inPoints+i;
+  /* Triangle computation	*/
+  for (i = 1; i <= degree; i++) {	
+    for (j = 0; j <= degree-i; j++) {
+      Vtemp[j].x = (1.0 - t) * Vtemp[j].x + t * Vtemp[j+1].x;
+      Vtemp[j].y = (1.0 - t) * Vtemp[j].y + t * Vtemp[j+1].y;
     }
   }
-  
-  // FIXME: handle closed path
-  
-  size_t n = points.size()-1; // n := index of last point in points
-  if (n>1) {
-    fitCubic(points.data(), tolerance, 0,n, normalize(points[1]-points[0]), normalize(points[n-1] - points[n]));
+
+  return TPoint(Vtemp->x, Vtemp->y); // Point on curve at parameter t
+}
+
+/*
+ *  NewtonRaphsonRootFind :
+ *	Use Newton-Raphson iteration to find better root.
+ *  \param Q Current fitted curve
+ *  \param P Digitized point
+ *  \param u Parameter value for "P"
+ */
+static double
+newtonRaphsonRootFind(const TPoint* Q, TPoint P, double u)
+{
+  double numerator, denominator;
+  TPoint Q1[3], Q2[2];    // Q' and Q''
+  TPoint Q_u, Q1_u, Q2_u; // u evaluated at Q, Q', & Q''
+  int i;
+    
+  /* Compute Q(u)	*/
+  Q_u = evaluateBezier(3, Q, u);
+    
+  /* Generate control vertices for Q'	*/
+  for (i = 0; i <= 2; i++) {
+    Q1[i].x = (Q[i+1].x - Q[i].x) * 3.0;
+    Q1[i].y = (Q[i+1].y - Q[i].y) * 3.0;
   }
-  
-  // FIXME: handle closed path
-  
-  // FIXME: return result
+    
+  /* Generate control vertices for Q'' */
+  for (i = 0; i <= 1; i++) {
+    Q2[i].x = (Q1[i+1].x - Q1[i].x) * 2.0;
+    Q2[i].y = (Q1[i+1].y - Q1[i].y) * 2.0;
+  }
+    
+  /* Compute Q'(u) and Q''(u)	*/
+  Q1_u = evaluateBezier(2, Q1, u);
+  Q2_u = evaluateBezier(1, Q2, u);
+    
+  /* Compute f(u)/f'(u) */
+  numerator = (Q_u.x - P.x) * (Q1_u.x) + (Q_u.y - P.y) * (Q1_u.y);
+  denominator = (Q1_u.x) * (Q1_u.x) + (Q1_u.y) * (Q1_u.y) +
+		      	  (Q_u.x - P.x) * (Q2_u.x) + (Q_u.y - P.y) * (Q2_u.y);
+  if (denominator == 0.0f) return u;
+
+  /* u = u - f(u)/f'(u) */
+  return u - (numerator/denominator);
+}
+
+/*
+ *  Reparameterize:
+ *   Given set of points and their parameterization, try to find
+ *   a better parameterization.
+ *   \param d Array of digitized points
+ *   \param first, last Indices defining region
+ *   \param[inout] u Current parameter values
+ *   \param bezCurve Current fitted curve
+ */
+static void
+reparameterize(const TPoint *d, int first, int last, double *u, const TPoint* bezCurve)
+{
+  for (int i = first; i <= last; i++) {
+    u[i-first] = newtonRaphsonRootFind(bezCurve, d[i], u[i-first]);
+  }
+}
+
+/*
+ * ComputeLeftTangent, ComputeRightTangent, ComputeCenterTangent :
+ * Approximate unit tangents at endpoints and "center" of digitized curve
+ * \param d Digitized points
+ * \param end Index to "left" end of region
+ */
+static inline TPoint
+computeLeftTangent(const TPoint *d, int end)
+{
+  return normalize(d[end+1] - d[end]);
+}
+
+/**
+ * \param d Digitized points
+ * \param end Index to "right" end of region
+ */
+static inline TPoint
+computeRightTangent(const TPoint *d, int end)
+{
+  return normalize(d[end-1] - d[end]);
+}
+
+/**
+ * \param d Digitized points
+ * \param center Index to point inside region
+ */
+static TPoint
+computeCenterTangent(const TPoint *d, int center)
+{
+  TPoint V1, V2, tHatCenter;
+
+  V1 = d[center-1] - d[center];
+  V2 = d[center] - d[center+1];
+  tHatCenter.x = (V1.x + V2.x)/2.0;
+  tHatCenter.y = (V1.y + V2.y)/2.0;
+  return normalize(tHatCenter);
+}
+
+
+/*
+ *  ChordLengthParameterize :
+ *	Assign parameter values to digitized points 
+ *	using relative distances between points.
+ *  \param d Array of digitized points
+ *  \param first, last Indices defining region
+ */
+static void
+chordLengthParameterize(const TPoint *d, int first, int last, double *u)
+{
+  int i;	
+
+  u[0] = 0.0;
+  for (i = first+1; i <= last; i++) {
+    u[i-first] = u[i-first-1] +	distance(d[i], d[i-1]);
+  }
+
+  for (i = first + 1; i <= last; i++) {
+    u[i-first] = u[i-first] / u[last-first];
+  }
+}
+
+/*
+ *  ComputeMaxError :
+ *	Find the maximum squared distance of digitized points
+ *	to fitted curve.
+ *  \param d Array of digitized points
+ *  \param first, last Indices defining region
+ *  \param bezCurve Fitted Bezier curve
+ *  \param u Parameterization of points
+ *  \param splitPoint Point of maximum error
+ */
+static double
+computeMaxError(const TPoint *d, int first, int last, const TPoint* bezCurve, const double *u, int *splitPoint)
+{
+  int		i;
+  double	maxDist;	/*  Maximum error		*/
+  double	dist;		/*  Current error		*/
+  TPoint	P;		/*  Point on curve		*/
+  TPoint	v;		/*  Vector from point to curve	*/
+
+  *splitPoint = (last - first + 1)/2;
+  maxDist = 0.0;
+  for (i = first + 1; i < last; i++) {
+    P = evaluateBezier(3, bezCurve, u[i-first]);
+    v = P - d[i];
+    dist = squaredLength(v);
+    if (dist >= maxDist) {
+      maxDist = dist;
+      *splitPoint = i;
+    }
+  }
+  return maxDist;
+}
+
+static inline void
+drawBezierCurve(int n, const TPoint *curve, vector<TPoint> *pathOut)
+{
+  for(int i=0; i<n; ++i)
+    pathOut->push_back(TPoint(curve[i].x, curve[i].y));
+}
+
+/*
+ *  FitCubic :
+ *  	Fit a Bezier curve to a (sub)set of digitized points
+ *  \param d Array of digitized points
+ *  \param first, last Indices of first and last pts in region
+ *  \param tHat1, tHat2 Unit tangent vectors at endpoints
+ *  \param error User-defined error squared
+ */
+static void
+fitCubic(const TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, double error, vector<TPoint> *out)
+{
+  TPoint        curve[4];	/*Control points of fitted Bezier curve*/
+  double	maxError;	/*  Maximum fitting error	 */
+  int		splitPoint;	/*  Point to split point set at	 */
+  int		nPts;		/*  Number of points in subset  */
+  double	iterationError; /*Error below which you try iterating  */
+  int		maxIterations = 4; /*  Max times to try iterating  */
+  TPoint	tHatCenter;   	/* Unit tangent vector at splitPoint */
+  int		i;		
+
+  iterationError = error * error;
+  nPts = last - first + 1;
+
+  /*  Use heuristic if region only has two points in it */
+  if (nPts == 2) {
+    double dist = distance(d[last], d[first]) / 3.0;
+    curve[0] = d[first];
+    curve[3] = d[last];
+    curve[1] = curve[0] + tHat1 * dist;
+    curve[2] = curve[3] + tHat2 * dist;
+    drawBezierCurve(3, curve, out);
+    return;
+  }
+
+  /*  Parameterize points, and attempt to fit curve */
+  double u[last-first+1]; // parameter values for point
+  chordLengthParameterize(d, first, last, u);
+  generateBezier(d, first, last, u, tHat1, tHat2, curve);
+
+  /*  Find max deviation of points to fitted curve */
+  maxError = computeMaxError(d, first, last, curve, u, &splitPoint);
+  if (maxError < error) {
+    drawBezierCurve(3, curve, out);
+    return;
+  }
+
+  /*  If error not too large, try some reparameterization  */
+  /*  and iteration */
+  if (maxError < iterationError) {
+    for (i = 0; i < maxIterations; i++) {
+      reparameterize(d, first, last, u, curve);
+      generateBezier(d, first, last, u, tHat1, tHat2, curve);
+      maxError = computeMaxError(d, first, last, curve, u, &splitPoint);
+      if (maxError < error) {
+        drawBezierCurve(3, curve, out);
+        return;
+      }
+    }
+  }
+
+  /* Fitting failed -- split at max error point and fit recursively */
+  tHatCenter = computeCenterTangent(d, splitPoint);
+  fitCubic(d, first, splitPoint, tHat1, tHatCenter, error, out);
+  fitCubic(d, splitPoint, last, -tHatCenter, tHat2, error, out);
+}
+
+/*
+ *  fitPath:
+ *  	Fit a Bezier curve to a set of digitized points 
+ *  \param d Array of digitized points
+ *  \param nPts Number of digitized points
+ *  \param error User-defined error squared
+ */
+void
+fitPath(const TPoint *d, size_t nPts, TCoord error, vector<TPoint> *out)
+{
+  TPoint	tHat1, tHat2;	/*  Unit tangent vectors at endpoints */
+
+  tHat1 = computeLeftTangent(d, 0);
+  tHat2 = computeRightTangent(d, nPts - 1);
+  fitCubic(d, 0, nPts - 1, tHat1, tHat2, error, out);
+  out->push_back(d[nPts-1]);
 }
 
 } // namespace

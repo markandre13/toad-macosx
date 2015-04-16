@@ -192,15 +192,6 @@ TVectorPath::subdivide()
   }
 }
 
-vector<TPoint> *pathOut;
-extern void FitCurve(const TPoint *d, int nPts, double error);
-void DrawBezierCurve(int n, const TPoint* curve)
-{
-  cout << "DrawBezierCurve" << endl;
-  for(int i=0; i<n; ++i)
-    pathOut->push_back(TPoint(curve[i].x, curve[i].y));
-}
-
 namespace {
 
 class TMyWindow:
@@ -256,13 +247,8 @@ TMyWindow::paint()
   }
 */  
   vector<TPoint> out;
-#if 0
   fitPath(p.points.data(), p.points.size(), 2.5, &out);
-#else
-  pathOut = &out;
-  FitCurve(p.points.data(), p.points.size(), 2.5);
-  out.push_back(p.points.back());
-#endif
+
   pen.setColor(0,1,0);
   for(auto a: out) {
     pen.drawRectangle(a.x-2.5, a.y-2.5,6,6);
