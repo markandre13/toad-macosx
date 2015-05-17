@@ -1106,6 +1106,7 @@ void test_image();
 void test_curve();
 void test_text();
 void test_tablet();
+void test_path_bool();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1186,6 +1187,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-tablet")==0) {
       toad::initialize(1, argv);
       test_tablet();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-path-bool")==0) {
+      toad::initialize(1, argv);
+      test_path_bool();
       toad::terminate();
       return 0;
     }

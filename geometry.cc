@@ -91,7 +91,7 @@ rightTurn(TPoint const &p0, TPoint const &p1, TPoint const &p2)
 
 // calculate the convex hull with Andrew's algorithm
 // http://en.wikipedia.org/wiki/Convex_hull_algorithms
-static void
+void
 convexHull(vector<TPoint> *pp)
 {
   vector<TPoint> &pt = *pp;
@@ -719,6 +719,10 @@ bounds(const TPoint *v)
  * from "Graphics Gems", Academic Press, 1990
  * This code is in the public domain.
  */
+
+// NOTE: should look for other algorithms too
+//       ie. "least-squares, approximations to bézier curves and surfaces"
+//       from Graphic Gems II, p.406
 
 /* returns squared length of input vector */	
 static inline double squaredLength(const TPoint &a) 

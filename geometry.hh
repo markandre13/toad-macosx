@@ -62,7 +62,7 @@ void divideBezier(const TPoint *a, TPoint *p, TCoord min, TCoord max);
 void divideBezier(const TPoint *a, TPoint *p, TCoord u);
 TPoint bez2point(const TPoint *p, TCoord t);
 void fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
-
+void convexHull(vector<TPoint> *points);
 
 } // namespace
 

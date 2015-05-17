@@ -55,6 +55,7 @@ class TMyWindow:
     TMyWindow(TWindow *parent, const string &title):
       TWindow(parent, title)
     {
+      setSize(640, 480);
       setAllMouseMoveEvents(true);
     }
     
@@ -78,10 +79,57 @@ class TMyWindow:
 #define		kTransducerOrientInfoBitMask 				        0x1000
 #define		kTransducerRotationBitMask	 				0x2000
 
+TPoint operator*(const TMatrix2D &m, const TPoint &p) {
+  TPoint r;
+  m.map(p.x, p.y, &r.x, &r.y);
+  return r;
+}
+
 void
 TMyWindow::paint()
 {
   TPen pen(this);
+
+  // make these béziers
+
+  TPoint c[4] = {
+    { 100, 300 },
+    { 320, 100 },
+    { 540, 380 },
+    { 400, 400 },
+  };
+  TCoord r[4] = {
+    2*M_PI/8*3,
+    2*M_PI/8,
+    2*M_PI/8*7,
+    2*M_PI/8*9
+  };
+  TCoord s[4] = {
+    25,
+    15,
+    20,
+    15
+  };
+
+  pen.setAlpha(0.2);
+  for(size_t i=0; i<3; ++i) {
+    vector<TPoint> hull;
+    for(size_t j=i; j<i+2; ++j) {
+      for(TCoord d=0.0; d<2*M_PI; d+=2*M_PI/40) {
+        TPoint p(sin(d)*1.0*s[j], cos(d)*2.0*s[j]);
+        TMatrix2D m;
+        m.rotate(r[j]);
+        p = m*p+c[j];
+        pen.fillRectangle(p.x, p.y, 1, 1);
+        hull.push_back(p);
+      }
+    }
+    convexHull(&hull);
+    pen.fillPolygon(hull.data(), hull.size());
+  }
+
+#if 0
+
   TCoord r = 50.0*pressure+4.0;
   pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
   
@@ -107,6 +155,7 @@ TMyWindow::paint()
   pen.drawString(pos.x+sin((180-135)/360.0 * 2.0 * M_PI)*r,
                  pos.y+cos((180-135)/360.0 * 2.0 * M_PI)*r,
                  format("type=%s, uniqueID=%llu", pdt, uniqueID));
+#endif
 }
 
 
