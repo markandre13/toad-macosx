@@ -404,6 +404,18 @@ TPen::getAlpha() const
 }
 
 void
+TPen::move(TCoord x, TCoord y)
+{
+  CGContextMoveToPoint(ctx, x, y);
+}
+
+void
+TPen::line(TCoord x, TCoord y)
+{
+  CGContextAddLineToPoint(ctx, x, y);
+}
+
+void
 TPen::move(const TPoint *pt)
 {
   CGContextMoveToPoint(ctx, pt->x, pt->y);
@@ -436,7 +448,7 @@ TPen::stroke()
 void
 TPen::fill()
 {
-  CGContextDrawPath(ctx, kCGPathFill);
+  CGContextDrawPath(ctx, kCGPathEOFill);
 }
 
 void

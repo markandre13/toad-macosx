@@ -87,6 +87,8 @@ class TPen:
     void setLineWidth(TCoord);
     void setLineStyle(ELineStyle);
     
+    void move(TCoord x, TCoord y);
+    void line(TCoord x, TCoord y);
     void move(const TPoint*);
     void line(const TPoint*);
     void curve(const TPoint*);
