@@ -53,14 +53,17 @@ static void
 toad2cbop(const TVectorPath &in, cbop::Polygon *out)
 {
   out->push_back(cbop::Contour());
-  cbop::Contour &c(out->back());
+  cbop::Contour *c = &out->back();
   const TPoint *pt = in.points.data();
   for(auto p: in.type) {
     switch(p) {
-      case TVectorPath::MOVE: c.add(*pt); ++pt; break;
-      case TVectorPath::LINE: c.add(*pt); ++pt; break;
+      case TVectorPath::MOVE: c->add(*pt); ++pt; break;
+      case TVectorPath::LINE: c->add(*pt); ++pt; break;
       case TVectorPath::CURVE: break;
-      case TVectorPath::CLOSE: break;
+      case TVectorPath::CLOSE:
+        out->push_back(cbop::Contour());
+        c = &out->back();
+        break;
     }
   }
 }
@@ -162,6 +165,17 @@ TMyWindow::paint()
   
   poly = boolean(p2, p3, cbop::DIFFERENCE);
   pen.translate(0,100);
+  poly.apply(pen);
+  pen.fill();
+  
+  TVectorPath p4;
+  p4.move(TPoint(90, 20));
+  p4.move(TPoint(140, 20));
+  p4.move(TPoint(140, 70));
+  p4.close();
+  poly = boolean(poly, p4, cbop::DIFFERENCE);
+
+  pen.translate(160, 0);
   poly.apply(pen);
   pen.fill();
 }
