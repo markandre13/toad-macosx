@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <iostream>
 #include "polygon.h"
+#include "bbox_2.h"
 
 using namespace cbop;
 
@@ -21,9 +22,9 @@ Bbox_2 Contour::bbox () const
 {
 	if (nvertices () == 0)
 		return Bbox_2 ();
-	Bbox_2 b = vertex (0).bbox ();
+	Bbox_2 b(vertex (0));
 	for (unsigned int i = 1; i < nvertices (); ++i)
-		b = b + vertex (i).bbox ();
+		b = b + Bbox_2(vertex (i));
 	return b;
 }
 
@@ -34,15 +35,15 @@ bool Contour::counterclockwise ()
 	_precomputedCC = true;
 	double area = 0.0;
 	for (unsigned int c = 0; c < nvertices () - 1; c++)
-		area += vertex (c).x () * vertex (c+1).y () - vertex (c+1).x () *  vertex (c).y ();
-	area += vertex (nvertices ()-1).x () * vertex (0).y () - vertex (0).x () *  vertex (nvertices ()-1).y ();
+		area += vertex (c).x * vertex (c+1).y - vertex (c+1).x *  vertex (c).y;
+	area += vertex (nvertices ()-1).x * vertex (0).y - vertex (0).x *  vertex (nvertices ()-1).y;
 	return _CC = area >= 0.0;
 }
 
 void Contour::move (double x, double y)
 {
 	for (unsigned int i = 0; i < points.size (); i++)
-		points[i] = Point_2 (points[i].x () + x, points[i].y () + y);
+		points[i] = TPoint (points[i].x + x, points[i].y + y);
 }
 
 std::ostream& cbop::operator<< (std::ostream& o, Contour& c)
@@ -50,7 +51,7 @@ std::ostream& cbop::operator<< (std::ostream& o, Contour& c)
 	o << c.nvertices () << '\n';
 	Contour::iterator i = c.begin();
 	while (i != c.end()) {
-		o << '\t' << i->x () << " " << i->y () << '\n';
+		o << '\t' << i->x << " " << i->y << '\n';
 		++i;
 	}
 	return o;
@@ -133,11 +134,11 @@ std::istream& cbop::operator>> (std::istream& is, Polygon& p)
 		Contour& contour = p.back ();
 		for (int j = 0; j < npoints; j++) {
 			is >> px >> py;
-			if (j > 0 && px == contour.back ().x () && py == contour.back ().y ())
+			if (j > 0 && px == contour.back ().x && py == contour.back ().y)
 				continue;
-			if (j == npoints-1 && px == contour.vertex (0).x () && py == contour.vertex (0).y ())
+			if (j == npoints-1 && px == contour.vertex (0).x && py == contour.vertex (0).y)
 				continue;
-			contour.add (Point_2 (px, py));
+			contour.add (TPoint (px, py));
 		}
 		if (contour.nvertices () < 3) {
 			p.pop_back ();
@@ -176,7 +177,7 @@ namespace { // start of anonymous namespace
 	};
 
 	struct SweepEvent {
-		Point_2 point;  // point associated with the event
+		TPoint point;  // point associated with the event
 		bool left;      // is the point the left endpoint of the segment (p, other->p)?
 		int pol;        // Polygon to which the associated segment belongs to
 		SweepEvent* otherEvent; // Event associated to the other endpoint of the segment
@@ -185,24 +186,24 @@ namespace { // start of anonymous namespace
 		std::set<SweepEvent*, SegmentComp>::iterator posSL; // Only used in "left" events. Position of the event (segment) in SL
 
 		/** Class constructor */
-		SweepEvent (const Point_2& pp, bool b, int apl) : point (pp), left (b), pol (apl) {}
+		SweepEvent (const TPoint& pp, bool b, int apl) : point (pp), left (b), pol (apl) {}
 		/** Return the segment associated to the SweepEvent */
 		Segment_2 segment () const { return Segment_2 (point, otherEvent->point); }
 		/** Is the line segment (point, otherEvent->point) below point p */
-		bool below (const Point_2& p) const { return (left) ? signedArea (point, otherEvent->point, p) > 0 : 
+		bool below (const TPoint& p) const { return (left) ? signedArea (point, otherEvent->point, p) > 0 : 
 															signedArea (otherEvent->point, point, p) > 0; }
 		/** Is the line segment (point, otherEvent->point) above point p */
-		bool above (const Point_2& p) const { return !below (p); }
+		bool above (const TPoint& p) const { return !below (p); }
 	};
 
 	struct SweepEventComp : public std::binary_function<SweepEvent*, SweepEvent*, bool> {
 		bool operator() (SweepEvent* e1, SweepEvent* e2) {
-			if (e1->point.x () < e2->point.x ()) // Different x coordinate
+			if (e1->point.x < e2->point.x) // Different x coordinate
 				return true;
-			if (e2->point.x () < e1->point.x ()) // Different x coordinate
+			if (e2->point.x < e1->point.x) // Different x coordinate
 				return false;
 			if (e1->point != e2->point) // Different points, but same x coordinate. The event with lower y coordinate is processed first
-				return e1->point.y () < e2->point.y ();
+				return e1->point.y < e2->point.y;
 			if (e1->left != e2->left) // Same point, but one is a left endpoint and the other a right endpoint. The right endpoint is processed first
 				return !e1->left;
 			// Same point, both events are left endpoints or both are right endpoints. The event associate to the bottom segment is processed first
@@ -257,7 +258,7 @@ void Polygon::computeHoles ()
 			SweepEvent* se2 = &ev[ev.size ()-1];
 			se1->otherEvent = se2;
 			se2->otherEvent = se1;
-			if (se1->point.x () < se2->point.x ()) {
+			if (se1->point.x < se2->point.x) {
 				se2->left = false;
 				se1->inOut = false;
 			} else {

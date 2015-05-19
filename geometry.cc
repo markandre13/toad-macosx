@@ -725,45 +725,6 @@ bounds(const TPoint *v)
 //       from Graphic Gems II, p.406
 
 /* returns squared length of input vector */	
-static inline double squaredLength(const TPoint &a) 
-{
-  return a.x*a.x+a.y*a.y;
-}
-
-/* returns length of input vector */
-static inline double length(const TPoint &a) 
-{
-  return sqrt(squaredLength(a));
-}
-
-/* return the distance between two points */
-static inline double distance(const TPoint &a, const TPoint &b)
-{
-  return length(a-b);
-}
-	
-/* normalizes the input vector and returns it */
-static inline TPoint normalize(const TPoint &v) 
-{
-  TPoint result;
-  double len = length(v);
-  if (len != 0.0) {
-    result.x = v.x / len;
-    result.y = v.y / len;
-  } else {
-    result.x = v.x;
-    result.y = v.y;
-  }
-  return(result);
-}
-
-/* return the dot product of vectors a and b */
-static inline double
-dot(const CGPoint &a, const CGPoint &b)
-{
-  return a.x*b.x+a.y*b.y;
-}
-
 /*
  *  B0, B1, B2, B3 :
  *	Bezier multipliers

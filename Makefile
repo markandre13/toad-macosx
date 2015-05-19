@@ -1034,7 +1034,11 @@ test_path_bool.o: include/toad/font.hh include/toad/pointer.hh
 test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
-test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
+test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh booleanop.h
+test_path_bool.o: polygon.h utilities.h segment_2.h types.hh bbox_2.h
+utilities.o: utilities.h segment_2.h types.hh
+polygon.o: polygon.h utilities.h segment_2.h types.hh bbox_2.h
+booleanop.o: booleanop.h polygon.h utilities.h segment_2.h types.hh bbox_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

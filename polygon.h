@@ -18,14 +18,14 @@ namespace cbop {
 
 class Contour {
 public:
-	typedef std::vector<Point_2>::iterator iterator;
-	typedef std::vector<Point_2>::const_iterator const_iterator;
+	typedef std::vector<TPoint>::iterator iterator;
+	typedef std::vector<TPoint>::const_iterator const_iterator;
 	
 	Contour () : points (), holes (), _external (true), _precomputedCC (false) {}
 
 	/** Get the p-th vertex of the external contour */
-	Point_2& vertex (unsigned int p) { return points[p]; }
-	Point_2 vertex (unsigned int p) const { return points[p]; }
+	TPoint& vertex (unsigned int p) { return points[p]; }
+	TPoint vertex (unsigned int p) const { return points[p]; }
 	Segment_2 segment (unsigned p) const { return (p == nvertices () - 1) ? Segment_2 (points.back (), points.front ()) : 
 	                                                                        Segment_2 (points[p], points[p+1]); }
 	/** Number of vertices and edges */
@@ -42,7 +42,7 @@ public:
 	void setCounterClockwise () { if (clockwise ()) changeOrientation (); }
 
 	void move (double x, double y);
-	void add (const Point_2& s) { points.push_back (s); }
+	void add (const TPoint& s) { points.push_back (s); }
 	void erase (iterator i) { points.erase (i); }
 	void clear () { points.clear (); holes.clear (); }
 	void clearHoles () { holes.clear (); }
@@ -50,8 +50,8 @@ public:
 	iterator end () { return points.end (); }
 	const_iterator begin () const { return points.begin (); }
 	const_iterator end () const { return points.end (); }
-	Point_2& back () { return points.back (); }
-	const Point_2& back () const { return points.back (); }
+	TPoint& back () { return points.back (); }
+	const TPoint& back () const { return points.back (); }
 	void addHole (unsigned int ind) { holes.push_back (ind); }
 	unsigned int nholes () const { return holes.size (); }
 	unsigned int hole (unsigned int p) const { return holes[p]; }
@@ -60,7 +60,7 @@ public:
 
 	private:
 	/** Set of points conforming the external contour */
-	std::vector<Point_2> points;
+	std::vector<TPoint> points;
 	/** Holes of the contour. They are stored as the indexes of the holes in a polygon class */
 	std::vector<unsigned int> holes;
 	bool _external; // is the contour an external contour? (i.e., is it not a hole?)

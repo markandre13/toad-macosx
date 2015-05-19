@@ -57,8 +57,8 @@ toad2cbop(const TVectorPath &in, cbop::Polygon *out)
   const TPoint *pt = in.points.data();
   for(auto p: in.type) {
     switch(p) {
-      case TVectorPath::MOVE: c.add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
-      case TVectorPath::LINE: c.add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
+      case TVectorPath::MOVE: c.add(*pt); ++pt; break;
+      case TVectorPath::LINE: c.add(*pt); ++pt; break;
       case TVectorPath::CURVE: break;
       case TVectorPath::CLOSE: break;
     }
@@ -72,11 +72,11 @@ cbop2toad(const cbop::Polygon &in, TVectorPath *out)
     cout << "    contour with " << p.nholes() << " holes" << endl;
     bool f=false;
     for(auto q: p) {
-      cout << "      ("<< q.x() << ", " << q.y() << ")" << endl;
+      cout << "      ("<< q.x << ", " << q.y << ")" << endl;
       if (f) {
-        out->line(TPoint(q.x(), q.y()));
+        out->line(q);
       } else {
-        out->move(TPoint(q.x(), q.y()));
+        out->move(q);
         f = true;
       }
     }

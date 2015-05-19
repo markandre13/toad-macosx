@@ -14,7 +14,7 @@
 
 using namespace cbop;
 
-SweepEvent::SweepEvent (bool b, const Point_2& p, SweepEvent* other, PolygonType pt, EdgeType et) : 
+SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et) : 
   left (b), point (p), otherEvent (other), pol (pt), type (et), prevInResult (0), inResult (false)
 {
 }
@@ -22,10 +22,10 @@ SweepEvent::SweepEvent (bool b, const Point_2& p, SweepEvent* other, PolygonType
 std::string SweepEvent::toString () const
 {
 	std::ostringstream oss;
-	oss << '(' << point.x () << ',' << point.y () << ')';
+	oss << '(' << point.x << ',' << point.y << ')';
 	oss << " (" << (left ? "left" : "right") << ')';
 	Segment_2 s (point, otherEvent->point);
-	oss << " S:[(" << s.min ().x () << ',' << s.min ().y () << ") - (" << s.max ().x () << ',' << s.max ().y () << ")]";
+	oss << " S:[(" << s.min ().x << ',' << s.min ().y << ") - (" << s.max ().x << ',' << s.max ().y << ")]";
 	oss << " (" << (pol == SUBJECT ? "SUBJECT" : "CLIPPING") << ')';
 	std::string et[4] =  { "NORMAL", "NON_CONTRIBUTING", "SAME_TRANSITION", "DIFFERENT_TRANSITION" };
 	oss << " (" << et[type] << ')';
@@ -46,8 +46,8 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 		if (le1->point == le2->point)
 			return le1->below (le2->otherEvent->point);
 		// Different left endpoint: use the left endpoint to sort
-		if (le1->point.x () == le2->point.x ())
-			return le1->point.y () < le2->point.y ();
+		if (le1->point.x == le2->point.x)
+			return le1->point.y < le2->point.y;
 		SweepEventComp comp;
 		if (comp (le1, le2))  // has the line segment associated to e1 been inserted into S after the line segment associated to e2 ?
 			return le2->above (le1->point);
@@ -94,8 +94,8 @@ void BooleanOpImp::run ()
 	while (! eq.empty ()) {
 		SweepEvent* se = eq.top ();
 		// optimization 2
-		if ((operation == INTERSECTION && se->point.x () > MINMAXX) ||
-			(operation == DIFFERENCE && se->point.x () > subjectBB.xmax ())) {
+		if ((operation == INTERSECTION && se->point.x > MINMAXX) ||
+			(operation == DIFFERENCE && se->point.x > subjectBB.xmax ())) {
 			connectEdges ();
 			return;
 		}
@@ -251,7 +251,7 @@ int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
 //	if (e1->pol == e2->pol) // you can uncomment these two lines if self-intersecting polygons are not allowed
 //		return 0;
 
-	Point_2 ip1, ip2;  // intersection points
+	TPoint ip1, ip2;  // intersection points
 	int nintersections;
 
 	if (!(nintersections = findIntersection(le1->segment (), le2->segment (), ip1, ip2)))
@@ -317,7 +317,7 @@ int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
 	return 3;
 }
 
-void BooleanOpImp::divideSegment (SweepEvent* le, const Point_2& p)
+void BooleanOpImp::divideSegment (SweepEvent* le, const TPoint& p)
 {
 //	std::cout << "YES. INTERSECTION" << std::endl;
 	// "Right event" of the "left line segment" resulting from dividing le->segment ()
@@ -391,7 +391,7 @@ void BooleanOpImp::connectEdges ()
 			}
 		}
 		int pos = i;
-		Point_2 initial = resultEvents[i]->point;
+		TPoint initial = resultEvents[i]->point;
 		contour.add (initial);
 		while (resultEvents[pos]->otherEvent->point != initial) {
 #ifdef __STEPBYSTEP

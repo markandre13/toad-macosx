@@ -13,10 +13,13 @@
 #ifndef BBOX_2_H
 #define BBOX_2_H
 
+#include "types.hh"
+
 namespace cbop {
 
 class Bbox_2 {
 public:
+        Bbox_2 (const toad::TPoint &p): _xmin(p.x), _ymin(p.y), _xmax(p.x), _ymax(p.y) {}
 	Bbox_2 (double x_min = 0, double y_min = 0, double x_max = 0, double y_max = 0) : 
 	                                  _xmin (x_min), _ymin (y_min), _xmax (x_max), _ymax (y_max) {}
 	double xmin () const { return _xmin; }

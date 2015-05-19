@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2015 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #import <CoreGraphics/CGBase.h>
 #import <CoreGraphics/CGGeometry.h>
@@ -78,9 +79,40 @@ inline TPoint operator*(TCoord a, const TPoint &b) {
 inline TPoint operator*(const TPoint &b, TCoord a) {
   return TPoint(a*b.x, a*b.y);
 }
-
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
+}
+inline double squaredLength(const TPoint &a) {
+  return a.x*a.x+a.y*a.y;
+}
+
+/* returns length of input vector */
+inline double length(const TPoint &a) {
+  return sqrt(squaredLength(a));
+}
+
+/* return the distance between two points */
+inline double distance(const TPoint &a, const TPoint &b) {
+  return length(a-b);
+}
+	
+/* normalizes the input vector and returns it */
+inline TPoint normalize(const TPoint &v) {
+  TPoint result;
+  double len = length(v);
+  if (len != 0.0) {
+    result.x = v.x / len;
+    result.y = v.y / len;
+  } else {
+    result.x = v.x;
+    result.y = v.y;
+  }
+  return(result);
+}
+
+/* return the dot product of vectors a and b */
+inline double dot(const CGPoint &a, const CGPoint &b) {
+  return a.x*b.x+a.y*b.y;
 }
 
 struct TSize:
