@@ -105,7 +105,6 @@ public:
 	iterator end () { return contours.end (); }
 	const_iterator begin () const { return contours.begin (); }
 	const_iterator end () const { return contours.end (); }
-	void computeHoles ();
 private:
 	/** Set of contours conforming the polygon */
 	std::vector<Contour> contours;

@@ -69,22 +69,28 @@ BooleanOpImp::BooleanOpImp (const Polygon& subj, const Polygon& clip, Polygon& r
 {
 }
 
-void BooleanOpImp::run ()
+void BooleanOpImp::run()
 {
 	Bbox_2 subjectBB = subject.bbox ();     // for optimizations 1 and 2
 	Bbox_2 clippingBB = clipping.bbox ();   // for optimizations 1 and 2
 	const double MINMAXX = std::min (subjectBB.xmax (), clippingBB.xmax ()); // for optimization 2
+
 	if (trivialOperation (subjectBB, clippingBB)) // trivial cases can be quickly resolved without sweeping the plane
 		return;
-	for (unsigned int i = 0; i < subject.ncontours (); i++)
-		for (unsigned int j = 0; j < subject.contour (i).nvertices (); j++)
-			processSegment (subject.contour (i).segment (j), SUBJECT);
-	for (unsigned int i = 0; i < clipping.ncontours (); i++)
-		for (unsigned int j = 0; j < clipping.contour (i).nvertices (); j++)
-			processSegment (clipping.contour (i).segment (j), CLIPPING);
 
+        // convert 'subject' and 'clipping' into sweep events (eventHolder := all events,  eq := sorted events)
+	for(size_t i=0; i<subject.ncontours(); ++i)
+		for(size_t j=0; j<subject.contour(i).nvertices(); j++)
+			processSegment(subject.contour(i).segment(j), SUBJECT);
+	for(size_t i=0; i<clipping.ncontours(); ++i)
+		for(size_t j=0; j<clipping.contour(i).nvertices(); ++j)
+			processSegment(clipping.contour(i).segment(j), CLIPPING);
+
+        // compute the events
+        
+        // eq: (Q) priority queue
+        // sl: (S) sweep line status
 	std::set<SweepEvent*, SegmentComp>::iterator it, prev, next;
-	
 	while (! eq.empty ()) {
 		SweepEvent* se = eq.top ();
 		// optimization 2
@@ -93,13 +99,14 @@ void BooleanOpImp::run ()
 			connectEdges ();
 			return;
 		}
-		sortedEvents.push_back (se);
+		sortedEvents.push_back(se);
 		eq.pop ();
+		
 		if (se->left) { // the line segment must be inserted into sl
 			next = prev = se->posSL = it = sl.insert(se).first;
 			(prev != sl.begin()) ? --prev : prev = sl.end();
 			++next;
-			computeFields (se, prev);
+			computeFields(se, prev);
 			// Process a possible intersection between "se" and its next neighbor in sl
 			if (next != sl.end()) {
 				if (possibleIntersection(se, *next) == 2) {
@@ -127,6 +134,7 @@ void BooleanOpImp::run ()
 				possibleIntersection (*prev, *next);
 		}
 	}
+	
 	connectEdges ();
 }
 
@@ -155,12 +163,15 @@ bool BooleanOpImp::trivialOperation (const Bbox_2& subjectBB, const Bbox_2& clip
 	return false;
 }
 
-void BooleanOpImp::processSegment (const Segment_2& s, PolygonType pt)
+/**
+ * convert segment/edge into two sweep events
+ */
+void BooleanOpImp::processSegment(const Segment_2& s, PolygonType pt)
 {
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
 		return;          // This can be done as preprocessing to avoid "polygons" with less than 3 edges */
-	SweepEvent* e1 = storeSweepEvent (SweepEvent(true, s.source (), 0, pt));
-	SweepEvent* e2 = storeSweepEvent (SweepEvent(true, s.target (), e1, pt));
+	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, s.source(), 0, pt));
+	SweepEvent* e2 = storeSweepEvent(SweepEvent(true, s.target(), e1, pt));
 	e1->otherEvent = e2;
 
 	if (s.min () == s.source ()) {
@@ -168,11 +179,15 @@ void BooleanOpImp::processSegment (const Segment_2& s, PolygonType pt)
 	} else {
 		e1->left = false;
 	}
-	eq.push (e1);
-	eq.push (e2);
+	eq.push(e1);
+	eq.push(e2);
 }
 
-void BooleanOpImp::computeFields (SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev)
+/**
+ * Determine if the edge belongs to the result polygon, taking into account
+ * its preceding event in sl (S)
+ */
+void BooleanOpImp::computeFields(SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev)
 {
 	// compute inOut and otherInOut fields
 	if (prev == sl.end ()) {
@@ -188,11 +203,11 @@ void BooleanOpImp::computeFields (SweepEvent* le, const std::set<SweepEvent*, Se
 	// compute prevInResult field
 	if (prev != sl.end ())
 		le->prevInResult = (!inResult (*prev) || (*prev)->vertical ()) ? (*prev)->prevInResult : *prev;
-	// check if the line segment belongs to the Boolean operation
-	le->inResult = inResult (le);
+	// check if the line segment belongs to the Boolean operation('s result?)
+	le->inResult = inResult(le);
 }
 
-bool BooleanOpImp::inResult (SweepEvent* le)
+bool BooleanOpImp::inResult(const SweepEvent* le) const
 {
 	switch (le->type) {
 		case NORMAL:
@@ -232,7 +247,7 @@ int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
 
 	if (nintersections == 2 && le1->pol == le2->pol) {
 		std::cerr << "Sorry, edges of the same polygon overlap\n";
-		exit (1); // the line segments overlap, but they belong to the same polygon
+		exit(1); // the line segments overlap, but they belong to the same polygon
 	}
 
 	// The line segments associated to le1 and le2 intersect
@@ -245,23 +260,25 @@ int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
 	}
 	// The line segments associated to le1 and le2 overlap
 	std::vector<SweepEvent*> sortedEvents;
+
 	if (le1->point == le2->point) {
-		sortedEvents.push_back (0);
-	} else if (sec (le1, le2)) {
-		sortedEvents.push_back (le2);
-		sortedEvents.push_back (le1);
+		sortedEvents.push_back(0);
+	} else if (sec(le1, le2)) {
+		sortedEvents.push_back(le2);
+		sortedEvents.push_back(le1);
 	} else {
-		sortedEvents.push_back (le1);
-		sortedEvents.push_back (le2);
+		sortedEvents.push_back(le1);
+		sortedEvents.push_back(le2);
 	}
+
 	if (le1->otherEvent->point == le2->otherEvent->point) {
-		sortedEvents.push_back (0);
+		sortedEvents.push_back(0);
 	} else if (sec (le1->otherEvent, le2->otherEvent)) {
-		sortedEvents.push_back (le2->otherEvent);
-		sortedEvents.push_back (le1->otherEvent);
+		sortedEvents.push_back(le2->otherEvent);
+		sortedEvents.push_back(le1->otherEvent);
 	} else {
-		sortedEvents.push_back (le1->otherEvent);
-		sortedEvents.push_back (le2->otherEvent);
+		sortedEvents.push_back(le1->otherEvent);
+		sortedEvents.push_back(le2->otherEvent);
 	}
 
 	if ((sortedEvents.size () == 2) || (sortedEvents.size () == 3 && sortedEvents[2])) { 
@@ -281,7 +298,7 @@ int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
 		divideSegment (sortedEvents[1], sortedEvents[2]->point);
 		return 3;
 	}
-	 // one line segment includes the other one
+	// one line segment includes the other one
 	divideSegment (sortedEvents[0], sortedEvents[1]->point);
 	divideSegment (sortedEvents[3]->otherEvent, sortedEvents[2]->point);
 	return 3;

@@ -52,6 +52,7 @@ class TMyWindow:
 static void
 toad2cbop(const TVectorPath &in, cbop::Polygon *out)
 {
+  // FIXME: this function should drop neighbouring equal points (degenarted case)
   out->push_back(cbop::Contour());
   cbop::Contour *c = &out->back();
   const TPoint *pt = in.points.data();
@@ -95,7 +96,6 @@ boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
   toad2cbop(a, &subj);
   toad2cbop(b, &clip);
   cbop::compute(subj, clip, result, op);
-  result.computeHoles();
   cbop2toad(result, &c);
   return c;
 }
