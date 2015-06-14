@@ -24,7 +24,7 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
-#include "booleanop.h"
+#include "booleanop.hh"
 
 using namespace toad;
 
@@ -50,26 +50,6 @@ class TMyWindow:
 };
 
 static void
-toad2cbop(const TVectorPath &in, cbop::Polygon *out)
-{
-  // FIXME: this function should drop neighbouring equal points (degenarted case)
-  out->push_back(cbop::Contour());
-  cbop::Contour *c = &out->back();
-  const TPoint *pt = in.points.data();
-  for(auto p: in.type) {
-    switch(p) {
-      case TVectorPath::MOVE: c->add(*pt); ++pt; break;
-      case TVectorPath::LINE: c->add(*pt); ++pt; break;
-      case TVectorPath::CURVE: break;
-      case TVectorPath::CLOSE:
-        out->push_back(cbop::Contour());
-        c = &out->back();
-        break;
-    }
-  }
-}
-
-static void
 cbop2toad(const cbop::Polygon &in, TVectorPath *out)
 {
   for(auto p: in) {
@@ -92,10 +72,8 @@ TVectorPath
 boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
 {
   TVectorPath c;
-  cbop::Polygon subj, clip, result;
-  toad2cbop(a, &subj);
-  toad2cbop(b, &clip);
-  cbop::compute(subj, clip, result, op);
+  cbop::Polygon result;
+  cbop::compute(a, b, result, op);
   cbop2toad(result, &c);
   return c;
 }
@@ -116,9 +94,12 @@ TMyWindow::paint()
   p1.line(TPoint(150,90));
   p1.line(TPoint(80,20));
   p1.close();
-
+  
+  TVectorPath poly;
+  
+#if 1
   cout << "union --------------" << endl;
-  TVectorPath poly = boolean(p0, p1, cbop::UNION);
+  poly = boolean(p0, p1, cbop::UNION);
   pen.setColor(1,0.5,0);
   poly.apply(pen);
   pen.fill();
@@ -130,25 +111,29 @@ TMyWindow::paint()
   pen.setColor(0,0,1);
   p1.apply(pen);
   pen.stroke();
-
+#endif
+#if 1
   cout << "intersection -------" << endl;
   poly = boolean(p0, p1, cbop::INTERSECTION);
   pen.translate(160,0);
   poly.apply(pen);
   pen.fill();
-
+#endif
+#if 1
   cout << "difference ---------" << endl;
   poly = boolean(p0, p1, cbop::DIFFERENCE);
   pen.translate(0,100);
   poly.apply(pen);
   pen.fill();
-
+#endif
+#if 1
   cout << "xor ----------------" << endl;
   poly = boolean(p0, p1, cbop::XOR);
   pen.translate(-160,0);
   poly.apply(pen);
   pen.fill();
-  
+#endif
+#if 1  
   cout << "xor with real hole -" << endl;
   TVectorPath p2;
   p2.move(TPoint(10,10));
@@ -162,22 +147,25 @@ TMyWindow::paint()
   p3.line(TPoint(140,80));
   p3.line(TPoint(20,80));
   p3.close();
-  
+
   poly = boolean(p2, p3, cbop::DIFFERENCE);
   pen.translate(0,100);
   poly.apply(pen);
   pen.fill();
-  
+#endif
+#if 1
+cout << "---------------------------------------------------" << endl;
   TVectorPath p4;
   p4.move(TPoint(90, 20));
-  p4.move(TPoint(140, 20));
-  p4.move(TPoint(140, 70));
+  p4.line(TPoint(140, 20));
+  p4.line(TPoint(140, 70));
   p4.close();
   poly = boolean(poly, p4, cbop::DIFFERENCE);
 
   pen.translate(160, 0);
   poly.apply(pen);
   pen.fill();
+#endif
 }
 
 } // unnamed namespace

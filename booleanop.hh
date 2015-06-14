@@ -16,6 +16,7 @@
 #include <queue>
 #include <functional>
 #include <iostream>
+#include <toad/vector.hh>
 
 #include "polygon.h"
 
@@ -112,20 +113,19 @@ bool operator() (const SweepEvent* e1, const SweepEvent* e2)
 class BooleanOpImp
 {
 public:
-	BooleanOpImp (const Polygon& subj, const Polygon& clip, Polygon& result, BooleanOpType op);
-	void run ();
+	BooleanOpImp (Polygon& result, BooleanOpType op);
+	void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip);
 
 private:
-	const Polygon& subject;
-	const Polygon& clipping;
 	Polygon& result;
 	BooleanOpType operation;
 	std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq; // event queue (sorted events to be processed)
 	std::set<SweepEvent*, SegmentComp> sl; // segments intersecting the sweep line
 	std::deque<SweepEvent> eventHolder;    // It holds the events generated during the computation of the boolean operation
 	SweepEventComp sec;                    // to compare events
-	std::deque<SweepEvent*> sortedEvents;
-	bool trivialOperation (const Bbox_2& subjectBB, const Bbox_2& clippingBB);
+
+	bool trivialOperation(const Polygon& subject, const Polygon& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB);
+	void path2events(const toad::TVectorPath& poly, PolygonType type);
 	/** @brief Compute the events associated to segment s, and insert them into pq and eq */
 	void processSegment (const Segment_2& s, PolygonType pt);
 	/** @brief Store the SweepEvent e into the event holder, returning the address of e */
@@ -139,14 +139,14 @@ private:
 	/** @brief compute several fields of left event le */
 	void computeFields (SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev);
 	// connect the solution edges to build the result polygon
-	void connectEdges ();
+	void connectEdges(const std::deque<SweepEvent*> &sortedEvents);
 	int nextPos (int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
-inline void compute (const Polygon& subj, const Polygon& clip, Polygon& result, BooleanOpType op)
+inline void compute(const toad::TVectorPath& subj, const toad::TVectorPath& clip, Polygon& result, BooleanOpType op)
 {
-	BooleanOpImp boi (subj, clip, result, op);
-	boi.run ();
+	BooleanOpImp boi(result, op);
+	boi.run(subj, clip);
 }
 
 } // end of namespace cbop

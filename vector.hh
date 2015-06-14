@@ -54,9 +54,9 @@ class TVectorPath
     void curve(const TPoint &p0, const TPoint &p1, const TPoint &p2) {
       type.push_back(CURVE); points.push_back(p0);  points.push_back(p1);  points.push_back(p2);
     }
-    void close() {  type.push_back(CLOSE); }
-    TRectangle bounds() const;
-    TRectangle editBounds() const;
+    void close(){  type.push_back(CLOSE); }
+    Box bounds() const;
+    Box editBounds() const;
     
     void apply(TPen &pen) const;
     void subdivide();
@@ -74,8 +74,9 @@ class TVectorPath
 
 class TVectorOperation
 {
-  TVectorOperation *next;
-  virtual void paint(TPen &pen, const TVectorPath*) = 0;
+  public:
+    TVectorOperation *next;
+    virtual void paint(TPen &pen, const TVectorPath*) = 0;
 };
 
 class TVectorStrokeOp:
@@ -90,6 +91,7 @@ class TVectorFillOp:
 
 class TVectorPainter
 {
+  public:
   TVectorPath *path;
   TVectorOperation *operation;
 };

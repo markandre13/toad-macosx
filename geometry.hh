@@ -25,6 +25,20 @@
 
 namespace toad {
 
+static const TCoord tolerance = 10e-6;
+static const TCoord epsilon = 1e-12;
+static const TCoord machine_epsilon = 1.12e-16;
+
+// scalar product
+static inline TCoord 
+dot(TPoint const &a, TPoint const &b) { return a.x * b.x + a.y * b.y; }
+
+static inline TCoord
+cross(TPoint const &a, TPoint const &b) { return dot(a, TPoint(-b.y, b.x)); }
+
+static inline bool isZero(TCoord a) { return fabs(a) <= epsilon; }
+
+
 struct TEnd {
   TEnd(TVectorPath::EType t, const TPoint *s, TCoord U, TPoint p):
     type(t), src(s), u(U), pt(p) {}
