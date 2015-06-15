@@ -72,9 +72,7 @@ TVectorPath
 boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
 {
   TVectorPath c;
-  cbop::Polygon result;
-  cbop::compute(a, b, result, op);
-  cbop2toad(result, &c);
+  cbop::compute(a, b, c, op);
   return c;
 }
 

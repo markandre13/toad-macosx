@@ -75,7 +75,6 @@ struct SweepEvent {
 	std::set<SweepEvent*, SegmentComp>::iterator posSL; // Position of the event (line segment) in sl
 	unsigned int pos;
 	bool resultInOut;
-	unsigned int contourId;
 	
 	// member functions
 	/** Is the line segment (point, otherEvent->point) below point p */
@@ -113,11 +112,10 @@ bool operator() (const SweepEvent* e1, const SweepEvent* e2)
 class BooleanOpImp
 {
 public:
-	BooleanOpImp (Polygon& result, BooleanOpType op);
-	void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip);
+	BooleanOpImp(BooleanOpType op);
+	void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& result);
 
 private:
-	Polygon& result;
 	BooleanOpType operation;
 	std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq; // event queue (sorted events to be processed)
 	std::set<SweepEvent*, SegmentComp> sl; // segments intersecting the sweep line
@@ -139,14 +137,14 @@ private:
 	/** @brief compute several fields of left event le */
 	void computeFields (SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev);
 	// connect the solution edges to build the result polygon
-	void connectEdges(const std::deque<SweepEvent*> &sortedEvents);
+	void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
 	int nextPos (int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
-inline void compute(const toad::TVectorPath& subj, const toad::TVectorPath& clip, Polygon& result, BooleanOpType op)
+inline void compute(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath &result, BooleanOpType op)
 {
-	BooleanOpImp boi(result, op);
-	boi.run(subj, clip);
+	BooleanOpImp boi(op);
+	boi.run(subj, clip, result);
 }
 
 } // end of namespace cbop

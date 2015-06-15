@@ -66,12 +66,12 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 	return comp (le1, le2);
 }
 
-BooleanOpImp::BooleanOpImp (Polygon& res, BooleanOpType op)
-  : result (res), operation (op), eq (), sl (), eventHolder()
+BooleanOpImp::BooleanOpImp(BooleanOpType op)
+  : operation (op), eq (), sl (), eventHolder()
 {
 }
 
-void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip)
+void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
         // for optimizations 1 and 2
         toad::Box sb(subj.editBounds()), cb(clip.editBounds());
@@ -102,7 +102,7 @@ std::cout << "sweep event " << se->toString() << std::endl;
 		// optimization 2
 		if ((operation == INTERSECTION && se->point.x > MINMAXX) ||
 			(operation == DIFFERENCE && se->point.x > subjectBB.xmax ())) {
-			connectEdges(sortedEvents);
+			connectEdges(sortedEvents, out);
 			return;
 		}
 
@@ -149,11 +149,12 @@ std::cout << "line " << __LINE__ << std::endl;
 		}
 	}
 	
-	connectEdges(sortedEvents);
+	connectEdges(sortedEvents, out);
 }
 
 bool BooleanOpImp::trivialOperation(const Polygon& subject, const Polygon& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB)
 {
+#if 0
 	// Test 1 for trivial result case
 	if (subject.ncontours() * clipping.ncontours() == 0) { // At least one of the polygons is empty
 		if (operation == DIFFERENCE)
@@ -174,6 +175,7 @@ bool BooleanOpImp::trivialOperation(const Polygon& subject, const Polygon& clipp
 		}
 		return true;
 	}
+#endif
 	return false;
 }
 
@@ -279,7 +281,7 @@ bool BooleanOpImp::inResult(const SweepEvent* le) const
 	return false; // just to avoid the compiler warning
 }
 
-int BooleanOpImp::possibleIntersection (SweepEvent* le1, SweepEvent* le2)
+int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 {
 std::cout << "possibleIntersection between " << std::endl
           << "  " << le1->toString() << std::endl
@@ -387,7 +389,7 @@ void BooleanOpImp::divideSegment (SweepEvent* le, const TPoint& p)
 	eq.push(r);
 }
 
-void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents)
+void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
 {
 	// copy the events in the result polygon to resultEvents array
 	std::vector<SweepEvent*> resultEvents;
@@ -414,56 +416,32 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents)
 			std::swap (resultEvents[i]->pos, resultEvents[i]->otherEvent->pos);
 	}
 
-	std::vector<bool> processed (resultEvents.size (), false);
-	std::vector<int> depth;
-	std::vector<int> holeOf;
+	std::vector<bool> processed(resultEvents.size(), false);
+
 	for (unsigned int i = 0; i < resultEvents.size (); i++) {
 		if (processed[i])
 			continue;
-		result.push_back (Contour ());
-		Contour& contour = result.back ();
-		unsigned int contourId = result.ncontours () - 1;
-		depth.push_back (0);
-		holeOf.push_back (-1);
-		if (resultEvents[i]->prevInResult) {
-			unsigned int lowerContourId = resultEvents[i]->prevInResult->contourId;
-			if (!resultEvents[i]->prevInResult->resultInOut) {
-				result[lowerContourId].addHole (contourId);
-				holeOf[contourId] = lowerContourId;
-				depth[contourId] = depth[lowerContourId] + 1;
-				contour.setExternal (false);
-			} else if (!result[lowerContourId].external ()) {
-				result[holeOf[lowerContourId]].addHole (contourId);
-				holeOf[contourId] = holeOf[lowerContourId];
-				depth[contourId] = depth[lowerContourId];
-				contour.setExternal (false);
-			}
-		}
 		int pos = i;
 		TPoint initial = resultEvents[i]->point;
-		contour.add (initial);
+		out.move(initial);
 		while (resultEvents[pos]->otherEvent->point != initial) {
 			processed[pos] = true; 
 			if (resultEvents[pos]->left) {
 				resultEvents[pos]->resultInOut = false;
-				resultEvents[pos]->contourId = contourId;
 			} else {
 				resultEvents[pos]->otherEvent->resultInOut = true; 
-				resultEvents[pos]->otherEvent->contourId = contourId;
 			}
 			processed[pos = resultEvents[pos]->pos] = true; 
-			contour.add (resultEvents[pos]->point);
-			pos = nextPos (pos, resultEvents, processed);
+                        out.line(resultEvents[pos]->point);
+			pos = nextPos(pos, resultEvents, processed);
 		}
+                out.close();
 		processed[pos] = processed[resultEvents[pos]->pos] = true;
 		resultEvents[pos]->otherEvent->resultInOut = true; 
-		resultEvents[pos]->otherEvent->contourId = contourId;
-		if (depth[contourId] & 1)
-			contour.changeOrientation ();
 	}
 }
 
-int BooleanOpImp::nextPos (int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed)
+int BooleanOpImp::nextPos(int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed)
 {
 	unsigned int newPos = pos + 1;
 	while (newPos < resultEvents.size () && resultEvents[newPos]->point == resultEvents[pos]->point) {
