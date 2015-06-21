@@ -49,25 +49,6 @@ class TMyWindow:
     void paint() override;
 };
 
-static void
-cbop2toad(const cbop::Polygon &in, TVectorPath *out)
-{
-  for(auto p: in) {
-    cout << "    contour with " << p.nholes() << " holes" << endl;
-    bool f=false;
-    for(auto q: p) {
-      cout << "      ("<< q.x << ", " << q.y << ")" << endl;
-      if (f) {
-        out->line(q);
-      } else {
-        out->move(q);
-        f = true;
-      }
-    }
-    out->close();
-  }
-}
-
 TVectorPath
 boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
 {

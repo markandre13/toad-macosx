@@ -13,13 +13,16 @@
 
 #include <algorithm>
 #include "types.hh"
-#include "segment_2.h"
 
 namespace cbop {
 
 using toad::TPoint;
 
-int findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint& ip0, TPoint& ip1);
+struct SweepEvent; // forward declaration
+
+// int findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint& ip0, TPoint& ip1);
+int findIntersection(const SweepEvent* e1, const SweepEvent* e2, TPoint& ip0, TPoint& ip1);
+// point, otherEvent->point
 
 /** Signed area of the triangle (p0, p1, p2) */
 inline float signedArea (const TPoint& p0, const TPoint& p1, const TPoint& p2)
@@ -40,11 +43,13 @@ inline int sign (const TPoint& p1, const TPoint& p2, const TPoint& o)
 	return (det < 0 ? -1 : (det > 0 ? +1 : 0));
 }
 
+#if 0
 inline bool pointInTriangle (const Segment_2& s, const TPoint& o, const TPoint& p)
 {
 	int x = sign (s.source (), s.target (), p);
 	return ((x == sign (s.target (), o, p)) && (x == sign (o, s.source (), p)));
 }
+#endif
 
 } // end of namespace cbop
 #endif

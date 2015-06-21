@@ -32,7 +32,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
 	   test_path_bool.cc \
 	   \
-	   utilities.cpp polygon.cpp booleanop.cc
+	   utilities.cc booleanop.cc
 	
 SRC_COCOA=window.cc pen.cc
 
@@ -1045,10 +1045,16 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
-test_path_bool.o: booleanop.hh polygon.h utilities.h types.hh segment_2.h
-test_path_bool.o: bbox_2.h
-utilities.o: utilities.h types.hh segment_2.h
-polygon.o: polygon.h utilities.h types.hh segment_2.h bbox_2.h
+test_path_bool.o: booleanop.hh utilities.h types.hh bbox_2.h
+utilities.o: utilities.h types.hh booleanop.hh include/toad/vector.hh
+utilities.o: include/toad/penbase.hh include/toad/color.hh
+utilities.o: include/toad/types.hh include/toad/io/serializable.hh
+utilities.o: include/toad/io/atvparser.hh include/toad/font.hh
+utilities.o: include/toad/pointer.hh include/toad/matrix2d.hh
+utilities.o: include/toad/window.hh include/toad/interactor.hh
+utilities.o: include/toad/cursor.hh include/toad/region.hh
+utilities.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+utilities.o: include/toad/model.hh include/toad/connect.hh bbox_2.h
 booleanop.o: booleanop.hh include/toad/vector.hh include/toad/penbase.hh
 booleanop.o: include/toad/color.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -1057,8 +1063,7 @@ booleanop.o: include/toad/matrix2d.hh include/toad/window.hh
 booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh polygon.h utilities.h types.hh
-booleanop.o: segment_2.h bbox_2.h
+booleanop.o: include/toad/connect.hh utilities.h types.hh bbox_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

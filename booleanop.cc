@@ -21,13 +21,24 @@ SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType 
 {
 }
 
+/** Return the point of the segment with lexicographically smallest coordinate */
+const TPoint& minlex(const TPoint &s, const TPoint &t) {
+  return (s.x < t.x) || (s.x == t.x && s.y < t.y) ? s : t;
+}
+/** Return the point of the segment with lexicographically largest coordinate */
+const TPoint& maxlex(const TPoint &s, const TPoint &t) {
+  return (s.x > t.x) || (s.x == t.x && s.y > t.y) ? s : t;
+}
+
+
 std::string SweepEvent::toString () const
 {
 	std::ostringstream oss;
 	oss << '(' << point.x << ',' << point.y << ')';
 	oss << " (" << (left ? "left" : "right") << ')';
-	Segment_2 s (point, otherEvent->point);
-	oss << " S:[(" << s.min ().x << ',' << s.min ().y << ") - (" << s.max ().x << ',' << s.max ().y << ")]";
+	TPoint min = minlex(point, otherEvent->point);
+	TPoint max = maxlex(point, otherEvent->point);
+	oss << " S:[(" << min.x << ',' << min.y << ") - (" << max.x << ',' << max.y << ")]";
 	oss << " (" << (pol == SUBJECT ? "SUBJECT" : "CLIPPING") << ')';
 	std::string et[4] =  { "NORMAL", "NON_CONTRIBUTING", "SAME_TRANSITION", "DIFFERENT_TRANSITION" };
 	oss << " (" << et[type] << ')';
@@ -192,7 +203,8 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
               ++pt;
               break;
             case TVectorPath::LINE:
-              processSegment(Segment_2(*pp, *pt), type);
+              // processSegment(Segment_2(*pp, *pt), type);
+              processLine(*pp, *pt, type);
               pp=pt;
               ++pt;
               break;
@@ -201,7 +213,8 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
               exit(1);
               break;
             case TVectorPath::CLOSE:
-              processSegment(Segment_2(*pp, *ph), type);
+              // processSegment(Segment_2(*pp, *ph), type);
+              processLine(*pp, *ph, type);
               break;
           }
         }
@@ -211,15 +224,15 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
 /**
  * convert segment/edge into two sweep events
  */
-void BooleanOpImp::processSegment(const Segment_2& s, PolygonType pt)
+void BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType pt)
 {
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
 		return;          // This can be done as preprocessing to avoid "polygons" with less than 3 edges */
-	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, s.source(), 0, pt));
-	SweepEvent* e2 = storeSweepEvent(SweepEvent(true, s.target(), e1, pt));
+	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
+	SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p1, e1, pt));
 	e1->otherEvent = e2;
 
-	if (s.min () == s.source ()) {
+	if (minlex(p0, p1) == p0) {
 		e2->left = false;
 	} else {
 		e1->left = false;
@@ -227,6 +240,7 @@ void BooleanOpImp::processSegment(const Segment_2& s, PolygonType pt)
 	eq.push(e1);
 	eq.push(e2);
 }
+
 
 /**
  * Determine if the edge belongs to the result polygon, taking into account
@@ -293,7 +307,7 @@ std::cout << "possibleIntersection between " << std::endl
 	TPoint ip1, ip2;  // intersection points
 	int nintersections;
 
-	if (!(nintersections = findIntersection(le1->segment (), le2->segment (), ip1, ip2))) {
+	if (!(nintersections = findIntersection(le1, le2, ip1, ip2))) {
 	        std::cout << "  none" << std::endl;
 		return 0;  // no intersection
         }

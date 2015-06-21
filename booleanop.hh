@@ -18,9 +18,12 @@
 #include <iostream>
 #include <toad/vector.hh>
 
-#include "polygon.h"
+#include "utilities.h"
+#include "bbox_2.h"
 
 namespace cbop {
+
+using toad::TPoint;
 
 enum BooleanOpType { INTERSECTION, UNION, DIFFERENCE, XOR };
 enum EdgeType { NORMAL, NON_CONTRIBUTING, SAME_TRANSITION, DIFFERENT_TRANSITION };
@@ -85,7 +88,6 @@ struct SweepEvent {
 	/** Is the line segment (point, otherEvent->point) a vertical line segment */
 	bool vertical () const { return point.x == otherEvent->point.x; }
 	/** Return the line segment associated to the SweepEvent */
-	Segment_2 segment () const { return Segment_2(point, otherEvent->point); }
 	std::string toString () const;
 };
 
@@ -124,8 +126,8 @@ private:
 
 	bool trivialOperation(const Polygon& subject, const Polygon& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB);
 	void path2events(const toad::TVectorPath& poly, PolygonType type);
-	/** @brief Compute the events associated to segment s, and insert them into pq and eq */
-	void processSegment (const Segment_2& s, PolygonType pt);
+	/** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
+        void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
 	/** @brief Store the SweepEvent e into the event holder, returning the address of e */
 	SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
 	/** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */

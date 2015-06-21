@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include "utilities.h"
+#include "booleanop.hh"
 
 using namespace cbop;
 
@@ -32,12 +33,13 @@ static int findIntersection (double u0, double u1, double v0, double v1, double 
 	}
 }
 
-int cbop::findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint& pi0, TPoint& pi1)
+int cbop::findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint& pi1)
 {
-	TPoint p0 = seg0.source ();
-	TPoint d0 (seg0.target ().x - p0.x, seg0.target ().y - p0.y);
-	TPoint p1 = seg1.source ();
-	TPoint d1 (seg1.target ().x - p1.x, seg1.target ().y - p1.y);
+  // point, otherEvent->point
+	TPoint p0 = e0->point;
+	TPoint d0 (e0->otherEvent->point.x - p0.x, e0->otherEvent->point.y - p0.y);
+	TPoint p1 = e1->point;
+	TPoint d1 (e1->otherEvent->point.x - p1.x, e1->otherEvent->point.y - p1.y);
 	double sqrEpsilon = 0.0000001; // it was 0.001 before
 	TPoint E (p1.x - p0.x, p1.y - p0.y);
 	double kross = d0.x * d1.y - d0.y * d1.x;
@@ -57,10 +59,10 @@ int cbop::findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint
 		}
 		// intersection of lines is a point an each segment
 		pi0 = TPoint (p0.x + s * d0.x, p0.y + s * d0.y);
-		if (distance(pi0, seg0.source ()) < 0.00000001) pi0 = seg0.source ();
-		if (distance(pi0, seg0.target ()) < 0.00000001) pi0 = seg0.target ();
-		if (distance(pi0, seg1.source ()) < 0.00000001) pi0 = seg1.source ();
-		if (distance(pi0, seg1.target ()) < 0.00000001) pi0 = seg1.target ();
+		if (distance(pi0, e0->point) < 0.00000001)             pi0 = e0->point;
+		if (distance(pi0, e0->otherEvent->point) < 0.00000001) pi0 = e0->otherEvent->point;
+		if (distance(pi0, e1->point) < 0.00000001)             pi0 = e1->point;
+		if (distance(pi0, e1->otherEvent->point) < 0.00000001) pi0 = e1->otherEvent->point;
 		return 1;
 	}
 
@@ -83,10 +85,10 @@ int cbop::findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint
 
 	if (imax > 0) {
 		pi0 = TPoint (p0.x + w[0] * d0.x, p0.y + w[0] * d0.y);
-		if (distance(pi0, seg0.source ()) < 0.00000001) pi0 = seg0.source ();
-		if (distance(pi0, seg0.target ()) < 0.00000001) pi0 = seg0.target ();
-		if (distance(pi0, seg1.source ()) < 0.00000001) pi0 = seg1.source ();
-		if (distance(pi0, seg1.target ()) < 0.00000001) pi0 = seg1.target ();
+		if (distance(pi0, e0->point) < 0.00000001)             pi0 = e0->point;
+		if (distance(pi0, e0->otherEvent->point) < 0.00000001) pi0 = e0->otherEvent->point;
+		if (distance(pi0, e1->point) < 0.00000001)             pi0 = e1->point;
+		if (distance(pi0, e1->otherEvent->point) < 0.00000001) pi0 = e1->otherEvent->point;
 		if (imax > 1)
 			pi1 = TPoint (p0.x + w[1] * d0.x, p0.y + w[1] * d0.y);
 	}
