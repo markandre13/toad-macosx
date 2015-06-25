@@ -64,9 +64,15 @@ TMyWindow::paint()
 
   TVectorPath p0;
   p0.move(TPoint(10,10));
-  p0.line(TPoint(150,10));
+  p0.curve(TPoint(55,1),
+           TPoint(100,2),
+           TPoint(150,10));
+//  p0.line(TPoint(150,10));
   p0.line(TPoint(80,80));
   p0.close();
+
+  p0.apply(pen);
+  pen.stroke();
 
   TVectorPath p1;
   p1.move(TPoint(10,90));
@@ -76,7 +82,7 @@ TMyWindow::paint()
   
   TVectorPath poly;
   
-#if 1
+#if 0
   cout << "union --------------" << endl;
   poly = boolean(p0, p1, cbop::UNION);
   pen.setColor(1,0.5,0);
@@ -91,7 +97,7 @@ TMyWindow::paint()
   p1.apply(pen);
   pen.stroke();
 #endif
-#if 1
+#if 0
   cout << "intersection -------" << endl;
   poly = boolean(p0, p1, cbop::INTERSECTION);
   pen.translate(160,0);
@@ -105,14 +111,14 @@ TMyWindow::paint()
   poly.apply(pen);
   pen.fill();
 #endif
-#if 1
+#if 0
   cout << "xor ----------------" << endl;
   poly = boolean(p0, p1, cbop::XOR);
   pen.translate(-160,0);
   poly.apply(pen);
   pen.fill();
 #endif
-#if 1  
+#if 0  
   cout << "xor with real hole -" << endl;
   TVectorPath p2;
   p2.move(TPoint(10,10));
@@ -132,7 +138,7 @@ TMyWindow::paint()
   poly.apply(pen);
   pen.fill();
 #endif
-#if 1
+#if 0
 cout << "---------------------------------------------------" << endl;
   TVectorPath p4;
   p4.move(TPoint(90, 20));

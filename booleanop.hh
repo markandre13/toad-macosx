@@ -35,6 +35,9 @@ struct SegmentComp : public std::binary_function<SweepEvent*, SweepEvent*, bool>
 };
 
 struct SweepEvent {
+
+        std::string id;
+
 	SweepEvent () {}
 	SweepEvent (bool left, const TPoint& point, SweepEvent* otherEvent, PolygonType pt, EdgeType et = NORMAL);
 
@@ -42,6 +45,11 @@ struct SweepEvent {
         //------------------------------------------------
 	bool left;              // is point the left endpoint of the edge (point, otherEvent->point)?
 	TPoint point;           // point associated with the event
+	
+	bool curve;
+	TPoint point1;		// point on curve
+	TPoint point2;
+	
 	SweepEvent* otherEvent; // event associated to the other endpoint of the edge
 	PolygonType pol;        // Polygon to which the associated segment belongs to
 	EdgeType type;
@@ -128,6 +136,7 @@ private:
 	void path2events(const toad::TVectorPath& poly, PolygonType type);
 	/** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
         void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
+        void processCurve(const TPoint &p0, const TPoint *pn, PolygonType pt);
 	/** @brief Store the SweepEvent e into the event holder, returning the address of e */
 	SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
 	/** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
