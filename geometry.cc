@@ -1090,7 +1090,7 @@ fitCubic(const TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, doubl
 
 /*
  *  fitPath:
- *  	Fit a Bezier curve to a set of digitized points 
+ *  Fit a Bezier curve to a set of digitized points 
  *  \param d Array of digitized points
  *  \param nPts Number of digitized points
  *  \param error User-defined error squared

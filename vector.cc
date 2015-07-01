@@ -28,14 +28,48 @@ switch(p) {
   }
 }
 
-#if 0
 Box
 TVectorPath::bounds() const
 {
   Box b;
+  const TPoint *pt = points.data();
+  b.x1 = b.x1 = pt->x;
+  b.y1 = b.y1 = pt->y;
+  for(auto p: type) {
+    switch(p) {
+      case MOVE:
+      case LINE:
+        b.expand(*pt);
+        ++pt;
+        break;
+      case CURVE: {
+        assert(pt>points.data());
+        TRectangle r(toad::bounds(pt-1));
+        b.expand(TPoint(r.x, r.y));
+        b.expand(TPoint(r.x+r.w, r.y+r.h));
+        pt+=3;
+      } break;
+      case CLOSE:
+        break;
+    }
+  }
   return b;
 }
-#endif
+
+void
+Box::expand(const TPoint &pt)
+{
+  if (pt.x < x1)
+    x1 = pt.x;
+  else
+  if (pt.x > x2)
+    x2 = pt.x;
+  if (pt.y < y1)
+    y1 = pt.y;
+  else
+  if (pt.x > x2)
+    y2 = pt.y;
+}
 
 Box
 TVectorPath::editBounds() const
@@ -45,16 +79,7 @@ TVectorPath::editBounds() const
   b.x1 = b.x1 = p->x;
   b.y1 = b.y1 = p->y;
   for(++p; p!=points.end(); ++p) {
-    if (p->x<b.x1)
-      b.x1 = p->x;
-    else
-    if (p->x>b.x2)
-      b.x2 = p->x;
-    if (p->y<b.y1)
-      b.y1 = p->y;
-    else
-    if (p->x>b.x2)
-      b.y2 = p->y;
+    b.expand(*p);
   }
   return b;
 }

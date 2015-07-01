@@ -139,6 +139,8 @@ struct Box
   
   void set(const TRectangle &rectangle);
 
+  void expand(const TPoint &pt);
+
   bool isInside(TCoord x, TCoord y) const { return x >= x1 && x < x2 && y >= y1 && y < y2; }
   bool isInsideOf(const Box &box) const { return x1 >= box.x1 && y1 >= box.y1 && x2 <= box.x2 && y2 <= box.y2; }
   bool isOverlapping(const Box &box) const { return x2 > box.x1 && y2 > box.y1 && x1 < box.x2 && y1 < box.y2; }
