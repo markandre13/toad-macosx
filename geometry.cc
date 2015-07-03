@@ -625,7 +625,7 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
 
 /****************************************************************************
  *                                                                          *
- *                                  BOUNDS                                  *
+ *                               CURVE BOUNDS                               *
  *                                                                          *
  ****************************************************************************/
 
@@ -685,7 +685,7 @@ _addBounds(TCoord v0, TCoord v1, TCoord v2, TCoord v3, int coord, TCoord padding
 }
 
 TRectangle
-bounds(const TPoint *v)
+curveBounds(const TPoint *v)
 {
   TPoint min = v[0];
   TPoint max = v[0];

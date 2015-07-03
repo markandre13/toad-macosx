@@ -22,7 +22,7 @@
 #include <toad/action.hh>
 #include <toad/popupmenu.hh>
 #include <toad/figureeditor.hh>
-
+#include <toad/geometry.hh>
 #include <cmath>
 
 /**
@@ -72,6 +72,27 @@ TFPath::getAttributes(TFigureAttributes *preferences) const
 
 TRectangle
 TFPath::bounds() const
+{
+  const TPoint *p = polygon.data();
+  size_t n = polygon.size();
+  TRectangle r(0,0,0,0);
+  if (n<3)
+    return r;
+  Box b = curveBounds(&(*p));
+  p+=3;
+  n-=3;
+  while(n>3) {
+    Box b0 = curveBounds(&(*p));
+    b.expand(TPoint(b0.x1, b0.y1));
+    b.expand(TPoint(b0.x2, b0.y2));
+    p+=3;
+    n-=3;
+  }
+  return TRectangle(b);
+}
+
+TRectangle
+TFPath::editBounds() const
 {
   TRectangle r;
   polygon.getShape(&r);

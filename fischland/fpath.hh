@@ -34,6 +34,7 @@ class TFPath:
     void paint(TPenBase&, EPaintType) override;
     void paintSelection(TPenBase &pen, int handle) override;
     TRectangle bounds() const override;
+    TRectangle editBounds() const override;
 
     void translate(TCoord dx, TCoord dy) override;
     bool getHandle(unsigned handle, TPoint *p) override;

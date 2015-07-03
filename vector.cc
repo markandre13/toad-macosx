@@ -44,7 +44,7 @@ TVectorPath::bounds() const
         break;
       case CURVE: {
         assert(pt>points.data());
-        TRectangle r(toad::bounds(pt-1));
+        TRectangle r(curveBounds(pt-1));
         b.expand(TPoint(r.x, r.y));
         b.expand(TPoint(r.x+r.w, r.y+r.h));
         pt+=3;

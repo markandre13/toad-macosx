@@ -70,7 +70,7 @@ void intersectCurveCurve(TIntersectionList &ilist, const TPoint *curve0, const T
 void intersectCurveLine(TIntersectionList &ilist, const TPoint *curve, const TPoint *line);
 void intersectLineLine(TIntersectionList &ilist, const TPoint *line0, TPoint *line1);
 
-TRectangle bounds(const TPoint *curve);
+TRectangle curveBounds(const TPoint *curve);
 
 void divideBezier(const TPoint *a, TPoint *p, TCoord min, TCoord max);
 void divideBezier(const TPoint *a, TPoint *p, TCoord u);
