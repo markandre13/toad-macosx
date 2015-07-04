@@ -45,6 +45,7 @@ TFCircle::paint(TPenBase &pen, EPaintType)
   } else {
     pen.setFillColor(fill_color);
     pen.fillCircle(p1,p2);
+    pen.drawCircle(p1,p2);
   }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
