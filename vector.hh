@@ -55,8 +55,8 @@ class TVectorPath
       type.push_back(CURVE); points.push_back(p0);  points.push_back(p1);  points.push_back(p2);
     }
     void close(){  type.push_back(CLOSE); }
-    Box bounds() const;
-    Box editBounds() const;
+    TBoundary bounds() const;
+    TBoundary editBounds() const;
     
     void apply(TPen &pen) const;
     void subdivide();

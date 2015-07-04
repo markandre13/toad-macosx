@@ -122,30 +122,54 @@ struct TSize:
 
 struct TRectangle;
 
-struct Box 
+struct TBoundary
 {
-  TCoord  x1, x2, y1, y2;
+  bool empty;
+  TCoord x1, x2, y1, y2;
   
-  Box() { set(0, 0, 0, 0); }
-  Box(const Box &box) { set(box.x1, box.y1, box.x2, box.y2); }
-  Box(TCoord left, TCoord top, TCoord right, TCoord bottom) { set(left, top, right, bottom); }
-  Box(const TRectangle &rectangle);
+  TBoundary() { x1=x2=y1=y2=0.0; empty=true; }
+  TBoundary(const TBoundary &b) { set(b.x1, b.y1, b.x2, b.y2); }
+  TBoundary(TCoord left, TCoord top, TCoord right, TCoord bottom) { set(left, top, right, bottom); }
+  TBoundary(const TRectangle &rectangle);
+  void clear() { empty = true; }
   void set(TCoord left, TCoord top, TCoord right, TCoord bottom) {
-    this->x1 = left;
-    this->y1 = top;
-    this->x2 = right;
-    this->y2 = bottom;
+    empty = false;
+    x1 = left;
+    y1 = top;
+    x2 = right;
+    y2 = bottom;
   }
   
   void set(const TRectangle &rectangle);
+  void expand(const TPoint &p) {
+    if (empty) {
+      x1=x2=p.x; y1=y2=p.y;
+      empty=false;
+    } else {
+      if (p.x<x1)
+        x1=p.x;
+      else
+      if (p.x>x2)
+        x2=p.x;
+      if (p.y<y1)
+        y1=p.y;
+      else
+      if (p.y>y2)
+        y2=p.y;
+    }
+  }
+  void expand(const TBoundary &b) {
+    if (b.empty)
+      return;
+    expand(TPoint(b.x1, b.y1));
+    expand(TPoint(b.x2, b.y2));
+  }
 
-  void expand(const TPoint &pt);
-
-  bool isInside(TCoord x, TCoord y) const { return x >= x1 && x < x2 && y >= y1 && y < y2; }
-  bool isInsideOf(const Box &box) const { return x1 >= box.x1 && y1 >= box.y1 && x2 <= box.x2 && y2 <= box.y2; }
-  bool isOverlapping(const Box &box) const { return x2 > box.x1 && y2 > box.y1 && x1 < box.x2 && y1 < box.y2; }
+  bool isInside(TCoord x, TCoord y) const { return empty ? false : (x >= x1 && x < x2 && y >= y1 && y < y2); }
+  bool isInsideOf(const TBoundary &b) const { return (empty || b.empty) ? false : x1 >= b.x1 && y1 >= b.y1 && x2 <= b.x2 && y2 <= b.y2; }
+  bool isOverlapping(const TBoundary &b) const { return (empty || b.empty) ? false : x2 > b.x1 && y2 > b.y1 && x1 < b.x2 && y1 < b.y2; }
   bool isOverlapping(const TRectangle &rectangle) const;
-  bool intersects(const Box &r) const;
+  bool intersects(const TBoundary &r) const;
   void translate(TCoord dx, TCoord dy) { x1 += dx; y1 += dy; x2 += dx; y2 += dy; }
 };
 
@@ -155,7 +179,7 @@ struct TRectangle
   TRectangle() { set(0, 0, 0, 0); }
   TRectangle(TCoord x, TCoord y, TCoord w, TCoord h) { set(x, y, w, h); }
   TRectangle(const TPoint &p1, const TPoint &p2){ set(p1,p2); }
-  TRectangle(const Box &b) { set(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1); }
+  TRectangle(const TBoundary &b) { set(b.x1, b.y1, b.x2 - b.x1, b.y2 - b.y1); }
   TPoint origin() const { return TPoint(x, y); }
   bool operator==(const TRectangle &r) const { return x==r.x && y==r.y && w==r.w && h==r.h; }
   bool isEmpty() const { return w<=0 || h<=0; }
@@ -166,9 +190,9 @@ struct TRectangle
   bool intersects(const TRectangle &r) const;
 };
 
-inline Box::Box(const TRectangle &rectangle) { set(rectangle); }
-inline void Box::set(const TRectangle &r) { x1=r.x; y1=r.y; x2=r.x + r.w; y2=r.y + r.h; }
-inline bool Box::isOverlapping(const TRectangle &r) const { return x2>r.x && x1<r.x+r.w && y2>r.y && y1<r.y+r.h; }
+inline TBoundary::TBoundary(const TRectangle &rectangle) { set(rectangle); }
+inline void TBoundary::set(const TRectangle &r) { empty=false; x1=r.x; y1=r.y; x2=r.x + r.w; y2=r.y + r.h; }
+inline bool TBoundary::isOverlapping(const TRectangle &r) const { return empty ? false : (x2>r.x && x1<r.x+r.w && y2>r.y && y1<r.y+r.h); }
 
 inline ostream& operator<<(ostream &s, const TRectangle& r) {
   return s<<'('<<r.x<<','<<r.y<<','<<r.w<<','<<r.h<<')';

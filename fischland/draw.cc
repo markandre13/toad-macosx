@@ -261,6 +261,7 @@ class TMainWindow:
     bool menuSave();
     bool menuSaveAs();
     void menuPrint();
+    void menuPrint2Clipboard();
     void menuAbout();
     void menuCopyright();
     
@@ -772,32 +773,66 @@ printSlide(TPenBase &pen, TSlide *slide)
   }
 }
 
+TBoundary
+boundsOfLayer(TLayer *layer)
+{
+  TBoundary b;
+  while(layer) {
+    if (layer->print) {
+      for(TFigureModel::iterator p = layer->content.begin();
+          p != layer->content.end();
+          ++p)
+      {
+        b.expand((*p)->bounds());
+      }
+    }
+    b.expand(boundsOfLayer(layer->down));
+    layer = layer->next;
+  }
+  return b;
+}
+
+TBoundary
+boundsOfSlide(TSlide *slide)
+{
+  TBoundary b;
+  while(slide) {
+    if (slide->print) {
+      b.expand(boundsOfLayer(slide->content.getRoot()));
+    }
+    b.expand(boundsOfSlide(slide->down));
+    slide = slide->next;
+  }
+  return b;
+}
+
+void
+TMainWindow::menuPrint2Clipboard()
+{
+  // either selection or current page?
+  TPen pen;
+cout << "initClipboard" << endl;
+  pen.initClipboard(boundsOfSlide(editmodel->document->content.getRoot()));
+cout << "inited ClipBoad" << endl;
+
+  // paint all active layers
+  for(auto figuremodel: editmodel->modelpath) {
+      for(auto figure: *figuremodel) {
+          figure->paint(pen, TFigure::NORMAL);
+      }
+  }
+
+
+//    print(pen, p, true);
+  // printSlide(pen, editmodel->document->content.getRoot());
+}
+
 void
 TMainWindow::menuPrint()
 {
-/*
-  class W: 
-    public TWindow
-  {
-  public:
-    PEditModel editmodel;
-    W(TWindow *p, const string &t, TEditModel *m): TWindow(p, t) {editmodel=m;}
-    void paint() {
-  // current page
-*/
-#if 1
-  TPen pen("output.pdf");
-
+  TPen pen("output.pdf"/*, boundsOfSlide(editmodel->document->content.getRoot())*/);
   // all pages
   printSlide(pen, editmodel->document->content.getRoot());
-#endif
-/*
-    }
-  };
-  
-  TWindow *w = new W(0, "print", editmodel);
-  w->createWindow();
-*/
 }
 
 void
@@ -950,6 +985,8 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   CONNECT(a->sigClicked, this, menuSaveAs);
   a = new TAction(this, "file|print");
   CONNECT(a->sigClicked, this, menuPrint);
+  a = new TAction(this, "file|print2clipboard");
+  CONNECT(a->sigClicked, this, menuPrint2Clipboard);
   a = new TAction(this, "file|close");
   CONNECT(a->sigClicked, this, menuClose);
   a = new TAction(this, "file|quit");

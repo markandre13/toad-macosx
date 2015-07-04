@@ -118,7 +118,7 @@ TRegion::TRegion(int x, int y, int width, int height)
  * 
  * @param box  Box specification of rectangle to create region from.
  */
-TRegion::TRegion(const Box &box)
+TRegion::TRegion(const TBoundary &box)
 {
   rectangles_ = 0;
   *this = TRectangle(box);

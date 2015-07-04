@@ -140,8 +140,9 @@ putBytes(void *info, const void *bytes, size_t length)
 }
 
 void
-TPen::initClipboard()
+TPen::initClipboard(const TRectangle &clip)
 {
+cout << "initClipBoard( " << clip << " )" << endl;
   init();
   clipboardData = [[NSMutableData alloc] init];
   
@@ -153,7 +154,7 @@ TPen::initClipboard()
                         &kCFTypeDictionaryValueCallBacks);
   CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
   CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
-  CGRect pdfPageRect = CGRectMake(0,0,640,480);
+  CGRect pdfPageRect = CGRectMake(clip.x, clip.y, clip.w, clip.h);
   pdfContext = CGPDFContextCreate(dc, &pdfPageRect, myDictionary);
   CFRelease(myDictionary);
   
@@ -163,8 +164,8 @@ TPen::initClipboard()
   pdfBoxData = CFDataCreate(NULL,(const UInt8 *)&pdfPageRect, sizeof (CGRect));
   CFDictionarySetValue(pdfPageDictionary, kCGPDFContextMediaBox, pdfBoxData);
   CGPDFContextBeginPage(pdfContext, pdfPageDictionary);
-
-  CGAffineTransform m = { 1, 0, 0, -1, 0, pdfPageRect.size.height };
+cout << "h="<<pdfPageRect.size.height<<", y="<<pdfPageRect.origin.y<<endl;
+  CGAffineTransform m = { 1, 0, 0, -1, 0, pdfPageRect.size.height+pdfPageRect.origin.y*2 };
   CGContextConcatCTM(pdfContext, m);
 
   ctx = pdfContext;

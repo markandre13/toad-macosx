@@ -44,7 +44,7 @@ class TRegion
     TRegion(const TRegion&);
     TRegion(int x, int y, int width, int height);
     TRegion(const TRectangle&);
-    TRegion(const Box&);
+    TRegion(const TBoundary&);
     ~TRegion();
 
     bool isInside(const TRectangle &rectangle) const;
@@ -95,7 +95,7 @@ class TRegion
     static size_t gNRectangles_;
     static bool   isLocked_;
 
-    Box           extent_;
+    TBoundary     extent_;
     int           *rectangles_; // y0,y1,x0,x1,.....
     size_t        length_;
     size_t        nRectangles_;

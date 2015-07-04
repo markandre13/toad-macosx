@@ -65,7 +65,7 @@ class TPen:
     void initWindow(TWindow*);
     void initBitmap(TBitmap*);
     void initPDFFile(const string &filename);
-    void initClipboard();
+    void initClipboard(const TRectangle &r);
 
     void setFont(const string&);
 

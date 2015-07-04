@@ -85,7 +85,7 @@ BooleanOpImp::BooleanOpImp(BooleanOpType op)
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
         // for optimizations 1 and 2
-        toad::Box sb(subj.editBounds()), cb(clip.editBounds());
+        toad::TBoundary sb(subj.editBounds()), cb(clip.editBounds());
         Bbox_2 subjectBB(sb.x1, sb.y1, sb.x2, sb.y2);
         Bbox_2 clippingBB(cb.x1, cb.y1, cb.x2, cb.y2);
         const double MINMAXX = std::min(subjectBB.xmax(), clippingBB.xmax()); // for optimization 2

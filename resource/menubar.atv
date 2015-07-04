@@ -49,6 +49,12 @@ toad::TMenuLayout{
       shortcut = "Ctrl+P"
       icon = ""
     }
+    toad::TMenuEntry {
+      name = "print2clipboard"
+      label = "Print To Clipboard"
+      shortcut = "Shift+P"
+      icon = ""
+    }
     toad::TMenuSeparator { }
     toad::TMenuEntry {
       name = "quit"

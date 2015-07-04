@@ -28,10 +28,10 @@ switch(p) {
   }
 }
 
-Box
+TBoundary
 TVectorPath::bounds() const
 {
-  Box b;
+  TBoundary b;
   const TPoint *pt = points.data();
   b.x1 = b.x1 = pt->x;
   b.y1 = b.y1 = pt->y;
@@ -56,25 +56,10 @@ TVectorPath::bounds() const
   return b;
 }
 
-void
-Box::expand(const TPoint &pt)
-{
-  if (pt.x < x1)
-    x1 = pt.x;
-  else
-  if (pt.x > x2)
-    x2 = pt.x;
-  if (pt.y < y1)
-    y1 = pt.y;
-  else
-  if (pt.x > x2)
-    y2 = pt.y;
-}
-
-Box
+TBoundary
 TVectorPath::editBounds() const
 {
-  Box b;
+  TBoundary b;
   auto p = points.begin();
   b.x1 = b.x1 = p->x;
   b.y1 = b.y1 = p->y;

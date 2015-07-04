@@ -115,8 +115,11 @@ TRectangle::intersects(const TRectangle &r) const
 
 // based on Dan Cohen and Ivan Sutherlands clipping algorithm
 bool
-Box::intersects(const Box &r) const
+TBoundary::intersects(const TBoundary &r) const
 {
+  if (empty || r.empty)
+    return false;
+    
   unsigned f0, f1;
   TCoord a;
   TCoord x00, x01, x10, x11;
