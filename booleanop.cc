@@ -12,6 +12,18 @@
 #include <algorithm>
 #include "booleanop.hh"
 
+/*
+ * \todo
+ *   \li re-enable optimizations
+ *   \li separate preparation and connectEdges calls
+ *   \li with the previous separation, try to re-use the raw result for another operation
+ *   \li use this for the pencil tool
+ *   \li test cases for operations with curves (visual + check against expected results)
+ *       when a test case fails, render the algorithms work into a pdf
+ *   \li fix the orientation issue i've found
+ *   \li revisit the fill tool code
+ */
+
 using namespace cbop;
 using namespace std;
 using namespace toad;
