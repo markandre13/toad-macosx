@@ -1044,12 +1044,370 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
   invalidateWindow();
 }
 
+/*
+  the algorithm:
+    brute force for now
+    assumption:
+      o input has been 'normalized' (been generated with this software)
+      o calculating the width of a rendered string is expensive because of all
+        the glyph and kerning operations.
+      o parsing just the xml isn't (as long as it is just a few pages)
+    single pass possible?
+
+  test cases:
+  add:
+    OVERLAP AT TAIL
+      hello <b>this is</b> really awesome.
+                   ^            ^
+      hello <b>this is really</b> awesom.
+    OVERLAP AT HEAD
+      hello <b>this is</b> really awesome.
+        ^        ^
+      he<b>llo this is</b> really awesome.
+  remove:
+    OVERLAP EXACTLY
+      hello <b>this is</b> really awesome.
+               ^     ^
+      hello this is really awsome.
+    OVERLAP AT HEAD
+      hello <b>this is</b> really awesome.
+               ^  ^
+      hello this<b> is</b> really awesome.
+    OVERLAP AT TAIL
+      hello <b>this is</b> really awsome.
+                    ^^
+      hello <b>this </b>is really awesome.
+    INSIDE
+      hello <b>this is</b> really awesome.
+                 ^  ^
+      hello <b>th</b>is i<b>s really awesome.
+    CONTAINING A SINGLE ONE
+      hello <b>this is</b> really awesome.
+         ^                   ^
+      hel<b>lo this is rea</b>lly awesome.
+    CONTAINING MULTIPLE ONES EXACT OVERLAP
+      hello <b>this</b> is <b>really</b> awesome.
+               ^                   ^
+      hello <b>this is really</b> awesome.
+    OUTSIDE
+      hello <b>this is really</b> awesome.
+  
+  then there's also tag with attributes, for font selection
+    hello <font family="sans-serif">this is</font> really awesome.
+                                      ^  ^
+    hello <font family="sans-serif">th</font><font family="sans">is i</font><font family="sans-serif">s</font> really awesome.
+    
+    here i could compare the tag name for equal and the rest for not equal.
+*/
+
+struct test {
+  const char *in;
+  size_t bgn, end;
+  const char *out;
+};
+
+/**
+ * if there is an area in text not covered by tag between bgn and end, return true
+ */
+bool
+isadd(const string &text, const string &tag, size_t bgn, size_t end)
+{
+//cout << "-----------------------" << endl;
+  // we'll optimize this later
+  size_t idx = 0;
+  
+  size_t x0=0, x1=0;
+  size_t eol = text.size();
+  int c;
+
+  size_t xpos[3];
+  xpos[SELECTION_BGN]=bgn;
+  xpos[SELECTION_END]=end;
+  bool inside=false;
+  
+  while(x0<xpos[SELECTION_END]) {
+    x1=x0;
+    while(x1<eol) {
+      c = text[x1];
+      if (c=='<' || c=='&')
+        break;
+      if (xpos[SELECTION_BGN] <= x1 && !inside) {
+//cout << "true in text at " << x1 << endl;
+        return true;
+      }
+      utf8inc(text, &x1);
+    }
+    x0=x1;
+    if (c=='<') {
+      taginc(text, &x1);
+      string tag0 = text.substr(x0,x1-x0);
+//      cout << x0 << " tag: " << tag0;
+      if (tag0[1]=='/') {
+        if (tag0.compare(2, tag.size(), tag)==0) {
+//          cout << " close";
+          inside = false;
+        }
+      } else {
+        if (tag0.compare(1, tag.size(), tag)==0) {
+//          cout << " open";
+          inside = true;
+//      cout << endl;
+      if (xpos[SELECTION_BGN] < (x1-1) && !inside) {
+//cout << "true in tag at " << x1 << endl;
+        return true;
+      }
+        }
+      }
+//      cout << endl;
+      x0=x1;
+    } else
+    if (c=='&') {
+      entityinc(text, &x1);
+//      cout << x0 << "entity: " << text.substr(x0,x1-x0) << endl;
+    }
+  }
+  return false;
+}
 
 
 #ifndef OLD_TOAD
 int 
 test_text()
 {
+  if (isadd("<b>abc</b>defg", "b", 0,  4)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^   <
+  if (isadd("a<b>bcd</b>efg", "b", 0,  5)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^    <
+  if (isadd("<b>abc</b>defg", "b", 0,  6)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^     <
+  if (isadd("<b>abc</b>defg", "b", 0,  9)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^        <
+  if (isadd("<b>abc</b>defg", "b", 0, 10)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^         <
+  if (isadd("<b>abc</b>defg", "b", 0, 11)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^          <
+  if (!isadd("abcdefg", "b", 4,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //              ^ <
+  if (!isadd("abcdefg", "b", 5,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //               ^<
+  if (isadd("ab<b>cde</b>fg", "b", 2,7)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^   <
+  if (isadd("ab<b>cde</b>fg", "b", 2,9)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^     <
+  if (isadd("ab<b>cde</b>fg", "b", 2,10)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^      <
+  if (isadd("ab<b>cde</b>fg", "b", 2,12)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^         <
+  if (!isadd("ab<b>cde</b>fg", "b", 2,13)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //            ^          <
+  if (!isadd("ab<b>cde</b>fg", "b", 2,14)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //            ^           <
+  cout << "checked isadd... Ok" << endl;
+
+test test[] = {
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally</b> really awesome.",
+    // ^     <
+       0,    6,
+      "<b>Hello </b><b>this totally</b> really awesome." // IMPROVE
+  },
+#if 0
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally</b> really awesome.",
+    // ^  <
+       0, 3,
+      "<b>Hel</b>lo <b>this totally</b> really awesome."
+  },
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally</b> really awesome.",
+    // ^    <
+       0,   5,
+      "<b>Hello</b> <b>this totally</b> really awesome."
+  },
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally</b> really awesome.",
+    // ^    <
+       0,   5,
+      "<b>Hello</b> <b>this totally</b> really awesome."
+  },
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally</b> really awesome.",
+    //               ^                 <
+                     14,               32,
+      "Hello <b>this totally really</b> awesome."
+  },
+  { // 0         1         2         3         4
+    // 0123456789012345678901234567890123456789012
+      "Hello <b>this totally really</b> awesome.",
+    //               ^      <
+                     14,    21,
+      "Hello <b>this </b>totally<b> really</b> awesome."
+  }
+#endif
+};
+
+for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
+cout << "-----------------------------------" << endl;
+  string text = test[idx].in;
+  
+  size_t x0=0, x1=0;
+  size_t eol = text.size();
+  int c;
+
+  size_t xpos[3];
+  xpos[SELECTION_BGN]=test[idx].bgn;
+  xpos[SELECTION_END]=test[idx].end;
+  string tag="b";
+  bool inside=false;
+  size_t inside_bgn;
+  
+  bool add = isadd(text, tag, xpos[SELECTION_BGN], xpos[SELECTION_END]);
+  
+  string out;
+  
+  while(x0<eol) {
+    x1=x0;
+    while(x1<eol) {
+      c = text[x1];
+      if (c=='<' || c=='&')
+        break;
+      
+      if (xpos[SELECTION_BGN]==x1) {
+        if (add) {
+          if (!inside) {
+cout << __LINE__ << endl;
+            cout << "+<"<<tag<<">" << endl;
+            out += "<"+tag+">";
+            inside=true;
+          } else {
+cout << __LINE__ << endl;
+          }
+        } else {
+cout << __LINE__ << endl;
+        }
+      }
+      if (xpos[SELECTION_END]==x1) {
+        if (add) {
+          if (!inside) {
+cout << __LINE__ << endl;
+          } else {
+cout << __LINE__ << endl;
+            cout << "+</"<<tag<<">" << endl;
+            out += "</"+tag+">";
+            inside=false;
+          }
+        } else {
+cout << __LINE__ << endl;
+        }
+      }
+      cout << x1 << " :" << (char)c << " " << (inside?"in":"")<< endl;
+      out += (char)c; // FIXME: this must be utf-8
+      
+      utf8inc(text, &x1);
+    }
+    x0=x1;
+    if (c=='<') {
+      bool inside_sel = xpos[SELECTION_BGN] <= x0 && x0<=xpos[SELECTION_END];
+      taginc(text, &x1);
+      string tag0 = text.substr(x0,x1-x0);
+      cout << x0 << " tag: " << tag0 << " @ " << x1 << endl;
+      if (!inside_sel) {
+cout << __LINE__ << endl;
+        if (xpos[SELECTION_BGN]==x0) {
+          if (add) {
+            if (!inside) {
+cout << __LINE__ << endl;
+            } else {
+cout << __LINE__ << endl;
+            }
+          } else {
+            if (!inside) {
+cout << __LINE__ << endl;
+            } else {
+cout << __LINE__ << endl;
+            }
+          }
+        } else {
+        }
+        if (xpos[SELECTION_END]==x0) {
+          if (add) {
+            if (!inside) {
+cout << __LINE__ << endl;
+            } else {
+cout << __LINE__ << endl;
+            }
+          } else {
+            if (!inside) {
+cout << __LINE__ << endl;
+            } else {
+cout << __LINE__ << endl;
+            }
+          }
+        }
+        out += tag0;
+      } else
+      if (tag0[1]=='/') {
+        if (tag0.compare(2, tag.size(), tag)==0) {
+cout << __LINE__ << endl;
+#if 0
+          cout << " close";
+          if (inside_sel) {
+cout << __LINE__ << endl;
+            cout << " remove" << endl;
+          } else {
+cout << __LINE__ << endl;
+            out += "</"+tag+">";
+          }
+#endif
+          inside = false;
+        } else {
+cout << __LINE__ << endl;
+        }
+      } else {
+        if (tag0.compare(1, tag.size(), tag)==0) {
+cout << __LINE__ << endl;
+#if 0
+          if (!inside_sel) {
+cout << __LINE__ << endl;
+            cout << " open";
+            inside = true;
+            out += "<"+tag+">";
+            inside_bgn = x0;
+          } else {
+cout << __LINE__ << endl;
+          }
+#endif
+          inside = true;
+        } else {
+cout << __LINE__ << endl;
+        }
+      }
+      cout << endl;
+      x0=x1;
+    } else
+    if (c=='&') {
+      entityinc(text, &x1);
+      cout << x0 << "entity: " << text.substr(x0,x1-x0) << endl;
+      out+=text.substr(x0,x1-x0);
+    } else {
+cout << __LINE__ << endl;
+    }
+  }
+  cout << out << endl;
+  if (out!=test[idx].out) {
+    cout << test[idx].out << endl;
+    cout << "failed" << endl;
+    exit(1);
+  }
+  cout << "Ok" << endl;
+}
+
+return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
