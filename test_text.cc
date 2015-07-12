@@ -670,7 +670,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
     if (c=='<') {
       TTag tag;
       taginc(text, &x1, &tag);
-cout << "TAG: "<<tag<< endl;
+//cout << "TAG: "<<tag<< endl;
       x0=x1;
       
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
@@ -824,21 +824,30 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
   }
 }
 
+/**
+ * for now this function only handles inserting text to an existing fragment
+ * todo
+ * \li simple inserts must also create new text fragments when between "near" entities
+ * \li insert text with tags
+ * \li remove
+ * \li replace
+ */
 void
-updatePrepared(TPreparedDocument *document, size_t offset, size_t len)
+updatePrepared(const string &text, TPreparedDocument *document, size_t offset, size_t len)
 {
   bool afterOffset = false;
+  TCoord diffW = 0.0;
 
-  cout << "updatePrepared" << endl;
+  cout << "updatePrepared: " << offset << ", " << len << endl;
   for(vector<TPreparedLine*>::const_iterator p = document->lines.begin();
       p != document->lines.end();
       ++p)
   {
     TPreparedLine *line = *p;
     if (afterOffset) {
-      line->offset += offset;
+      line->offset += len;
       for(auto fragment: line->fragments) {
-        fragment->offset+=offset;
+        fragment->offset+=len;
       }
       continue;
     }
@@ -846,12 +855,24 @@ updatePrepared(TPreparedDocument *document, size_t offset, size_t len)
     if (line->offset <= offset && offset < textend) {
       for(auto fragment: line->fragments) {
         if (afterOffset) {
-          fragment->offset+=offset;
+          fragment->offset+=len;
+          fragment->origin.x += diffW;
+          fragment->size.width += diffW;
         } else
         if (fragment->offset <= offset && offset < fragment->offset + fragment->length) {
           fragment->length += len;
+
+          const char *cstr;
+          size_t size;
+          fragment2cstr(fragment, text.data(), &cstr, &size);
+    
+          TFont font;
+          fragment->attr.setFont(font);
+          
+          diffW = font.getTextWidth(cstr, size) - fragment->size.width;
+          fragment->size.width += diffW;
+          
           afterOffset = true;
-          // recalculate width of fragment & positions of following segments
         }
       }
     }
@@ -862,7 +883,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
   TWindow(parent, title)
 {
   setSize(800,400);
-  text = "Fröhliche.<b>Weihnachten</b>.&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
+  text = "Fröhliche.<b>Weihnachten</b>.&times;&times;&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is not what we want to hear from Santa.";
   xpos.resize(3);
@@ -954,9 +975,8 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   }
   
   if (!move) {
-    cout << "insert at " << xpos[CURSOR] << endl;
     text.insert(xpos[CURSOR], str);
-    updatePrepared(&document, xpos[CURSOR], strlen(str));
+    updatePrepared(text, &document, xpos[CURSOR], strlen(str));
     invalidateWindow();
     return;
   }
@@ -991,13 +1011,17 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
       fragment->attr.setFont(font);
       size_t i0, i1;
       TCoord x0=0.0, x1;
-      for(i0=0; i0<fragment->length; ) {
+      const char *cstr;
+      size_t size;
+      fragment2cstr(fragment, text.data(), &cstr, &size);
+      for(i0=0; i0<size; ) {
         i1 = i0;
-        utf8inc(text.data() + fragment->offset, &i1);
+        utf8inc(cstr, &i1);
 //char str[16];
 //memset(str, 0, sizeof(str));
 //memcpy(str, fragment->text+i0, i1-i0);
-        TCoord x1 = font.getTextWidth(text.data() + fragment->offset, i1);
+        
+        TCoord x1 = font.getTextWidth(cstr, i1);
         TCoord m = (x1-x0)/2 + x0;
             
 //        cout << "      " << i0 << ": " << font.getTextWidth(fragment->text, i0) << " '" <<str << "' (" << (x-fragment->origin.x) << "), m=" << m << endl;
