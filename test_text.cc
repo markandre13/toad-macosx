@@ -20,6 +20,13 @@
 
 // preparing to get TTextArea to handle a subset of HTML
 
+/**
+ * TPreparedDocument
+ *   TPreparedLine
+ *     TTextFragment
+ *   TMarker
+ */
+
 #include <toad/window.hh>
 #include <toad/pen.hh>
 #include <toad/utf8.hh>
@@ -102,20 +109,23 @@ TTextAttribute::setFont(TPen &pen)
 
 struct TTextFragment
 {
+  static const size_t npos = (size_t)-1;
+
   TTextFragment() {
-    text=0;
+    offset = npos;
   }
   TTextFragment(const TTextFragment *t): attr(t?&t->attr:0) {
-    text=0;
+    offset = npos;
   }
+
+  // information on rendering
   TPoint origin;
   TSize size;
   TCoord ascent, descent;
 
   // the text to be displayed
-  const char *text;
-  size_t offset;
-  size_t length;
+  size_t offset;	// absolute offset
+  size_t length;	// length of the text fragment
 
   TTextAttribute attr;
 };
@@ -127,7 +137,7 @@ struct TPreparedLine
   TSize size;
   TCoord ascent, descent;
   
-  size_t text;
+  size_t offset;	// == fragments[0]->offset ?
   vector<TTextFragment*> fragments;
 };
 
@@ -147,12 +157,12 @@ struct TMarker
 {
   TMarker() {
     pos.set(0,0);
-    idx = 0;
+//    idx = 0;
     line = 0;
     fragment = 0;
   }
   TPoint pos;
-  size_t idx;
+//  size_t idx;
   TPreparedLine *line;
   TTextFragment *fragment;
 };
@@ -217,7 +227,7 @@ class TTextEditor2:
     TPreparedDocument document; // data for screen representation of the text
     
     bool updown;                // 'true' when moving the cursor up and down
-    TCoord updown_x;              // the x position while moving up and down
+    TCoord updown_x;            // the x position while moving up and down
 
   public:
     TTextEditor2(TWindow *parent, const string &title);
@@ -555,6 +565,49 @@ xmldec(const string &text, size_t *offset)
 }
 
 void
+fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr, size_t *length)
+{
+  if (fragment->offset == TTextFragment::npos) {
+    *cstr = "(null)";
+    *length = 6;
+    return;
+  }
+
+  const char *p = text + fragment->offset;
+  if (p[0]=='&') {
+    if (fragment->length == 4) {
+      if (memcmp(p, "&gt;", 4)==0) {
+        *cstr=">";
+        *length=1;
+        return;
+      }
+      if (memcmp(p, "&lt;", 4)==0) {
+        *cstr="<";
+        *length=1;
+        return;
+      }
+    }
+    if (fragment->length == 5) {
+      if (memcmp(p, "&amp;", 5)==0) {
+        *cstr="&";
+        *length=1;
+        return;
+      }
+    }
+    if (fragment->length == 7) {
+      if (memcmp(p, "&times;", 7)==0) {
+        *cstr="×";
+        *length=strlen(*cstr);
+        return;
+      }
+    }
+  }
+
+  *cstr = p;
+  *length = fragment->length;
+}
+
+void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
   if (text.empty())
@@ -572,7 +625,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
   
   document->lines.push_back(new TPreparedLine());
   TPreparedLine *line = document->lines.back();
-  line->text = 0;
+  line->offset = 0;
   
   line->ascent  = 0;
   line->descent = 0;
@@ -591,17 +644,19 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       line->ascent  = max(line->ascent,  font.getAscent());
       line->descent = max(line->descent, font.getDescent());
 //cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
-      if (!fragment || fragment->text) {
+      if (!fragment || fragment->offset != TTextFragment::npos) {
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->attr.setFont(font);
       }
       fragment->offset = x0;
-      fragment->text = text.data()+x0;
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
       fragment->length = x1-x0;
 
-      w = font.getTextWidth(text.substr(x0, x1-x0));
+      const char *cstr;
+      size_t size;
+      fragment2cstr(fragment, text.data(), &cstr, &size);
+      w = font.getTextWidth(cstr, size);
       fragment->origin.x = x;
       fragment->size.width=w;
       fragment->size.height=font.getHeight();
@@ -624,7 +679,7 @@ cout << "TAG: "<<tag<< endl;
         document->lines.push_back(new TPreparedLine());
         document->lines.back()->origin.y = line->origin.y + line->size.height;
         line = document->lines.back();
-        line->text = x0;
+        line->offset  = x0;
         line->ascent  = 0;
         line->descent = 0;
         x=0;
@@ -672,30 +727,20 @@ cout << "TAG: "<<tag<< endl;
     if (c=='&') {
       entityinc(text, &x1);
 
-      if (!fragment || fragment->text) {
+      if (!fragment || fragment->offset != TTextFragment::npos) {
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
         fragment->offset = x0;
       }
-
-      string sub=text.substr(x0+1, x1-x0-2);
-      if (sub=="times") {
-        fragment->text="×";
-      } else
-      if (sub=="gt") {
-        fragment->text=">";
-      } else
-      if (sub=="lt") {
-        fragment->text="<";
-      } else
-      if (sub=="amp") {
-        fragment->text="&";
-      }
-      if (fragment->text)
-        fragment->length=strlen(fragment->text);
+      fragment->length=x1-x0;
+      const char *cstr;
+      size_t size;
+      fragment2cstr(fragment, text.data(), &cstr, &size);
+      
 //printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
-      w = font.getTextWidth(fragment->text, fragment->length);
+
+      w = font.getTextWidth(cstr, size);
       fragment->size.width+=w;
       fragment->size.height=font.getHeight();
       fragment->ascent =  font.getAscent();
@@ -709,7 +754,7 @@ cout << "TAG: "<<tag<< endl;
 }
 
 void
-renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpos)
+renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos)
 {
 ///cout << "render-------------" << endl;
 //cout << "we have " << document->lines.size() << " lines" << endl;
@@ -730,25 +775,23 @@ renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpo
       p != document->lines.end();
       ++p)
   {
-    vector<TPreparedLine*>::const_iterator pe = p;
-    ++pe;
-    size_t textend = (pe == document->lines.end()) ? string::npos : (*pe)->text;
+    size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
     TPreparedLine *line = *p;
 //    cout << "  line " << line->text << " - " << textend << ", height=" << line->size.height << endl;
     
     TCoord s0=0, s1=line->size.width;
     bool s=false;
-    if (line->text < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
+    if (line->offset < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
       s=true;
       s0 = document->marker[SELECTION_BGN].pos.x;
 //      cout << "    begin" << endl;
     }
-    if (line->text < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
+    if (line->offset < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
       s=true;
       s1 = document->marker[SELECTION_END].pos.x;
 //      cout << "    end" << endl;
     }
-    if (!s && xpos[SELECTION_BGN] < line->text && textend < xpos[SELECTION_END]) {
+    if (!s && xpos[SELECTION_BGN] < line->offset && textend < xpos[SELECTION_END]) {
       s=true;
     }
     if (s) {
@@ -762,20 +805,15 @@ renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpo
       
       TCoord y = line->origin.y + line->ascent - pen.getAscent();
       
-      if (!fragment->text)
-        pen.drawString(fragment->origin.x, y, "null");
-      else
-        pen.drawString(fragment->origin.x, y, fragment->text, fragment->length);
+      const char *cstr;
+      size_t size;
+      fragment2cstr(fragment, text, &cstr, &size);
+      pen.drawString(fragment->origin.x, y, cstr, size);
     }
   }
 
   pen.setColor(0,0,0);
-/*  
-  cout << "document->pos[CURSOR].line = " << document->pos[CURSOR].line << endl;
-  cout << "document->pos[CURSOR].line->ascent      = " << document->pos[CURSOR].line->ascent << endl;
-  cout << "document->pos[CURSOR].line->descent     = " << document->pos[CURSOR].line->descent << endl;
-  cout << "document->pos[CURSOR].line->size.height = " << document->pos[CURSOR].line->size.height << endl;
-*/
+
   // when there's no selection, draw cursor
   if (xpos[SELECTION_BGN] == xpos[SELECTION_END]) {
     TCoord cy = document->marker[CURSOR].pos.y+
@@ -783,6 +821,40 @@ renderPrepared(TPen &pen, TPreparedDocument *document, const vector<size_t> &xpo
                 document->marker[CURSOR].fragment->ascent;
     pen.drawLine(document->marker[CURSOR].pos.x, cy,
                  document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
+  }
+}
+
+void
+updatePrepared(TPreparedDocument *document, size_t offset, size_t len)
+{
+  bool afterOffset = false;
+
+  cout << "updatePrepared" << endl;
+  for(vector<TPreparedLine*>::const_iterator p = document->lines.begin();
+      p != document->lines.end();
+      ++p)
+  {
+    TPreparedLine *line = *p;
+    if (afterOffset) {
+      line->offset += offset;
+      for(auto fragment: line->fragments) {
+        fragment->offset+=offset;
+      }
+      continue;
+    }
+    size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
+    if (line->offset <= offset && offset < textend) {
+      for(auto fragment: line->fragments) {
+        if (afterOffset) {
+          fragment->offset+=offset;
+        } else
+        if (fragment->offset <= offset && offset < fragment->offset + fragment->length) {
+          fragment->length += len;
+          afterOffset = true;
+          // recalculate width of fragment & positions of following segments
+        }
+      }
+    }
   }
 }
 
@@ -815,7 +887,7 @@ TTextEditor2::paint()
 
   // parsed text
   pen.translate(0,72);
-  renderPrepared(pen, &document, xpos);
+  renderPrepared(pen, text.data(), &document, xpos);
 }
 
 #ifndef OLD_TOAD
@@ -881,6 +953,14 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       updown = false;
   }
   
+  if (!move) {
+    cout << "insert at " << xpos[CURSOR] << endl;
+    text.insert(xpos[CURSOR], str);
+    updatePrepared(&document, xpos[CURSOR], strlen(str));
+    invalidateWindow();
+    return;
+  }
+  
   if ((modifier & MK_SHIFT) && move) {
     // adjust selection
     if (sb==oldcursor)
@@ -913,11 +993,11 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
       TCoord x0=0.0, x1;
       for(i0=0; i0<fragment->length; ) {
         i1 = i0;
-        utf8inc(fragment->text, &i1);
+        utf8inc(text.data() + fragment->offset, &i1);
 //char str[16];
 //memset(str, 0, sizeof(str));
 //memcpy(str, fragment->text+i0, i1-i0);
-        TCoord x1 = font.getTextWidth(fragment->text, i1);
+        TCoord x1 = font.getTextWidth(text.data() + fragment->offset, i1);
         TCoord m = (x1-x0)/2 + x0;
             
 //        cout << "      " << i0 << ": " << font.getTextWidth(fragment->text, i0) << " '" <<str << "' (" << (x-fragment->origin.x) << "), m=" << m << endl;
@@ -966,29 +1046,28 @@ positionToOffset(const string &text, TPreparedDocument &document, vector<size_t>
       break;
     }
   }
-  cout << "positionToCursor failed" << endl;
+//  cout << "positionToCursor failed" << endl;
   return 0;
 }
 
+/**
+ * convert xpos to document->marker
+ */
 void
 updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos)
 {
 //  cout << "--------------- updateMarker ----------------" << endl;
+  
   document->marker.resize(xpos.size());
   for(vector<TPreparedLine*>::const_iterator pl = document->lines.begin();
       pl != document->lines.end();
       ++pl)
   {
-    vector<TPreparedLine*>::const_iterator pe = pl;
-    ++pe;
-    size_t textend = (pe == document->lines.end()) ? string::npos : (*pe)->text;
-        TPreparedLine *line = *pl;
-//    cout << "  line " << line->text << " - " << textend << endl;
+    size_t textend = ((pl+1) == document->lines.end()) ? string::npos : (*(pl+1))->offset;
+    TPreparedLine *line = *pl;
+//    cout << "  line " << line->offset << " - " << textend << endl;
     for(auto &pos: xpos) {
-      if (line->text<=pos && pos<textend) {
-//        cout << "    pos="<<pos<<endl;
-//        for(auto fragment: line->fragments) {
-//          cout << "    " << fragment->offset << endl;
+      if (line->offset<=pos && pos<textend) {
           vector<TTextFragment*>::const_iterator p;
           for(p = line->fragments.begin()+1;
               p != line->fragments.end();
@@ -999,10 +1078,15 @@ updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xp
             }
           }
           --p;
-//          cout << "    in fragment : " << (*p)->offset << ", " << (*p)->text << endl;
+//          cout << "    in fragment : " << (*p)->offset << endl;
           TFont font;
           (*p)->attr.setFont(font);
-          document->marker[&pos-xpos.data()].pos.x    = (*p)->origin.x + font.getTextWidth(text.substr((*p)->offset, pos-(*p)->offset));
+          
+          const char *cstr;
+          size_t size;
+          fragment2cstr(*p, text.data(), &cstr, &size);
+
+          document->marker[&pos-xpos.data()].pos.x    = (*p)->origin.x + font.getTextWidth(cstr, pos-(*p)->offset);
           document->marker[&pos-xpos.data()].pos.y    = line->origin.y;
           document->marker[&pos-xpos.data()].line     = line;
           document->marker[&pos-xpos.data()].fragment = *p;
@@ -1099,12 +1183,6 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
     
     here i could compare the tag name for equal and the rest for not equal.
 */
-
-struct test {
-  const char *in;
-  size_t bgn, end;
-  const char *out;
-};
 
 /**
  * if there is an area in text not covered by tag between bgn and end, return true
@@ -1204,92 +1282,98 @@ test_text()
   //            ^           <
   cout << "checked isadd... Ok" << endl;
 
-test test[] = {
-  // touch at head
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    // ^    <
-       0,   5,
-      "<b>Hello</b> <b>this totally</b> really awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    // ^     <
-       0,    6,
-      "<b>Hello </b><b>this totally</b> really awesome." // IMPROVE
-  },
-#if 0
-  // ignore: end of selection is inside a tag
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    // ^       <
-       0,      8,
-      "<b>Hello this totally</b> really awesome."
-  },
-#endif
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    // ^        <
-       0,       9,
-      "<b>Hello this totally</b> really awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    // ^         <
-       0,        10,
-      "<b>Hello this totally</b> really awesome."
-  },
-  // touch at tail
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    //                    ^<
-                          19,20,
-      "Hello <b>this total</b>l<b>y</b> really awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    //                    ^     <
-                          19,   25,
-      "Hello <b>this total</b>ly really awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    //                     ^    <
-                          20,   25,
-      "Hello <b>this totall</b>y really awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    //                      ^    <
-                            21,  26,
-      "Hello <b>this totally </b>really awesome."
-  },
+  struct test {
+    const char *in;
+    size_t bgn, end;
+    const char *out;
+  };
 
-  // ...
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally</b> really awesome.",
-    //               ^                 <
-                     14,               32,
-      "Hello <b>this totally really</b> awesome."
-  },
-  { // 0         1         2         3         4
-    // 0123456789012345678901234567890123456789012
-      "Hello <b>this totally really</b> awesome.",
-    //               ^      <
-                     14,    21,
-      "Hello <b>this </b>totally<b> really</b> awesome."
-  }
-};
+  static test test[] = {
+    // touch at head
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^    <
+         0,   5,
+        "<b>Hello</b> <b>this totally</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^     <
+         0,    6,
+        "<b>Hello </b><b>this totally</b> really awesome." // IMPROVE
+    },
+#if 0
+    // ignore: end of selection is inside a tag
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^       <
+         0,      8,
+        "<b>Hello this totally</b> really awesome."
+    },
+#endif
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^        <
+         0,       9,
+        "<b>Hello this totally</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^         <
+         0,        10,
+        "<b>Hello this totally</b> really awesome."
+    },
+    // touch at tail
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                    ^<
+                            19,20,
+        "Hello <b>this total</b>l<b>y</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                    ^     <
+                            19,   25,
+        "Hello <b>this total</b>ly really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                     ^    <
+                            20,   25,
+        "Hello <b>this totall</b>y really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                      ^    <
+                              21,  26,
+        "Hello <b>this totally </b>really awesome."
+    },
+    
+    // ...
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //               ^                 <
+                       14,               32,
+        "Hello <b>this totally really</b> awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally really</b> awesome.",
+      //               ^      <
+                       14,    21,
+        "Hello <b>this </b>totally<b> really</b> awesome."
+    }
+  };
 
 for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
 cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
@@ -1440,7 +1524,7 @@ cout << __LINE__ << endl;
   cout << "Ok" << endl;
 }
 
-return 0;
+// return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
