@@ -31,6 +31,7 @@
 #include <toad/pen.hh>
 #include <toad/utf8.hh>
 
+#include <cassert>
 #include <vector>
 #include <map>
 
@@ -953,22 +954,28 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       break;
   }
   switch(key) {
-    case TK_DOWN:
+    case TK_DOWN: {
       if (!updown) {
         updown = true;
         updown_x = document.marker[CURSOR].pos.x;
       }
-      xpos[CURSOR]=lineToCursor(document.lineAfter(document.marker[CURSOR].line), text, document, xpos, updown_x);
-      move = true;
-      break;
-    case TK_UP:
+      TPreparedLine *line = document.lineAfter(document.marker[CURSOR].line);
+      if (line) {
+        xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
+        move = true;
+      }
+    } break;
+    case TK_UP: {
       if (!updown) {
         updown = true;
         updown_x = document.marker[CURSOR].pos.x;
       }
-      xpos[CURSOR]=lineToCursor(document.lineBefore(document.marker[CURSOR].line), text, document, xpos, updown_x);
-      move = true;
-      break;
+      TPreparedLine *line = document.lineBefore(document.marker[CURSOR].line);
+      if (line) {
+        xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
+        move = true;
+      }
+    } break;
     default:
       updown = false;
   }
@@ -1000,6 +1007,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
 size_t
 lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x)
 {
+  assert(line);
 //cout << "------------------------- lineToCursor ---------------------" << endl;
   size_t offset = 0;
   for(auto fragment: line->fragments) {
