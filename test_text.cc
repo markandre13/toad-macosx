@@ -855,11 +855,10 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
     if (line->offset <= offset && offset < textend) {
       for(auto fragment: line->fragments) {
         if (afterOffset) {
-          fragment->offset+=len;
+          fragment->offset += len;
           fragment->origin.x += diffW;
-          fragment->size.width += diffW;
         } else
-        if (fragment->offset <= offset && offset < fragment->offset + fragment->length) {
+        if (fragment->offset <= offset && offset <= fragment->offset + fragment->length) {
           fragment->length += len;
 
           const char *cstr;
