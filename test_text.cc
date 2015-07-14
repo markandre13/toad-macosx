@@ -828,8 +828,12 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
 /**
  * for now this function only handles inserting text to an existing fragment
  * todo
- * \li simple inserts must also create new text fragments when between "near" entities
- * \li insert text with tags
+ * \li simple inserts must also create new text fragments when between "near" entities/tags
+ * \li insert text with tags and entities
+ * \li the two points above suggest reusing code from prepareHTML
+ *     (keep in mind that stuff like prepareHTML is intended to be plugable,
+ *     so that we could also handle syntax highlightning for programming
+ *     languages)
  * \li remove
  * \li replace
  */
