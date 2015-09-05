@@ -1144,6 +1144,7 @@ void test_curve();
 void test_text();
 void test_tablet();
 void test_path_bool();
+void test_guitar();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1230,6 +1231,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-path-bool")==0) {
       toad::initialize(1, argv);
       test_path_bool();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-guitar")==0) {
+      toad::initialize(argc, argv);
+      test_guitar();
       toad::terminate();
       return 0;
     }
