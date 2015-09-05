@@ -67,10 +67,13 @@ class TVectorPath
     // normal
     // curvature
     
-
+    
   private:
     void subdivideCutter(EType type, const TPoint *pt, const TRectangle &bounds, bool linesToBezier);
 };
+
+bool operator==(const TVectorPath &p0, const TVectorPath &p1);
+ostream& operator<<(ostream &s, const TVectorPath& p);
 
 class TVectorOperation
 {

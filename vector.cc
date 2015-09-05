@@ -4,6 +4,38 @@
 
 using namespace toad;
 
+bool toad::operator==(const TVectorPath &p0, const TVectorPath &p1)
+{
+  return p0.points == p1.points && p0.type == p1.type;
+}
+
+ostream& toad::operator<<(ostream &out, const TVectorPath& path)
+{
+  out <<"TVectorPath {"<<endl;
+  const TPoint *pt = path.points.data();
+  for(auto p: path.type) {
+//cout << "apply type " << p << ", left="<<(points.size()-(pt-points.data()))<<endl;
+    switch(p) {
+      case TVectorPath::MOVE:
+        out << "  move " << pt[0] << endl;
+        ++pt;
+        break;
+      case TVectorPath::LINE:
+        out << "  line " << pt[0] << endl;
+        ++pt;
+        break;
+      case TVectorPath::CURVE:
+        out << "  curve " << pt[0] << " " << pt[1] << " " << pt[2]<< endl;
+        pt+=3;
+        break;
+      case TVectorPath::CLOSE:
+        cout << "  close" << endl;
+    }
+  }
+  out<<"}"<<endl;
+  return out;
+}
+
 void
 TVectorPath::apply(TPen &pen) const
 {
