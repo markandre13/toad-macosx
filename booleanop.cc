@@ -6,6 +6,8 @@
  *   This is a public domain program                                       *
  ***************************************************************************/
 
+// bop12/cpp/booleanop.cpp
+
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
