@@ -494,6 +494,7 @@ TDialogLayout::TDialogLayout()
   width = 0;
   height = 0;
   drawfocus = false;
+  sizeSet = false;
   gadgets = new TFigureModel();
 }
 
@@ -507,8 +508,10 @@ TDialogLayout::~TDialogLayout()
 void
 TDialogLayout::arrange()
 {
-  window->setSize(width ? width : -1,
-                  height ? height : -1);
+  if (!sizeSet && width && height) {
+    window->setSize(width, height);
+    sizeSet = true; // hack for Cocoa
+  }
 
   // create a map of all child windows
   //-----------------------------------

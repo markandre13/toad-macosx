@@ -42,6 +42,7 @@ class TDialogLayout:
     TCoord height;
     TCoord width;
     bool drawfocus;
+    bool sizeSet;
     PFigureModel gadgets;
 
     TLayoutEditor * createEditor(TWindow *inWindow, TWindow *forWindow);
