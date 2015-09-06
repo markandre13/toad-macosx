@@ -16,6 +16,8 @@
 
 /*
  * \todo
+ *   \li adding a curve as a single sweep event? how about add 'em as four lines/events
+ *       but calculate the intersection differently?
  *   \li separate preparation and connectEdges calls
  *   \li with the previous separation, try to re-use the raw result for another operation
  *   \li use this for the pencil tool
@@ -567,75 +569,81 @@ void BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
 void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
 {
 //cout << endl << endl << "CONNECT EDGES ------------------------------------------------" << endl;
-	// copy the events in the result polygon to resultEvents array
-	std::vector<SweepEvent*> resultEvents;
-	resultEvents.reserve(sortedEvents.size());
-	for (std::deque<SweepEvent*>::const_iterator it = sortedEvents.begin (); it != sortedEvents.end (); it++)
-		if (((*it)->left && (*it)->inResult) || (!(*it)->left && (*it)->otherEvent->inResult))
-			resultEvents.push_back (*it);
 
-	// Due to overlapping edges the resultEvents array can be not wholly sorted
-	bool sorted = false;
-	while (!sorted) {
-		sorted = true;
-		for (unsigned int i = 0; i < resultEvents.size (); ++i) {
-			if (i + 1 < resultEvents.size () && sec (resultEvents[i], resultEvents[i+1])) {
-				std::swap (resultEvents[i], resultEvents[i+1]);
-				sorted = false;
-			}
-		}
-	}
+  // copy the events in the result polygon to resultEvents array
+  std::vector<SweepEvent*> resultEvents;
+  resultEvents.reserve(sortedEvents.size());
+  for(auto it: sortedEvents) {
+    if((it->left && it->inResult) || (!it->left && it->otherEvent->inResult))
+      resultEvents.push_back(it);
+  }
 
-	for (unsigned int i = 0; i < resultEvents.size (); ++i) {
-		resultEvents[i]->pos = i;
-		if (!resultEvents[i]->left)
-			std::swap (resultEvents[i]->pos, resultEvents[i]->otherEvent->pos);
-	}
+  // Due to overlapping edges the resultEvents array can be not wholly sorted
+  bool sorted = false;
+  while(!sorted) {
+    sorted = true;
+    for(size_t i = 0; i < resultEvents.size (); ++i) {
+      if(i + 1 < resultEvents.size() && sec (resultEvents[i], resultEvents[i+1])) {
+        std::swap(resultEvents[i], resultEvents[i+1]);
+        sorted = false;
+      }
+    }
+  }
 
-	std::vector<bool> processed(resultEvents.size(), false);
+  for(size_t i = 0; i < resultEvents.size (); ++i) {
+    resultEvents[i]->pos = i;
+      if(!resultEvents[i]->left)
+        std::swap (resultEvents[i]->pos, resultEvents[i]->otherEvent->pos);
+  }
 
-	for (unsigned int i = 0; i < resultEvents.size (); i++) {
-		if (processed[i])
-			continue;
-		int pos = i;
-		TPoint initial = resultEvents[i]->point;
-		out.move(initial);
-		while (resultEvents[pos]->otherEvent->point != initial) {
-			processed[pos] = true; 
-			if (resultEvents[pos]->left) {
-				resultEvents[pos]->resultInOut = false;
-			} else {
-				resultEvents[pos]->otherEvent->resultInOut = true; 
-			}
-			processed[pos = resultEvents[pos]->pos] = true;
-                        if (resultEvents[pos]->curve) {
+  std::vector<bool> processed(resultEvents.size(), false);
+  for(size_t i = 0; i < resultEvents.size (); ++i) {
+    if (processed[i])
+      continue;
+    ssize_t pos = i;
+    const TPoint &initial = resultEvents[i]->point;
+    out.move(initial);
+    while(resultEvents[pos]->otherEvent->point != initial) {
+      processed[pos] = true; 
+      if (resultEvents[pos]->left) {
+        resultEvents[pos]->resultInOut = false;
+      } else {
+        resultEvents[pos]->otherEvent->resultInOut = true; 
+      }
+      processed[pos = resultEvents[pos]->pos] = true;
+      if(resultEvents[pos]->curve) {
 //cout << "  CURVE " << resultEvents[pos]->id << endl;
-                          out.curve(resultEvents[pos]->point1,
-                                    resultEvents[pos]->point2,
-                                    resultEvents[pos]->point);
-                        } else {
+        out.curve(resultEvents[pos]->point1,
+                  resultEvents[pos]->point2,
+                  resultEvents[pos]->point);
+      } else {
 //cout << "  LINE  " << resultEvents[pos]->id << endl;
-                          out.line(resultEvents[pos]->point);
-                        }
-			pos = nextPos(pos, resultEvents, processed);
-		}
-                out.close();
-		processed[pos] = processed[resultEvents[pos]->pos] = true;
-		resultEvents[pos]->otherEvent->resultInOut = true; 
-	}
+        out.line(resultEvents[pos]->point);
+      }
+      pos = nextPos(pos, resultEvents, processed);
+      if(pos<0) {
+        cout << "no nextPos" << endl;
+        break;
+      }
+    }
+    out.close();
+    processed[pos] = processed[resultEvents[pos]->pos] = true;
+    resultEvents[pos]->otherEvent->resultInOut = true; 
+  }
 }
 
-int BooleanOpImp::nextPos(int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed)
+ssize_t
+BooleanOpImp::nextPos(ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed)
 {
-	unsigned int newPos = pos + 1;
-	while (newPos < resultEvents.size () && resultEvents[newPos]->point == resultEvents[pos]->point) {
-		if (!processed[newPos])
-			return newPos;
-		else
-			++newPos;
-	}
-	newPos = pos - 1;
-	while (processed[newPos])
-		--newPos;
-	return newPos;
+  ssize_t newPos = pos + 1;
+  while(newPos < resultEvents.size() && resultEvents[newPos]->point == resultEvents[pos]->point) {
+    if (!processed[newPos])
+      return newPos;
+    else
+      ++newPos;
+  }
+  newPos = pos - 1;
+  while(newPos > 0 && processed[newPos])
+    --newPos;
+  return newPos;
 }

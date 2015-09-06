@@ -59,6 +59,7 @@ class TMyWindow:
     TVectorPath path;
 
     // additional values from the last mouse event
+    bool proximity;
     float pressure;
     float rotation;
     TPoint tilt;
@@ -69,7 +70,7 @@ class TMyWindow:
 
   public:
     TMyWindow(TWindow *parent, const string &title):
-      TWindow(parent, title)
+      TWindow(parent, title), proximity(false)
     {
       setSize(640, 480);
       setAllMouseMoveEvents(true);
@@ -109,71 +110,33 @@ TMyWindow::paint()
   pen.fill();
 
 #if 0
-  TFreehandPoint fhp[4] = {
-    { 100, 300, 2*M_PI/8*3, 1.0 },
-    { 320, 100, 2*M_PI/8  , 0.5 },
-    { 540, 380, 2*M_PI/8*7, 0.7 },
-    { 400, 400, 2*M_PI/8*9, 0.3 },
-  };
-  
-
-  pen.setAlpha(0.2);
-  for(size_t i=0; i<3; ++i) {
-    // hull for two points
-    vector<TPoint> hull;
-    for(size_t j=i; j<i+2; ++j) {
-      for(TCoord d=0.0; d<2*M_PI; d+=2*M_PI/40) {
-        TPoint p(sin(d)*20.0*fhp[j].pressure, cos(d)*40.0*fhp[j].pressure);
-        TMatrix2D m;
-        m.rotate(fhp[j].rotation);
-        p = m*p+fhp[j];
-        hull.push_back(p);
-      }
-    }
-    convexHull(&hull);
+  if (proximity) {
+    TCoord r = 50.0*pressure+4.0;
+    pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
     
-    TVectorPath np;
-    for(auto p: hull) {
-      if (np.empty())
-        np.move(p);
-      else
-        np.line(p);
-    }
-    np.close();
+    TPoint a[3] = {
+      { pos.x+sin((rotation+170)/360.0 * 2.0 * M_PI)*r,
+        pos.y+cos((rotation+170)/360.0 * 2.0 * M_PI)*r },
+      { pos.x+sin((rotation+180)/360.0 * 2.0 * M_PI)*(r*1.2),
+        pos.y+cos((rotation+180)/360.0 * 2.0 * M_PI)*(r*1.2) },
+      { pos.x+sin((rotation+190)/360.0 * 2.0 * M_PI)*r,
+        pos.y+cos((rotation+190)/360.0 * 2.0 * M_PI)*r },
+    };
+    pen.drawLines(a, 3);
     
-    path = boolean(path, np, cbop::UNION);
+    pen.drawCircle(pos.x+tilt.x*r, pos.y-tilt.y*r, 4, 4);
+    
+    const char *pdt="";
+    switch(pointingDeviceType) {
+      case NX_TABLET_POINTER_UNKNOWN: pdt="unknown"; break;
+      case NX_TABLET_POINTER_PEN:     pdt="pen"; break;
+      case NX_TABLET_POINTER_CURSOR:  pdt="cursor"; break;
+      case NX_TABLET_POINTER_ERASER:  pdt="eraser"; break;
+    }
+    pen.drawString(pos.x+sin((180-135)/360.0 * 2.0 * M_PI)*r,
+                   pos.y+cos((180-135)/360.0 * 2.0 * M_PI)*r,
+                   format("type=%s, uniqueID=%llu", pdt, uniqueID));
   }
-  
-  path.apply(pen);
-  pen.fill();
-#endif
-
-#if 0
-  TCoord r = 50.0*pressure+4.0;
-  pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
-  
-  TPoint a[3] = {
-    { pos.x+sin((rotation+170)/360.0 * 2.0 * M_PI)*r,
-      pos.y+cos((rotation+170)/360.0 * 2.0 * M_PI)*r },
-    { pos.x+sin((rotation+180)/360.0 * 2.0 * M_PI)*(r*1.2),
-      pos.y+cos((rotation+180)/360.0 * 2.0 * M_PI)*(r*1.2) },
-    { pos.x+sin((rotation+190)/360.0 * 2.0 * M_PI)*r,
-      pos.y+cos((rotation+190)/360.0 * 2.0 * M_PI)*r },
-  };
-  pen.drawLines(a, 3);
-  
-  pen.drawCircle(pos.x+tilt.x*r, pos.y-tilt.y*r, 4, 4);
-  
-  const char *pdt="";
-  switch(pointingDeviceType) {
-    case NX_TABLET_POINTER_UNKNOWN: pdt="unknown"; break;
-    case NX_TABLET_POINTER_PEN:     pdt="pen"; break;
-    case NX_TABLET_POINTER_CURSOR:  pdt="cursor"; break;
-    case NX_TABLET_POINTER_ERASER:  pdt="eraser"; break;
-  }
-  pen.drawString(pos.x+sin((180-135)/360.0 * 2.0 * M_PI)*r,
-                 pos.y+cos((180-135)/360.0 * 2.0 * M_PI)*r,
-                 format("type=%s, uniqueID=%llu", pdt, uniqueID));
 #endif
 }
 
@@ -181,7 +144,7 @@ static void
 addHull(vector<TPoint> *hull, vector<TFreehandPoint> handpath, size_t idx)
 {
   for(TCoord d=0.0; d<2*M_PI; d+=2*M_PI/40) {
-    TPoint p(sin(d)*20.0*handpath[idx].pressure, cos(d)*40.0*handpath[idx].pressure);
+    TPoint p(sin(d)*2.0*handpath[idx].pressure, cos(d)*10.0*handpath[idx].pressure);
     TMatrix2D m;
     m.rotate(handpath[idx].rotation);
     p = m*p+handpath[idx];
@@ -207,11 +170,13 @@ cout << "up" << endl;
     if ([me.nsevent isEnteringProximity]) {
       pointingDeviceType = [me.nsevent pointingDeviceType];
       uniqueID = [me.nsevent uniqueID];
+      proximity = true;
 cout << uniqueID << " entered proximity" << endl;
     } else {
 cout << uniqueID << " left proximity" << endl;
       pointingDeviceType = 0;
       uniqueID = 0;
+      proximity = false;
     }
     capability = [me.nsevent capabilityMask];
 #if 0
@@ -244,6 +209,7 @@ cout << uniqueID << " left proximity" << endl;
     if (capability & kTransducerRotationBitMask)
       cout << "  kTransducerRotationBitMask" << endl;
 #endif
+    invalidateWindow();
     return;
   }
   pos = me.pos;
@@ -261,14 +227,12 @@ cout << uniqueID << " left proximity" << endl;
   }
 
   if (me.modifier() & MK_LBUTTON) {
-    cout << "add point " << me.pos << endl;
-
     vector<TPoint> hull;
     if (handpath.empty()) {
-      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation, pressure));
+      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation/360.0 * 2.0 * M_PI, pressure));
       addHull(&hull, handpath, 0);
     } else {
-      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation, pressure));
+      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation/360.0 * 2.0 * M_PI, pressure));
       addHull(&hull, handpath, handpath.size()-2);
       addHull(&hull, handpath, handpath.size()-1);
       convexHull(&hull);
@@ -283,10 +247,12 @@ cout << uniqueID << " left proximity" << endl;
         np.line(p);
     }
     np.close();
-
+cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
     path = boolean(path, np, cbop::UNION);
+cout << "added" << endl;
     invalidateWindow();
   }
+  
 //  cout << "mouseEvent " << me.name() << ", " << me.pressure() << ", " << me.tangentialPressure() << ", " << me.rotation() << ", " << me.tilt() << endl;
 }
 

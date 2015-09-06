@@ -1046,7 +1046,8 @@ test_tablet.o: include/toad/font.hh include/toad/pointer.hh
 test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
-test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
+test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
+test_tablet.o: bbox_2.h types.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1057,7 +1058,7 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
-test_path_bool.o: booleanop.hh utilities.h types.hh bbox_2.h
+test_path_bool.o: booleanop.hh bbox_2.h types.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1083,7 +1084,7 @@ booleanop.o: include/toad/matrix2d.hh include/toad/window.hh
 booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh utilities.h types.hh bbox_2.h
+booleanop.o: include/toad/connect.hh bbox_2.h types.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh
@@ -1469,8 +1470,7 @@ toadtest.o: include/toad/pointer.hh include/toad/matrix2d.hh
 toadtest.o: include/toad/window.hh include/toad/interactor.hh
 toadtest.o: include/toad/cursor.hh include/toad/region.hh
 toadtest.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-toadtest.o: include/toad/model.hh include/toad/connect.hh utilities.h
-toadtest.o: types.hh bbox_2.h
+toadtest.o: include/toad/model.hh include/toad/connect.hh bbox_2.h types.hh
 interactor.o: include/toad/interactor.hh include/toad/types.hh
 control.o: include/toad/control.hh include/toad/window.hh
 control.o: include/toad/interactor.hh include/toad/types.hh
@@ -2421,7 +2421,8 @@ test_tablet.o: include/toad/font.hh include/toad/pointer.hh
 test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
-test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
+test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
+test_tablet.o: bbox_2.h types.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2432,7 +2433,7 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
-test_path_bool.o: booleanop.hh utilities.h types.hh bbox_2.h
+test_path_bool.o: booleanop.hh bbox_2.h types.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2458,7 +2459,7 @@ booleanop.o: include/toad/matrix2d.hh include/toad/window.hh
 booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh utilities.h types.hh bbox_2.h
+booleanop.o: include/toad/connect.hh bbox_2.h types.hh
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

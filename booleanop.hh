@@ -18,7 +18,6 @@
 #include <iostream>
 #include <toad/vector.hh>
 
-#include "utilities.h"
 #include "bbox_2.h"
 
 namespace cbop {
@@ -149,7 +148,7 @@ private:
 	void computeFields (SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev);
 	// connect the solution edges to build the result polygon
 	void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
-	int nextPos (int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
+	ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
 
