@@ -21,7 +21,7 @@ using toad::TPoint;
 struct SweepEvent; // forward declaration
 
 // int findIntersection (const Segment_2& seg0, const Segment_2& seg1, TPoint& ip0, TPoint& ip1);
-int findIntersection(const SweepEvent* e1, const SweepEvent* e2, TPoint& ip0, TPoint& ip1);
+// int findIntersection(const SweepEvent* e1, const SweepEvent* e2, TPoint& ip0, TPoint& ip1);
 // point, otherEvent->point
 
 /** Signed area of the triangle (p0, p1, p2) */

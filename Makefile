@@ -32,7 +32,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
 	   test_path_bool.cc test_guitar.cc \
 	   \
-	   utilities.cc booleanop.cc
+	   booleanop.cc
 	
 SRC_COCOA=window.cc pen.cc
 
@@ -1075,15 +1075,6 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
-utilities.o: utilities.h types.hh booleanop.hh include/toad/vector.hh
-utilities.o: include/toad/penbase.hh include/toad/color.hh
-utilities.o: include/toad/types.hh include/toad/io/serializable.hh
-utilities.o: include/toad/io/atvparser.hh include/toad/font.hh
-utilities.o: include/toad/pointer.hh include/toad/matrix2d.hh
-utilities.o: include/toad/window.hh include/toad/interactor.hh
-utilities.o: include/toad/cursor.hh include/toad/region.hh
-utilities.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-utilities.o: include/toad/model.hh include/toad/connect.hh bbox_2.h
 booleanop.o: booleanop.hh include/toad/vector.hh include/toad/penbase.hh
 booleanop.o: include/toad/color.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -2459,15 +2450,6 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
-utilities.o: utilities.h types.hh booleanop.hh include/toad/vector.hh
-utilities.o: include/toad/penbase.hh include/toad/color.hh
-utilities.o: include/toad/types.hh include/toad/io/serializable.hh
-utilities.o: include/toad/io/atvparser.hh include/toad/font.hh
-utilities.o: include/toad/pointer.hh include/toad/matrix2d.hh
-utilities.o: include/toad/window.hh include/toad/interactor.hh
-utilities.o: include/toad/cursor.hh include/toad/region.hh
-utilities.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-utilities.o: include/toad/model.hh include/toad/connect.hh bbox_2.h
 booleanop.o: booleanop.hh include/toad/vector.hh include/toad/penbase.hh
 booleanop.o: include/toad/color.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
