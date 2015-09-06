@@ -9,6 +9,12 @@ bool toad::operator==(const TVectorPath &p0, const TVectorPath &p1)
   return p0.points == p1.points && p0.type == p1.type;
 }
 
+void TVectorPath::join(const TVectorPath &p)
+{
+  type.insert(type.end(), p.type.begin(), p.type.end());
+  points.insert(points.end(), p.points.begin(), p.points.end());
+}
+
 ostream& toad::operator<<(ostream &out, const TVectorPath& path)
 {
   out <<"TVectorPath {"<<endl;

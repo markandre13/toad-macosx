@@ -16,7 +16,6 @@
 
 /*
  * \todo
- *   \li re-enable optimizations
  *   \li separate preparation and connectEdges calls
  *   \li with the previous separation, try to re-use the raw result for another operation
  *   \li use this for the pencil tool
@@ -30,8 +29,8 @@ using namespace cbop;
 using namespace std;
 using namespace toad;
 
-SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et) : 
-  left (b), point (p), otherEvent (other), pol (pt), type (et), prevInResult (0), inResult (false), curve(false)
+SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et):
+  left(b), point(p), curve(false), otherEvent(other), pol(pt), type(et), inResult(false), prevInResult(0)
 {
 }
 
@@ -103,10 +102,10 @@ void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& c
         Bbox_2 subjectBB(sb.x1, sb.y1, sb.x2, sb.y2);
         Bbox_2 clippingBB(cb.x1, cb.y1, cb.x2, cb.y2);
         const double MINMAXX = std::min(subjectBB.xmax(), clippingBB.xmax()); // for optimization 2
-#if 0
-	if (trivialOperation(subject, clipping, subjectBB, clippingBB)) // trivial cases can be quickly resolved without sweeping the plane
+
+	if (trivialOperation(subj, clip, subjectBB, clippingBB, out)) // trivial cases can be quickly resolved without sweeping the plane
 		return;
-#endif
+
         // convert 'subject' and 'clipping' into sweep events (eventHolder := all events,  eq := sorted events)
 //cout << "SUBJECT................." << endl;
         path2events(subj, SUBJECT);
@@ -114,6 +113,15 @@ void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& c
         path2events(clip, CLIPPING);
 //cout << "........................" << endl;
 
+/*
+        std::cout << "event list before processing:" << std::endl;
+        std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq2(eq);
+        while(!eq2.empty()) {
+          SweepEvent* se = eq2.top();
+          eq2.pop();
+          std::cout << "  " << se->toString() << std::endl;
+        }
+*/
         // compute the events from eq into sortedEvents
         std::deque<SweepEvent*> sortedEvents;
         
@@ -177,15 +185,19 @@ void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& c
 	connectEdges(sortedEvents, out);
 }
 
-bool BooleanOpImp::trivialOperation(const Polygon& subject, const Polygon& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB)
+bool
+BooleanOpImp::trivialOperation(const toad::TVectorPath& subject,
+                               const toad::TVectorPath& clipping,
+                               const Bbox_2& subjectBB,
+                               const Bbox_2& clippingBB,
+                               toad::TVectorPath &out)
 {
-#if 0
 	// Test 1 for trivial result case
-	if (subject.ncontours() * clipping.ncontours() == 0) { // At least one of the polygons is empty
+	if (subject.empty() || clipping.empty()) { // At least one of the polygons is empty
 		if (operation == DIFFERENCE)
-			result = subject;
+			out = subject;
 		if (operation == UNION || operation == XOR)
-			result = (subject.ncontours () == 0) ? clipping : subject;
+			out = subject.empty() ? clipping : subject;
 		return true;
 	}
 	// Test 2 for trivial result case
@@ -193,14 +205,14 @@ bool BooleanOpImp::trivialOperation(const Polygon& subject, const Polygon& clipp
 	    subjectBB.ymin () > clippingBB.ymax () || clippingBB.ymin () > subjectBB.ymax ()) {
 		// the bounding boxes do not overlap
 		if (operation == DIFFERENCE)
-			result = subject;
+			out = subject;
 		if (operation == UNION || operation == XOR) {
-			result = subject;
-			result.join(clipping);
+			out = subject;
+			out.join(clipping);
 		}
 		return true;
 	}
-#endif
+
 	return false;
 }
 
@@ -239,6 +251,7 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
  */
 void BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType pt)
 {
+//cout << "segment " << p0 << " - " << p1 << endl;
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
 		return;          // This can be done as preprocessing to avoid "polygons" with less than 3 edges */
 	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
@@ -256,6 +269,11 @@ void BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType p
 	}
 	eq.push(e1);
 	eq.push(e2);
+/*
+std::cout << "processSegment" << std::endl;
+std::cout << "  " << e1->toString() << std::endl;
+std::cout << "  " << e2->toString() << std::endl;
+*/
 }
 
 void BooleanOpImp::processCurve(const TPoint &p0, const TPoint* pn, PolygonType pt)
@@ -338,10 +356,11 @@ bool BooleanOpImp::inResult(const SweepEvent* le) const
 
 int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 {
-//std::cout << "possibleIntersection between " << std::endl
-//          << "  " << le1->toString() << std::endl
-//          << "  " << le2->toString() << std::endl;
-
+/*
+std::cout << "possibleIntersection between " << std::endl
+          << "  " << le1->toString() << std::endl
+          << "  " << le2->toString() << std::endl;
+*/
 //	if (e1->pol == e2->pol) // you can uncomment these two lines if self-intersecting polygons are not allowed
 //		return 0;
 
@@ -360,18 +379,22 @@ int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 
 	if (nintersections == 2 && le1->pol == le2->pol) {
 		std::cerr << "Sorry, edges of the same polygon overlap\n";
+		std::cerr << "  " << le1->point << endl;
+		std::cerr << "  " << le2->point << endl;
+		std::cerr << "  le1=" << le1 << endl;
+		std::cerr << "  le2=" << le2 << endl;
 		exit(1); // the line segments overlap, but they belong to the same polygon
 	}
 
 	// The line segments associated to le1 and le2 intersect
 	if (nintersections == 1) {
-	        std::cout << "  one intersection, divide" << std::endl;
+//	        std::cout << "  one intersection, divide" << std::endl;
 		if (le1->point != ip1 && le1->otherEvent->point != ip1) { // if the intersection point is not an endpoint of le1->segment ()
-		        cout << "    divide 1st event " << endl;
+//		        cout << "    divide 1st event " << endl;
 			divideSegment(le1, ip1);
                 }
 		if (le2->point != ip1 && le2->otherEvent->point != ip1) { // if the intersection point is not an endpoint of le2->segment ()
-		        cout << "    divide 2nd event" << endl;
+//		        cout << "    divide 2nd event" << endl;
 			divideSegment(le2, ip1);
                 }
 		return 1;
@@ -425,7 +448,7 @@ int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 
 void BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
 {
-cout << "divide " << le->id << " at " << p << endl;
+//cout << "divide " << le->id << " at " << p << endl;
 
 //	std::cout << "YES. INTERSECTION" << std::endl;
 	// "Right event" of the "left line segment" resulting from dividing le->segment ()
@@ -450,10 +473,10 @@ cout << "divide " << le->id << " at " << p << endl;
 
 void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
 {
-cout << endl << endl << "CONNECT EDGES ------------------------------------------------" << endl;
+//cout << endl << endl << "CONNECT EDGES ------------------------------------------------" << endl;
 	// copy the events in the result polygon to resultEvents array
 	std::vector<SweepEvent*> resultEvents;
-	resultEvents.reserve (sortedEvents.size ());
+	resultEvents.reserve(sortedEvents.size());
 	for (std::deque<SweepEvent*>::const_iterator it = sortedEvents.begin (); it != sortedEvents.end (); it++)
 		if (((*it)->left && (*it)->inResult) || (!(*it)->left && (*it)->otherEvent->inResult))
 			resultEvents.push_back (*it);
@@ -493,12 +516,12 @@ cout << endl << endl << "CONNECT EDGES -----------------------------------------
 			}
 			processed[pos = resultEvents[pos]->pos] = true;
                         if (resultEvents[pos]->curve) {
-cout << "  CURVE " << resultEvents[pos]->id << endl;
+//cout << "  CURVE " << resultEvents[pos]->id << endl;
                           out.curve(resultEvents[pos]->point1,
                                     resultEvents[pos]->point2,
                                     resultEvents[pos]->point);
                         } else {
-cout << "  LINE  " << resultEvents[pos]->id << endl;
+//cout << "  LINE  " << resultEvents[pos]->id << endl;
                           out.line(resultEvents[pos]->point);
                         }
 			pos = nextPos(pos, resultEvents, processed);

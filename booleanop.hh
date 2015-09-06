@@ -132,7 +132,7 @@ private:
 	std::deque<SweepEvent> eventHolder;    // It holds the events generated during the computation of the boolean operation
 	SweepEventComp sec;                    // to compare events
 
-	bool trivialOperation(const Polygon& subject, const Polygon& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB);
+	bool trivialOperation(const toad::TVectorPath& subject, const toad::TVectorPath& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB, toad::TVectorPath &result);
 	void path2events(const toad::TVectorPath& poly, PolygonType type);
 	/** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
         void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
