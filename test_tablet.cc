@@ -23,6 +23,7 @@
 #include <toad/connect.hh>
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
+#include "booleanop.hh"
 
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
@@ -90,46 +91,55 @@ TMyWindow::paint()
 {
   TPen pen(this);
 
-  // make these béziers
-
-  TPoint c[4] = {
-    { 100, 300 },
-    { 320, 100 },
-    { 540, 380 },
-    { 400, 400 },
+#if 1
+  struct TFreehandPoint:
+    public TPoint
+  {
+    TFreehandPoint(TCoord x, TCoord y, TCoord r, TCoord p):TPoint(x,y), rotation(r), pressure(p){}
+    TCoord rotation, pressure;
   };
-  TCoord r[4] = {
-    2*M_PI/8*3,
-    2*M_PI/8,
-    2*M_PI/8*7,
-    2*M_PI/8*9
+  
+  TFreehandPoint fhp[4] = {
+    { 100, 300, 2*M_PI/8*3, 1.0 },
+    { 320, 100, 2*M_PI/8  , 0.5 },
+    { 540, 380, 2*M_PI/8*7, 0.7 },
+    { 400, 400, 2*M_PI/8*9, 0.3 },
   };
-  TCoord s[4] = {
-    25,
-    15,
-    20,
-    15
-  };
+  
+  TVectorPath path;
 
   pen.setAlpha(0.2);
   for(size_t i=0; i<3; ++i) {
+    // hull for two points
     vector<TPoint> hull;
     for(size_t j=i; j<i+2; ++j) {
       for(TCoord d=0.0; d<2*M_PI; d+=2*M_PI/40) {
-        TPoint p(sin(d)*1.0*s[j], cos(d)*2.0*s[j]);
+        TPoint p(sin(d)*20.0*fhp[j].pressure, cos(d)*40.0*fhp[j].pressure);
         TMatrix2D m;
-        m.rotate(r[j]);
-        p = m*p+c[j];
-        pen.fillRectangle(p.x, p.y, 1, 1);
+        m.rotate(fhp[j].rotation);
+        p = m*p+fhp[j];
         hull.push_back(p);
       }
     }
     convexHull(&hull);
-    pen.fillPolygon(hull.data(), hull.size());
+    
+    TVectorPath np;
+    for(auto p: hull) {
+      if (np.empty())
+        np.move(p);
+      else
+        np.line(p);
+    }
+    np.close();
+    
+    path = boolean(path, np, cbop::UNION);
   }
+  
+  path.apply(pen);
+  pen.fill();
+#endif
 
 #if 0
-
   TCoord r = 50.0*pressure+4.0;
   pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
   

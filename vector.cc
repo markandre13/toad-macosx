@@ -45,7 +45,7 @@ ostream& toad::operator<<(ostream &out, const TVectorPath& path)
 void
 TVectorPath::apply(TPen &pen) const
 {
-cout << "TVectorPath::apply" << endl;
+//cout << "TVectorPath::apply" << endl;
   const TPoint *pt = points.data();
   for(auto p: type) {
 //cout << "apply type " << p << ", left="<<(points.size()-(pt-points.data()))<<endl;
@@ -70,6 +70,8 @@ TBoundary
 TVectorPath::bounds() const
 {
   TBoundary b;
+  if (points.empty())
+    return b;
   const TPoint *pt = points.data();
   b.x1 = b.x1 = pt->x;
   b.y1 = b.y1 = pt->y;
@@ -98,6 +100,8 @@ TBoundary
 TVectorPath::editBounds() const
 {
   TBoundary b;
+  if (points.empty())
+    return b;
   auto p = points.begin();
   b.x1 = b.x1 = p->x;
   b.y1 = b.y1 = p->y;
