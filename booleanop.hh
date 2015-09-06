@@ -152,11 +152,11 @@ private:
 	int nextPos (int pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
-inline void compute(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath &result, BooleanOpType op)
-{
-	BooleanOpImp boi(op);
-	boi.run(subj, clip, result);
-}
+
 
 } // end of namespace cbop
+
+namespace toad {
+  TVectorPath boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op);
+}
 #endif

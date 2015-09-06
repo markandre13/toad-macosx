@@ -95,6 +95,15 @@ BooleanOpImp::BooleanOpImp(BooleanOpType op)
 {
 }
 
+TVectorPath
+toad::boolean(const TVectorPath &subj, const TVectorPath &clip, cbop::BooleanOpType op)
+{
+  TVectorPath result;
+  BooleanOpImp boi(op);
+  boi.run(subj, clip, result);
+  return result;
+}
+
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
         // for optimizations 1 and 2

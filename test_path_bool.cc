@@ -49,14 +49,6 @@ class TMyWindow:
     void paint() override;
 };
 
-TVectorPath
-boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
-{
-  TVectorPath c;
-  cbop::compute(a, b, c, op);
-  return c;
-}
-
 void
 TMyWindow::paint()
 {

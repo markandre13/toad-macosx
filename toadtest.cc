@@ -3,14 +3,6 @@
 
 using namespace toad;
 
-static TVectorPath
-boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op)
-{
-  TVectorPath c;
-  cbop::compute(a, b, c, op);
-  return c;
-}
-
 TEST(BooleanOp, OverlapUnion) {
   TVectorPath p0;
   p0.move(TPoint(10,10));
