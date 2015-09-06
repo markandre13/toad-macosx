@@ -24,6 +24,7 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 #include "booleanop.hh"
+#include <fstream>
 
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
@@ -57,6 +58,8 @@ class TMyWindow:
     
     // cummulated path (only line segments)
     TVectorPath path;
+    
+    ofstream backup;
 
     // additional values from the last mouse event
     bool proximity;
@@ -106,8 +109,12 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
+  pen.setColor(0.7,0.7,0.7);
   path.apply(pen);
   pen.fill();
+  pen.setColor(0,0,0);
+  path.apply(pen);
+  pen.stroke();
 
 #if 0
   if (proximity) {
@@ -157,6 +164,8 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
 {
   if (me.type==TMouseEvent::LDOWN) {
 cout << "down" << endl;
+    backup.close();
+    backup.open("backup.txt");
     handpath.clear();
     path.clear();
   } else
@@ -229,9 +238,11 @@ cout << uniqueID << " left proximity" << endl;
   if (me.modifier() & MK_LBUTTON) {
     vector<TPoint> hull;
     if (handpath.empty()) {
+      backup << me.pos.x << " " << me.pos.y << " " << rotation/360.0 * 2.0 * M_PI << " " << pressure << endl;
       handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation/360.0 * 2.0 * M_PI, pressure));
       addHull(&hull, handpath, 0);
     } else {
+      backup << me.pos.x << " " << me.pos.y << " " << rotation/360.0 * 2.0 * M_PI << " " << pressure << endl;
       handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation/360.0 * 2.0 * M_PI, pressure));
       addHull(&hull, handpath, handpath.size()-2);
       addHull(&hull, handpath, handpath.size()-1);
@@ -247,9 +258,9 @@ cout << uniqueID << " left proximity" << endl;
         np.line(p);
     }
     np.close();
-cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
+//cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
     path = boolean(path, np, cbop::UNION);
-cout << "added" << endl;
+//cout << "added" << endl;
     invalidateWindow();
   }
   
@@ -259,8 +270,60 @@ cout << "added" << endl;
 } // unnamed namespace
 
 void
+replay(const char *filename)
+{
+  ifstream in;
+  in.open(filename);
+  
+  TVectorPath path;
+  vector<TFreehandPoint> handpath;
+  
+  while(true) {
+    TCoord x, y, r, p;
+    in>>x;
+    in>>y;
+    in>>r;
+    in>>p;
+    if (!in)
+      break;
+    cout << x << " " << y << " " << r << " " << p << endl;
+
+    vector<TPoint> hull;
+    if (handpath.empty()) {
+      handpath.push_back(TFreehandPoint(x, y, r, p));
+      addHull(&hull, handpath, 0);
+    } else {
+      handpath.push_back(TFreehandPoint(x, y, r, p));
+      addHull(&hull, handpath, handpath.size()-2);
+      addHull(&hull, handpath, handpath.size()-1);
+      convexHull(&hull);
+    }
+    
+    // this could be more efficient
+    TVectorPath np;
+    for(auto p: hull) {
+      if (np.empty())
+        np.move(p);
+      else
+        np.line(p);
+    }
+    np.close();
+
+cout << "==========================================================================" << endl;
+cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
+    path = boolean(path, np, cbop::UNION);
+cout << "added" << endl;
+  }
+}
+
+void
 test_tablet()
 {
+#if 0
+//  replay("test.txt");
+  replay("backup-hang000.txt");
+#else
   TMyWindow wnd(NULL, "test tablet");
   toad::mainLoop();
+#endif
 }

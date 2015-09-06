@@ -598,6 +598,7 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
 
   std::vector<bool> processed(resultEvents.size(), false);
   for(size_t i = 0; i < resultEvents.size (); ++i) {
+//cout << "i = " << i << endl;
     if (processed[i])
       continue;
     ssize_t pos = i;
@@ -620,9 +621,12 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
 //cout << "  LINE  " << resultEvents[pos]->id << endl;
         out.line(resultEvents[pos]->point);
       }
+ssize_t oldpos = pos;
       pos = nextPos(pos, resultEvents, processed);
+//cout << "  pos = " << pos << endl;
       if(pos<0) {
         cout << "no nextPos" << endl;
+        pos = oldpos;
         break;
       }
     }
@@ -643,7 +647,8 @@ BooleanOpImp::nextPos(ssize_t pos, const std::vector<SweepEvent*>& resultEvents,
       ++newPos;
   }
   newPos = pos - 1;
-  while(newPos > 0 && processed[newPos])
+  while(newPos>=0 && processed[newPos]) {
     --newPos;
+  }
   return newPos;
 }
