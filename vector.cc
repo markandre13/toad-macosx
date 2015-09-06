@@ -15,6 +15,12 @@ void TVectorPath::join(const TVectorPath &p)
   points.insert(points.end(), p.points.begin(), p.points.end());
 }
 
+void TVectorPath::clear()
+{
+  type.clear();
+  points.clear();
+}
+
 ostream& toad::operator<<(ostream &out, const TVectorPath& path)
 {
   out <<"TVectorPath {"<<endl;

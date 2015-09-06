@@ -50,7 +50,8 @@ class TVectorPath
     vector<EType> type;
 
     bool empty() const { return type.empty(); }
-    void join(const TVectorPath &);
+    void join(const TVectorPath &); // append
+    void clear();
     void move(const TPoint &p) { type.push_back(MOVE); points.push_back(p); }
     void line(const TPoint &p) { type.push_back(LINE); points.push_back(p); }
     void curve(const TPoint &p0, const TPoint &p1, const TPoint &p2) {

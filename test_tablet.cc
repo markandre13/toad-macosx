@@ -42,9 +42,23 @@ using namespace toad;
 
 namespace {
 
+struct TFreehandPoint:
+  public TPoint
+{
+  TFreehandPoint(TCoord x, TCoord y, TCoord r, TCoord p):TPoint(x,y), rotation(r), pressure(p){}
+  TCoord rotation, pressure;
+};
+
 class TMyWindow:
   public TWindow
 {
+    // information from the tablet
+    vector<TFreehandPoint> handpath;
+    
+    // cummulated path (only line segments)
+    TVectorPath path;
+
+    // additional values from the last mouse event
     float pressure;
     float rotation;
     TPoint tilt;
@@ -52,6 +66,7 @@ class TMyWindow:
     int pointingDeviceType=0;
     unsigned long long uniqueID=0;
     unsigned capability;
+
   public:
     TMyWindow(TWindow *parent, const string &title):
       TWindow(parent, title)
@@ -90,15 +105,10 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
+  path.apply(pen);
+  pen.fill();
 
-#if 1
-  struct TFreehandPoint:
-    public TPoint
-  {
-    TFreehandPoint(TCoord x, TCoord y, TCoord r, TCoord p):TPoint(x,y), rotation(r), pressure(p){}
-    TCoord rotation, pressure;
-  };
-  
+#if 0
   TFreehandPoint fhp[4] = {
     { 100, 300, 2*M_PI/8*3, 1.0 },
     { 320, 100, 2*M_PI/8  , 0.5 },
@@ -106,7 +116,6 @@ TMyWindow::paint()
     { 400, 400, 2*M_PI/8*9, 0.3 },
   };
   
-  TVectorPath path;
 
   pen.setAlpha(0.2);
   for(size_t i=0; i<3; ++i) {
@@ -168,15 +177,39 @@ TMyWindow::paint()
 #endif
 }
 
+static void
+addHull(vector<TPoint> *hull, vector<TFreehandPoint> handpath, size_t idx)
+{
+  for(TCoord d=0.0; d<2*M_PI; d+=2*M_PI/40) {
+    TPoint p(sin(d)*20.0*handpath[idx].pressure, cos(d)*40.0*handpath[idx].pressure);
+    TMatrix2D m;
+    m.rotate(handpath[idx].rotation);
+    p = m*p+handpath[idx];
+    hull->push_back(p);
+  }
+}
 
 void
 TMyWindow::mouseEvent(const TMouseEvent &me)
 {
+  if (me.type==TMouseEvent::LDOWN) {
+cout << "down" << endl;
+    handpath.clear();
+    path.clear();
+  } else
+  if (me.type==TMouseEvent::LUP) {
+cout << "up" << endl;
+  } else
+  if (me.type==TMouseEvent::TABLET_POINT) {
+//cout << "point " << me.pos << endl;
+  } else
   if (me.type==TMouseEvent::TABLET_PROXIMITY) { // can we translate these into enter & leave events?
     if ([me.nsevent isEnteringProximity]) {
       pointingDeviceType = [me.nsevent pointingDeviceType];
       uniqueID = [me.nsevent uniqueID];
+cout << uniqueID << " entered proximity" << endl;
     } else {
+cout << uniqueID << " left proximity" << endl;
       pointingDeviceType = 0;
       uniqueID = 0;
     }
@@ -227,9 +260,34 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
     rotation = atan2(tilt.y, tilt.x) * 360.0 / (2.0*M_PI) + 90;
   }
 
-  
+  if (me.modifier() & MK_LBUTTON) {
+    cout << "add point " << me.pos << endl;
+
+    vector<TPoint> hull;
+    if (handpath.empty()) {
+      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation, pressure));
+      addHull(&hull, handpath, 0);
+    } else {
+      handpath.push_back(TFreehandPoint(me.pos.x, me.pos.y, rotation, pressure));
+      addHull(&hull, handpath, handpath.size()-2);
+      addHull(&hull, handpath, handpath.size()-1);
+      convexHull(&hull);
+    }
+    
+    // this could be more efficient
+    TVectorPath np;
+    for(auto p: hull) {
+      if (np.empty())
+        np.move(p);
+      else
+        np.line(p);
+    }
+    np.close();
+
+    path = boolean(path, np, cbop::UNION);
+    invalidateWindow();
+  }
 //  cout << "mouseEvent " << me.name() << ", " << me.pressure() << ", " << me.tangentialPressure() << ", " << me.rotation() << ", " << me.tilt() << endl;
-  invalidateWindow();
 }
 
 } // unnamed namespace
