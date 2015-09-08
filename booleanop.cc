@@ -6,7 +6,29 @@
  *   This is a public domain program                                       *
  ***************************************************************************/
 
-// bop12/cpp/booleanop.cpp
+/*
+ * This file implements
+ *
+ *   F. Martínez, C. Ogayar, J.R. Jiménez, A.J. Rueda.
+ *   "A simple algorithm for Boolean operations on polygons"
+ *   Advances in Engineering Software
+ *   Volume 64, October 2013, Pages 11-19
+ *
+ * and builds upon the example implementation in bop12.zip at
+ *
+ *   http://www4.ujaen.es/~fmartin/bool_op.html
+ *
+ * F. Martínez noted that
+ *
+ *   The programs have some robust problems with "complex polygons".
+ *
+ * Changes to the upstream code
+ *
+ * o swapped Polygon for TVectorPath and other tweaks
+ * o nextPos(): avoid segfault when newPos is -1
+ * o todo: some glitches during union where cageo144.zip threw away points during union
+ * o todo: support for curves
+ */    
 
 #include <cstdlib>
 #include <fstream>
