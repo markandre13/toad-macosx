@@ -311,6 +311,7 @@ struct TEditModel
 
   vector<TFreehandPoint> handpath;
   TVectorPath path;
+  TVectorPath nextstroke;
   TVectorPath nextpath;
 
   TIntegerModel pos;
@@ -318,13 +319,6 @@ struct TEditModel
 };
 
 void replay(TEditModel *editmodel);
-
-class TReplayWindow:
-  public TWindow
-{
-  public:
-    TReplayWindow(TWindow *parent, const string &title);
-};
 
 class TVisualization:
   public TScrollPane
@@ -372,8 +366,42 @@ TVisualization::mouseEvent(const TMouseEvent &me)
       break;
     case TEditModel::CUT:
       switch(me.type) {
-        case TMouseEvent::LDOWN:
-          break;
+        case TMouseEvent::LDOWN: {
+          TPoint pt = me.pos * (1.0 / editmodel->zoom);
+          cout << "find something near " << pt << endl;
+          
+          TCoord dm;
+          size_t i, f;
+          
+          dm = 1.0/0.0;
+          i=0; f=-1;
+          for(auto p: editmodel->path.points) {
+            TCoord d = distance(pt, p);
+            if (d<dm) { f = i; dm = d; }
+            ++i;
+          }
+          cout << "found black point " << f << ", " << editmodel->path.points[f] << endl;
+
+          dm = 1.0/0.0;
+          i=0; f=-1;
+          for(auto p: editmodel->nextstroke.points) {
+            TCoord d = distance(pt, p);
+            if (d<dm) { f = i; dm = d; }
+            ++i;
+          }
+          cout << "found blue point " << f << ", " << editmodel->nextstroke.points[f] << endl;
+
+
+          dm = 1.0/0.0;
+          i=0; f=-1;
+          for(auto p: editmodel->nextpath.points) {
+            TCoord d = distance(pt, p);
+            if (d<dm) { f = i; dm = d; }
+            ++i;
+          }
+          cout << "found red point " << f << ", " << editmodel->nextpath.points[f] << endl;
+          
+        } break;
       }
       break;
   }
@@ -389,7 +417,7 @@ TVisualization::paint()
   
   pen.setLineWidth(1.0/editmodel->zoom);
   pen.scale(editmodel->zoom, editmodel->zoom);
-//  pen.translate(-110,-210);
+  TCoord s = 2/editmodel->zoom;
   
   pen.setColor(0.7,0.7,0.7);
   editmodel->path.apply(pen);
@@ -397,65 +425,79 @@ TVisualization::paint()
   pen.setColor(0,0,0);
   editmodel->path.apply(pen);
   pen.stroke();
-
-  TCoord s = 2/editmodel->zoom;
-
+#if 0
   for(auto p: editmodel->path.points) {
-    pen.drawLine(p.x-s, p.y-s, p.x+s, p.y+s);
-    pen.drawLine(p.x+s, p.y-s, p.x-s, p.y+s);
+    pen.drawLine(p.x-2*s, p.y-2*s, p.x+2*s, p.y+2*s);
+    pen.drawLine(p.x+2*s, p.y-2*s, p.x-2*s, p.y+2*s);
   }
-  
+#endif  
+  pen.setColor(0,0,1);
+  editmodel->nextstroke.apply(pen);
+  pen.stroke();
+
+#if 0
+  for(auto p: editmodel->nextstroke.points) {
+    pen.drawCircle(p.x-s*1.5, p.y-s*1.5, 3*s, 3*s);
+  }
+#endif
   pen.setColor(1,0,0);
   editmodel->nextpath.apply(pen);
   pen.stroke();
-  
-
+#if 0
+  size_t i=0;
   for(auto p: editmodel->nextpath.points) {
-    pen.drawLine(p.x-s, p.y-s, p.x+s, p.y+s);
-    pen.drawLine(p.x+s, p.y-s, p.x-s, p.y+s);
+
+    if (705 <= i && i <= 706) {
+cout << "draw " << i << " " << p << endl;
+      pen.setColor(0,0.7,0);
+    } else
+    if (i == 919) {
+cout << "draw " << i << " " << p << endl;
+      pen.setColor(1,0.5,0);
+    } else {
+      pen.setColor(1,0,0);
+    }
+
+    pen.drawCircle(p.x-2*s, p.y-2*s, 4*s, 4*s);
+    ++i;
   }
+#endif
 }
 
-TReplayWindow::TReplayWindow(TWindow *parent, const string &title):
-  TWindow(parent, title)
+extern bool global_debug;
+
+// write TVectorPath in the format used by bop12
+void
+store(const TVectorPath &path, const char *fn)
 {
-  TEditModel *editmodel = new TEditModel();
-cerr << "editmodel:=" << editmodel << endl;
-  editmodel->zoom = 1.0;
+  ofstream out(fn);
+  size_t n;
+  n = 0;
+  for(auto x: path.type)
+    if (x==TVectorPath::CLOSE)
+      ++n;
+  out << n << endl;
   
-  // load data
-  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547
-  editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
-  connect(editmodel->pos.sigChanged, [this, editmodel] {
-    replay(editmodel);
-    this->invalidateWindow();
-  });
-  editmodel->pos = 546;
-  w = 640;
-  h = 480;
-
-  // panel
-  TDialog *panel = new TDialog(this, "panel");
-  panel->flagShell = false;
-  panel->bDrawFocus = true;
-
-  editmodel->tool.add(new TFatRadioButton(panel, "zoom"), TEditModel::ZOOM);
-  editmodel->tool.add(new TFatRadioButton(panel, "cut"), TEditModel::CUT);
-
-  new TTextArea(panel, "replay-pos-text", &editmodel->pos);
-  new TScrollBar(panel, "replay-pos-slider", &editmodel->pos);
-  
-  panel->loadLayout("boolean-op-debug-panel-atv");
-
-  // visualization
-  TVisualization *pane = new TVisualization(this, "pane", editmodel);
-
-  TSpringLayout *layout = new TSpringLayout;
-  // FIXME: this doesn't work with BOTTOM
-  layout->attach("panel", TSpringLayout::TOP | TSpringLayout::LEFT | TSpringLayout::BOTTOM);
-  layout->attach("pane", TSpringLayout::TOP | TSpringLayout::RIGHT | TSpringLayout::BOTTOM);
-  layout->attach("pane", TSpringLayout::LEFT, "panel");
-  setLayout(layout);
+  const TPoint *pt = path.points.data();
+  for(auto p0 = path.type.begin(); p0 != path.type.end(); ++p0) {
+    switch(*p0) {
+      case TVectorPath::MOVE:
+        n = 1;
+        for(auto p1=p0+1; p1!=path.type.end() && *p1!=TVectorPath::CLOSE; ++p1)
+          ++n;
+        out << n << endl;
+      case TVectorPath::LINE:
+        out << "\t" << pt->x << " " << pt->y << endl;
+        ++pt;
+        break;
+      case TVectorPath::CURVE:
+        cout << "  curve not supported" << endl;
+        exit(EXIT_FAILURE);
+        break;
+      case TVectorPath::CLOSE:
+        cout << "  close" << endl;
+    }
+  }
 }
 
 void
@@ -464,11 +506,13 @@ replay(TEditModel *editmodel)
   auto &pos(editmodel->pos);
   auto &path(editmodel->path);
   auto &handpath(editmodel->handpath);
+  auto &nextstroke(editmodel->nextstroke);
   auto &nextpath(editmodel->nextpath);
 
   assert(pos<handpath.size());
 
   path.clear();
+  nextpath.clear();
   for(size_t i=0; i<pos; ++i) {
     vector<TPoint> hull;
 
@@ -492,41 +536,126 @@ replay(TEditModel *editmodel)
     }
     
     // this could be more efficient
-    TVectorPath np;
+    nextstroke.clear();
     for(auto p: hull) {
-      if (np.empty())
-        np.move(p);
+      if (nextstroke.empty())
+        nextstroke.move(p);
       else
-        np.line(p);
+        nextstroke.line(p);
     }
-    np.close();
-
-    boolean(path, np, &path, cbop::UNION);
+    nextstroke.close();
+    if (i+1<pos) {
+      boolean(path, nextstroke, &path, cbop::UNION);
+    } else {
+    
+TVectorPath x;
+x.move(TPoint(0,195));
+x.line(TPoint(155,195));
+x.line(TPoint(155,240));
+x.line(TPoint(0,240));
+x.close();
+boolean(path, x, &path, cbop::INTERSECTION);
+    
+      cout << "----------------- FINAL UNION -------------------" << endl;
+global_debug = true;
+      boolean(path, nextstroke, &nextpath, cbop::UNION);
+global_debug = false;
+      cout << "-------------------------------------------------" << endl;
+    }
   }
   
-  nextpath.clear();
-  if (pos+1<handpath.size()) {
-    vector<TPoint> hull;
-    addHull(&hull, handpath, pos);
-    addHull(&hull, handpath, pos+1);
-    convexHull(&hull);
-    for(auto p: hull) {
-      if (nextpath.empty())
-        nextpath.move(p);
-      else
-        nextpath.line(p);
-    }
-    nextpath.close();
-  }
+  store(path, "subj");
+  store(nextstroke, "clip");
+}
+
+class TMyPainter:
+  public TWindow
+{
+  public:
+    TVectorPath subj, clip, result;
+  
+    TMyPainter(TWindow *parent, const string &title): TWindow(parent, title) {}
+    void paint() override;
+};
+
+void TMyPainter::paint()
+{
+  TPen pen(this);
+  
+  pen.setColor(0,0,0);
+  subj.apply(pen);
+  pen.stroke();
+  
+  pen.setColor(0,0,1);
+  clip.apply(pen);
+  pen.stroke();
+  
+  pen.setColor(1,0,0);
+  result.apply(pen);
+  pen.stroke();
 }
 
 void
 test_tablet()
 {
-#if 1
-  TReplayWindow wnd(NULL, "Boolean Operations Debugger");
+#if 0
+  TVectorPath p;
+  p.move(TPoint(1,2));
+  p.line(TPoint(3,4));
+  p.line(TPoint(5,6));
+  p.close();
+  p.move(TPoint(7,8));
+  p.line(TPoint(9,10));
+  p.close();
+  store(p, "test");
+#endif
+#if 0
+  TMyPainter p(NULL, "Test");
+  p.subj.move(
   toad::mainLoop();
-#else
+#endif
+#if 1
+  TEditModel *editmodel = new TEditModel();
+  editmodel->zoom = 1.0;
+
+  TWindow *wnd = new TWindow(NULL, "Boolean Operations Debugger");
+  TDialog *panel = new TDialog(wnd, "panel");
+  TVisualization *pane = new TVisualization(wnd, "pane", editmodel);
+  
+  // load data
+  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547
+  editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
+  connect(editmodel->pos.sigChanged, [pane, editmodel] {
+    replay(editmodel);
+    pane->invalidateWindow();
+  });
+  editmodel->pos = 547;
+  wnd->w = 640;
+  wnd->h = 480;
+
+  // panel
+  panel->flagShell = false;
+  panel->bDrawFocus = true;
+
+  editmodel->tool.add(new TFatRadioButton(panel, "zoom"), TEditModel::ZOOM);
+  editmodel->tool.add(new TFatRadioButton(panel, "cut"), TEditModel::CUT);
+
+  new TTextArea(panel, "replay-pos-text", &editmodel->pos);
+  new TScrollBar(panel, "replay-pos-slider", &editmodel->pos);
+  
+  panel->loadLayout("boolean-op-debug-panel-atv");
+
+  // layout
+
+  TSpringLayout *layout = new TSpringLayout;
+  layout->attach("panel", TSpringLayout::TOP | TSpringLayout::LEFT | TSpringLayout::BOTTOM);
+  layout->attach("pane", TSpringLayout::TOP | TSpringLayout::RIGHT | TSpringLayout::BOTTOM);
+  layout->attach("pane", TSpringLayout::LEFT, "panel");
+  wnd->setLayout(layout);
+
+  toad::mainLoop();
+#endif
+#if 0
   TMyWindow wnd(NULL, "test tablet");
   toad::mainLoop();
 #endif

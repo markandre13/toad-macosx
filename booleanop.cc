@@ -145,7 +145,6 @@ void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& c
 //cout << "........................" << endl;
 
         out.clear();
-
 /*
         std::cout << "event list before processing:" << std::endl;
         std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq2(eq);
@@ -588,6 +587,8 @@ void BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
 	eq.push(r);
 }
 
+bool global_debug = false;
+
 void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
 {
 //cout << endl << endl << "CONNECT EDGES ------------------------------------------------" << endl;
@@ -608,6 +609,7 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
       if(i + 1 < resultEvents.size() && sec (resultEvents[i], resultEvents[i+1])) {
         std::swap(resultEvents[i], resultEvents[i+1]);
         sorted = false;
+        cout << "unsorted" << endl;
       }
     }
   }
@@ -615,7 +617,7 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
   for(size_t i = 0; i < resultEvents.size (); ++i) {
     resultEvents[i]->pos = i;
       if(!resultEvents[i]->left)
-        std::swap (resultEvents[i]->pos, resultEvents[i]->otherEvent->pos);
+        std::swap(resultEvents[i]->pos, resultEvents[i]->otherEvent->pos);
   }
 
   std::vector<bool> processed(resultEvents.size(), false);
@@ -627,13 +629,21 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
     const TPoint &initial = resultEvents[i]->point;
     out.move(initial);
     while(resultEvents[pos]->otherEvent->point != initial) {
+
+bool debug = (705 <= out.points.size() && out.points.size() <= 706);
       processed[pos] = true; 
+
+if (debug)
+  cout << "connectEdges at point " << out.points.size() << endl
+       << resultEvents[pos]->toString() << endl;
+
       if (resultEvents[pos]->left) {
         resultEvents[pos]->resultInOut = false;
       } else {
         resultEvents[pos]->otherEvent->resultInOut = true; 
       }
-      processed[pos = resultEvents[pos]->pos] = true;
+      pos = resultEvents[pos]->pos;
+      processed[pos] = true;
       if(resultEvents[pos]->curve) {
 //cout << "  CURVE " << resultEvents[pos]->id << endl;
         out.curve(resultEvents[pos]->point1,
@@ -644,6 +654,7 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
         out.line(resultEvents[pos]->point);
       }
 ssize_t oldpos = pos;
+
       pos = nextPos(pos, resultEvents, processed);
 //cout << "  pos = " << pos << endl;
       if(pos<0) {
