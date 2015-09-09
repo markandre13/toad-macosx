@@ -43,6 +43,12 @@ namespace toad {
 class TVectorPath
 {
   public:
+    TVectorPath() {}
+    TVectorPath(const TVectorPath &v): points(v.points), type(v.type) {}
+    TVectorPath& operator=(const TVectorPath &v) { points=v.points; type=v.type; return *this; }
+    TVectorPath(const TVectorPath &&v): points(std::move(v.points)), type(std::move(v.type)) {}
+    TVectorPath& operator=(const TVectorPath &&v) { points=std::move(v.points); type=std::move(v.type); return *this; }
+  
     enum EType {
       MOVE, LINE, CURVE, CLOSE
     };

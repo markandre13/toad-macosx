@@ -26,6 +26,14 @@
 #include "booleanop.hh"
 #include <fstream>
 
+#include <toad/dialog.hh>
+#include <toad/springlayout.hh>
+#include <toad/textfield.hh>
+#include <toad/scrollbar.hh>
+#include <toad/fatradiobutton.hh>
+#include <toad/scrollpane.hh>
+#include <toad/floatmodel.hh>
+
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
 
@@ -259,7 +267,7 @@ cout << uniqueID << " left proximity" << endl;
     }
     np.close();
 //cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
-    path = boolean(path, np, cbop::UNION);
+    boolean(path, np, &path, cbop::UNION);
 //cout << "added" << endl;
     invalidateWindow();
   }
@@ -269,13 +277,12 @@ cout << uniqueID << " left proximity" << endl;
 
 } // unnamed namespace
 
-void
-replay(const char *filename)
+vector<TFreehandPoint>
+loadHandpath(const char *filename)
 {
   ifstream in;
   in.open(filename);
   
-  TVectorPath path;
   vector<TFreehandPoint> handpath;
   
   while(true) {
@@ -286,16 +293,201 @@ replay(const char *filename)
     in>>p;
     if (!in)
       break;
-    cout << x << " " << y << " " << r << " " << p << endl;
+    handpath.push_back(TFreehandPoint(x, y, r, p));
+  }
+  
+  return handpath;
+}
 
+struct TEditModel
+{
+  TEditModel() { cout << "new TEditModel " << this << endl; }
+  ~TEditModel() { cout << "old ~TEditModel " << this << endl; }
+  enum ETool {
+    ZOOM,
+    CUT
+  };
+  GRadioStateModel<ETool> tool;
+
+  vector<TFreehandPoint> handpath;
+  TVectorPath path;
+  TVectorPath nextpath;
+
+  TIntegerModel pos;
+  TFloatModel zoom;
+};
+
+void replay(TEditModel *editmodel);
+
+class TReplayWindow:
+  public TWindow
+{
+  public:
+    TReplayWindow(TWindow *parent, const string &title);
+};
+
+class TVisualization:
+  public TScrollPane
+{
+    TEditModel *editmodel;
+  public:
+    TVisualization(TWindow *parent, const string &title, TEditModel *em):
+      TScrollPane(parent, title), editmodel(em) {}
+    void adjustPane() override;
+    void paint() override;
+    void mouseEvent(const TMouseEvent &) override;
+};
+
+void
+TVisualization::adjustPane()
+{
+//  visible.set(0,0,getWidth(), getHeight());
+  TBoundary b = editmodel->path.bounds();
+  pane.set(0,0,b.x2*editmodel->zoom, b.y2*editmodel->zoom);
+//  pane.set(0,0,800*editmodel->zoom, 600*editmodel->zoom);
+}
+
+void
+TVisualization::mouseEvent(const TMouseEvent &me)
+{
+  switch(editmodel->tool.getValue()) {
+    case TEditModel::ZOOM:
+      switch(me.type) {
+        case TMouseEvent::LDOWN: {
+          TCoord oldzoom = editmodel->zoom;
+          if (me.modifier() & MK_SHIFT) {
+            editmodel->zoom = editmodel->zoom * 0.5;
+          } else {
+            editmodel->zoom = editmodel->zoom * 2;
+          }
+          doLayout();
+
+          TPoint M = me.pos*(1.0/oldzoom);
+          TPoint O = M * editmodel->zoom - M;
+
+          setPanePos(O.x, O.y);
+          invalidateWindow();
+        } break;
+      }
+      break;
+    case TEditModel::CUT:
+      switch(me.type) {
+        case TMouseEvent::LDOWN:
+          break;
+      }
+      break;
+  }
+}
+
+void
+TVisualization::paint()
+{
+  TPen pen(this);
+  TCoord x, y;
+  getPanePos(&x, &y);
+  pen.translate(-x, -y);
+  
+  pen.setLineWidth(1.0/editmodel->zoom);
+  pen.scale(editmodel->zoom, editmodel->zoom);
+//  pen.translate(-110,-210);
+  
+  pen.setColor(0.7,0.7,0.7);
+  editmodel->path.apply(pen);
+  pen.fill();
+  pen.setColor(0,0,0);
+  editmodel->path.apply(pen);
+  pen.stroke();
+
+  TCoord s = 2/editmodel->zoom;
+
+  for(auto p: editmodel->path.points) {
+    pen.drawLine(p.x-s, p.y-s, p.x+s, p.y+s);
+    pen.drawLine(p.x+s, p.y-s, p.x-s, p.y+s);
+  }
+  
+  pen.setColor(1,0,0);
+  editmodel->nextpath.apply(pen);
+  pen.stroke();
+  
+
+  for(auto p: editmodel->nextpath.points) {
+    pen.drawLine(p.x-s, p.y-s, p.x+s, p.y+s);
+    pen.drawLine(p.x+s, p.y-s, p.x-s, p.y+s);
+  }
+}
+
+TReplayWindow::TReplayWindow(TWindow *parent, const string &title):
+  TWindow(parent, title)
+{
+  TEditModel *editmodel = new TEditModel();
+cerr << "editmodel:=" << editmodel << endl;
+  editmodel->zoom = 1.0;
+  
+  // load data
+  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547
+  editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
+  connect(editmodel->pos.sigChanged, [this, editmodel] {
+    replay(editmodel);
+    this->invalidateWindow();
+  });
+  editmodel->pos = 546;
+  w = 640;
+  h = 480;
+
+  // panel
+  TDialog *panel = new TDialog(this, "panel");
+  panel->flagShell = false;
+  panel->bDrawFocus = true;
+
+  editmodel->tool.add(new TFatRadioButton(panel, "zoom"), TEditModel::ZOOM);
+  editmodel->tool.add(new TFatRadioButton(panel, "cut"), TEditModel::CUT);
+
+  new TTextArea(panel, "replay-pos-text", &editmodel->pos);
+  new TScrollBar(panel, "replay-pos-slider", &editmodel->pos);
+  
+  panel->loadLayout("boolean-op-debug-panel-atv");
+
+  // visualization
+  TVisualization *pane = new TVisualization(this, "pane", editmodel);
+
+  TSpringLayout *layout = new TSpringLayout;
+  // FIXME: this doesn't work with BOTTOM
+  layout->attach("panel", TSpringLayout::TOP | TSpringLayout::LEFT | TSpringLayout::BOTTOM);
+  layout->attach("pane", TSpringLayout::TOP | TSpringLayout::RIGHT | TSpringLayout::BOTTOM);
+  layout->attach("pane", TSpringLayout::LEFT, "panel");
+  setLayout(layout);
+}
+
+void
+replay(TEditModel *editmodel)
+{
+  auto &pos(editmodel->pos);
+  auto &path(editmodel->path);
+  auto &handpath(editmodel->handpath);
+  auto &nextpath(editmodel->nextpath);
+
+  assert(pos<handpath.size());
+
+  path.clear();
+  for(size_t i=0; i<pos; ++i) {
     vector<TPoint> hull;
-    if (handpath.empty()) {
-      handpath.push_back(TFreehandPoint(x, y, r, p));
+
+    if (i==0) {
       addHull(&hull, handpath, 0);
     } else {
-      handpath.push_back(TFreehandPoint(x, y, r, p));
-      addHull(&hull, handpath, handpath.size()-2);
-      addHull(&hull, handpath, handpath.size()-1);
+      addHull(&hull, handpath, i-1);
+      addHull(&hull, handpath, i);
+/*      
+      struct Compare {
+        bool operator() (const TPoint& lhs, const TPoint& rhs) const {
+          return (lhs.x==rhs.x) ? lhs.y==rhs.y : lhs.x==rhs.x;
+        }
+      };
+      set<TPoint, Compare> hull2;
+      hull2.insert(hull.begin(), hull.end());
+      hull.clear();
+      hull.insert(hull.begin(), hull2.begin(), hull2.end());
+*/      
       convexHull(&hull);
     }
     
@@ -309,19 +501,31 @@ replay(const char *filename)
     }
     np.close();
 
-cout << "==========================================================================" << endl;
-cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
-    path = boolean(path, np, cbop::UNION);
-cout << "added" << endl;
+    boolean(path, np, &path, cbop::UNION);
+  }
+  
+  nextpath.clear();
+  if (pos+1<handpath.size()) {
+    vector<TPoint> hull;
+    addHull(&hull, handpath, pos);
+    addHull(&hull, handpath, pos+1);
+    convexHull(&hull);
+    for(auto p: hull) {
+      if (nextpath.empty())
+        nextpath.move(p);
+      else
+        nextpath.line(p);
+    }
+    nextpath.close();
   }
 }
 
 void
 test_tablet()
 {
-#if 0
-//  replay("test.txt");
-  replay("backup-hang000.txt");
+#if 1
+  TReplayWindow wnd(NULL, "Boolean Operations Debugger");
+  toad::mainLoop();
 #else
   TMyWindow wnd(NULL, "test tablet");
   toad::mainLoop();

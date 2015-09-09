@@ -119,13 +119,11 @@ BooleanOpImp::BooleanOpImp(BooleanOpType op)
 {
 }
 
-TVectorPath
-toad::boolean(const TVectorPath &subj, const TVectorPath &clip, cbop::BooleanOpType op)
+void
+toad::boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *result, cbop::BooleanOpType op)
 {
-  TVectorPath result;
   BooleanOpImp boi(op);
-  boi.run(subj, clip, result);
-  return result;
+  boi.run(subj, clip, *result);
 }
 
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
@@ -145,6 +143,8 @@ void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& c
 //cout << "CLIPPING................" << endl;
         path2events(clip, CLIPPING);
 //cout << "........................" << endl;
+
+        out.clear();
 
 /*
         std::cout << "event list before processing:" << std::endl;

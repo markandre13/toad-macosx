@@ -1047,7 +1047,16 @@ test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
 test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
-test_tablet.o: bbox_2.h types.hh
+test_tablet.o: bbox_2.h types.hh include/toad/dialog.hh
+test_tablet.o: include/toad/layout.hh include/toad/eventfilter.hh
+test_tablet.o: include/toad/springlayout.hh include/toad/textfield.hh
+test_tablet.o: include/toad/textarea.hh include/toad/core.hh
+test_tablet.o: include/toad/control.hh include/toad/textmodel.hh
+test_tablet.o: include/toad/undo.hh include/toad/scrollbar.hh
+test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
+test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
+test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2422,7 +2431,16 @@ test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
 test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
-test_tablet.o: bbox_2.h types.hh
+test_tablet.o: bbox_2.h types.hh include/toad/dialog.hh
+test_tablet.o: include/toad/layout.hh include/toad/eventfilter.hh
+test_tablet.o: include/toad/springlayout.hh include/toad/textfield.hh
+test_tablet.o: include/toad/textarea.hh include/toad/core.hh
+test_tablet.o: include/toad/control.hh include/toad/textmodel.hh
+test_tablet.o: include/toad/undo.hh include/toad/scrollbar.hh
+test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
+test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
+test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh

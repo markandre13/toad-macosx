@@ -948,10 +948,6 @@ TMainWindow::editorModified()
   }
 }
 
-static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
-  return s.add(c);
-}
-
 TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   super(p, t)
 {
@@ -1223,7 +1219,7 @@ main(int argc, char **argv, char **envv)
       return 0;
     }
     if (strcmp(argv[1], "--test-tablet")==0) {
-      toad::initialize(1, argv);
+      toad::initialize(argc, argv);
       test_tablet();
       toad::terminate();
       return 0;

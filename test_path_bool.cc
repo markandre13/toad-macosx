@@ -98,7 +98,7 @@ TMyWindow::paint()
 #endif
 #if 1
   cout << "difference ---------" << endl;
-  poly = boolean(p0, p1, cbop::DIFFERENCE);
+  boolean(p0, p1, &poly, cbop::DIFFERENCE);
   pen.translate(0,100);
   poly.apply(pen);
   pen.fill();

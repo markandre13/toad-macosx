@@ -156,6 +156,6 @@ private:
 } // end of namespace cbop
 
 namespace toad {
-  TVectorPath boolean(const TVectorPath &a, const TVectorPath &b, cbop::BooleanOpType op);
+  void boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *out, cbop::BooleanOpType op);
 }
 #endif
