@@ -105,8 +105,7 @@ class GRadioStateModel:
       TRadioButtonBase *btn;
       T value;
     };
-    typedef vector<TBtnValue> TBtnValueVec;
-    TBtnValueVec vec;
+    vector<TBtnValue> vec;
     T memo;
     
   public:
@@ -120,16 +119,15 @@ class GRadioStateModel:
     }
     
     TRadioButtonBase* getButton(const T& v) const {
-      typename TBtnValueVec::const_iterator p, e;
-      p = vec.begin();
-      e = vec.end();
-      while(p!=e && (*p).value != v )
-        ++p;
-      return p==e ? 0 : (*p).btn;
+      for(auto p: vec) {
+        if (p.value == v)
+          return p.btn;
+      }
+      return 0;
     }
   
     void setValue(const T& v) {
-      TRadioButtonBase* btn = getButton(v);
+      auto btn = getButton(v);
       if (btn) {
         setCurrent(btn);
       } else {
@@ -138,18 +136,10 @@ class GRadioStateModel:
     }
     
     const T& getValue() const {
-      if (!getCurrent())
-        return memo;
-    
-      typename TBtnValueVec::const_iterator p, e;
-      p = vec.begin();
-      e = vec.end();
-      while(p!=e) {
-        if ( (*p).btn == getCurrent() )
-          break;
-        ++p;
-      }
-      return (*p).value;
+      for(auto p=vec.begin(); p!=vec.end(); ++p)
+        if (p->btn == getCurrent())
+          return p->value;
+      return memo;
     }
     
     T& operator=(T &v) { setValue(v); return v; }
