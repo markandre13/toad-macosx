@@ -76,7 +76,7 @@ TMyWindow::paint()
   
 #if 0
   cout << "union --------------" << endl;
-  poly = boolean(p0, p1, cbop::UNION);
+  poly = boolean(p0, p1, UNION);
   pen.setColor(1,0.5,0);
   poly.apply(pen);
   pen.fill();
@@ -91,21 +91,21 @@ TMyWindow::paint()
 #endif
 #if 0
   cout << "intersection -------" << endl;
-  poly = boolean(p0, p1, cbop::INTERSECTION);
+  poly = boolean(p0, p1, INTERSECTION);
   pen.translate(160,0);
   poly.apply(pen);
   pen.fill();
 #endif
 #if 1
   cout << "difference ---------" << endl;
-  boolean(p0, p1, &poly, cbop::DIFFERENCE);
+  boolean(p0, p1, &poly, DIFFERENCE);
   pen.translate(0,100);
   poly.apply(pen);
   pen.fill();
 #endif
 #if 0
   cout << "xor ----------------" << endl;
-  poly = boolean(p0, p1, cbop::XOR);
+  poly = boolean(p0, p1, XOR);
   pen.translate(-160,0);
   poly.apply(pen);
   pen.fill();
@@ -125,7 +125,7 @@ TMyWindow::paint()
   p3.line(TPoint(20,80));
   p3.close();
 
-  poly = boolean(p2, p3, cbop::DIFFERENCE);
+  poly = boolean(p2, p3, DIFFERENCE);
   pen.translate(0,100);
   poly.apply(pen);
   pen.fill();
@@ -137,7 +137,7 @@ cout << "---------------------------------------------------" << endl;
   p4.line(TPoint(140, 20));
   p4.line(TPoint(140, 70));
   p4.close();
-  poly = boolean(poly, p4, cbop::DIFFERENCE);
+  poly = boolean(poly, p4, DIFFERENCE);
 
   pen.translate(160, 0);
   poly.apply(pen);

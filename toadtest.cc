@@ -29,7 +29,7 @@ TEST(BooleanOp, OverlapUnion) {
   ex.line(TPoint(10,30));
   ex.close();
 
-  TVectorPath result = boolean(p0, p1, cbop::UNION);
+  TVectorPath result = boolean(p0, p1, UNION);
   
   if (result==ex) {
     SUCCEED();
@@ -60,7 +60,7 @@ TEST(BooleanOp, OutsideInsideUnion) {
   ex.line(TPoint(10,40));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::UNION);
+  TVectorPath result = boolean(p0, p1, UNION);
   
   if (result==ex) {
     SUCCEED();
@@ -91,7 +91,7 @@ TEST(BooleanOp, InsideOutsideUnion) {
   ex.line(TPoint(10,40));
   ex.close();
   
-  TVectorPath result = boolean(p1, p0, cbop::UNION);
+  TVectorPath result = boolean(p1, p0, UNION);
   
   if (result==ex) {
     SUCCEED();
@@ -127,7 +127,7 @@ TEST(BooleanOp, DisjunctUnion) {
   ex.line(TPoint(40,20));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::UNION);
+  TVectorPath result = boolean(p0, p1, UNION);
   
   if (result==ex) {
     SUCCEED();
@@ -158,7 +158,7 @@ TEST(BooleanOp, OverlapIntersection) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::INTERSECTION);
+  TVectorPath result = boolean(p0, p1, INTERSECTION);
   
   if (result==ex) {
     SUCCEED();
@@ -189,7 +189,7 @@ TEST(BooleanOp, OutsideInsideIntersection) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::INTERSECTION);
+  TVectorPath result = boolean(p0, p1, INTERSECTION);
   
   if (result==ex) {
     SUCCEED();
@@ -220,7 +220,7 @@ TEST(BooleanOp, InsideOutsideIntersection) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p1, p0, cbop::INTERSECTION);
+  TVectorPath result = boolean(p1, p0, INTERSECTION);
   
   if (result==ex) {
     SUCCEED();
@@ -246,7 +246,7 @@ TEST(BooleanOp, DisjunctIntersection) {
   
   TVectorPath ex;
   
-  TVectorPath result = boolean(p0, p1, cbop::INTERSECTION);
+  TVectorPath result = boolean(p0, p1, INTERSECTION);
   
   if (result==ex) {
     SUCCEED();
@@ -279,7 +279,7 @@ TEST(BooleanOp, OverlapDifference) {
   ex.line(TPoint(10,30));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::DIFFERENCE);
+  TVectorPath result = boolean(p0, p1, DIFFERENCE);
   
   if (result==ex) {
     SUCCEED();
@@ -315,7 +315,7 @@ TEST(BooleanOp, OutsideInsideDifference) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::DIFFERENCE);
+  TVectorPath result = boolean(p0, p1, DIFFERENCE);
   
   if (result==ex) {
     SUCCEED();
@@ -341,7 +341,7 @@ TEST(BooleanOp, InsideOutsideDifference) {
   
   TVectorPath ex;
   
-  TVectorPath result = boolean(p1, p0, cbop::DIFFERENCE);
+  TVectorPath result = boolean(p1, p0, DIFFERENCE);
   
   if (result==ex) {
     SUCCEED();
@@ -372,7 +372,7 @@ TEST(BooleanOp, DisjunctDifference) {
   ex.line(TPoint(10,20));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::DIFFERENCE);
+  TVectorPath result = boolean(p0, p1, DIFFERENCE);
   
   if (result==ex) {
     SUCCEED();
@@ -412,7 +412,7 @@ TEST(BooleanOp, OverlapXor) {
   ex.line(TPoint(20,40));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::XOR);
+  TVectorPath result = boolean(p0, p1, XOR);
   
   if (result==ex) {
     SUCCEED();
@@ -448,7 +448,7 @@ TEST(BooleanOp, OutsideInsideXor) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::XOR);
+  TVectorPath result = boolean(p0, p1, XOR);
   
   if (result==ex) {
     SUCCEED();
@@ -484,7 +484,7 @@ TEST(BooleanOp, InsideOutsideXor) {
   ex.line(TPoint(20,30));
   ex.close();
   
-  TVectorPath result = boolean(p1, p0, cbop::XOR);
+  TVectorPath result = boolean(p1, p0, XOR);
   
   if (result==ex) {
     SUCCEED();
@@ -520,7 +520,7 @@ TEST(BooleanOp, DisjunctXor) {
   ex.line(TPoint(40,20));
   ex.close();
   
-  TVectorPath result = boolean(p0, p1, cbop::XOR);
+  TVectorPath result = boolean(p0, p1, XOR);
   
   if (result==ex) {
     SUCCEED();

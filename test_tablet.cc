@@ -267,7 +267,7 @@ cout << uniqueID << " left proximity" << endl;
     }
     np.close();
 //cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
-    boolean(path, np, &path, cbop::UNION);
+    boolean(path, np, &path, UNION);
 //cout << "added" << endl;
     invalidateWindow();
   }
@@ -545,7 +545,7 @@ replay(TEditModel *editmodel)
     }
     nextstroke.close();
     if (i+1<pos) {
-      boolean(path, nextstroke, &path, cbop::UNION);
+      boolean(path, nextstroke, &path, UNION);
     } else {
     
 TVectorPath x;
@@ -554,11 +554,11 @@ x.line(TPoint(155,195));
 x.line(TPoint(155,240));
 x.line(TPoint(0,240));
 x.close();
-boolean(path, x, &path, cbop::INTERSECTION);
+boolean(path, x, &path, INTERSECTION);
     
       cout << "----------------- FINAL UNION -------------------" << endl;
 global_debug = true;
-      boolean(path, nextstroke, &nextpath, cbop::UNION);
+      boolean(path, nextstroke, &nextpath, UNION);
 global_debug = false;
       cout << "-------------------------------------------------" << endl;
     }

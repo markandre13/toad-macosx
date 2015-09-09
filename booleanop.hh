@@ -20,7 +20,7 @@
 
 #include "bbox_2.h"
 
-namespace cbop {
+namespace toad {
 
 using toad::TPoint;
 
@@ -151,11 +151,7 @@ private:
 	ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
+  void boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *out, BooleanOpType op);
+} // end of namespace toad
 
-
-} // end of namespace cbop
-
-namespace toad {
-  void boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *out, cbop::BooleanOpType op);
-}
 #endif

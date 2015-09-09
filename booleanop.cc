@@ -49,7 +49,6 @@
  *   \li revisit the fill tool code
  */
 
-using namespace cbop;
 using namespace std;
 using namespace toad;
 
@@ -120,7 +119,7 @@ BooleanOpImp::BooleanOpImp(BooleanOpType op)
 }
 
 void
-toad::boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *result, cbop::BooleanOpType op)
+toad::boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *result, BooleanOpType op)
 {
   BooleanOpImp boi(op);
   boi.run(subj, clip, *result);
@@ -284,8 +283,8 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
 void BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType pt)
 {
 //cout << "segment " << p0 << " - " << p1 << endl;
-/*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
-		return;          // This can be done as preprocessing to avoid "polygons" with less than 3 edges */
+	if (p0==p1) // if the two edge endpoints are equal the segment is dicarded
+          return;   // This can be done as preprocessing to avoid "polygons" with less than 3 edges
 	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
  	e1->id = pt==SUBJECT?"A":"B";
  	e1->id += ".1";

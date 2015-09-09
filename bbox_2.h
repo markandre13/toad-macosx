@@ -15,7 +15,7 @@
 
 #include "types.hh"
 
-namespace cbop {
+namespace toad {
 
 class Bbox_2 {
 public:
