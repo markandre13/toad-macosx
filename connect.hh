@@ -194,6 +194,10 @@ inline void disconnect(TSignal &s, T *n) {
 	s.remove(n);
 }
 
+static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
+  return s.add(c);
+}   
+
 // help template for connect_value, connect_value_of, ...
 //-------------------------------------------------------
 template <class S, class D>
@@ -965,7 +969,6 @@ void disconnect(TSignal &s, T1 *o, R(T2::*m)(U1, U2, U3, U4)) {
 	T2 *co=o; s.remove( (void*)o, (TSignalLink::TMethod)m);
 }
 
-	
 } // namespace toad  connect.hh
 
 #endif
