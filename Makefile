@@ -32,7 +32,9 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
 	   test_path_bool.cc test_guitar.cc \
 	   \
-	   booleanop.cc
+	   booleanop.cc \
+	   \
+	   bop12/booleanop.cc bop12/polygon.cc bop12/utilities.cc
 	
 SRC_COCOA=window.cc pen.cc
 
@@ -1057,6 +1059,8 @@ test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
 test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
+test_tablet.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
+test_tablet.o: bop12/point_2.h bop12/segment_2.h
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1094,6 +1098,12 @@ booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
 booleanop.o: include/toad/connect.hh bbox_2.h types.hh
+bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
+bop12/booleanop.o: bop12/point_2.h bbox_2.h types.hh bop12/segment_2.h
+bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h bbox_2.h
+bop12/polygon.o: types.hh bop12/segment_2.h
+bop12/utilities.o: bop12/utilities.h bop12/point_2.h bbox_2.h types.hh
+bop12/utilities.o: bop12/segment_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh
@@ -2441,6 +2451,8 @@ test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
 test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
+test_tablet.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
+test_tablet.o: bop12/point_2.h bop12/segment_2.h
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2478,6 +2490,12 @@ booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
 booleanop.o: include/toad/connect.hh bbox_2.h types.hh
+bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
+bop12/booleanop.o: bop12/point_2.h bbox_2.h types.hh bop12/segment_2.h
+bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h bbox_2.h
+bop12/polygon.o: types.hh bop12/segment_2.h
+bop12/utilities.o: bop12/utilities.h bop12/point_2.h bbox_2.h types.hh
+bop12/utilities.o: bop12/segment_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
 window.o: include/toad/cursor.hh include/toad/color.hh

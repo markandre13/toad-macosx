@@ -34,6 +34,9 @@
 #include <toad/scrollpane.hh>
 #include <toad/floatmodel.hh>
 
+#include "bop12/booleanop.h"
+
+
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
 
@@ -50,6 +53,54 @@
 using namespace toad;
 
 namespace {
+
+static void
+toad2cbop(const TVectorPath &in, cbop::Polygon *out)
+{
+  // FIXME: this function should drop neighbouring equal points (degenarted case)
+  out->push_back(cbop::Contour());
+  cbop::Contour *c = &out->back();
+  const TPoint *pt = in.points.data();
+  for(auto p: in.type) {
+    switch(p) {
+      case TVectorPath::MOVE: c->add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
+      case TVectorPath::LINE: c->add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
+      case TVectorPath::CURVE: break;
+      case TVectorPath::CLOSE:
+        out->push_back(cbop::Contour());
+        c = &out->back();
+        break;
+    }
+  }
+}
+
+static void
+cbop2toad(const cbop::Polygon &in, TVectorPath *out)
+{
+  for(auto p: in) {
+    bool f=false;
+    for(auto q: p) {
+      if (f) {
+        out->line(TPoint(q.x(), q.y()));
+      } else {
+        out->move(TPoint(q.x(), q.y()));
+        f = true;
+      }
+    }
+    out->close();
+  }
+}
+
+void
+oboolean(const TVectorPath &inSubj, const TVectorPath &inClip, TVectorPath *outResult, BooleanOpType op)
+{
+  cbop::Polygon subj, clip, result;
+  toad2cbop(inSubj, &subj);
+  toad2cbop(inClip, &clip);
+  cbop::compute (subj, clip, result, (cbop::BooleanOpType)op);
+  cbop2toad(result, outResult);
+}
+
 
 struct TFreehandPoint:
   public TPoint
@@ -558,7 +609,7 @@ boolean(path, x, &path, INTERSECTION);
     
       cout << "----------------- FINAL UNION -------------------" << endl;
 global_debug = true;
-      boolean(path, nextstroke, &nextpath, UNION);
+      oboolean(path, nextstroke, &nextpath, UNION);
 global_debug = false;
       cout << "-------------------------------------------------" << endl;
     }
@@ -611,7 +662,26 @@ test_tablet()
 #endif
 #if 0
   TMyPainter p(NULL, "Test");
-  p.subj.move(
+  p.clip.move(TPoint( 40,90));
+  p.clip.line(TPoint( 50,85));
+  p.clip.line(TPoint( 70,80));
+  p.clip.line(TPoint(110,60));
+  p.clip.line(TPoint(130,70));
+  p.clip.line(TPoint(130,80));
+  p.clip.close();
+  
+  p.subj.move(TPoint( 10,100));
+  p.subj.line(TPoint( 70, 80));
+  p.subj.line(TPoint(110, 60));
+  p.subj.line(TPoint(140, 40));
+  p.subj.line(TPoint( 40, 50));
+  p.subj.line(TPoint( 50, 30));
+  p.subj.line(TPoint( 90, 20));
+  p.subj.line(TPoint(180, 10));
+  p.subj.line(TPoint(180, 90));
+  
+  boolean(p.subj, p.clip, &p.result, UNION);
+  
   toad::mainLoop();
 #endif
 #if 1
