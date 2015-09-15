@@ -52,7 +52,8 @@ class TPen:
     TMatrix2D windowmatrix; // Cocoa's initial matrix for the window.
     typedef vector<TMatrix2D> mstack_t;
     mstack_t mstack;
-    ELineStyle linestyle;
+    ELineStyle linestyle;   // FIXME: not in push/pop
+    TCoord linewidth;       // FIXME: not in push/pop
     
   public:
     TPen();
@@ -66,6 +67,8 @@ class TPen:
     void initBitmap(TBitmap*);
     void initPDFFile(const string &filename);
     void initClipboard(const TRectangle &r);
+
+    void pagebreak();
 
     void setFont(const string&);
 

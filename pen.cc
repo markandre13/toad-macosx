@@ -18,6 +18,8 @@
  * MA  02111-1307,  USA
  */
 
+//@import CoreFoundation;
+
 // #import <AppKit/NSAttributedString.h>
 // #include "CoreText/CoreText.h"
 #include "CoreText/CTFontDescriptor.h"
@@ -62,7 +64,7 @@ void
 TPen::initPDFFile(const string &filename)
 {
   init();
-  CGRect pdfPageRect = CGRectMake(0,0,640,480);
+  CGRect pdfPageRect = CGRectMake(0,0,480*2, 640);
 
   CFStringRef path = CFStringCreateWithCString (NULL, filename.c_str(), kCFStringEncodingUTF8);
 
@@ -75,7 +77,12 @@ TPen::initPDFFile(const string &filename)
   CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
   CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
 
-  pdfContext = CGPDFContextCreateWithURL (url, &pdfPageRect, myDictionary);
+  pdfContext = CGPDFContextCreateWithURL(url, &pdfPageRect, myDictionary);
+  if (!pdfContext) {
+    cerr << "failed to open " << filename << endl;
+    exit(EXIT_FAILURE);
+  }
+
   CFRelease(myDictionary);
   CFRelease(url);
 
@@ -90,9 +97,20 @@ TPen::initPDFFile(const string &filename)
   CGContextConcatCTM(pdfContext, m);
 
   ctx = pdfContext;
+  
   windowmatrix = CGContextGetCTM(ctx);
   setColor(0,0,0);
   setAlpha(1);
+}
+
+void
+TPen::pagebreak()
+{
+  CGRect pdfPageRect = CGRectMake(0,0,480*2, 640);
+  CGPDFContextEndPage(pdfContext);
+  CGPDFContextBeginPage(pdfContext, pdfPageDictionary);
+  CGAffineTransform m = { 1, 0, 0, -1, 0, pdfPageRect.size.height };
+  CGContextConcatCTM(pdfContext, m);
 }
 
 @interface toadPDF2CB: NSObject <NSPasteboardWriting>
@@ -198,6 +216,7 @@ TPen::~TPen()
     ];
   }
 }
+
 
 void
 TPen::identity()
@@ -380,6 +399,8 @@ TPen::vsetLineColor(TCoord r, TCoord g, TCoord b) {
   rgba_stroke.r = r;
   rgba_stroke.g = g;
   rgba_stroke.b = b;
+  if (!ctx)
+    return;
   CGContextSetRGBStrokeColor(ctx, rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
 }
 
@@ -388,12 +409,16 @@ TPen::vsetFillColor(TCoord r, TCoord g, TCoord b) {
   rgba_fill.r = r;
   rgba_fill.g = g;
   rgba_fill.b = b;
+  if (!ctx)
+    return;
   CGContextSetRGBFillColor(ctx, rgba_fill.r, rgba_fill.g, rgba_fill.b, rgba_fill.a);
 }
 
 void
 TPen::setAlpha(TCoord a) {
   rgba_stroke.a = rgba_fill.a = a;
+  if (!ctx)
+    return;
   CGContextSetRGBStrokeColor(ctx, rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
   CGContextSetRGBFillColor(ctx, rgba_fill.r, rgba_fill.g, rgba_fill.b, rgba_fill.a);
 }
@@ -590,13 +615,22 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
   [nstr release];
 #endif
 #if 1
+
+  CGColorRef cgcolor = CGColorCreateGenericRGB(rgba_stroke.r, rgba_stroke.g, rgba_stroke.b, rgba_stroke.a);
+
   // CoreText works better in flipped coordinate systems
   NSDictionary *textAttributes =
     [NSDictionary dictionaryWithObjectsAndKeys:
       font->nsfont,
         NSFontAttributeName,
+#if 0
       [NSColor colorWithDeviceRed: rgba_stroke.r green: rgba_stroke.g blue: rgba_stroke.b alpha: rgba_stroke.a],
         NSForegroundColorAttributeName,
+#else
+      // use quartz color for pdf because there's no cocoa context
+      cgcolor,
+        NSForegroundColorAttributeName,
+#endif
       nil];
   NSString *nstr = [ [NSString alloc] 
                   initWithBytes: text
@@ -613,11 +647,23 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
     setFillColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
     setAlpha(rgba_stroke2.a);
   }
+
+#if 1
   NSAttributedString *attrString = 
     [[NSAttributedString alloc]
       initWithString: nstr
       attributes:textAttributes];
-
+#else
+  CFAttributedStringRef attrString = CFAttributedStringCreate(
+    NULL,
+    nstr, // 
+    textAttributes);
+#endif
+/*
+  CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0);
+  CFAttributedStringReplaceString(attrString, CFRangeMake(0, 0), (CFStringRef) nstr);
+  CGContextSetTextMatrix(ctx, CGContextGetCTM(ctx));
+*/
   CGAffineTransform m = { 1, 0, 0, -1, 0, 0 };
   CGContextSetTextMatrix(ctx, m);
 
@@ -625,6 +671,8 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
   CGContextSetTextPosition(ctx, x, y + font->baseline);
   CTLineDraw(line, ctx);
   CFRelease(line);
+
+  CGColorRelease(cgcolor);
 
   [nstr release];
   // [textAttributes release]; // managed via the autorelease pool
@@ -636,34 +684,36 @@ TPen::setLineStyle(ELineStyle style)
 {
   this->linestyle = style;
   CGFloat f[6];
+  TCoord w1 = linewidth;
+  TCoord w3 = linewidth*3.0;
   switch(linestyle) {
     case SOLID:
       CGContextSetLineDash(ctx, 0, f, 0);
       break;     
     case DASH:   
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
+      f[0] = w3; // painted
+      f[1] = w1; // gap
       CGContextSetLineDash(ctx, 0, f, 2);
       break;     
     case DOT:  
-      f[0] = 1.0; // painted
-      f[1] = 1.0; // gap
+      f[0] = w1; // painted
+      f[1] = w1; // gap
       CGContextSetLineDash(ctx, 0, f, 2);
       break;  
     case DASHDOT:
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
-      f[2] = 1.0; // painted
-      f[3] = 1.0; // gap
+      f[0] = w3; // painted
+      f[1] = w1; // gap
+      f[2] = w1; // painted
+      f[3] = w1; // gap
       CGContextSetLineDash(ctx, 0, f, 4);
       break;
     case DASHDOTDOT:
-      f[0] = 3.0; // painted
-      f[1] = 1.0; // gap
-      f[2] = 1.0; // painted
-      f[3] = 1.0; // gap
-      f[4] = 1.0; // painted
-      f[5] = 1.0; // gap
+      f[0] = w3; // painted
+      f[1] = w1; // gap
+      f[2] = w1; // painted
+      f[3] = w1; // gap
+      f[4] = w1; // painted
+      f[5] = w1; // gap
       CGContextSetLineDash(ctx, 0, f, 6);
       break;
   }
@@ -677,6 +727,10 @@ TPen::setLineWidth(TCoord w)
   if (w==0)
     w = 1;
   CGContextSetLineWidth(ctx, w);
+  if (linewidth != w) {
+    this->linewidth = w;
+    setLineStyle(this->linestyle);
+  }
 }
 
 void
