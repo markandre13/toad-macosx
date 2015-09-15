@@ -34,15 +34,12 @@ struct SegmentComp : public std::binary_function<SweepEvent*, SweepEvent*, bool>
 };
 
 struct SweepEvent {
+        unsigned id;
 
-        std::string id;
-
-	SweepEvent () {}
-	SweepEvent (bool left, const TPoint& point, SweepEvent* otherEvent, PolygonType pt, EdgeType et = NORMAL);
+	SweepEvent(bool left, const TPoint& point, SweepEvent* otherEvent, PolygonType pt, EdgeType et = NORMAL);
 
 	// data being set when the sweep event is created
         //------------------------------------------------
-	bool left;              // is point the left endpoint of the edge (point, otherEvent->point)?
 	TPoint point;           // point associated with the event
 	
 	bool curve;
@@ -52,39 +49,38 @@ struct SweepEvent {
 	SweepEvent* otherEvent; // event associated to the other endpoint of the edge
 	PolygonType pol;        // Polygon to which the associated segment belongs to
 	EdgeType type;
+	
+	bool computed:1;
 
+	bool left:1;             // is point the left endpoint of the edge (point, otherEvent->point)?
 	//The following fields are only used in "left" events
 
         // data being set by computeFields()
         //------------------------------------------------
 	/**
+	 * 'false' means we have entered the polygon this sweep event belongs to
+	 *
          * indicates if e determines an inside-outside transition into the polygon,
          * to which e belongs, for a vertical ray that starts below the polygon and
          * intersects e.
          */
-        bool inOut;
+        bool inOut:1;
         /**
+         * 'false' means we have entered the other polygon (there are two, clip and subj!)
+         *
          * has the same meaning as the previous flag, but referred to the
          * closest edge to e downwards in sl (S) that belongs to the other polygon
          */
-        bool otherInOut;
+        bool otherInOut:1;
         /**
-         * indicates whether e belongs to the result polygon
+         * indicates whether the sweep event belongs to the result polygon
          */
-        bool inResult;
-        /**
-         * previous segment in sl belonging to the result of the boolean operation
-         *
-         * (pointer to the closest edge to e downwards in sl (S) that belongs to the
-         * result polygon.  This field is used in the second stage of the
-         * algorithm to compute child contours)
-         */
-        SweepEvent* prevInResult;
+        bool inResult:1;
 	
 	/**  Does segment (point, otherEvent->p) represent an inside-outside transition in the polygon for a vertical ray from (p.x, -infinite)? */
-	std::set<SweepEvent*, SegmentComp>::iterator posSL; // Position of the event (line segment) in sl
+	bool resultInOut:1;
+	std::set<SweepEvent*, SegmentComp>::iterator posSL; // Position of this sweep event (line segment) in sl
 	unsigned int pos;
-	bool resultInOut;
 	
 	// member functions
 	/** Is the line segment (point, otherEvent->point) below point p */

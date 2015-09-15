@@ -388,6 +388,7 @@ TVisualization::adjustPane()
 {
 //  visible.set(0,0,getWidth(), getHeight());
   TBoundary b = editmodel->path.bounds();
+  b.x2+=20; b.y2+=20;
   pane.set(0,0,b.x2*editmodel->zoom, b.y2*editmodel->zoom);
 //  pane.set(0,0,800*editmodel->zoom, 600*editmodel->zoom);
 }
@@ -476,7 +477,7 @@ TVisualization::paint()
   pen.setColor(0,0,0);
   editmodel->path.apply(pen);
   pen.stroke();
-#if 0
+#if 1
   for(auto p: editmodel->path.points) {
     pen.drawLine(p.x-2*s, p.y-2*s, p.x+2*s, p.y+2*s);
     pen.drawLine(p.x+2*s, p.y-2*s, p.x-2*s, p.y+2*s);
@@ -486,7 +487,7 @@ TVisualization::paint()
   editmodel->nextstroke.apply(pen);
   pen.stroke();
 
-#if 0
+#if 1
   for(auto p: editmodel->nextstroke.points) {
     pen.drawCircle(p.x-s*1.5, p.y-s*1.5, 3*s, 3*s);
   }
@@ -494,11 +495,11 @@ TVisualization::paint()
   pen.setColor(1,0,0);
   editmodel->nextpath.apply(pen);
   pen.stroke();
-#if 0
+#if 1
   size_t i=0;
   for(auto p: editmodel->nextpath.points) {
 
-    if (705 <= i && i <= 706) {
+    if (138 <= i && i <= 139) {
 cout << "draw " << i << " " << p << endl;
       pen.setColor(0,0.7,0);
     } else
@@ -600,16 +601,17 @@ replay(TEditModel *editmodel)
     } else {
     
 TVectorPath x;
-x.move(TPoint(0,195));
-x.line(TPoint(155,195));
-x.line(TPoint(155,240));
-x.line(TPoint(0,240));
+x.move(TPoint(133.069,226.047));
+x.line(TPoint(137,226.047));
+x.line(TPoint(137,240));
+x.line(TPoint(133.069,240));
 x.close();
 boolean(path, x, &path, INTERSECTION);
+boolean(nextstroke, x, &nextstroke, INTERSECTION);
     
       cout << "----------------- FINAL UNION -------------------" << endl;
 global_debug = true;
-      oboolean(path, nextstroke, &nextpath, UNION);
+      boolean(path, nextstroke, &nextpath, UNION);
 global_debug = false;
       cout << "-------------------------------------------------" << endl;
     }
@@ -660,31 +662,83 @@ test_tablet()
   p.close();
   store(p, "test");
 #endif
-#if 0
+#if 1
   TMyPainter p(NULL, "Test");
-  p.clip.move(TPoint( 40,90));
-  p.clip.line(TPoint( 50,85));
-  p.clip.line(TPoint( 70,80));
-  p.clip.line(TPoint(110,60));
-  p.clip.line(TPoint(130,70));
-  p.clip.line(TPoint(130,80));
+  p.subj.move(TPoint( 10, 10));
+  p.subj.line(TPoint( 30, 10));
+  p.subj.line(TPoint( 30, 30));
+  p.subj.line(TPoint( 10, 30));
+  p.subj.close();
+
+  p.clip.move(TPoint( 20, 20));
+  p.clip.line(TPoint( 40, 20));
+  p.clip.line(TPoint( 40, 40));
+  p.clip.line(TPoint( 20, 40));
   p.clip.close();
   
-  p.subj.move(TPoint( 10,100));
-  p.subj.line(TPoint( 70, 80));
-  p.subj.line(TPoint(110, 60));
-  p.subj.line(TPoint(140, 40));
-  p.subj.line(TPoint( 40, 50));
-  p.subj.line(TPoint( 50, 30));
-  p.subj.line(TPoint( 90, 20));
-  p.subj.line(TPoint(180, 10));
-  p.subj.line(TPoint(180, 90));
-  
+global_debug=true;
   boolean(p.subj, p.clip, &p.result, UNION);
+global_debug=false;
   
   toad::mainLoop();
+  return;
 #endif
-#if 1
+#if 0
+  // this says the polygon overlaps with itself
+  TMyPainter p(NULL, "Test");
+  p.subj.move(TPoint( 10, 60));
+  p.subj.line(TPoint( 50, 20));
+  p.subj.line(TPoint( 60, 10));
+  p.subj.line(TPoint( 70,  0));
+  p.subj.line(TPoint(110 ,40));
+  p.subj.line(TPoint( 50,100));
+  p.subj.close();
+
+  p.clip.move(TPoint( 20, 50));
+  p.clip.line(TPoint( 30, 40));
+  p.clip.line(TPoint( 40, 30));
+  p.clip.line(TPoint( 50, 20));
+  p.clip.line(TPoint( 60, 10));
+  p.clip.line(TPoint( 80, 30));
+  p.clip.line(TPoint( 40, 70));
+  p.clip.close();
+  
+global_debug=true;
+  boolean(p.subj, p.clip, &p.result, UNION);
+global_debug=false;
+  
+  toad::mainLoop();
+  return;
+#endif
+#if 0
+  // this creates a broken sweep events list
+  TMyPainter p(NULL, "Test");
+  p.subj.move(TPoint( 10, 60));
+//  p.subj.line(TPoint( 30, 40));
+//  p.subj.line(TPoint( 50, 20));
+//  p.subj.line(TPoint( 60, 10));
+  p.subj.line(TPoint( 70,  0));
+  p.subj.line(TPoint(110 ,40));
+  p.subj.line(TPoint( 50,100));
+  p.subj.close();
+
+  p.clip.move(TPoint( 20, 50));
+//  p.clip.line(TPoint( 30, 40));
+//  p.clip.line(TPoint( 40, 30));
+//   p.clip.line(TPoint( 50, 20));
+  p.clip.line(TPoint( 60, 10));
+  p.clip.line(TPoint( 80, 30));
+  p.clip.line(TPoint( 40, 70));
+  p.clip.close();
+  
+global_debug=true;
+  boolean(p.subj, p.clip, &p.result, UNION);
+global_debug=false;
+  
+  toad::mainLoop();
+  return;
+#endif
+#if 0
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
 

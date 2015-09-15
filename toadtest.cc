@@ -136,6 +136,42 @@ TEST(BooleanOp, DisjunctUnion) {
   }
 }
 
+TEST(BooleanOp, UnionFreak1) {
+  TVectorPath p0;
+  p0.move(TPoint( 10, 60));
+  p0.line(TPoint( 50, 20));
+  p0.line(TPoint( 60, 10));
+  p0.line(TPoint( 70,  0));
+  p0.line(TPoint(110 ,40));
+  p0.line(TPoint( 50,100));
+  p0.close();
+
+  TVectorPath p1;
+  p1.move(TPoint( 20, 50));
+  p1.line(TPoint( 30, 40));
+  p1.line(TPoint( 40, 30));
+  p1.line(TPoint( 50, 20));
+  p1.line(TPoint( 80, 30));
+  p1.line(TPoint( 40, 70));
+
+  TVectorPath ex;
+  ex.move(TPoint(10,60));
+  ex.line(TPoint(70,  0));
+  ex.line(TPoint(110 ,40));
+  ex.line(TPoint( 50,100));
+  ex.close();
+  
+  TVectorPath result = boolean(p0, p1, UNION);
+  
+  if (result==ex) {
+    SUCCEED();
+  } else {
+    FAIL() << "expected " << ex << "but got " << result;
+  }
+}
+
+
+
 TEST(BooleanOp, OverlapIntersection) {
   TVectorPath p0;
   p0.move(TPoint(10,10));
