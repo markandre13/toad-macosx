@@ -92,7 +92,7 @@ TFont::setFont(const string &fn)
   if (family.empty())
     family = string(p0, p);
 
-  int size = 0; // FIXME: TCoord
+  TCoord size = 0;
   unsigned traits = 0;
 
 /*		xft/cocoa	css
@@ -136,7 +136,7 @@ TFont::setFont(const string &fn)
     }
     
     if (o0=="size") {
-      size = atoi(o1.c_str());
+      size = atof(o1.c_str());
     } else
     if (o0=="italic") {
       traits |= NSItalicFontMask;
