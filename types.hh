@@ -82,24 +82,24 @@ inline TPoint operator*(const TPoint &b, TCoord a) {
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }
-inline double squaredLength(const TPoint &a) {
+inline TCoord squaredLength(const TPoint &a) {
   return a.x*a.x+a.y*a.y;
 }
 
 /* returns length of input vector */
-inline double length(const TPoint &a) {
+inline TCoord length(const TPoint &a) {
   return sqrt(squaredLength(a));
 }
 
 /* return the distance between two points */
-inline double distance(const TPoint &a, const TPoint &b) {
+inline TCoord distance(const TPoint &a, const TPoint &b) {
   return length(a-b);
 }
 	
 /* normalizes the input vector and returns it */
 inline TPoint normalize(const TPoint &v) {
   TPoint result;
-  double len = length(v);
+  TCoord len = length(v);
   if (len != 0.0) {
     result.x = v.x / len;
     result.y = v.y / len;
@@ -111,7 +111,7 @@ inline TPoint normalize(const TPoint &v) {
 }
 
 /* return the dot product of vectors a and b */
-inline double dot(const CGPoint &a, const CGPoint &b) {
+inline TCoord dot(const CGPoint &a, const CGPoint &b) {
   return a.x*b.x+a.y*b.y;
 }
 
