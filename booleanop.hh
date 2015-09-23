@@ -141,7 +141,7 @@ private:
 	/** @brief return if the left event le belongs to the result of the Boolean operation */
 	bool inResult(const SweepEvent* le) const;
 	/** @brief compute several fields of left event le */
-	void computeFields (SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev);
+	void computeFields (SweepEvent* leftEvent, SweepEvent *previousEvent);
 	// connect the solution edges to build the result polygon
 	void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
 	ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);

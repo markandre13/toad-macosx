@@ -47,14 +47,14 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
 
-SRC_TEST=gtest-all.cc toadtest.cc
+SRC_TEST=gtest-all.cc toadtest.cc test/lineintersection.cc
 
 #fischland/fontdialog.cc
 
 SRC=$(SRC_SHARED) $(SRC_COCOA) $(SRC_FISH)
-CXX=g++ -ObjC++ -std=gnu++14
+CXX=g++ -ObjC++ -std=gnu++1z
 #CXX=clang --language=objective-c++ --std=c++14
-CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration
+CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration -Wno-inconsistent-missing-override
 
 OBJS    = $(SRC:.cc=.o)
 

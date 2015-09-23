@@ -32,11 +32,15 @@
 
 #include <toad/pen.hh>
 
+#include <toad/geometry.hh>
+
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include "booleanop.hh"
+
+#define DEBUG_PDF(CMD)
 
 /*
  * \todo
@@ -54,7 +58,10 @@
 using namespace std;
 using namespace toad;
 
-bool global_debug = false;
+DEBUG_PDF(
+  bool global_debug = false;
+  ostringstream txt;
+)
 
 unsigned sweepcntr=0;
 
@@ -73,7 +80,6 @@ const TPoint& minlex(const TPoint &s, const TPoint &t) {
 const TPoint& maxlex(const TPoint &s, const TPoint &t) {
   return (s.x > t.x) || (s.x == t.x && s.y > t.y) ? s : t;
 }
-
 
 std::string SweepEvent::toString() const
 {
@@ -127,13 +133,6 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 BooleanOpImp::BooleanOpImp(BooleanOpType op)
   : operation (op), eq (), sl (), eventHolder()
 {
-}
-
-void
-toad::boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *result, BooleanOpType op)
-{
-  BooleanOpImp boi(op);
-  boi.run(subj, clip, *result);
 }
 
 bool
@@ -321,8 +320,7 @@ drawSweepEvents(TPen &pen, std::priority_queue<SweepEvent*, std::vector<SweepEve
   }
 }
 
-ostringstream txt;
-
+DEBUG_PDF(
 void
 sweep2txt(SweepEvent *se)
 {
@@ -338,23 +336,27 @@ sweep2txt(SweepEvent *se)
         << se->toString() << endl;
   }
 }  
+)
 
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
-TPen *pdf = 0;
-if (global_debug)
-  pdf = new TPen("bool.pdf");
-
-sweepcntr=0;
+DEBUG_PDF(
+  TPen *pdf = 0;
+  if (global_debug)
+    pdf = new TPen("bool.pdf");
+  sweepcntr=0;
+)
 
   // for optimizations 1 and 2
   toad::TBoundary sb(subj.editBounds()), cb(clip.editBounds());
 
+DEBUG_PDF(
   toad::TBoundary view(sb);
   view.expand(cb);
   ::origin.x = view.x1;
   ::origin.y = view.y1;
   ::scale    = 480.0 / std::max(view.x2-view.x1, view.y2-view.y1);
+)
 
   Bbox_2 subjectBB(sb.x1, sb.y1, sb.x2, sb.y2);
   Bbox_2 clippingBB(cb.x1, cb.y1, cb.x2, cb.y2);
@@ -367,12 +369,15 @@ sweepcntr=0;
   path2events(subj, SUBJECT);
   path2events(clip, CLIPPING);
 
-if (pdf) {
-  pdf->setColor(0,0,0);
-  pdf->push();
-  pdf->drawString(5,5, "Sweep Events");
-  drawSweepEvents(*pdf, eq, 0);
-}
+DEBUG_PDF(
+  if (pdf) {
+    pdf->setColor(0,0,0);
+    pdf->push();
+    pdf->drawString(5,5, "Sweep Events");
+    drawSweepEvents(*pdf, eq, 0);
+  }
+  unsigned cntr = 0;
+)
 
   // 'subj' & 'clip' aren't used anymore, if one of 'em is the same as 'out'
   // we can now clear 'out'
@@ -384,26 +389,16 @@ if (pdf) {
   // eq: (Q) priority queue
   // sl: (S) sweep line status
   std::set<SweepEvent*, SegmentComp>::iterator it, prev, next;
-unsigned cntr = 0;
 //if (global_debug) cout << "----------------- SWEEP -----------------" << endl;
 
   while (! eq.empty ()) {
     SweepEvent* se = eq.top ();
-    txt.str("");
-    txt.clear();
-//    txt.seekp(0);
-
-++cntr;
-if (global_debug) {
-    if (distance(se->point, TPoint(133.979,228.515))<0.1)
-      cout << cntr << ": before error : " << se->toString() << endl;
-    if (distance(se->point, TPoint(134.542,227.659))<0.1)
-      cout << cntr << ": at error     : " << se->toString() << endl;
-    if (distance(se->point, TPoint(136.017,195.74))<0.1)
-      cout << cntr << ": wrong point  : " << se->toString() << endl;
-    if (distance(se->point, TPoint(135.131,226.82))<0.1)
-      cout << cntr << ": correct point: " << se->toString() << endl;
-}
+    DEBUG_PDF(
+      txt.str("");
+      txt.clear();
+      txt.precision(numeric_limits<double>::max_digits10);
+      ++cntr;
+    )
 
     // optimization 2
     if ((operation == INTERSECTION && se->point.x > MINMAXX) ||
@@ -416,28 +411,29 @@ if (global_debug) {
     sortedEvents.push_back(se);
     eq.pop();
 
+DEBUG_PDF(
+    if (pdf) {
+      pdf->pagebreak();
+      txt << "sweep step " << cntr << (se->left?", left point of":", right point of")<<endl;
+      sweep2txt(se);
+      pdf->push();
+      drawSweepEvents(*pdf, eq, se);
 
-if (pdf) {
-  pdf->pagebreak();
-  txt << "sweep step " << cntr << (se->left?", left point of":", right point of")<<endl;
-  sweep2txt(se);
-  pdf->push();
-  drawSweepEvents(*pdf, eq, se);
-
-  pdf->setColor(0,0,0);
-  for(auto x: sortedEvents) {
-    if (x->inResult && sl.find(x)==sl.end())
-      drawLineWithArrow(*pdf, x);
-  }
+      pdf->setColor(0,0,0);
+      for(const auto &x: sortedEvents) {
+        if (x->inResult && sl.find(x)==sl.end())
+          drawLineWithArrow(*pdf, x);
+      }
   
-  pdf->setColor(1,0.5,0);
-  for(auto x: sl) {
-    drawLineWithArrow(*pdf, x);
-  }
+      pdf->setColor(1,0.5,0);
+      for(const auto &x: sl) {
+        drawLineWithArrow(*pdf, x);
+      }
 
-  pdf->setColor(1,0,0);
-  drawLineWithArrow(*pdf, se);
-}
+      pdf->setColor(1,0,0);
+      drawLineWithArrow(*pdf, se);
+    }
+)
 
     if (se->left) {
       // sweep line has reached a new line, insert it into the sweep line status 'sl'
@@ -445,108 +441,119 @@ if (pdf) {
 assert(*it==se);
       (prev != sl.begin()) ? --prev : prev = sl.end();
       ++next;
-      
-      txt<<"compute fields with previous:"<<endl;
-      sweep2txt(prev!=sl.end()?*prev:0);
-      computeFields(se, prev);
+      DEBUG_PDF(
+        txt<<"compute fields with previous:"<<endl;
+        sweep2txt(prev!=sl.end()?*prev:0);
+      )
+      computeFields(se, prev!=sl.end()?*prev:0);
 
-      if (pdf) {
+      DEBUG_PDF(
         txt << "after compute Fields:" << endl;
         sweep2txt(se);
-      }
+      )
 
       // intersections with next neighbour
       if (next != sl.end()) {
-        if (pdf) {
+        DEBUG_PDF(
           txt << "next neighbour is" << endl;
           sweep2txt(*next);
-        }
+        )
         if (possibleIntersection(se, *next) == 2) {
-          txt << "two intersections with next neighbour" << endl;
+          DEBUG_PDF(
+            txt << "two intersections with next neighbour" << endl;
+            txt << "compute fields of:" << endl;
+            sweep2txt(se);
+            txt << "with previous: " << endl;
+            sweep2txt(prev!=sl.end()?*prev:0);
+          )
+          computeFields(se, prev!=sl.end()?*prev:0);
+          DEBUG_PDF(
+            txt << "results in" << endl;
+            sweep2txt(se);
 
-          txt << "compute fields of:" << endl;
-          sweep2txt(se);
-          txt << "with previous: " << endl;
-          sweep2txt(prev!=sl.end()?*prev:0);
-          computeFields(se, prev);
-          txt << "results in" << endl;
-          sweep2txt(se);
-
-          txt << "compute fields of: " << endl;
-          sweep2txt(next!=sl.end()?*next:0);
-          txt << "with previous: " << endl;
-          sweep2txt(it!=sl.end()?*it:0);
-          computeFields(*next, it);
-          txt << "results in" << endl;
-          sweep2txt(*next);
+            txt << "compute fields of: " << endl;
+            sweep2txt(next!=sl.end()?*next:0);
+            txt << "with previous: " << endl;
+            sweep2txt(it!=sl.end()?*it:0);
+          )
+          computeFields(*next, it!=sl.end()?*it:0);
+          DEBUG_PDF(
+            txt << "results in" << endl;
+            sweep2txt(*next);
+          )
         }
       }
       // intersections with previous neighbour
       if (prev != sl.end ()) {
-        if (pdf) {
+        DEBUG_PDF(
           txt << "previous neighbour is" << endl;
           sweep2txt(*prev);
-        }
+        )
         if (possibleIntersection(*prev, se) == 2) {
-          txt << "two intersections" << endl;
+          DEBUG_PDF(txt << "two intersections" << endl;)
           auto prevprev = prev;
           (prevprev != sl.begin()) ? --prevprev : prevprev = sl.end();
-          computeFields(*prev, prevprev);
-          computeFields(se, prev);
-          txt << "prevprev: " << endl;
-          sweep2txt(prevprev!=sl.end()?*prevprev:0);
-          txt << "prev: " << endl;
-          sweep2txt(*prev);
-          txt << "se: " << endl;
-          sweep2txt(se);
-          txt << "prev: " << endl;
-          sweep2txt(prev!=sl.end()?*prev:0);
+
+          computeFields(*prev, prevprev!=sl.end()?*prevprev:0);
+          computeFields(se, prev!=sl.end()?*prev:0);
+          DEBUG_PDF(
+            txt << "prevprev: " << endl;
+            sweep2txt(prevprev!=sl.end()?*prevprev:0);
+            txt << "prev: " << endl;
+            sweep2txt(*prev);
+            txt << "se: " << endl;
+            sweep2txt(se);
+            txt << "prev: " << endl;
+            sweep2txt(prev!=sl.end()?*prev:0);
+          )
         }
       }
     } else {
-      if (pdf)
-        txt << "on right side of event" << endl;
+      DEBUG_PDF(txt << "on right side of event" << endl;)
       // sweep line has reached end of a line, remove it from the sweep line status 'sl'
       se = se->otherEvent; // we work with the left event
       next = prev = it = se->posSL; // se->posSL; is equal than sl.find(se); but faster
       (prev != sl.begin()) ? --prev : prev = sl.end();
       ++next;
-      txt << "previous neighbour is" << endl;
-      if (prev!=sl.end())
-        sweep2txt(*prev);
-      else
-        txt << "none" << endl;
-      txt << "next neighbour is" << endl;
-      if (next!=sl.end())
-        sweep2txt(*next);
-      else
-        txt << "none" << endl;
+      DEBUG_PDF(
+        txt << "previous neighbour is" << endl;
+        if (prev!=sl.end())
+          sweep2txt(*prev);
+        else
+          txt << "none" << endl;
+        txt << "next neighbour is" << endl;
+        if (next!=sl.end())
+          sweep2txt(*next);
+        else
+          txt << "none" << endl;
+      )
       // delete line segment associated to "se" from sl and check for intersection between the neighbors of "se" in sl
       sl.erase(it);
       if (next != sl.end() && prev != sl.end()) {
-        if (pdf) {
+        DEBUG_PDF(
           txt<<"check intersection between prev"<<endl;
           sweep2txt(*prev);
           txt<<"and next"<<endl;
           sweep2txt(*next);
-        }
+        )
         possibleIntersection(*prev, *next);
       }
     }
 
-if (pdf) {
-  pdf->pop();
-  pdf->setColor(0,0,0);
-  pdf->setAlpha(1);
-  pdf->setFont("helvetica:size=8");
-  pdf->drawTextWidth(5,5,txt.str(),480*2);
-}
-
+    DEBUG_PDF(
+      if (pdf) {
+        pdf->pop();
+        pdf->setColor(0,0,0);
+        pdf->setAlpha(1);
+        pdf->setFont("helvetica:size=8");
+        pdf->drawTextWidth(5,5,txt.str(),480*2);
+      }
+    )
   }
 
-if (global_debug) cout << "----------------- CONNECT -----------------" << endl;	
-	connectEdges(sortedEvents, out);
-if (pdf) delete pdf;
+  connectEdges(sortedEvents, out);
+
+  DEBUG_PDF(if (pdf) delete pdf;)
 }
 
 /**
@@ -554,50 +561,54 @@ if (pdf) delete pdf;
  *
  * \in le left sweep event
  */
-void BooleanOpImp::computeFields(SweepEvent* le, const std::set<SweepEvent*, SegmentComp>::iterator& prev)
+void BooleanOpImp::computeFields(SweepEvent* le, SweepEvent* prev)
 {
   le->computed = true;
 //cout << "computeFields for " << le->toString() << endl;
 
   // compute inOut and otherInOut fields
-  if (prev == sl.end ()) {
+  if (!prev) {
     // the previous line is not in the sweep line status
-txt<<"compute: no previous: inOut=false, otherInOut=true"<<endl;
+    DEBUG_PDF(txt<<"compute: no previous: inOut=false, otherInOut=true"<<endl;)
     le->inOut = false;     			// entering the polygon
     le->otherInOut = true; 			// there was no other polygon, but if there was, we would have left it
-  } else if (le->pol == (*prev)->pol) {
+  } else if (le->pol == prev->pol) {
     // previous line segment in sl belongs to the same polygon that "se" belongs to
-txt<<"compute: previous is same polygon: inOut=!prev->InOut="
-   <<((!(*prev)->inOut)?"true":"false")
-   <<", otherInOut=prev->otherInOut="<<((*prev)->otherInOut?"true":"false")
-   <<endl;
-    le->inOut = !(*prev)->inOut;		// crossing a line, so the state changes
-    le->otherInOut = (*prev)->otherInOut;	// no contact with the other polygon, nothing has changed
+    DEBUG_PDF(
+      txt<<"compute: previous is same polygon: inOut=!prev->InOut="
+         <<((!prev->inOut)?"true":"false")
+         <<", otherInOut=prev->otherInOut="<<(prev->otherInOut?"true":"false")
+         <<endl;)
+    le->inOut = !prev->inOut;		// crossing a line, so the state changes
+    le->otherInOut = prev->otherInOut;	// no contact with the other polygon, nothing has changed
   } else {
     // previous line segment in sl belongs to a different polygon that "se" belongs to
-txt<<"compute: previous is different polygon: inOut=!prev->otherInOut="
-   <<((!(*prev)->otherInOut)?"true":"false");
-if((*prev)->vertical()) {
-  txt<<", prev=vertical -> otherInOut=!prev->InOut="<<((!(*prev)->inOut)?"true":"false")<<endl;
-} else {
-  txt<<", prev=not vertical -> otherInOut=prev->inOut="<<(((*prev)->inOut)?"true":"false")<<endl;
-}
+    DEBUG_PDF(
+      txt<<"compute: previous is different polygon: inOut=!prev->otherInOut="
+         <<((!prev->otherInOut)?"true":"false");
+      if(prev->vertical()) {
+        txt<<", prev=vertical -> otherInOut=!prev->InOut="<<((!prev->inOut)?"true":"false")<<endl;
+      } else {
+        txt<<", prev=not vertical -> otherInOut=prev->inOut="<<((prev->inOut)?"true":"false")<<endl;
+      }
+    )
     // prev->otherInOut has tracked where we where in the polygon belonging to 'le'
     // now that we've crossed it's line, the state changes
-    le->inOut = !(*prev)->otherInOut;
-    if (!(*prev)->vertical()) {
+    le->inOut = !prev->otherInOut;
+    if (!prev->vertical()) {
       // since we haven't touched a line of prev->inOut, we are still one the same side
       // of it
-      le->otherInOut = (*prev)->inOut;
+      le->otherInOut = prev->inOut;
     } else {
       // vertical, this is a special case and i have no fcuking idea why we do this
-      le->otherInOut = !(*prev)->inOut;
+      // the previous line was vertical...  hm. see 7.1 in the paper to grok it.
+      le->otherInOut = !prev->inOut;
     }
   }
 
   // check if the line segment belongs to the Boolean operation('s result?)
   le->inResult = inResult(le);
-txt<<"compute: inResult(current) = "<<(le->inResult?"true":"false")<<endl;
+  DEBUG_PDF(txt<<"compute: inResult(current) = "<<(le->inResult?"true":"false")<<endl;)
 }
 
 bool
@@ -607,25 +618,25 @@ BooleanOpImp::inResult(const SweepEvent* le) const
     case NORMAL:
       switch(operation) {
         case INTERSECTION:
-	  return !le->otherInOut;
+	  return !le->otherInOut; // 
 	case UNION:
-	  txt<<"inResult(): UNION: return otherInOut (="<<(le->otherInOut?"true)":"false)")<<endl;
-	  return le->otherInOut;
+	  DEBUG_PDF(txt<<"inResult(): UNION: return otherInOut (="<<(le->otherInOut?"true)":"false)")<<endl;)
+	  return le->otherInOut; 
 	case DIFFERENCE:
           return (le->pol == SUBJECT && le->otherInOut) || (le->pol == CLIPPING && !le->otherInOut);
 	case XOR:
           return true;
       }
     case SAME_TRANSITION:
-      if (operation==UNION)
-        txt<<"inResult(): SAME_TRANSITION & UNION: return true"<<endl;
+      DEBUG_PDF(if (operation==UNION)
+        txt<<"inResult(): SAME_TRANSITION & UNION: return true"<<endl;)
       return operation == INTERSECTION || operation == UNION;
     case DIFFERENT_TRANSITION:
-      if (operation==UNION)
-         txt<<"inResult(): DIFFERENT_TRANSITION & UNION: return false"<<endl;
+      DEBUG_PDF(if (operation==UNION)
+         txt<<"inResult(): DIFFERENT_TRANSITION & UNION: return false"<<endl;)
       return operation == DIFFERENCE;
     case NON_CONTRIBUTING:
-      txt<<"inResult(): NON_CONTRIBUTING: return false"<<endl;
+      DEBUG_PDF(txt<<"inResult(): NON_CONTRIBUTING: return false"<<endl;)
       return false;
   }
   return false; // just to avoid the compiler warning
@@ -652,76 +663,110 @@ static int findIntersection(double u0, double u1, double v0, double v1, double w
   }
 }
 
+// distance of line (p0, p1) to point q
+static TCoord
+distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
+{
+  TPoint b(p1-p0);
+  TPoint a(q-p0);
+  
+  TCoord lb = squaredLength(b);
+  TCoord t = dot(a, b) / lb;
+  if (t<0.0 || t>1.0)
+    return 1.0/0.0;
+  return fabs(b.y * a.x - b.x * a.y) / sqrt(lb);
+}
+
+void
+intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, TPoint *l1)
+{
+  // IMPROVE ME: we might want to pick a middle point if available?
+
+  bool f00, f01, f10, f11;
+  f00=f01=f10=f11=false;
+
+  // overlapping endpoints
+  if (distance(l0[0], l1[0]) < tolerance) {
+    ilist.push_back(l0[0]);
+    f00=f10=true;
+  }
+  if (distance(l0[0], l1[1]) < tolerance) {
+    ilist.push_back(l0[0]);
+    f00=f11=true;
+  }
+  if (distance(l0[1], l1[0]) < tolerance) {
+    ilist.push_back(l0[1]);
+    f01=f10=true;
+  }
+  if (distance(l0[1], l1[1]) < tolerance) {
+    ilist.push_back(l0[1]);
+    f01=f11=true;
+  }
+  
+  // end point overlaps with line
+  if (!f10 && distance(l0[0], l0[1], l1[0]) < tolerance)
+    ilist.push_back(l1[0]);
+  if (!f00 && distance(l1[0], l1[1], l0[0]) < tolerance)
+    ilist.push_back(l0[0]);
+  if (!f11 && distance(l0[0], l0[1], l1[1]) < tolerance)
+    ilist.push_back(l1[1]);
+  if (!f01 && distance(l1[0], l1[1], l0[1]) < tolerance)
+    ilist.push_back(l0[1]);
+
+  // crossing
+  if (!ilist.empty())
+    return;
+
+  TCoord ax = l0[1].x - l0[0].x;
+  TCoord ay = l0[1].y - l0[0].y;
+  TCoord bx = l1[1].x - l1[0].x;
+  TCoord by = l1[1].y - l1[0].y;
+
+  TCoord cross = ax*by - ay*bx;
+  if (isZero(cross))
+    return;
+  
+  TCoord 
+    dx = l0[0].x - l1[0].x,
+    dy = l0[0].y - l1[0].y,
+    a = (bx * dy - by * dx) / cross,
+    b = (ax * dy - ay * dx) / cross;
+  if (a<0.0 || a>1.0 || b<0.0 || b>1.0)
+    return;
+  ilist.push_back(TPoint(l0[0].x + a * ax, l0[0].y + a * ay));
+}
+
 static int 
 findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint& pi1)
 {
-  // point, otherEvent->point
-  TPoint p0 = e0->point;
-  TPoint d0 (e0->otherEvent->point.x - p0.x, e0->otherEvent->point.y - p0.y);
-  TPoint p1 = e1->point;
-  TPoint d1 (e1->otherEvent->point.x - p1.x, e1->otherEvent->point.y - p1.y);
-  TCoord sqrEpsilon = 0.0000001; // it was 0.001 before
-  TPoint E(p1.x - p0.x, p1.y - p0.y);
-  TCoord kross = d0.x * d1.y - d0.y * d1.x;
-  TCoord sqrKross = kross * kross;
-  TCoord sqrLen0 = d0.x * d0.x + d0.y * d0.y;
-  TCoord sqrLen1 = d1.x * d1.x + d1.y * d1.y;
-
-  if (sqrKross > sqrEpsilon * sqrLen0 * sqrLen1) {
-    // lines of the segments are not parallel
-    TCoord s = (E.x * d1.y - E.y * d1.x) / kross;
-    if ((s < 0) || (s > 1)) {
-      return 0;
-    }
-    TCoord t = (E.x * d0.y - E.y * d0.x) / kross;
-    if ((t < 0) || (t > 1)) {
-      return 0;
-    }
-    // intersection of lines is a point an each segment
-    pi0 = TPoint (p0.x + s * d0.x, p0.y + s * d0.y);
-    if (distance(pi0, e0->point) < 0.00000001)             pi0 = e0->point;
-    if (distance(pi0, e0->otherEvent->point) < 0.00000001) pi0 = e0->otherEvent->point;
-    if (distance(pi0, e1->point) < 0.00000001)             pi0 = e1->point;
-    if (distance(pi0, e1->otherEvent->point) < 0.00000001) pi0 = e1->otherEvent->point;
-    return 1;
-  }
-
-  // lines of the segments are parallel
-  double sqrLenE = E.x * E.x + E.y * E.y;
-  kross = E.x * d0.y - E.y * d0.x;
-  sqrKross = kross * kross;
-  if (sqrKross > sqrEpsilon * sqrLen0 * sqrLenE) {
-    // lines of the segment are different
-    return 0;
-  }
-
-  // Lines of the segments are the same. Need to test for overlap of segments.
-  double s0 = (d0.x * E.x + d0.y * E.y) / sqrLen0;  // so = Dot (D0, E) * sqrLen0
-  double s1 = s0 + (d0.x * d1.x + d0.y * d1.y) / sqrLen0;  // s1 = s0 + Dot (D0, D1) * sqrLen0
-  double smin = std::min (s0, s1);
-  double smax = std::max (s0, s1);
-  double w[2];
-  int imax = ::findIntersection (0.0, 1.0, smin, smax, w);
-
-  if (imax > 0) {
-    pi0 = TPoint (p0.x + w[0] * d0.x, p0.y + w[0] * d0.y);
-    if (distance(pi0, e0->point) < 0.00000001)             pi0 = e0->point;
-    if (distance(pi0, e0->otherEvent->point) < 0.00000001) pi0 = e0->otherEvent->point;
-    if (distance(pi0, e1->point) < 0.00000001)             pi0 = e1->point;
-    if (distance(pi0, e1->otherEvent->point) < 0.00000001) pi0 = e1->otherEvent->point;
-    if (imax > 1)
-      pi1 = TPoint (p0.x + w[1] * d0.x, p0.y + w[1] * d0.y);
-  }
-  return imax;
+  TPoint pt[4];
+  pt[0] = e0->point;
+  pt[1] = e0->otherEvent->point;
+  pt[2] = e1->point;
+  pt[3] = e1->otherEvent->point;
+  
+  vector<TPoint> il;
+  intersectLineLine2(il, pt, pt+2);
+  
+  if (il.size()>0) pi0 = il[0];
+  if (il.size()>1) pi0 = il[1];
+  
+  return il.size();
 }
 
 int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 {
-/*
-std::cout << "possibleIntersection between " << std::endl
-          << "  " << le1->toString() << std::endl
-          << "  " << le2->toString() << std::endl;
-*/
+  TIntersectionList il;
+  TPoint l0[2] = { le1->point, le1->otherEvent->point };
+  TPoint l1[2] = { le2->point, le2->otherEvent->point };
+  intersectLineLine(il, l0, l1);
+
+  DEBUG_PDF(
+    txt<<"intersectLineLine found " << il.size() << " intersection" << endl;
+    for(const auto &p: il)
+      txt<<"  "<<p.seg0.pt<<" or "<<p.seg1.pt<<endl;
+  )
+
 //	if (e1->pol == e2->pol) // you can uncomment these two lines if self-intersecting polygons are not allowed
 //		return 0;
 
@@ -729,14 +774,13 @@ std::cout << "possibleIntersection between " << std::endl
   int nintersections;
 
   if (!(nintersections = findIntersection(le1, le2, ip1, ip2))) {
-txt<<"no intersection => do nothing" << endl;
-//	        std::cout << "  none" << std::endl;
+    DEBUG_PDF(txt<<"no intersection => do nothing" << endl;)
     return 0;  // no intersection
   }
+  DEBUG_PDF(txt<<"found " << nintersections << " intersections" << endl;)
 
   if ((nintersections == 1) && ((le1->point == le2->point) || (le1->otherEvent->point == le2->otherEvent->point))) {
-txt<<"line segments intersect at an endpoint of both line segments => no nothing"<<endl;
-//	        std::cout << "  none" << std::endl;
+    DEBUG_PDF(txt<<"line segments intersect at an endpoint of both line segments => no nothing"<<endl;)
     return 0; // the line segments intersect at an endpoint of both line segments
   }
 
@@ -746,13 +790,13 @@ txt<<"line segments intersect at an endpoint of both line segments => no nothing
     std::cerr << "  " << le2->toString() << endl;
     std::cerr << "  le1=" << le1 << endl;
     std::cerr << "  le2=" << le2 << endl;
-//return 0;
+return 0;
     exit(1); // the line segments overlap, but they belong to the same polygon
   }
 
   // The line segments associated to le1 and le2 intersect
   if (nintersections == 1) {
-txt<<"one intersection => divide" << endl;
+    DEBUG_PDF(txt<<"one intersection => divide" << endl;)
     if (le1->point != ip1 && le1->otherEvent->point != ip1) { // if the intersection point is not an endpoint of le1->segment ()
       divideSegment(le1, ip1);
     }
@@ -763,17 +807,18 @@ txt<<"one intersection => divide" << endl;
   }
 	// The line segments associated to le1 and le2 overlap
 //std::cout << "  overlap" << std::endl;
-	std::vector<SweepEvent*> sortedEvents;
+  std::vector<SweepEvent*> sortedEvents;
 
-	if (le1->point == le2->point) {
-		sortedEvents.push_back(0);
-	} else if (sec(le1, le2)) {
-		sortedEvents.push_back(le2);
-		sortedEvents.push_back(le1);
-	} else {
-		sortedEvents.push_back(le1);
-		sortedEvents.push_back(le2);
-	}
+  if (le1->point == le2->point) {
+    sortedEvents.push_back(0);
+  } else if (sec(le1, le2)) {
+    sortedEvents.push_back(le2);
+    sortedEvents.push_back(le1);
+  } else {
+    sortedEvents.push_back(le1);
+    sortedEvents.push_back(le2);
+  }
+
 
 	if (le1->otherEvent->point == le2->otherEvent->point) {
 		sortedEvents.push_back(0);
@@ -786,33 +831,40 @@ txt<<"one intersection => divide" << endl;
 	}
 
 	if ((sortedEvents.size() == 2) || (sortedEvents.size() == 3 && sortedEvents[2])) { 
-txt<<"overlap: line segments overlap, both line segments are equal or share the left endpoint" << endl;
+	        DEBUG_PDF(txt<<"overlap: line segments overlap, both line segments are equal or share the left endpoint" << endl;)
 		// both line segments are equal or share the left endpoint
 		// we take one line out of the equation
 		le1->type = NON_CONTRIBUTING;
-txt<<"setting event id:" << le1->id << " to NON_CONTRIBUTING"<<endl;
+DEBUG_PDF(txt<<"setting event id:" << le1->id << " to NON_CONTRIBUTING"<<endl;)
+
 		le2->type = (le1->inOut == le2->inOut) ? SAME_TRANSITION : DIFFERENT_TRANSITION;
+DEBUG_PDF(
 txt<<"setting event id:" << le2->id << " to " 
                          << (le2->type==SAME_TRANSITION?"SAME_TRANSITION because inOut equals":"DIFFERENT_TRANSITION because inOut is non-equal")
                          << endl;
+)
 		if (sortedEvents.size()==3) {
 			divideSegment(sortedEvents[2]->otherEvent, sortedEvents[1]->point);
                 }
 		return 2;
 	}
+
+
+
+
 	if (sortedEvents.size () == 3) { // the line segments share the right endpoint
-txt<<"overlap: line segments share the right endpoint" << endl;
+DEBUG_PDF(txt<<"overlap: line segments share the right endpoint, divide " << sortedEvents[0]->point << " - " << sortedEvents[0]->otherEvent->point << " at " << sortedEvents[1]->point << endl;)
 		divideSegment (sortedEvents[0], sortedEvents[1]->point);
 		return 3;
 	}
 	if (sortedEvents[0] != sortedEvents[3]->otherEvent) { // no line segment includes totally the other one
-txt<<"overlap: no line segment includes totally the other one" << endl;
+DEBUG_PDF(txt<<"overlap: no line segment includes totally the other one" << endl;)
 		divideSegment (sortedEvents[0], sortedEvents[1]->point);
 		divideSegment (sortedEvents[1], sortedEvents[2]->point);
 		return 3;
 	}
 	// one line segment includes the other one
-txt<<"overlap: one line segment includes the other one" << endl;
+DEBUG_PDF(txt<<"overlap: one line segment includes the other one" << endl;)
 	divideSegment(sortedEvents[0], sortedEvents[1]->point);
 	divideSegment(sortedEvents[3]->otherEvent, sortedEvents[2]->point);
 	return 3;
@@ -826,7 +878,7 @@ txt<<"overlap: one line segment includes the other one" << endl;
  */
 void BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
 {
-txt << "divide: "<<endl; sweep2txt(le);
+DEBUG_PDF(txt << "divide: "<<endl; sweep2txt(le);)
 	// "Right event" of the "left line segment" resulting from dividing le->segment ()
 	SweepEvent* r = storeSweepEvent(SweepEvent(false, p, le, le->pol/*, le->type*/));
 	// "Left event" of the "right line segment" resulting from dividing le->segment ()
@@ -841,16 +893,16 @@ txt << "divide: "<<endl; sweep2txt(le);
 	}
 	le->otherEvent->otherEvent = l;
 	le->otherEvent = r;
+DEBUG_PDF(
 txt << "into:"<<endl; sweep2txt(le);
 txt<<"and"<<endl;     sweep2txt(l);
+)
 	eq.push(l);
 	eq.push(r);
 }
 
 void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
 {
-//cout << endl << endl << "CONNECT EDGES ------------------------------------------------" << endl;
-
   // copy the events in the result polygon to resultEvents array
   std::vector<SweepEvent*> resultEvents;
   resultEvents.reserve(sortedEvents.size());
@@ -867,7 +919,6 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
       if(i + 1 < resultEvents.size() && sec (resultEvents[i], resultEvents[i+1])) {
         std::swap(resultEvents[i], resultEvents[i+1]);
         sorted = false;
-        cout << "unsorted" << endl;
       }
     }
   }
@@ -880,7 +931,6 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
 
   std::vector<bool> processed(resultEvents.size(), false);
   for(size_t i = 0; i < resultEvents.size (); ++i) {
-//cout << "i = " << i << endl;
     if (processed[i])
       continue;
     ssize_t pos = i;
@@ -888,12 +938,7 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
     out.move(initial);
     while(resultEvents[pos]->otherEvent->point != initial) {
 
-//bool debug = (705 <= out.points.size() && out.points.size() <= 706);
       processed[pos] = true; 
-
-//if (debug)
-//  cout << "connectEdges at point " << out.points.size() << endl
-//       << resultEvents[pos]->toString() << endl;
 
       if (resultEvents[pos]->left) {
         resultEvents[pos]->resultInOut = false;
@@ -902,31 +947,17 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
       }
       pos = resultEvents[pos]->pos;
       processed[pos] = true;
-bool zing=false;
       if(resultEvents[pos]->curve) {
         out.curve(resultEvents[pos]->point1,
                   resultEvents[pos]->point2,
                   resultEvents[pos]->point);
       } else {
-if (global_debug) {
-  if (distance(resultEvents[pos]->point, TPoint(134.542,227.659))<0.1) {
-    zing=true;
-    cout << "start error: pos=" << pos << ", " << resultEvents[pos]->toString() << " pos: " << resultEvents[pos]->pos << endl;
-  }
-  if (distance(resultEvents[pos]->point, TPoint(136.017,195.74))<0.1) {
-    zing=true;
-    cout << "end error  : pos=" << pos << ", " << resultEvents[pos]->toString() << " pos: " << resultEvents[pos]->pos << endl;
-  }
-}
         out.line(resultEvents[pos]->point);
       }
 ssize_t oldpos = pos;
 
       pos = nextPos(pos, resultEvents, processed);
-if (zing)
-  cout << "  nextpos = " << pos << endl;
       if(pos<0) {
-        cout << "no nextPos" << endl;
         pos = oldpos;
         break;
       }
@@ -953,3 +984,32 @@ BooleanOpImp::nextPos(ssize_t pos, const std::vector<SweepEvent*>& resultEvents,
   }
   return newPos;
 }
+
+void
+toad::boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *result, BooleanOpType op)
+{
+#if 0
+{
+  TPoint p0, p1;
+  SweepEvent ose0(true, TPoint(135.1312211366641 ,226.82039836077857), 0, SUBJECT);
+  SweepEvent  se0(true, TPoint(133.59520376433233,229.00462271647683), &ose0, SUBJECT);
+  SweepEvent ose1(true, TPoint(134.54184884140335,227.65854220348569), 0, CLIPPING);
+  SweepEvent  se1(true, TPoint(133.97914732243984,228.51482008130631), &ose1, CLIPPING);
+  int n = findIntersection(&se0, &se1, p0, p1);
+  cout << "1st intersection found " << n << endl;
+}
+{
+  TPoint p0, p1;
+  SweepEvent ose0(true, TPoint(135.1312211366641 ,226.82039836077857), 0, SUBJECT);
+  SweepEvent  se0(true, TPoint(133.59520376433233,229.00462271647683), &ose0, SUBJECT);
+  SweepEvent ose1(true, TPoint(135.1312211366641 ,226.82039836077857), 0, CLIPPING);
+  SweepEvent  se1(true, TPoint(134.54184884140335,227.65854220348569), &ose1, CLIPPING);
+  int n = findIntersection(&se0, &se1, p0, p1);
+  cout << "2nd intersection found " << n << endl;
+}
+exit(0);
+#endif
+  BooleanOpImp boi(op);
+  boi.run(subj, clip, *result);
+}
+

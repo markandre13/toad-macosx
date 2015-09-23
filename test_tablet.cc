@@ -477,7 +477,7 @@ TVisualization::paint()
   pen.setColor(0,0,0);
   editmodel->path.apply(pen);
   pen.stroke();
-#if 1
+#if 0
   for(auto p: editmodel->path.points) {
     pen.drawLine(p.x-2*s, p.y-2*s, p.x+2*s, p.y+2*s);
     pen.drawLine(p.x+2*s, p.y-2*s, p.x-2*s, p.y+2*s);
@@ -487,7 +487,7 @@ TVisualization::paint()
   editmodel->nextstroke.apply(pen);
   pen.stroke();
 
-#if 1
+#if 0
   for(auto p: editmodel->nextstroke.points) {
     pen.drawCircle(p.x-s*1.5, p.y-s*1.5, 3*s, 3*s);
   }
@@ -495,7 +495,7 @@ TVisualization::paint()
   pen.setColor(1,0,0);
   editmodel->nextpath.apply(pen);
   pen.stroke();
-#if 1
+#if 0
   size_t i=0;
   for(auto p: editmodel->nextpath.points) {
 
@@ -547,7 +547,8 @@ store(const TVectorPath &path, const char *fn)
         exit(EXIT_FAILURE);
         break;
       case TVectorPath::CLOSE:
-        cout << "  close" << endl;
+//        cout << "  close" << endl;
+        break;
     }
   }
 }
@@ -599,7 +600,7 @@ replay(TEditModel *editmodel)
     if (i+1<pos) {
       boolean(path, nextstroke, &path, UNION);
     } else {
-    
+#if 0    
 TVectorPath x;
 x.move(TPoint(133.069,226.047));
 x.line(TPoint(137,226.047));
@@ -608,12 +609,12 @@ x.line(TPoint(133.069,240));
 x.close();
 boolean(path, x, &path, INTERSECTION);
 boolean(nextstroke, x, &nextstroke, INTERSECTION);
-    
-      cout << "----------------- FINAL UNION -------------------" << endl;
-global_debug = true;
+#endif    
+//      cout << "----------------- FINAL UNION -------------------" << endl;
+//global_debug = true;
       boolean(path, nextstroke, &nextpath, UNION);
-global_debug = false;
-      cout << "-------------------------------------------------" << endl;
+//global_debug = false;
+//      cout << "-------------------------------------------------" << endl;
     }
   }
   
@@ -651,94 +652,7 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
-#if 0
-  TVectorPath p;
-  p.move(TPoint(1,2));
-  p.line(TPoint(3,4));
-  p.line(TPoint(5,6));
-  p.close();
-  p.move(TPoint(7,8));
-  p.line(TPoint(9,10));
-  p.close();
-  store(p, "test");
-#endif
 #if 1
-  TMyPainter p(NULL, "Test");
-  p.subj.move(TPoint( 10, 10));
-  p.subj.line(TPoint( 30, 10));
-  p.subj.line(TPoint( 30, 30));
-  p.subj.line(TPoint( 10, 30));
-  p.subj.close();
-
-  p.clip.move(TPoint( 20, 20));
-  p.clip.line(TPoint( 40, 20));
-  p.clip.line(TPoint( 40, 40));
-  p.clip.line(TPoint( 20, 40));
-  p.clip.close();
-  
-global_debug=true;
-  boolean(p.subj, p.clip, &p.result, UNION);
-global_debug=false;
-  
-  toad::mainLoop();
-  return;
-#endif
-#if 0
-  // this says the polygon overlaps with itself
-  TMyPainter p(NULL, "Test");
-  p.subj.move(TPoint( 10, 60));
-  p.subj.line(TPoint( 50, 20));
-  p.subj.line(TPoint( 60, 10));
-  p.subj.line(TPoint( 70,  0));
-  p.subj.line(TPoint(110 ,40));
-  p.subj.line(TPoint( 50,100));
-  p.subj.close();
-
-  p.clip.move(TPoint( 20, 50));
-  p.clip.line(TPoint( 30, 40));
-  p.clip.line(TPoint( 40, 30));
-  p.clip.line(TPoint( 50, 20));
-  p.clip.line(TPoint( 60, 10));
-  p.clip.line(TPoint( 80, 30));
-  p.clip.line(TPoint( 40, 70));
-  p.clip.close();
-  
-global_debug=true;
-  boolean(p.subj, p.clip, &p.result, UNION);
-global_debug=false;
-  
-  toad::mainLoop();
-  return;
-#endif
-#if 0
-  // this creates a broken sweep events list
-  TMyPainter p(NULL, "Test");
-  p.subj.move(TPoint( 10, 60));
-//  p.subj.line(TPoint( 30, 40));
-//  p.subj.line(TPoint( 50, 20));
-//  p.subj.line(TPoint( 60, 10));
-  p.subj.line(TPoint( 70,  0));
-  p.subj.line(TPoint(110 ,40));
-  p.subj.line(TPoint( 50,100));
-  p.subj.close();
-
-  p.clip.move(TPoint( 20, 50));
-//  p.clip.line(TPoint( 30, 40));
-//  p.clip.line(TPoint( 40, 30));
-//   p.clip.line(TPoint( 50, 20));
-  p.clip.line(TPoint( 60, 10));
-  p.clip.line(TPoint( 80, 30));
-  p.clip.line(TPoint( 40, 70));
-  p.clip.close();
-  
-global_debug=true;
-  boolean(p.subj, p.clip, &p.result, UNION);
-global_debug=false;
-  
-  toad::mainLoop();
-  return;
-#endif
-#if 0
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
 
@@ -747,13 +661,15 @@ global_debug=false;
   TVisualization *pane = new TVisualization(wnd, "pane", editmodel);
   
   // load data
-  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547
+//  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547, fixed
+//  editmodel->handpath = loadHandpath("backup-glitch006.txt"); // still an error (or a new one)
+  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, not fixed
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
   connect(editmodel->pos.sigChanged, [pane, editmodel] {
     replay(editmodel);
     pane->invalidateWindow();
   });
-  editmodel->pos = 547;
+  editmodel->pos = 0;
   wnd->w = 640;
   wnd->h = 480;
 
@@ -778,8 +694,7 @@ global_debug=false;
   wnd->setLayout(layout);
 
   toad::mainLoop();
-#endif
-#if 0
+#else
   TMyWindow wnd(NULL, "test tablet");
   toad::mainLoop();
 #endif

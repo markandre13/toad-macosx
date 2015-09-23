@@ -203,8 +203,8 @@ class TFigure:
     static TInObjectStream serialize;
 
 //    SERIALIZABLE_INTERFACE(toad::, TFigure);
-    void store(TOutObjectStream &out) const;
-    bool restore(TInObjectStream &in);
+    void store(TOutObjectStream &out) const override;
+    bool restore(TInObjectStream &in) override;
 };
 
 //! To be renamed into 'TFigure'
@@ -225,8 +225,8 @@ class TColoredFigure:
     TPenBase::ELineStyle line_style;
     unsigned line_width;
 
-    void store(TOutObjectStream &out) const;
-    bool restore(TInObjectStream &in);
+    void store(TOutObjectStream &out) const override;
+    bool restore(TInObjectStream &in) override;
 
   public:
     TSerializableRGB line_color;

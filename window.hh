@@ -351,10 +351,10 @@ class TWindow:
     const TRGB& getBackground() const { return _bg; }
     void setBorder(unsigned b){ _b=b?1:0; }
     unsigned getBorder() const {return _b;}   
-    TCoord getXPos() const { return x; }
-    TCoord getYPos() const { return y; }
-    TCoord getWidth() const { return w; }
-    TCoord getHeight() const { return h; }  
+    TCoord getXPos() const override { return x; }
+    TCoord getYPos() const override { return y; }
+    TCoord getWidth() const override { return w; }
+    TCoord getHeight() const override { return h; }  
 
     void setCursor(TCursor::EType);
     void setCursor(const TCursor *cursor);
