@@ -12,7 +12,7 @@ void intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, TPoint *l1);
 //  |  \
 //  |   \
 //  p1   q1
-TEST(BooleanOpIntersection, OnePoint) {
+TEST(LineLineIntersectionWithOvelap, OnePoint) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -34,7 +34,7 @@ TEST(BooleanOpIntersection, OnePoint) {
 // |q1
 // |
 // p1
-TEST(BooleanOpIntersection, TwoPointInside) {
+TEST(LineLineIntersectionWithOvelap, TwoPointInside) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -57,7 +57,7 @@ TEST(BooleanOpIntersection, TwoPointInside) {
 // |p1
 // |
 // q1
-TEST(BooleanOpIntersection, TwoPointBefore) {
+TEST(LineLineIntersectionWithOvelap, TwoPointBefore) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -80,7 +80,7 @@ TEST(BooleanOpIntersection, TwoPointBefore) {
 // |q1
 // |
 // p1
-TEST(BooleanOpIntersection, TwoPointAfter) {
+TEST(LineLineIntersectionWithOvelap, TwoPointAfter) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -100,7 +100,7 @@ TEST(BooleanOpIntersection, TwoPointAfter) {
 //  |  \
 //  |   \
 //  p1   q1
-TEST(BooleanOpIntersection, OneSamePointDown) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointDown) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -119,7 +119,7 @@ TEST(BooleanOpIntersection, OneSamePointDown) {
 //  |  \
 //  |   \
 //  p0   q1
-TEST(BooleanOpIntersection, OneSamePointUp) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointUp) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -138,7 +138,7 @@ TEST(BooleanOpIntersection, OneSamePointUp) {
 //  |  \
 //  |   \
 //  p1   q0
-TEST(BooleanOpIntersection, OneSamePointUp2) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointUp2) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -157,7 +157,7 @@ TEST(BooleanOpIntersection, OneSamePointUp2) {
 //  |
 //  |
 //  p1q1
-TEST(BooleanOpIntersection, TwoSamePointDown) {
+TEST(LineLineIntersectionWithOvelap, TwoSamePointDown) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -177,7 +177,7 @@ TEST(BooleanOpIntersection, TwoSamePointDown) {
 //  |
 //  |
 //  p1q0
-TEST(BooleanOpIntersection, TwoSamePointUp) {
+TEST(LineLineIntersectionWithOvelap, TwoSamePointUp) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -198,7 +198,7 @@ TEST(BooleanOpIntersection, TwoSamePointUp) {
 //  |q1
 //  |
 //  p1
-TEST(BooleanOpIntersection, OneSamePointInsideDown) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointInsideDown) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -219,7 +219,7 @@ TEST(BooleanOpIntersection, OneSamePointInsideDown) {
 //  |q1
 //  |
 //  p0
-TEST(BooleanOpIntersection, OneSamePointInsideUp) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointInsideUp) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -240,7 +240,7 @@ TEST(BooleanOpIntersection, OneSamePointInsideUp) {
 //  |q0
 //  |
 //  p1
-TEST(BooleanOpIntersection, OneSamePointInsideUp2) {
+TEST(LineLineIntersectionWithOvelap, OneSamePointInsideUp2) {
   vector<TPoint> il;
 
   TPoint pt[4];
@@ -261,7 +261,7 @@ TEST(BooleanOpIntersection, OneSamePointInsideUp2) {
 //  |q0
 //  |
 //  p1
-TEST(BooleanOpIntersection, Crossing) {
+TEST(LineLineIntersectionWithOvelap, Crossing) {
   vector<TPoint> il;
 
   TPoint pt[4];
