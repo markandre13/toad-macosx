@@ -38,9 +38,9 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include "booleanop.hh"
+#include <queue>
 
-#define DEBUG_PDF(CMD)
+#define DEBUG_PDF(CMD) CMD
 
 /*
  * \todo
@@ -65,6 +65,145 @@ DEBUG_PDF(
 
 unsigned sweepcntr=0;
 
+enum EdgeType { NORMAL, NON_CONTRIBUTING, SAME_TRANSITION, DIFFERENT_TRANSITION };
+enum PolygonType { SUBJECT, CLIPPING };
+
+class Bbox_2 {
+public:
+        Bbox_2 (const toad::TPoint &p): _xmin(p.x), _ymin(p.y), _xmax(p.x), _ymax(p.y) {}
+	Bbox_2 (double x_min = 0, double y_min = 0, double x_max = 0, double y_max = 0) : 
+	                                  _xmin (x_min), _ymin (y_min), _xmax (x_max), _ymax (y_max) {}
+	double xmin () const { return _xmin; }
+	double xmax () const { return _xmax; }
+	double ymin () const { return _ymin; }
+	double ymax () const { return _ymax; }
+	Bbox_2 operator+ (const Bbox_2& b) const { return Bbox_2 (std::min (_xmin, b.xmin ()),
+															  std::min (_ymin, b.ymin ()),
+															  std::max (_xmax, b.xmax ()),
+															  std::max (_ymax, b.ymax ())); }
+private:
+	double _xmin, _ymin, _xmax, _ymax;
+};
+
+struct SweepEvent; // forward declaration
+struct SegmentComp : public std::binary_function<SweepEvent*, SweepEvent*, bool> { // for sorting edges in the sweep line (sl)
+	bool operator() (SweepEvent* le1, SweepEvent* le2);
+};
+
+struct SweepEvent {
+        unsigned id;
+
+	SweepEvent(bool left, const TPoint& point, SweepEvent* otherEvent, PolygonType pt, EdgeType et = NORMAL);
+
+	// data being set when the sweep event is created
+        //------------------------------------------------
+	TPoint point;           // point associated with the event
+	
+	bool curve;
+	TPoint point1;		// point on curve
+	TPoint point2;
+	
+	SweepEvent* otherEvent; // event associated to the other endpoint of the edge
+	PolygonType pol;        // Polygon to which the associated segment belongs to
+	EdgeType type;
+	
+	bool computed:1;
+
+	bool left:1;             // is point the left endpoint of the edge (point, otherEvent->point)?
+	//The following fields are only used in "left" events
+
+        // data being set by computeFields()
+        //------------------------------------------------
+	/**
+	 * 'false' means we have entered the polygon this sweep event belongs to
+	 *
+         * indicates if e determines an inside-outside transition into the polygon,
+         * to which e belongs, for a vertical ray that starts below the polygon and
+         * intersects e.
+         */
+        bool inOut:1;
+        /**
+         * 'false' means we have entered the other polygon (there are two, clip and subj!)
+         *
+         * has the same meaning as the previous flag, but referred to the
+         * closest edge to e downwards in sl (S) that belongs to the other polygon
+         */
+        bool otherInOut:1;
+        /**
+         * indicates whether the sweep event belongs to the result polygon
+         */
+        bool inResult:1;
+	
+	/**  Does segment (point, otherEvent->p) represent an inside-outside transition in the polygon for a vertical ray from (p.x, -infinite)? */
+	bool resultInOut:1;
+	std::set<SweepEvent*, SegmentComp>::iterator posSL; // Position of this sweep event (line segment) in sl
+	unsigned int pos;
+	
+	// member functions
+	/** Is the line segment (point, otherEvent->point) below point p */
+	bool below (const TPoint& p) const { return (left) ? signedArea (point, otherEvent->point, p) > 0 : 
+                                                          signedArea (otherEvent->point, point, p) > 0; }
+	/** Is the line segment (point, otherEvent->point) above point p */
+	bool above (const TPoint& p) const { return !below (p); }
+	/** Is the line segment (point, otherEvent->point) a vertical line segment */
+	bool vertical () const { return point.x == otherEvent->point.x; }
+	/** Return the line segment associated to the SweepEvent */
+	std::string toString () const;
+};
+
+struct SweepEventComp : public std::binary_function<SweepEvent, SweepEvent, bool> { // for sorting sweep events
+// Compare two sweep events
+// Return true means that e1 is placed at the event queue after e2, i.e,, e1 is processed by the algorithm after e2
+bool operator() (const SweepEvent* e1, const SweepEvent* e2)
+{
+	if (e1->point.x > e2->point.x) // Different x-coordinate
+		return true;
+	if (e2->point.x > e1->point.x) // Different x-coordinate
+		return false;
+	if (e1->point.y != e2->point.y) // Different points, but same x-coordinate. The event with lower y-coordinate is processed first
+		return e1->point.y > e2->point.y;
+	if (e1->left != e2->left) // Same point, but one is a left endpoint and the other a right endpoint. The right endpoint is processed first
+		return e1->left;
+	// Same point, both events are left endpoints or both are right endpoints.
+	if (signedArea (e1->point, e1->otherEvent->point, e2->otherEvent->point) != 0) // not collinear
+		return e1->above (e2->otherEvent->point); // the event associate to the bottom segment is processed first
+	return e1->pol > e2->pol;
+}
+};
+
+class BooleanOpImp
+{
+public:
+	BooleanOpImp(BooleanOpType op);
+	void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& result);
+
+private:
+	BooleanOpType operation;
+	std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq; // event queue (sorted events to be processed)
+	std::set<SweepEvent*, SegmentComp> sl; // segments intersecting the sweep line
+	std::deque<SweepEvent> eventHolder;    // It holds the events generated during the computation of the boolean operation
+	SweepEventComp sec;                    // to compare events
+
+	bool trivialOperation(const toad::TVectorPath& subject, const toad::TVectorPath& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB, toad::TVectorPath &result);
+	void path2events(const toad::TVectorPath& poly, PolygonType type);
+	/** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
+        void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
+        void processCurve(const TPoint &p0, const TPoint *pn, PolygonType pt);
+	/** @brief Store the SweepEvent e into the event holder, returning the address of e */
+	SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
+	/** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
+	int possibleIntersection (SweepEvent* le1, SweepEvent* le2);
+	/** @brief Divide the segment associated to left event le, updating pq and (implicitly) the status line */
+	void divideSegment (SweepEvent* le, const TPoint& p);
+	/** @brief return if the left event le belongs to the result of the Boolean operation */
+	bool inResult(const SweepEvent* le) const;
+	/** @brief compute several fields of left event le */
+	void computeFields (SweepEvent* leftEvent, SweepEvent *previousEvent);
+	// connect the solution edges to build the result polygon
+	void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
+	ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
+};
+
 SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et):
   left(b), point(p), curve(false), otherEvent(other), pol(pt), type(et), inResult(false) //, prevInResult(0)
 {
@@ -84,6 +223,8 @@ const TPoint& maxlex(const TPoint &s, const TPoint &t) {
 std::string SweepEvent::toString() const
 {
 	std::ostringstream oss;
+        oss.precision(numeric_limits<double>::max_digits10);
+	
 	oss << "id:" << id
 	    << " computed:" << (computed?"true":"false")
 	    << " point:(" << point.x << ',' << point.y << ')'
@@ -486,7 +627,7 @@ assert(*it==se);
       // intersections with previous neighbour
       if (prev != sl.end ()) {
         DEBUG_PDF(
-          txt << "previous neighbour is" << endl;
+          txt << "X previous neighbour is" << endl;
           sweep2txt(*prev);
         )
         if (possibleIntersection(*prev, se) == 2) {
@@ -506,6 +647,8 @@ assert(*it==se);
             txt << "prev: " << endl;
             sweep2txt(prev!=sl.end()?*prev:0);
           )
+        } else {
+          DEBUG_PDF(txt<<"not two intersections"<<endl;)
         }
       }
     } else {
@@ -754,19 +897,14 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
   return il.size();
 }
 
+/*
+ * 0: no intersections
+ * 1: one intersection
+ * 2: both line segments are equal or share the left endpoint
+ * 3:
+ */
 int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 {
-  TIntersectionList il;
-  TPoint l0[2] = { le1->point, le1->otherEvent->point };
-  TPoint l1[2] = { le2->point, le2->otherEvent->point };
-  intersectLineLine(il, l0, l1);
-
-  DEBUG_PDF(
-    txt<<"intersectLineLine found " << il.size() << " intersection" << endl;
-    for(const auto &p: il)
-      txt<<"  "<<p.seg0.pt<<" or "<<p.seg1.pt<<endl;
-  )
-
 //	if (e1->pol == e2->pol) // you can uncomment these two lines if self-intersecting polygons are not allowed
 //		return 0;
 
@@ -779,7 +917,10 @@ int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
   }
   DEBUG_PDF(txt<<"found " << nintersections << " intersections" << endl;)
 
-  if ((nintersections == 1) && ((le1->point == le2->point) || (le1->otherEvent->point == le2->otherEvent->point))) {
+  if ( nintersections == 1 &&
+       ( distance(le1->point, le2->point) < tolerance || 
+         distance(le1->otherEvent->point, le2->otherEvent->point) < tolerance))
+  {
     DEBUG_PDF(txt<<"line segments intersect at an endpoint of both line segments => no nothing"<<endl;)
     return 0; // the line segments intersect at an endpoint of both line segments
   }
@@ -797,10 +938,10 @@ return 0;
   // The line segments associated to le1 and le2 intersect
   if (nintersections == 1) {
     DEBUG_PDF(txt<<"one intersection => divide" << endl;)
-    if (le1->point != ip1 && le1->otherEvent->point != ip1) { // if the intersection point is not an endpoint of le1->segment ()
+    if (distance(le1->point, ip1) >= tolerance && distance(le1->otherEvent->point, ip1) >= tolerance) { // if the intersection point is not an endpoint of le1->segment ()
       divideSegment(le1, ip1);
     }
-    if (le2->point != ip1 && le2->otherEvent->point != ip1) { // if the intersection point is not an endpoint of le2->segment ()
+    if (distance(le2->point, ip1) >= tolerance && distance(le2->otherEvent->point, ip1) >= tolerance) { // if the intersection point is not an endpoint of le2->segment ()
       divideSegment(le2, ip1);
     }
     return 1;
@@ -809,7 +950,7 @@ return 0;
 //std::cout << "  overlap" << std::endl;
   std::vector<SweepEvent*> sortedEvents;
 
-  if (le1->point == le2->point) {
+  if (distance(le1->point, le2->point) < tolerance) {
     sortedEvents.push_back(0);
   } else if (sec(le1, le2)) {
     sortedEvents.push_back(le2);
@@ -819,55 +960,58 @@ return 0;
     sortedEvents.push_back(le2);
   }
 
+  if (distance(le1->otherEvent->point, le2->otherEvent->point) < tolerance) {
+    sortedEvents.push_back(0);
+  } else if (sec (le1->otherEvent, le2->otherEvent)) {
+    sortedEvents.push_back(le2->otherEvent);
+    sortedEvents.push_back(le1->otherEvent);
+  } else {
+    sortedEvents.push_back(le1->otherEvent);
+    sortedEvents.push_back(le2->otherEvent);
+  }
 
-	if (le1->otherEvent->point == le2->otherEvent->point) {
-		sortedEvents.push_back(0);
-	} else if (sec (le1->otherEvent, le2->otherEvent)) {
-		sortedEvents.push_back(le2->otherEvent);
-		sortedEvents.push_back(le1->otherEvent);
-	} else {
-		sortedEvents.push_back(le1->otherEvent);
-		sortedEvents.push_back(le2->otherEvent);
-	}
+  if ((sortedEvents.size() == 2) || (sortedEvents.size() == 3 && sortedEvents[2])) { 
+    DEBUG_PDF(txt<<"overlap: line segments overlap, both line segments are equal or share the left endpoint" << endl;)
+    // both line segments are equal or share the left endpoint
+    // we take one line out of the equation
+/*
+if (le1->inResult && le2->inResult) {
+  // this solves backup-hang005.txt but causes backup-glitch009.txt
+  le1->type = NON_CONTRIBUTING;
+  DEBUG_PDF(txt<<"both already inResult: setting event id:" << le1->id << " to NON_CONTRIBUTING"<<endl;)
+} else {
+*/
+    le1->type = NON_CONTRIBUTING;
+    DEBUG_PDF(txt<<"setting event id:" << le1->id << " to NON_CONTRIBUTING"<<endl;)
+    le2->type = (le1->inOut == le2->inOut) ? SAME_TRANSITION : DIFFERENT_TRANSITION;
+    DEBUG_PDF(
+      txt<<"setting event id:" << le2->id << " to " 
+         << (le2->type==SAME_TRANSITION?"SAME_TRANSITION because inOut equals":"DIFFERENT_TRANSITION because inOut is non-equal")
+         << endl;
+    )
+//}
+    if (sortedEvents.size()==3) {
+      divideSegment(sortedEvents[2]->otherEvent, sortedEvents[1]->point);
+    }
+    return 2;
+  }
 
-	if ((sortedEvents.size() == 2) || (sortedEvents.size() == 3 && sortedEvents[2])) { 
-	        DEBUG_PDF(txt<<"overlap: line segments overlap, both line segments are equal or share the left endpoint" << endl;)
-		// both line segments are equal or share the left endpoint
-		// we take one line out of the equation
-		le1->type = NON_CONTRIBUTING;
-DEBUG_PDF(txt<<"setting event id:" << le1->id << " to NON_CONTRIBUTING"<<endl;)
-
-		le2->type = (le1->inOut == le2->inOut) ? SAME_TRANSITION : DIFFERENT_TRANSITION;
-DEBUG_PDF(
-txt<<"setting event id:" << le2->id << " to " 
-                         << (le2->type==SAME_TRANSITION?"SAME_TRANSITION because inOut equals":"DIFFERENT_TRANSITION because inOut is non-equal")
-                         << endl;
-)
-		if (sortedEvents.size()==3) {
-			divideSegment(sortedEvents[2]->otherEvent, sortedEvents[1]->point);
-                }
-		return 2;
-	}
-
-
-
-
-	if (sortedEvents.size () == 3) { // the line segments share the right endpoint
-DEBUG_PDF(txt<<"overlap: line segments share the right endpoint, divide " << sortedEvents[0]->point << " - " << sortedEvents[0]->otherEvent->point << " at " << sortedEvents[1]->point << endl;)
-		divideSegment (sortedEvents[0], sortedEvents[1]->point);
-		return 3;
-	}
-	if (sortedEvents[0] != sortedEvents[3]->otherEvent) { // no line segment includes totally the other one
-DEBUG_PDF(txt<<"overlap: no line segment includes totally the other one" << endl;)
-		divideSegment (sortedEvents[0], sortedEvents[1]->point);
-		divideSegment (sortedEvents[1], sortedEvents[2]->point);
-		return 3;
-	}
-	// one line segment includes the other one
-DEBUG_PDF(txt<<"overlap: one line segment includes the other one" << endl;)
-	divideSegment(sortedEvents[0], sortedEvents[1]->point);
-	divideSegment(sortedEvents[3]->otherEvent, sortedEvents[2]->point);
-	return 3;
+  if (sortedEvents.size () == 3) { // the line segments share the right endpoint
+    DEBUG_PDF(txt<<"overlap: line segments share the right endpoint, divide " << sortedEvents[0]->point << " - " << sortedEvents[0]->otherEvent->point << " at " << sortedEvents[1]->point << endl;)
+    divideSegment (sortedEvents[0], sortedEvents[1]->point);
+    return 3;
+  }
+  if (sortedEvents[0] != sortedEvents[3]->otherEvent) { // no line segment includes totally the other one
+    DEBUG_PDF(txt<<"overlap: no line segment includes totally the other one" << endl;)
+      divideSegment(sortedEvents[0], sortedEvents[1]->point);
+      divideSegment(sortedEvents[1], sortedEvents[2]->point);
+      return 3;
+  }
+  // one line segment includes the other one
+  DEBUG_PDF(txt<<"overlap: one line segment includes the other one" << endl;)
+  divideSegment(sortedEvents[0], sortedEvents[1]->point);
+  divideSegment(sortedEvents[3]->otherEvent, sortedEvents[2]->point);
+  return 3;
 }
 
 /**

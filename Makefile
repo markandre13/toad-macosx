@@ -1048,19 +1048,19 @@ test_tablet.o: include/toad/font.hh include/toad/pointer.hh
 test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
-test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
-test_tablet.o: bbox_2.h types.hh include/toad/dialog.hh
-test_tablet.o: include/toad/layout.hh include/toad/eventfilter.hh
-test_tablet.o: include/toad/springlayout.hh include/toad/textfield.hh
-test_tablet.o: include/toad/textarea.hh include/toad/core.hh
-test_tablet.o: include/toad/control.hh include/toad/textmodel.hh
-test_tablet.o: include/toad/undo.hh include/toad/scrollbar.hh
-test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
-test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
-test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
-test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
-test_tablet.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
-test_tablet.o: bop12/point_2.h bop12/segment_2.h
+test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
+test_tablet.o: include/toad/dialog.hh include/toad/layout.hh
+test_tablet.o: include/toad/eventfilter.hh include/toad/springlayout.hh
+test_tablet.o: include/toad/textfield.hh include/toad/textarea.hh
+test_tablet.o: include/toad/core.hh include/toad/control.hh
+test_tablet.o: include/toad/textmodel.hh include/toad/undo.hh
+test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
+test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
+test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
+test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
+test_tablet.o: include/toad/floatmodel.hh bop12/booleanop.h bop12/polygon.h
+test_tablet.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
+test_tablet.o: bop12/segment_2.h
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1071,7 +1071,6 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
-test_path_bool.o: booleanop.hh bbox_2.h types.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1089,20 +1088,21 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
-booleanop.o: booleanop.hh include/toad/vector.hh include/toad/penbase.hh
+booleanop.o: include/toad/pen.hh include/toad/penbase.hh
 booleanop.o: include/toad/color.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/font.hh include/toad/pointer.hh
-booleanop.o: include/toad/matrix2d.hh include/toad/window.hh
+booleanop.o: include/toad/matrix2d.hh include/toad/geometry.hh
+booleanop.o: include/toad/vector.hh include/toad/window.hh
 booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh bbox_2.h types.hh
+booleanop.o: include/toad/connect.hh
 bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
-bop12/booleanop.o: bop12/point_2.h bbox_2.h types.hh bop12/segment_2.h
-bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h bbox_2.h
-bop12/polygon.o: types.hh bop12/segment_2.h
-bop12/utilities.o: bop12/utilities.h bop12/point_2.h bbox_2.h types.hh
+bop12/booleanop.o: bop12/point_2.h bop12/bbox_2.h bop12/segment_2.h
+bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h
+bop12/polygon.o: bop12/bbox_2.h bop12/segment_2.h
+bop12/utilities.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
 bop12/utilities.o: bop12/segment_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh
@@ -1481,15 +1481,17 @@ fischland/fischeditor.o: include/toad/treeadapter.hh
 fischland/fischeditor.o: include/toad/treemodel.hh include/toad/table.hh
 fischland/fischeditor.o: include/toad/dragndrop.hh
 gtest-all.o: gtest.h
-toadtest.o: gtest.h booleanop.hh include/toad/vector.hh
-toadtest.o: include/toad/penbase.hh include/toad/color.hh
-toadtest.o: include/toad/types.hh include/toad/io/serializable.hh
-toadtest.o: include/toad/io/atvparser.hh include/toad/font.hh
-toadtest.o: include/toad/pointer.hh include/toad/matrix2d.hh
-toadtest.o: include/toad/window.hh include/toad/interactor.hh
-toadtest.o: include/toad/cursor.hh include/toad/region.hh
-toadtest.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-toadtest.o: include/toad/model.hh include/toad/connect.hh bbox_2.h types.hh
+toadtest.o: gtest.h
+test/lineintersection.o: gtest.h include/toad/geometry.hh
+test/lineintersection.o: include/toad/types.hh include/toad/vector.hh
+test/lineintersection.o: include/toad/penbase.hh include/toad/color.hh
+test/lineintersection.o: include/toad/io/serializable.hh
+test/lineintersection.o: include/toad/io/atvparser.hh include/toad/font.hh
+test/lineintersection.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test/lineintersection.o: include/toad/window.hh include/toad/interactor.hh
+test/lineintersection.o: include/toad/cursor.hh include/toad/region.hh
+test/lineintersection.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+test/lineintersection.o: include/toad/model.hh include/toad/connect.hh
 interactor.o: include/toad/interactor.hh include/toad/types.hh
 control.o: include/toad/control.hh include/toad/window.hh
 control.o: include/toad/interactor.hh include/toad/types.hh
@@ -2440,19 +2442,19 @@ test_tablet.o: include/toad/font.hh include/toad/pointer.hh
 test_tablet.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_tablet.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_tablet.o: include/toad/model.hh include/toad/connect.hh
-test_tablet.o: include/toad/vector.hh include/toad/geometry.hh booleanop.hh
-test_tablet.o: bbox_2.h types.hh include/toad/dialog.hh
-test_tablet.o: include/toad/layout.hh include/toad/eventfilter.hh
-test_tablet.o: include/toad/springlayout.hh include/toad/textfield.hh
-test_tablet.o: include/toad/textarea.hh include/toad/core.hh
-test_tablet.o: include/toad/control.hh include/toad/textmodel.hh
-test_tablet.o: include/toad/undo.hh include/toad/scrollbar.hh
-test_tablet.o: include/toad/integermodel.hh include/toad/numbermodel.hh
-test_tablet.o: include/toad/fatradiobutton.hh include/toad/radiobuttonbase.hh
-test_tablet.o: include/toad/buttonbase.hh include/toad/labelowner.hh
-test_tablet.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
-test_tablet.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
-test_tablet.o: bop12/point_2.h bop12/segment_2.h
+test_tablet.o: include/toad/vector.hh include/toad/geometry.hh
+test_tablet.o: include/toad/dialog.hh include/toad/layout.hh
+test_tablet.o: include/toad/eventfilter.hh include/toad/springlayout.hh
+test_tablet.o: include/toad/textfield.hh include/toad/textarea.hh
+test_tablet.o: include/toad/core.hh include/toad/control.hh
+test_tablet.o: include/toad/textmodel.hh include/toad/undo.hh
+test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
+test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
+test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
+test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
+test_tablet.o: include/toad/floatmodel.hh bop12/booleanop.h bop12/polygon.h
+test_tablet.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
+test_tablet.o: bop12/segment_2.h
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2463,7 +2465,6 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
-test_path_bool.o: booleanop.hh bbox_2.h types.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2481,20 +2482,21 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
-booleanop.o: booleanop.hh include/toad/vector.hh include/toad/penbase.hh
+booleanop.o: include/toad/pen.hh include/toad/penbase.hh
 booleanop.o: include/toad/color.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/font.hh include/toad/pointer.hh
-booleanop.o: include/toad/matrix2d.hh include/toad/window.hh
+booleanop.o: include/toad/matrix2d.hh include/toad/geometry.hh
+booleanop.o: include/toad/vector.hh include/toad/window.hh
 booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
 booleanop.o: include/toad/region.hh include/toad/bitmap.hh
 booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh bbox_2.h types.hh
+booleanop.o: include/toad/connect.hh
 bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
-bop12/booleanop.o: bop12/point_2.h bbox_2.h types.hh bop12/segment_2.h
-bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h bbox_2.h
-bop12/polygon.o: types.hh bop12/segment_2.h
-bop12/utilities.o: bop12/utilities.h bop12/point_2.h bbox_2.h types.hh
+bop12/booleanop.o: bop12/point_2.h bop12/bbox_2.h bop12/segment_2.h
+bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h
+bop12/polygon.o: bop12/bbox_2.h bop12/segment_2.h
+bop12/utilities.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
 bop12/utilities.o: bop12/segment_2.h
 window.o: include/toad/core.hh include/toad/window.hh
 window.o: include/toad/interactor.hh include/toad/types.hh

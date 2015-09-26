@@ -600,20 +600,32 @@ replay(TEditModel *editmodel)
     if (i+1<pos) {
       boolean(path, nextstroke, &path, UNION);
     } else {
-#if 0    
+#if 1
+// clip for backup-hang005.txt
 TVectorPath x;
-x.move(TPoint(133.069,226.047));
-x.line(TPoint(137,226.047));
-x.line(TPoint(137,240));
-x.line(TPoint(133.069,240));
+x.move(TPoint(52.6575,31));
+x.line(TPoint(64.1521,31));
+x.line(TPoint(64.1521,41));
+x.line(TPoint(64.1521,41));
+x.close();
+boolean(path, x, &path, INTERSECTION);
+boolean(nextstroke, x, &nextstroke, INTERSECTION);
+#endif    
+#if 0
+// clip for backup-glitch009.txt
+TVectorPath x;
+x.move(TPoint(96,112));
+x.line(TPoint(107,112));
+x.line(TPoint(107,123));
+x.line(TPoint(96,123));
 x.close();
 boolean(path, x, &path, INTERSECTION);
 boolean(nextstroke, x, &nextstroke, INTERSECTION);
 #endif    
 //      cout << "----------------- FINAL UNION -------------------" << endl;
-//global_debug = true;
+global_debug = true;
       boolean(path, nextstroke, &nextpath, UNION);
-//global_debug = false;
+global_debug = false;
 //      cout << "-------------------------------------------------" << endl;
     }
   }
@@ -629,6 +641,7 @@ class TMyPainter:
     TVectorPath subj, clip, result;
   
     TMyPainter(TWindow *parent, const string &title): TWindow(parent, title) {}
+//    using TMyPainter::TMyPainter;
     void paint() override;
 };
 
@@ -652,6 +665,32 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
+#if 0
+  TMyPainter p(NULL, "TMyPainter");
+  
+  p.clip.move(TPoint(10,10));
+  p.clip.line(TPoint(50,10));
+  p.clip.line(TPoint(50,30));
+  p.clip.line(TPoint(30,50));
+  p.clip.line(TPoint(10,50));
+  p.clip.close();
+  
+  p.subj.move(TPoint(20,20));
+  p.subj.line(TPoint(33,20));
+  p.subj.line(TPoint(36,20));
+  p.subj.line(TPoint(50,20));
+  p.subj.line(TPoint(50,30));
+  p.subj.line(TPoint(40,40));
+  p.subj.line(TPoint(40,60));
+  p.subj.line(TPoint(20,60));
+  p.subj.close();
+global_debug = true;
+  boolean(p.subj, p.clip, &p.result, UNION);
+  
+  toad::mainLoop();
+  return;
+#endif
+
 #if 1
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
@@ -661,15 +700,15 @@ test_tablet()
   TVisualization *pane = new TVisualization(wnd, "pane", editmodel);
   
   // load data
-//  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547, fixed
-//  editmodel->handpath = loadHandpath("backup-glitch006.txt"); // still an error (or a new one)
-  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, not fixed
+//  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547, fixed with new findIntersection
+  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, fixed
+//  editmodel->handpath = loadHandpath("backup-glitch009.txt"); // an error at 283, caused by above's fix
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
   connect(editmodel->pos.sigChanged, [pane, editmodel] {
     replay(editmodel);
     pane->invalidateWindow();
   });
-  editmodel->pos = 0;
+  editmodel->pos = 544; // 283;
   wnd->w = 640;
   wnd->h = 480;
 

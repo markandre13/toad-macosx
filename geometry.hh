@@ -78,6 +78,9 @@ TPoint bez2point(const TPoint *p, TCoord t);
 void fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
 void convexHull(vector<TPoint> *points);
 
+enum BooleanOpType { INTERSECTION, UNION, DIFFERENCE, XOR };
+void boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *out, BooleanOpType op);
+
 } // namespace
 
 #endif
