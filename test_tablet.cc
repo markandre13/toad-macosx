@@ -23,7 +23,6 @@
 #include <toad/connect.hh>
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
-#include "booleanop.hh"
 #include <fstream>
 
 #include <toad/dialog.hh>
@@ -523,6 +522,7 @@ void
 store(const TVectorPath &path, const char *fn)
 {
   ofstream out(fn);
+  out.precision(numeric_limits<double>::max_digits10);
   size_t n;
   n = 0;
   for(auto x: path.type)
@@ -550,6 +550,28 @@ store(const TVectorPath &path, const char *fn)
 //        cout << "  close" << endl;
         break;
     }
+  }
+}
+
+// read TVectorPath in the format used by bop12
+void
+restore(TVectorPath *path, const char *fn)
+{
+  ifstream in(fn);
+  size_t n, o;
+  in>>n;
+  for(auto i=0; i<n; ++i) {
+    in>>o;
+    for(auto j=0; j<o; ++j) {
+      TCoord x,y;
+      in>>x;
+      in>>y;
+      if (j==0)
+        path->move(TPoint(x,y));
+      else
+        path->line(TPoint(x,y));
+    }
+    path->close();
   }
 }
 
@@ -665,6 +687,19 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
+#if 1
+  TMyPainter p(NULL, "TMyPainter");
+  
+  restore(&p.subj, "subj");
+  restore(&p.clip, "clip");
+  
+global_debug = true;
+  boolean(p.subj, p.clip, &p.result, UNION);
+  
+  toad::mainLoop();
+  return;
+#endif
+
 #if 0
   TMyPainter p(NULL, "TMyPainter");
   
@@ -676,8 +711,8 @@ test_tablet()
   p.clip.close();
   
   p.subj.move(TPoint(20,20));
-  p.subj.line(TPoint(33,20));
-  p.subj.line(TPoint(36,20));
+  p.subj.line(TPoint(25,20));
+  p.subj.line(TPoint(28,20));
   p.subj.line(TPoint(50,20));
   p.subj.line(TPoint(50,30));
   p.subj.line(TPoint(40,40));

@@ -1,6 +1,5 @@
-#include "../gtest.h"
-//#include "booleanop.hh"
 #include <toad/geometry.hh>
+#include "gtest.h"
 
 using namespace toad;
 

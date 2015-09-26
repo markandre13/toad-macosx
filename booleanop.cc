@@ -141,8 +141,10 @@ struct SweepEvent {
 	
 	// member functions
 	/** Is the line segment (point, otherEvent->point) below point p */
-	bool below (const TPoint& p) const { return (left) ? signedArea (point, otherEvent->point, p) > 0 : 
-                                                          signedArea (otherEvent->point, point, p) > 0; }
+	bool below(const TPoint& p) const { 
+	  return (left) ? signedArea (point, otherEvent->point, p) > 0 : 
+                          signedArea (otherEvent->point, point, p) > 0;
+        }
 	/** Is the line segment (point, otherEvent->point) above point p */
 	bool above (const TPoint& p) const { return !below (p); }
 	/** Is the line segment (point, otherEvent->point) a vertical line segment */
@@ -151,25 +153,80 @@ struct SweepEvent {
 	std::string toString () const;
 };
 
-struct SweepEventComp : public std::binary_function<SweepEvent, SweepEvent, bool> { // for sorting sweep events
-// Compare two sweep events
-// Return true means that e1 is placed at the event queue after e2, i.e,, e1 is processed by the algorithm after e2
-bool operator() (const SweepEvent* e1, const SweepEvent* e2)
-{
-	if (e1->point.x > e2->point.x) // Different x-coordinate
-		return true;
-	if (e2->point.x > e1->point.x) // Different x-coordinate
-		return false;
-	if (e1->point.y != e2->point.y) // Different points, but same x-coordinate. The event with lower y-coordinate is processed first
-		return e1->point.y > e2->point.y;
-	if (e1->left != e2->left) // Same point, but one is a left endpoint and the other a right endpoint. The right endpoint is processed first
-		return e1->left;
-	// Same point, both events are left endpoints or both are right endpoints.
-	if (signedArea (e1->point, e1->otherEvent->point, e2->otherEvent->point) != 0) // not collinear
-		return e1->above (e2->otherEvent->point); // the event associate to the bottom segment is processed first
-	return e1->pol > e2->pol;
-}
+// order for sweep events in eq
+struct SweepEventComp: public std::binary_function<SweepEvent, SweepEvent, bool> { // for sorting sweep events
+  // Compare two sweep events
+  // Return true means that e1 is placed at the event queue after e2, i.e,, e1 is processed by the algorithm after e2
+
+  // e1 > e2
+  bool operator() (const SweepEvent* e1, const SweepEvent* e2)
+  {
+    if (e1->point.x > e2->point.x) // Different x-coordinate
+      return true;
+    if (e2->point.x > e1->point.x) // Different x-coordinate
+      return false;
+    if (e1->point.y != e2->point.y) // Different points, but same x-coordinate. The event with smaller y-coordinate is processed first
+      return e1->point.y > e2->point.y;
+    if (e1->left != e2->left) // Same point, but one is a left endpoint and the other a right endpoint. The right endpoint is processed first
+      return e1->left;
+    // Same point, both events are left endpoints or both are right endpoints.
+    if (signedArea (e1->point, e1->otherEvent->point, e2->otherEvent->point) != 0) // not collinear
+      return e1->above (e2->otherEvent->point); // the event associate to the bottom segment is processed first
+    return e1->pol > e2->pol;
+  }
 };
+
+// le1 and le2 are the left events of line segments (le1->point, le1->otherEvent->point) and (le2->point, le2->otherEvent->point)
+// return le1 > le2
+bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
+{
+  if (le1 == le2)
+    return false;
+
+bool debug=global_debug && (le1->id==107 || le2->id==107);
+debug=false;
+if (debug)
+  cout << "compare " << le1->id << " and " << le2->id << endl;
+
+  if (signedArea(le1->point, le1->otherEvent->point, le2->point) != 0 || 
+      signedArea(le1->point, le1->otherEvent->point, le2->otherEvent->point) != 0)
+  {
+    // Segments are not collinear
+    // If they share their left endpoint use the right endpoint to sort
+    if (le1->point == le2->point) {
+if (debug) cout << __FILE__ << ":" << __LINE__ << endl;
+      return le1->below(le2->otherEvent->point);
+    }
+    // Different left endpoint: use the left endpoint to sort
+    if (le1->point.x == le2->point.x) {
+      return le1->point.y < le2->point.y;
+if (debug) cout << __FILE__ << ":" << __LINE__ << endl;
+    }
+    SweepEventComp comp;
+    if (comp(le1, le2)) { // has the line segment associated to e1 been inserted into S after the line segment associated to e2 ?
+if (debug) {
+  cout << __FILE__ << ":" << __LINE__ << ": " << le1->id <<">"<<le2->id<<" -> " << le2->above(le1->point) << endl;
+}
+      return le2->above(le1->point);
+    }
+    // The line segment associated to e2 has been inserted into S after the line segment associated to e1
+if (debug) cout << __FILE__ << ":" << __LINE__ << " -> " << le1->below(le2->point) << endl;
+    return le1->below(le2->point);
+  }
+  // Segments are collinear
+  if (le1->pol != le2->pol) {
+if (debug) cout << __FILE__ << ":" << __LINE__ << endl;
+    return le1->pol < le2->pol;
+  }
+  // Just a consistent criterion is used
+  if (le1->point == le2->point) {
+if (debug) cout << __FILE__ << ":" << __LINE__ << endl;
+    return le1 < le2;
+  }
+  SweepEventComp comp;
+if (debug) cout << __FILE__ << ":" << __LINE__ << endl;
+  return comp(le1, le2);
+}
 
 class BooleanOpImp
 {
@@ -239,36 +296,6 @@ std::string SweepEvent::toString() const
 	    << " otherInOut:" << (otherInOut ? "true" : "false")
 	    << " inResult:" << (inResult ? "yes":"no");
 	return oss.str();
-}
-
-// le1 and le2 are the left events of line segments (le1->point, le1->otherEvent->point) and (le2->point, le2->otherEvent->point)
-bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
-{
-	if (le1 == le2)
-		return false;
-	if (signedArea (le1->point, le1->otherEvent->point, le2->point) != 0 || 
-		signedArea (le1->point, le1->otherEvent->point, le2->otherEvent->point) != 0) {
-		// Segments are not collinear
-		// If they share their left endpoint use the right endpoint to sort
-		if (le1->point == le2->point)
-			return le1->below (le2->otherEvent->point);
-		// Different left endpoint: use the left endpoint to sort
-		if (le1->point.x == le2->point.x)
-			return le1->point.y < le2->point.y;
-		SweepEventComp comp;
-		if (comp (le1, le2))  // has the line segment associated to e1 been inserted into S after the line segment associated to e2 ?
-			return le2->above (le1->point);
-		// The line segment associated to e2 has been inserted into S after the line segment associated to e1
-		return le1->below (le2->point);
-	}
-	// Segments are collinear
-	if (le1->pol != le2->pol)
-		return le1->pol < le2->pol;
-	// Just a consistent criterion is used
-	if (le1->point == le2->point)
-		return le1 < le2;
-	SweepEventComp comp;
-	return comp (le1, le2);
 }
 
 BooleanOpImp::BooleanOpImp(BooleanOpType op)
@@ -533,12 +560,15 @@ DEBUG_PDF(
 //if (global_debug) cout << "----------------- SWEEP -----------------" << endl;
 
   while (! eq.empty ()) {
+  
     SweepEvent* se = eq.top ();
     DEBUG_PDF(
       txt.str("");
       txt.clear();
       txt.precision(numeric_limits<double>::max_digits10);
       ++cntr;
+      txt << "sweep step " << cntr << (se->left?", left point of":", right point of")<<endl;
+
     )
 
     // optimization 2
@@ -555,7 +585,6 @@ DEBUG_PDF(
 DEBUG_PDF(
     if (pdf) {
       pdf->pagebreak();
-      txt << "sweep step " << cntr << (se->left?", left point of":", right point of")<<endl;
       sweep2txt(se);
       pdf->push();
       drawSweepEvents(*pdf, eq, se);
@@ -579,6 +608,20 @@ DEBUG_PDF(
     if (se->left) {
       // sweep line has reached a new line, insert it into the sweep line status 'sl'
       next = prev = se->posSL = it = sl.insert(se).first;
+
+      for(auto i=sl.begin(); i!=sl.end(); ++i) {
+        txt<<"..."<<(*i)->id;
+        if(i!=sl.begin()) {
+          auto p=i;
+          --p;
+          SegmentComp sc;
+          SweepEventComp comp;
+          txt<<" SegmentComp("<<(*p)->id<<","<<(*i)->id<<")="<<sc(*p,*i)<<", "
+             <<" SweepEventComp("<<(*p)->id<<","<<(*i)->id<<")="<<comp(*p,*i)<<endl;
+        }
+      }
+
+
 assert(*it==se);
       (prev != sl.begin()) ? --prev : prev = sl.end();
       ++next;
@@ -1102,6 +1145,7 @@ ssize_t oldpos = pos;
 
       pos = nextPos(pos, resultEvents, processed);
       if(pos<0) {
+cerr << "connectEdges: found a gap near " << resultEvents[oldpos]->id << ", " << resultEvents[oldpos]->otherEvent->id << endl;
         pos = oldpos;
         break;
       }

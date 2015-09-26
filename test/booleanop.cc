@@ -1,9 +1,8 @@
+#include <toad/geometry.hh>
 #include "gtest.h"
-#include "booleanop.hh"
 
 using namespace toad;
 
-#if 0
 TEST(BooleanOp, OverlapUnion) {
   TVectorPath p0;
   p0.move(TPoint(10,10));
@@ -581,10 +580,4 @@ TEST(BooleanOp, DisjunctXor) {
   } else {
     FAIL() << "expected " << ex << "but got " << result;
   }
-}
-#endif
-
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest( &argc, argv );
-  return RUN_ALL_TESTS();
 }
