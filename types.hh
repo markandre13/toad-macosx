@@ -116,12 +116,12 @@ inline TCoord dot(const CGPoint &a, const CGPoint &b) {
 }
 
 /** Signed area of the triangle (p0, p1, p2) */
-inline TCoord signedArea (const TPoint& p0, const TPoint& p1, const TPoint& p2) { 
+inline TCoord signedArea(const TPoint& p0, const TPoint& p1, const TPoint& p2) { 
   return (p0.x- p2.x)*(p1.y - p2.y) - (p1.x - p2.x) * (p0.y - p2.y);
 }
 
 /** Signed area of the triangle ( (0,0), p1, p2) */
-inline TCoord signedArea (const TPoint& p1, const TPoint& p2) { 
+inline TCoord signedArea(const TPoint& p1, const TPoint& p2) { 
   return -p2.x*(p1.y - p2.y) - -p2.y*(p1.x - p2.x);
 }
 

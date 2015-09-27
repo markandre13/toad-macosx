@@ -645,9 +645,9 @@ boolean(path, x, &path, INTERSECTION);
 boolean(nextstroke, x, &nextstroke, INTERSECTION);
 #endif    
 //      cout << "----------------- FINAL UNION -------------------" << endl;
-global_debug = true;
+//global_debug = true;
       boolean(path, nextstroke, &nextpath, UNION);
-global_debug = false;
+//global_debug = false;
 //      cout << "-------------------------------------------------" << endl;
     }
   }
@@ -687,7 +687,7 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
-#if 1
+#if 0
   TMyPainter p(NULL, "TMyPainter");
   
   restore(&p.subj, "subj");
@@ -704,20 +704,15 @@ global_debug = true;
   TMyPainter p(NULL, "TMyPainter");
   
   p.clip.move(TPoint(10,10));
-  p.clip.line(TPoint(50,10));
-  p.clip.line(TPoint(50,30));
-  p.clip.line(TPoint(30,50));
-  p.clip.line(TPoint(10,50));
+  p.clip.line(TPoint(30,10));
+  p.clip.line(TPoint(35,30));
+  p.clip.line(TPoint(15,30));
   p.clip.close();
   
   p.subj.move(TPoint(20,20));
-  p.subj.line(TPoint(25,20));
-  p.subj.line(TPoint(28,20));
-  p.subj.line(TPoint(50,20));
-  p.subj.line(TPoint(50,30));
-  p.subj.line(TPoint(40,40));
-  p.subj.line(TPoint(40,60));
-  p.subj.line(TPoint(20,60));
+  p.subj.line(TPoint(40,20));
+  p.subj.line(TPoint(45,40));
+  p.subj.line(TPoint(25,40));
   p.subj.close();
 global_debug = true;
   boolean(p.subj, p.clip, &p.result, UNION);
@@ -726,7 +721,7 @@ global_debug = true;
   return;
 #endif
 
-#if 1
+#if 0
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
 
@@ -736,14 +731,15 @@ global_debug = true;
   
   // load data
 //  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547, fixed with new findIntersection
-  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, fixed
+//  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, fixed
 //  editmodel->handpath = loadHandpath("backup-glitch009.txt"); // an error at 283, caused by above's fix
+  editmodel->handpath = loadHandpath("backup-glitch011.txt"); // an error at 283, caused by above's fix
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
   connect(editmodel->pos.sigChanged, [pane, editmodel] {
     replay(editmodel);
     pane->invalidateWindow();
   });
-  editmodel->pos = 544; // 283;
+  editmodel->pos = 283;
   wnd->w = 640;
   wnd->h = 480;
 

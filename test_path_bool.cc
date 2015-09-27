@@ -24,8 +24,6 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
-#include "booleanop.hh"
-
 using namespace toad;
 
 TVectorPath
