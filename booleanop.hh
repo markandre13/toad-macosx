@@ -6,6 +6,9 @@
 
 namespace toad {
 
+extern bool booleanop_debug;
+extern bool booleanop_gap_error;
+
 enum EdgeType { NORMAL, NON_CONTRIBUTING, SAME_TRANSITION, DIFFERENT_TRANSITION };
 enum PolygonType { SUBJECT, CLIPPING };
 

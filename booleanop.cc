@@ -40,7 +40,8 @@
 #include <algorithm>
 #include <queue>
 
-#define DEBUG_PDF(CMD)
+#define DEBUG_PDF_INIT(CMD) CMD
+#define DEBUG_PDF(CMD) if (booleanop_debug) { CMD }
 
 /*
  * \todo
@@ -58,13 +59,13 @@
 using namespace std;
 using namespace toad;
 
-DEBUG_PDF(
-  bool global_debug = false;
-  ostringstream txt;
+DEBUG_PDF_INIT(
+  bool toad::booleanop_debug = false;
+  static ostringstream txt;
 )
 
 static unsigned sweepcntr=0;
-bool booleanop_gap_error;
+bool toad::booleanop_gap_error;
 class Bbox_2 {
   public:
     Bbox_2 (const toad::TPoint &p):
@@ -399,7 +400,7 @@ drawSweepEvents(TPen &pen, std::priority_queue<SweepEvent*, std::vector<SweepEve
   }
 }
 
-DEBUG_PDF(
+DEBUG_PDF_INIT(
 void
 sweep2txt(SweepEvent *se)
 {
@@ -419,9 +420,10 @@ sweep2txt(SweepEvent *se)
 
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
-DEBUG_PDF(
+DEBUG_PDF_INIT(
+  unsigned cntr = 0;
   TPen *pdf = 0;
-  if (global_debug)
+  if (booleanop_debug)
     pdf = new TPen("bool.pdf");
   sweepcntr=0;
 )
@@ -429,7 +431,7 @@ DEBUG_PDF(
   // for optimizations 1 and 2
   toad::TBoundary sb(subj.editBounds()), cb(clip.editBounds());
 
-DEBUG_PDF(
+DEBUG_PDF_INIT(
   toad::TBoundary view(sb);
   view.expand(cb);
   ::origin.x = view.x1;
@@ -449,13 +451,10 @@ DEBUG_PDF(
   path2events(clip, CLIPPING);
 
 DEBUG_PDF(
-  if (pdf) {
-    pdf->setColor(0,0,0);
-    pdf->push();
-    pdf->drawString(5,5, "Sweep Events");
-    drawSweepEvents(*pdf, eq, 0);
-  }
-  unsigned cntr = 0;
+  pdf->setColor(0,0,0);
+  pdf->push();
+  pdf->drawString(5,5, "Sweep Events");
+  drawSweepEvents(*pdf, eq, 0);
 )
 
   // 'subj' & 'clip' aren't used anymore, if one of 'em is the same as 'out'
@@ -468,7 +467,6 @@ DEBUG_PDF(
   // eq: (Q) priority queue
   // sl: (S) sweep line status
   std::set<SweepEvent*, SegmentComp>::iterator it, prev, next;
-//if (global_debug) cout << "----------------- SWEEP -----------------" << endl;
 
   while (! eq.empty ()) {
   
@@ -550,7 +548,69 @@ assert(*it==se);
         txt << "after compute Fields:" << endl;
         sweep2txt(se);
       )
+#if 0
+      if (next != sl.end())
+        possibleIntersection(se, *next);
+      if (prev != sl.end ())
+        possibleIntersection(*prev, se);
+      std::set<SweepEvent*, SegmentComp> sl2(sl);
+      bool mismatch=false;
+      for (auto p0=sl.begin(), p1=sl2.begin(); p0!=sl.end(); ++p0, ++p1) {
+        if (*p0 != *p1) {
+          auto prev = p1;
+zoom:
+          if (prev==sl2.begin()) {
+            computeFields(*p1, 0);
+            continue;
+          }
+          --prev;
+          if (prev!=sl2.end()) {
+            SweepEvent *prevright = (*prev)->left ? (*prev)->otherEvent : *prev;
+            SweepEvent *thisleft  = (*p1)->left   ? *p1 : (*p1)->otherEvent;
+            SweepEvent *prevleft = prevright->otherEvent;
+            SweepEvent *thisright  = thisleft->otherEvent;
+DEBUG_PDF(
+  txt<<"CAN WE SKIP PREVRIGHT"<<prevright->toString()<<endl;
+  txt<<"AND THISLEFT"<<thisleft->toString()<<endl; )
+            SweepEventComp comp;
 
+// FIXME: instead of continue, we must take one prev earlier            
+            // if (prevleft >= thisright)
+            if (!comp(thisright, prevleft)) {
+DEBUG_PDF(txt<<"YES1"<<endl;)
+goto zoom;
+              continue;
+            }
+            
+            // if (prevright<thisleft)
+            if (comp(thisleft, prevright)) {
+DEBUG_PDF(txt<<"YES2"<<endl;)
+goto zoom;
+              continue;
+            }
+DEBUG_PDF(txt<<"NO"<<endl;)
+          }
+DEBUG_PDF(
+  txt<<"RECOMPUTE " << (*p1)->id;
+  if (prev!=sl2.end())
+    txt<<" with prev " << (*prev)->id << endl;
+  else
+    txt<<" with no prev" << endl;
+)
+          mismatch = true;
+          computeFields(*p1, prev!=sl2.end() ? *prev : 0);
+        }
+      }
+/*
+      if (mismatch) {
+        cout << "MISMATCH" << endl;
+        for (auto p0=sl.begin(), p1=sl2.begin(); p0!=sl.end(); ++p0, ++p1) {
+          cout << "  " << (*p0)->id << " " << (*p1)->id << endl;
+        }
+//        exit(0);
+      }
+*/
+#else
       // intersections with next neighbour
       if (next != sl.end()) {
         DEBUG_PDF(
@@ -599,6 +659,13 @@ assert(*it==se);
             computeFields(se, prev!=sl.end()?*prev:0);
           } else {
             // this fixes BackupHang005
+DEBUG_PDF(
+  txt<<"RECOMPUTE " << se->id;
+  if (prevprev!=sl.end())
+    txt<<" with prev " << (*prevprev)->id << endl;
+  else
+    txt<<" with no prev" << endl;
+)
             computeFields(se, prevprev!=sl.end()?*prevprev:0);
           }
           DEBUG_PDF(
@@ -613,6 +680,7 @@ assert(*it==se);
           )
         }
       }
+#endif
     } else {
       DEBUG_PDF(txt << "on right side of event" << endl;)
       // sweep line has reached end of a line, remove it from the sweep line status 'sl'
@@ -658,7 +726,18 @@ assert(*it==se);
 
   connectEdges(sortedEvents, out);
 
-  DEBUG_PDF(if (pdf) delete pdf;)
+  DEBUG_PDF(if (pdf) {
+    pdf->pagebreak();
+    pdf->setColor(0,0,0);
+    pdf->setLineWidth(1.0/scale);
+    pdf->translate(470.5,10.5);
+    pdf->scale(::scale,::scale);
+    pdf->setFont(format("helvetica:size=%f", 8.0/scale));
+    pdf->translate(-origin.x, -origin.y);
+    out.apply(*pdf);
+    pdf->stroke();
+    delete pdf;
+  })
 }
 
 /**

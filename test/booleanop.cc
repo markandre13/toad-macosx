@@ -181,7 +181,15 @@ TEST(BooleanOp, UnionFreak1) {
 
 extern bool booleanop_gap_error;
 
-// the relevant subset of backup-hang005.txt
+// the relevant subset of backup-hang005.txt at pos 544
+// 
+//        //
+//       // <- when calculating this segment, the other line on
+//      //     the left is used as the previous, then the previous
+//     /|      is split, but the segment was not recalculated
+//    / |      (1 or 2 intersections)
+//   /  |
+//
 TEST(BooleanOp, BackupHang005) {
   TVectorPath p0;
   p0.move(TPoint(9.421740538377911, 4.972124044991261));
@@ -204,6 +212,73 @@ TEST(BooleanOp, BackupHang005) {
   p1.close();
 
   TVectorPath ex;
+  ex.move(TPoint(9.4217405383779109, 3.3974039100762141));
+  ex.line(TPoint(9.5985348293046400, 3.2670357183024952));
+  ex.line(TPoint(9.7437587055723540, 3.2072321540705389));
+  ex.line(TPoint(9.8538362733769276, 3.2194657796083770));
+  ex.line(TPoint(9.8710900950692189, 3.2395264342264243));
+  ex.line(TPoint(9.9202362733769291, 2.8483657796083719));
+  ex.line(TPoint(9.9132687351130198, 3.2885666495055479));
+  ex.line(TPoint(9.9260570576725016, 3.3034353624542021));
+  ex.line(TPoint(9.9026950508794584, 3.9565995789751800));
+  ex.line(TPoint(9.8155392911673474, 4.2901879398076588));
+  ex.line(TPoint(9.7789904031222648, 4.4018233255252710));
+  ex.line(TPoint(9.7789904031222648, 4.9721240449912614));
+  ex.line(TPoint(9.4217405383779109, 4.9721240449912614));
+  ex.close();
+  
+  TVectorPath result;
+  booleanop_debug = true;
+  boolean(p0, p1, &result, UNION);
+  booleanop_debug = false;
+  
+  ASSERT_EQ(false, booleanop_gap_error);
+  
+  if (result==ex) {
+    SUCCEED();
+  } else {
+    FAIL() << "expected " << ex << "but got " << result;
+  }
+}
+
+// the relevant subset of backup-glitch010.txt at pos 1976
+//
+//   \     /
+//    \   / <- when calculating this segment, the other line on
+//     \ /     the left is used as the previous, then the previous
+//      \\     is split, but the segment was not recalculated
+//       \\    (1 or 2 intersections)
+//        \\
+//
+TEST(BooleanOp, BackupGlitch010) {
+  TVectorPath p0;
+  p0.move(TPoint(171.59960937500000, 126.53369140625000));
+  p0.line(TPoint(174.15332031250000, 126.53369140625000));
+  p0.line(TPoint(174.15332031250000, 126.63475297241763));
+  p0.line(TPoint(172.76463483735427, 127.88783334017968));
+  p0.line(TPoint(172.80067931201796, 128.11288675638247));
+  p0.line(TPoint(172.76319526645665, 128.54798693297397));
+  p0.line(TPoint(172.73633975272961, 128.66791542897042));
+  p0.line(TPoint(172.93573530397927, 128.49979785221467));
+  p0.line(TPoint(174.15332031250000, 127.40616779741524));
+  p0.line(TPoint(174.15332031250000, 129.37011718750000));
+  p0.line(TPoint(171.59960937500000, 129.37011718750000));
+  p0.close();
+
+  TVectorPath p1;
+  p1.move(TPoint(171.59960937500000, 127.77760788203265));
+  p1.line(TPoint(171.82892484711346, 127.69637353967119));
+  p1.line(TPoint(172.39892484711345, 127.59537353967119));
+  p1.line(TPoint(172.61627376404738, 127.63064283684363));
+  p1.line(TPoint(172.75130018522097, 127.80457483677591));
+  p1.line(TPoint(172.80067931201796, 128.11288675638247));
+  p1.line(TPoint(172.76319526645665, 128.54798693297397));
+  p1.line(TPoint(172.63977103014119, 129.09916175618810));
+  p1.line(TPoint(172.55424728854757, 129.37011718750000));
+  p1.line(TPoint(171.59960937500000, 129.37011718750000));
+  p1.close();
+
+  TVectorPath ex;
   ex.move(TPoint(9.4217405383779109,3.3974039100762141));
   ex.line(TPoint(9.5985348293046400,3.2670357183024952));
   ex.line(TPoint(9.7437587055723540,3.2072321540705389));
@@ -220,7 +295,9 @@ TEST(BooleanOp, BackupHang005) {
   ex.close();
   
   TVectorPath result;
+  booleanop_debug = true;
   boolean(p0, p1, &result, UNION);
+  booleanop_debug = false;
   
   ASSERT_EQ(false, booleanop_gap_error);
   
@@ -230,7 +307,6 @@ TEST(BooleanOp, BackupHang005) {
     FAIL() << "expected " << ex << "but got " << result;
   }
 }
-
 
 TEST(BooleanOp, OverlapIntersection) {
   TVectorPath p0;

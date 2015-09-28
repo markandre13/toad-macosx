@@ -33,8 +33,7 @@
 #include <toad/scrollpane.hh>
 #include <toad/floatmodel.hh>
 
-#include "bop12/booleanop.h"
-
+#include "booleanop.hh"
 
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
@@ -52,54 +51,6 @@
 using namespace toad;
 
 namespace {
-
-static void
-toad2cbop(const TVectorPath &in, cbop::Polygon *out)
-{
-  // FIXME: this function should drop neighbouring equal points (degenarted case)
-  out->push_back(cbop::Contour());
-  cbop::Contour *c = &out->back();
-  const TPoint *pt = in.points.data();
-  for(auto p: in.type) {
-    switch(p) {
-      case TVectorPath::MOVE: c->add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
-      case TVectorPath::LINE: c->add(cbop::Point_2(pt->x, pt->y)); ++pt; break;
-      case TVectorPath::CURVE: break;
-      case TVectorPath::CLOSE:
-        out->push_back(cbop::Contour());
-        c = &out->back();
-        break;
-    }
-  }
-}
-
-static void
-cbop2toad(const cbop::Polygon &in, TVectorPath *out)
-{
-  for(auto p: in) {
-    bool f=false;
-    for(auto q: p) {
-      if (f) {
-        out->line(TPoint(q.x(), q.y()));
-      } else {
-        out->move(TPoint(q.x(), q.y()));
-        f = true;
-      }
-    }
-    out->close();
-  }
-}
-
-void
-oboolean(const TVectorPath &inSubj, const TVectorPath &inClip, TVectorPath *outResult, BooleanOpType op)
-{
-  cbop::Polygon subj, clip, result;
-  toad2cbop(inSubj, &subj);
-  toad2cbop(inClip, &clip);
-  cbop::compute (subj, clip, result, (cbop::BooleanOpType)op);
-  cbop2toad(result, outResult);
-}
-
 
 struct TFreehandPoint:
   public TPoint
@@ -222,13 +173,13 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
 {
   if (me.type==TMouseEvent::LDOWN) {
 cout << "down" << endl;
-    backup.close();
-    backup.open("backup.txt");
+    backup.open("backup.txt", ofstream::out | ofstream::trunc);
     handpath.clear();
     path.clear();
   } else
   if (me.type==TMouseEvent::LUP) {
 cout << "up" << endl;
+    backup.close();
   } else
   if (me.type==TMouseEvent::TABLET_POINT) {
 //cout << "point " << me.pos << endl;
@@ -318,6 +269,11 @@ cout << uniqueID << " left proximity" << endl;
     np.close();
 //cout << "boolean: to " << path.points.size() << " add " << np.points.size() << endl;
     boolean(path, np, &path, UNION);
+    if (booleanop_gap_error) {
+      backup.close();
+      cerr << "found gap error" << endl;
+      exit(EXIT_FAILURE);
+    }
 //cout << "added" << endl;
     invalidateWindow();
   }
@@ -368,15 +324,18 @@ struct TEditModel
   TFloatModel zoom;
 };
 
-void replay(TEditModel *editmodel);
+void replay(TEditModel *editmodel, TBoundary *clip=nullptr);
 
 class TVisualization:
   public TScrollPane
 {
     TEditModel *editmodel;
+    bool haveClip:1;
+    bool editClip:1;
+    TBoundary clip;
   public:
     TVisualization(TWindow *parent, const string &title, TEditModel *em):
-      TScrollPane(parent, title), editmodel(em) {}
+      TScrollPane(parent, title), editmodel(em), haveClip(false), editClip(false) {}
     void adjustPane() override;
     void paint() override;
     void mouseEvent(const TMouseEvent &) override;
@@ -415,12 +374,41 @@ TVisualization::mouseEvent(const TMouseEvent &me)
         } break;
       }
       break;
-    case TEditModel::CUT:
+    case TEditModel::CUT: {
+      TPoint pt = me.pos * (1.0 / editmodel->zoom);
       switch(me.type) {
         case TMouseEvent::LDOWN: {
-          TPoint pt = me.pos * (1.0 / editmodel->zoom);
           cout << "find something near " << pt << endl;
-          
+          if (haveClip) {
+            cout << "have clip" << endl;
+            haveClip=false;
+            invalidateWindow();
+            break;
+          }
+          cout << "clip" << endl;
+          haveClip=false;
+          editClip=true;
+          clip.x1=clip.x2=pt.x;
+          clip.y1=clip.y2=pt.y;
+          break;
+        case TMouseEvent::MOVE:
+          if (!editClip)
+            break;
+          clip.x2=pt.x;
+          clip.y2=pt.y;
+          invalidateWindow();
+          break;
+        case TMouseEvent::LUP:
+          if (!editClip)
+            break;
+          clip.x2=pt.x;
+          clip.y2=pt.y;
+          haveClip=true;
+          editClip=false;
+          replay(editmodel, &clip);
+          invalidateWindow();
+          break;
+/*          
           TCoord dm;
           size_t i, f;
           
@@ -451,10 +439,10 @@ TVisualization::mouseEvent(const TMouseEvent &me)
             ++i;
           }
           cout << "found red point " << f << ", " << editmodel->nextpath.points[f] << endl;
-          
+*/          
         } break;
       }
-      break;
+    } break;
   }
 }
 
@@ -476,43 +464,19 @@ TVisualization::paint()
   pen.setColor(0,0,0);
   editmodel->path.apply(pen);
   pen.stroke();
-#if 0
-  for(auto p: editmodel->path.points) {
-    pen.drawLine(p.x-2*s, p.y-2*s, p.x+2*s, p.y+2*s);
-    pen.drawLine(p.x+2*s, p.y-2*s, p.x-2*s, p.y+2*s);
-  }
-#endif  
+
   pen.setColor(0,0,1);
   editmodel->nextstroke.apply(pen);
   pen.stroke();
 
-#if 0
-  for(auto p: editmodel->nextstroke.points) {
-    pen.drawCircle(p.x-s*1.5, p.y-s*1.5, 3*s, 3*s);
-  }
-#endif
   pen.setColor(1,0,0);
   editmodel->nextpath.apply(pen);
   pen.stroke();
-#if 0
-  size_t i=0;
-  for(auto p: editmodel->nextpath.points) {
-
-    if (138 <= i && i <= 139) {
-cout << "draw " << i << " " << p << endl;
-      pen.setColor(0,0.7,0);
-    } else
-    if (i == 919) {
-cout << "draw " << i << " " << p << endl;
-      pen.setColor(1,0.5,0);
-    } else {
-      pen.setColor(1,0,0);
-    }
-
-    pen.drawCircle(p.x-2*s, p.y-2*s, 4*s, 4*s);
-    ++i;
+  
+  if (editClip) {
+    pen.setColor(0,0,0);
+    pen.drawRectangle(clip);
   }
-#endif
 }
 
 extern bool global_debug;
@@ -576,7 +540,7 @@ restore(TVectorPath *path, const char *fn)
 }
 
 void
-replay(TEditModel *editmodel)
+replay(TEditModel *editmodel, TBoundary *clip)
 {
   auto &pos(editmodel->pos);
   auto &path(editmodel->path);
@@ -596,17 +560,6 @@ replay(TEditModel *editmodel)
     } else {
       addHull(&hull, handpath, i-1);
       addHull(&hull, handpath, i);
-/*      
-      struct Compare {
-        bool operator() (const TPoint& lhs, const TPoint& rhs) const {
-          return (lhs.x==rhs.x) ? lhs.y==rhs.y : lhs.x==rhs.x;
-        }
-      };
-      set<TPoint, Compare> hull2;
-      hull2.insert(hull.begin(), hull.end());
-      hull.clear();
-      hull.insert(hull.begin(), hull2.begin(), hull2.end());
-*/      
       convexHull(&hull);
     }
     
@@ -622,33 +575,19 @@ replay(TEditModel *editmodel)
     if (i+1<pos) {
       boolean(path, nextstroke, &path, UNION);
     } else {
-#if 1
-// clip for backup-hang005.txt
-TVectorPath x;
-x.move(TPoint(52.6575,31));
-x.line(TPoint(64.1521,31));
-x.line(TPoint(64.1521,41));
-x.line(TPoint(64.1521,41));
-x.close();
-boolean(path, x, &path, INTERSECTION);
-boolean(nextstroke, x, &nextstroke, INTERSECTION);
-#endif    
-#if 0
-// clip for backup-glitch009.txt
-TVectorPath x;
-x.move(TPoint(96,112));
-x.line(TPoint(107,112));
-x.line(TPoint(107,123));
-x.line(TPoint(96,123));
-x.close();
-boolean(path, x, &path, INTERSECTION);
-boolean(nextstroke, x, &nextstroke, INTERSECTION);
-#endif    
-//      cout << "----------------- FINAL UNION -------------------" << endl;
-//global_debug = true;
+      if (clip) {
+        TVectorPath x;
+        x.move(TPoint(clip->x1, clip->y1));
+        x.line(TPoint(clip->x2, clip->y1));
+        x.line(TPoint(clip->x2, clip->y2));
+        x.line(TPoint(clip->x1, clip->y2));
+        x.close();
+        boolean(path, x, &path, INTERSECTION);
+        boolean(nextstroke, x, &nextstroke, INTERSECTION);
+      }
+booleanop_debug = true;
       boolean(path, nextstroke, &nextpath, UNION);
-//global_debug = false;
-//      cout << "-------------------------------------------------" << endl;
+booleanop_debug = false;
     }
   }
   
@@ -687,13 +626,13 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
-#if 0
+#if 1
   TMyPainter p(NULL, "TMyPainter");
   
   restore(&p.subj, "subj");
   restore(&p.clip, "clip");
   
-global_debug = true;
+  booleanop_debug = true;
   boolean(p.subj, p.clip, &p.result, UNION);
   
   toad::mainLoop();
@@ -721,7 +660,7 @@ global_debug = true;
   return;
 #endif
 
-#if 0
+#if 1
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
 
@@ -733,13 +672,16 @@ global_debug = true;
 //  editmodel->handpath = loadHandpath("backup-hang004-glitch.txt"); // glitch at 547, fixed with new findIntersection
 //  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, fixed
 //  editmodel->handpath = loadHandpath("backup-glitch009.txt"); // an error at 283, caused by above's fix
-  editmodel->handpath = loadHandpath("backup-glitch011.txt"); // an error at 283, caused by above's fix
+//  editmodel->handpath = loadHandpath("backup-glitch-newrecompute001.txt");
+  editmodel->handpath = loadHandpath("backup-glitch010.txt"); // one at 1976, multiple others
+//  editmodel->handpath = loadHandpath("backup-glitch011.txt"); // okay
+//  editmodel->handpath = loadHandpath("backup.txt");
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
   connect(editmodel->pos.sigChanged, [pane, editmodel] {
     replay(editmodel);
     pane->invalidateWindow();
   });
-  editmodel->pos = 283;
+  editmodel->pos = 1976; // editmodel->handpath.size()-1;
   wnd->w = 640;
   wnd->h = 480;
 
