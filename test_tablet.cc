@@ -626,7 +626,7 @@ void TMyPainter::paint()
 void
 test_tablet()
 {
-#if 1
+#if 0
   TMyPainter p(NULL, "TMyPainter");
   
   restore(&p.subj, "subj");
@@ -660,7 +660,7 @@ global_debug = true;
   return;
 #endif
 
-#if 1
+#if 0
   TEditModel *editmodel = new TEditModel();
   editmodel->zoom = 1.0;
 
@@ -673,7 +673,7 @@ global_debug = true;
 //  editmodel->handpath = loadHandpath("backup-hang005.txt"); // an error at 544, fixed
 //  editmodel->handpath = loadHandpath("backup-glitch009.txt"); // an error at 283, caused by above's fix
 //  editmodel->handpath = loadHandpath("backup-glitch-newrecompute001.txt");
-  editmodel->handpath = loadHandpath("backup-glitch010.txt"); // one at 1976, multiple others
+//  editmodel->handpath = loadHandpath("backup-glitch010.txt"); // one at 1976, multiple others, all fixed
 //  editmodel->handpath = loadHandpath("backup-glitch011.txt"); // okay
 //  editmodel->handpath = loadHandpath("backup.txt");
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
@@ -681,7 +681,7 @@ global_debug = true;
     replay(editmodel);
     pane->invalidateWindow();
   });
-  editmodel->pos = 1976; // editmodel->handpath.size()-1;
+  editmodel->pos = editmodel->handpath.size()-1;
   wnd->w = 640;
   wnd->h = 480;
 

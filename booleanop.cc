@@ -860,8 +860,13 @@ distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
   return fabs(b.y * a.x - b.x * a.y) / sqrt(lb);
 }
 
+/**
+ * \param ilist points found
+ * \param l0    line
+ * \param l1    other line
+ */
 void
-intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, TPoint *l1)
+intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1)
 {
   // IMPROVE ME: we might want to pick a middle point if available?
 
@@ -942,6 +947,7 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
  * 1: one intersection, don't recompute
  * 2: two intersections, recompute
  * 3: two intersection, don't recompute
+ * 4: le1 intersects with left of le2
  */
 int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 {
@@ -978,11 +984,25 @@ return 0;
   // The line segments associated to le1 and le2 intersect
   if (nintersections == 1) {
     DEBUG_PDF(txt<<"one intersection => divide" << endl;)
-    if (distance(le1->point, ip1) >= tolerance && distance(le1->otherEvent->point, ip1) >= tolerance) { // if the intersection point is not an endpoint of le1->segment ()
+    bool flag=false;
+    if (distance(le1->point, ip1) >= tolerance && 
+        distance(le1->otherEvent->point, ip1) >= tolerance)
+    { // if the intersection point is not an endpoint of le1
+      DEBUG_PDF(txt<<"one intersection => divide le1" << endl;)
+      flag=true;
       divideSegment(le1, ip1);
     }
-    if (distance(le2->point, ip1) >= tolerance && distance(le2->otherEvent->point, ip1) >= tolerance) { // if the intersection point is not an endpoint of le2->segment ()
+    if (distance(le2->point, ip1) >= tolerance && 
+        distance(le2->otherEvent->point, ip1) >= tolerance)
+    { // if the intersection point is not an endpoint of le2
+      DEBUG_PDF(txt<<"one intersection => divide le2" << endl;)
       divideSegment(le2, ip1);
+    }
+    
+    // this fixes BackupGlitch010
+    if (flag && distance(le2->point, ip1) < tolerance) {
+      DEBUG_PDF(txt<<"one intersection => divided l1 at right left point of l2" << endl;)
+      return 4;
     }
     return 1;
   }
@@ -991,6 +1011,7 @@ return 0;
   std::vector<SweepEvent*> sortedEvents;
 
   if (distance(le1->point, le2->point) < tolerance) {
+    // left points are the same
     sortedEvents.push_back(0);
   } else if (sec(le1, le2)) {
     sortedEvents.push_back(le2);
@@ -1001,8 +1022,9 @@ return 0;
   }
 
   if (distance(le1->otherEvent->point, le2->otherEvent->point) < tolerance) {
+    // right points are the same
     sortedEvents.push_back(0);
-  } else if (sec (le1->otherEvent, le2->otherEvent)) {
+  } else if (sec(le1->otherEvent, le2->otherEvent)) {
     sortedEvents.push_back(le2->otherEvent);
     sortedEvents.push_back(le1->otherEvent);
   } else {

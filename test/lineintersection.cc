@@ -3,7 +3,7 @@
 
 using namespace toad;
 
-void intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, TPoint *l1);
+void intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1);
 
 //  p0
 //  |
