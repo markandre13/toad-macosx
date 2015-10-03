@@ -51,7 +51,51 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
+  
+  TPoint p[4] = {
+    { 10, 40 },
+    { 300, 10 },
+    { 30, 100 },
+    { 200, 80 }
+  };
+  
+  pen.drawLines(p, 4);
+  pen.drawBezier(p, 4);
+  
+  // rotate p[0] to p[3] into the horizontal
+  TCoord lx1 = p[0].x, ly1 = p[0].y,
+         lx2 = p[3].x, ly2 = p[3].y,
+         ldx = lx2 - lx1,
+         ldy = ly2 - ly1,
+         angle = atan2(-ldy, ldx),
+         sin = ::sin(angle),
+         cos = ::cos(angle);
 
+  TCoord qx[4];
+  for(int i=0; i<4; ++i) {
+    TCoord x = p[i].x - lx1,
+           y = p[i].y - ly1;
+    qx[i] = x * cos - y * sin;
+  }
+  
+  // find zero in the 1st derivative
+  TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
+         b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
+         c = qx[1] - qx[0];
+  TCoord roots[2];
+  int count = solveQuadratic(a, b, c, roots);
+  
+  pen.setColor(1,0,0);
+  if (count>=1) {
+    TPoint r = bez2point(p, roots[0]);
+    pen.drawCircle(r.x-2, r.y-2, 5, 5);
+  }
+  if (count>=2) {
+    TPoint r = bez2point(p, roots[1]);
+    pen.drawCircle(r.x-2, r.y-2, 5, 5);
+  }
+  
+#if 0
   TVectorPath p0;
   p0.move(TPoint(10,10));
   p0.curve(TPoint(55,1),
@@ -71,7 +115,7 @@ TMyWindow::paint()
   p1.close();
   
   TVectorPath poly;
-  
+#endif  
 #if 0
   cout << "union --------------" << endl;
   poly = boolean(p0, p1, UNION);
@@ -94,7 +138,7 @@ TMyWindow::paint()
   poly.apply(pen);
   pen.fill();
 #endif
-#if 1
+#if 0
   cout << "difference ---------" << endl;
   boolean(p0, p1, &poly, DIFFERENCE);
   pen.translate(0,100);

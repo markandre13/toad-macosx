@@ -447,7 +447,7 @@ intersectCurveCurve(TIntersectionList &ilist, TPoint *curve0, TPoint *curve1)
  *
  * a*x^2 + b*x + c = 0
  */
-static int
+int
 solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots) {
   // After Numerical Recipes in C, 2nd edition, Press et al.,
   // 5.6, Quadratic and Cubic Equations

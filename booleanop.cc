@@ -1,22 +1,14 @@
-/***************************************************************************
- *   Developer: Francisco Martínez del Río (2012)                          *  
- *   fmartin@ujaen.es                                                      *
- *   Version: 1.0                                                          *
- *                                                                         *
- *   This is a public domain program                                       *
- ***************************************************************************/
-
 /*
- * This file implements
+ * A simple algorithm for Boolean operations on polygons
+ * F. Martínez, C. Ogayar, J.R. Jiménez, A.J. Rueda.
+ * Advances in Engineering Software
+ * Volume 64, October 2013, Pages 11-19
  *
- *   F. Martínez, C. Ogayar, J.R. Jiménez, A.J. Rueda.
- *   "A simple algorithm for Boolean operations on polygons"
- *   Advances in Engineering Software
- *   Volume 64, October 2013, Pages 11-19
+ * http://www4.ujaen.es/~fmartin/bool_op.html (bop12.zip)
+ * Copyright 2012 Francisco Martínez del Río <fmartin@ujaen.es>
+ * and licenced as public domain.
  *
- * and builds upon the example implementation in bop12.zip at
- *
- *   http://www4.ujaen.es/~fmartin/bool_op.html
+ * Copyright 2015 Mark-André Hopf <mhopf@mark13.org>
  *
  * F. Martínez noted that
  *
@@ -144,35 +136,37 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 
 class BooleanOpImp
 {
-public:
-	BooleanOpImp(BooleanOpType op);
-	void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& result);
+  public:
+    BooleanOpImp(BooleanOpType op);
+    void run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& result);
 
-private:
-	BooleanOpType operation;
-	std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq; // event queue (sorted events to be processed)
-	std::set<SweepEvent*, SegmentComp> sl; // segments intersecting the sweep line
-	std::deque<SweepEvent> eventHolder;    // It holds the events generated during the computation of the boolean operation
-	SweepEventComp sec;                    // to compare events
+  private:
+    BooleanOpType operation;
+    std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, SweepEventComp> eq; // event queue (sorted events to be processed)
+    std::set<SweepEvent*, SegmentComp> sl; // segments intersecting the sweep line
+    std::deque<SweepEvent> eventHolder;    // It holds the events generated during the computation of the boolean operation
+    SweepEventComp sec;                    // to compare events
 
-	bool trivialOperation(const toad::TVectorPath& subject, const toad::TVectorPath& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB, toad::TVectorPath &result);
-	void path2events(const toad::TVectorPath& poly, PolygonType type);
-	/** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
-        void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
-        void processCurve(const TPoint &p0, const TPoint *pn, PolygonType pt);
-	/** @brief Store the SweepEvent e into the event holder, returning the address of e */
-	SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
-	/** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
-	int possibleIntersection (SweepEvent* le1, SweepEvent* le2);
-	/** @brief Divide the segment associated to left event le, updating pq and (implicitly) the status line */
-	void divideSegment (SweepEvent* le, const TPoint& p);
-	/** @brief return if the left event le belongs to the result of the Boolean operation */
-	bool inResult(const SweepEvent* le) const;
-	/** @brief compute several fields of left event le */
-	void computeFields (SweepEvent* leftEvent, SweepEvent *previousEvent);
-	// connect the solution edges to build the result polygon
-	void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
-	ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
+    bool trivialOperation(const toad::TVectorPath& subject, const toad::TVectorPath& clipping, const Bbox_2& subjectBB, const Bbox_2& clippingBB, toad::TVectorPath &result);
+
+    void path2events(const toad::TVectorPath& poly, PolygonType type);
+    /** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
+    void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
+    void processCurve(const TPoint *p, PolygonType pt);
+
+    /** @brief Store the SweepEvent e into the event holder, returning the address of e */
+    SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
+    /** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
+    int possibleIntersection (SweepEvent* le1, SweepEvent* le2);
+    /** @brief Divide the segment associated to left event le, updating pq and (implicitly) the status line */
+    void divideSegment (SweepEvent* le, const TPoint& p);
+    /** @brief return if the left event le belongs to the result of the Boolean operation */
+    bool inResult(const SweepEvent* le) const;
+    /** @brief compute several fields of left event le */
+    void computeFields(SweepEvent* leftEvent, SweepEvent *previousEvent);
+    // connect the solution edges to build the result polygon
+    void connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out);
+    ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
 SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et):
@@ -250,51 +244,52 @@ void BooleanOpImp::path2events(const toad::TVectorPath& poly, PolygonType type)
 {
 // FIXME: this function must drop neighbouring equal points (degenerated case)
 // FIXME: this function must catch empty polygons
-        const TPoint *pt = poly.points.data();
-        const TPoint *ph, *pp; // head & previous
-        for(auto p: poly.type) {
-          switch(p) {
-            case TVectorPath::MOVE:
-              pp=ph=pt;
-              ++pt;
-              break;
-            case TVectorPath::LINE:
-              processLine(*pp, *pt, type);
-              pp=pt;
-              ++pt;
-              break;
-            case TVectorPath::CURVE:
-              processCurve(*pp, pt, type);
-              pp=pt+2;
-              pt+=3;
-              break;
-            case TVectorPath::CLOSE:
-              processLine(*pp, *ph, type);
-              break;
-          }
-        }
+  const TPoint *pt = poly.points.data();
+  const TPoint *ph, *pp; // head & previous
+  for(auto p: poly.type) {
+    switch(p) {
+      case TVectorPath::MOVE:
+        pp=ph=pt;
+        ++pt;
+        break;
+      case TVectorPath::LINE:
+        processLine(*pp, *pt, type);
+        pp=pt;
+        ++pt;
+        break;
+      case TVectorPath::CURVE:
+        processCurve(pp, type);
+        pp=pt+2;
+        pt+=3;
+        break;
+      case TVectorPath::CLOSE:
+        processLine(*pp, *ph, type);
+        break;
+    }
+  }
 }
 
 
 /**
  * convert segment/edge into two sweep events
  */
-void BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType pt)
+void
+BooleanOpImp::processLine(const TPoint &p0, const TPoint &p1, PolygonType pt)
 {
 //cout << "segment " << p0 << " - " << p1 << endl;
-	if (p0==p1) // if the two edge endpoints are equal the segment is dicarded
-          return;   // This can be done as preprocessing to avoid "polygons" with less than 3 edges
-	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
-	SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p1, e1, pt));
-	e1->otherEvent = e2;
+  if (p0==p1) // if the two edge endpoints are equal the segment is dicarded
+    return;   // This can be done as preprocessing to avoid "polygons" with less than 3 edges
+  SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
+  SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p1, e1, pt));
+  e1->otherEvent = e2;
 
-	if (minlex(p0, p1) == p0) {
-		e2->left = false;
-	} else {
-		e1->left = false;
-	}
-	eq.push(e1);
-	eq.push(e2);
+  if (minlex(p0, p1) == p0) {
+    e2->left = false;
+  } else {
+    e1->left = false;
+  }
+  eq.push(e1);
+  eq.push(e2);
 /*
 std::cout << "processSegment" << std::endl;
 std::cout << "  " << e1->toString() << std::endl;
@@ -302,24 +297,63 @@ std::cout << "  " << e2->toString() << std::endl;
 */
 }
 
-void BooleanOpImp::processCurve(const TPoint &p0, const TPoint* pn, PolygonType pt)
+void
+BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
 {
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
 		return;          // This can be done as preprocessing to avoid "polygons" with less than 3 edges */
-	SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p0, 0, pt));
-	SweepEvent* e2 = storeSweepEvent(SweepEvent(true, *(pn+2), e1, pt));
-	e2->point1 = *(pn);
-	e2->point2 = *(pn+1);
-	e2->curve = true;
-	e1->otherEvent = e2;
 
-	if (minlex(p0, *(pn+2)) == p0) {
-		e2->left = false;
-	} else {
-		e1->left = false;
-	}
-	eq.push(e1);
-	eq.push(e2);
+  // the algorithm works on lines which overlap vertically within the sweep
+  // line buffer.  so every time a bézier curve changes its direction on the
+  // x-axis, we need to cut it like this for the algorithm to work:
+  //  ___
+  //     \
+  //      |   <-- cut
+  //     /
+  //    |     <-- cut
+  //     \___
+  //
+  // FIXME: we can later try to keep as much of the original curve as possible
+
+  // rotate p[0] to p[3] into the horizontal
+  TCoord lx1 = p[0].x, ly1 = p[0].y,
+         lx2 = p[2].x, ly2 = p[2].y,
+         ldx = lx2 - lx1,
+         ldy = ly2 - ly1,
+         angle = atan2(-ldy, ldx),
+         sin = ::sin(angle),
+         cos = ::cos(angle);
+
+  TCoord qx[4];
+  for(int i=0; i<4; ++i) {
+    TCoord x = p[i].x - lx1,
+           y = p[i].y - ly1;
+    qx[i] = x * cos - y * sin;
+  }
+  
+  // find extremas along the y-axis
+  TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
+         b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
+         c = qx[1] - qx[0];
+  TCoord roots[2];
+  int count = solveQuadratic(a, b, c, roots);
+  
+  if (count==0) {
+    SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p[0], 0, type));
+    SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p[3], e1, type));
+    e2->point1 = p[1];
+    e2->point2 = p[2];
+    e2->curve = true;
+    e1->otherEvent = e2;
+
+    if (minlex(p[0], p[3]) == p[0]) {
+      e2->left = false;
+    } else {
+      e1->left = false;
+    }
+    eq.push(e1);
+    eq.push(e2);
+  }
 }
 
 static TPoint origin;
