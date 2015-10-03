@@ -173,12 +173,14 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
 {
   if (me.type==TMouseEvent::LDOWN) {
 cout << "down" << endl;
+    [NSEvent setMouseCoalescingEnabled: FALSE];
     backup.open("backup.txt", ofstream::out | ofstream::trunc);
     handpath.clear();
     path.clear();
   } else
   if (me.type==TMouseEvent::LUP) {
 cout << "up" << endl;
+    [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
   } else
   if (me.type==TMouseEvent::TABLET_POINT) {
