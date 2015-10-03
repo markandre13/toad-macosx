@@ -153,6 +153,7 @@ class BooleanOpImp
     /** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
     void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
     void processCurve(const TPoint *p, PolygonType pt);
+    void addCurve(const TPoint *p, PolygonType type);
 
     /** @brief Store the SweepEvent e into the event holder, returning the address of e */
     SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
@@ -298,6 +299,31 @@ std::cout << "  " << e2->toString() << std::endl;
 }
 
 void
+BooleanOpImp::addCurve(const TPoint *p, PolygonType type)
+{
+  SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p[0], 0, type));
+  SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p[3], e1, type));
+
+cout << "    add curve " << e1->id << " & " << e2->id << endl;
+
+  e1->otherEvent = e2;
+
+  if (minlex(p[0], p[3]) == p[0]) {
+    e2->left = false;
+    e1->point1 = p[1];
+    e1->point2 = p[2];
+    e1->curve = true;
+  } else {
+    e1->left = false;
+    e2->point1 = p[2];
+    e2->point2 = p[1];
+    e2->curve = true;
+  }
+  eq.push(e1);
+  eq.push(e2);
+}
+
+void
 BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
 {
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
@@ -317,7 +343,7 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
 
   // rotate p[0] to p[3] into the horizontal
   TCoord lx1 = p[0].x, ly1 = p[0].y,
-         lx2 = p[2].x, ly2 = p[2].y,
+         lx2 = p[3].x, ly2 = p[3].y,
          ldx = lx2 - lx1,
          ldy = ly2 - ly1,
          angle = atan2(-ldy, ldx),
@@ -331,28 +357,57 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
     qx[i] = x * cos - y * sin;
   }
   
-  // find extremas along the y-axis
+  // find extrema along the y-axis
   TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
          b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
          c = qx[1] - qx[0];
-  TCoord roots[2];
-  int count = solveQuadratic(a, b, c, roots);
+  TCoord root[2];
+  int count = solveQuadratic(a, b, c, root);
   
-  if (count==0) {
-    SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p[0], 0, type));
-    SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p[3], e1, type));
-    e2->point1 = p[1];
-    e2->point2 = p[2];
-    e2->curve = true;
-    e1->otherEvent = e2;
-
-    if (minlex(p[0], p[3]) == p[0]) {
-      e2->left = false;
-    } else {
-      e1->left = false;
+  // remove all solutions <0.0 && >1.0
+  if (count == 2) {
+    if (root[0]<0.0 || root[0]>1.0) {
+      root[0] == root[1];
+      --count;
+    } else
+    if (root[1]<0.0 || root[1]>1.0) {
+      --count;
     }
-    eq.push(e1);
-    eq.push(e2);
+  }
+  if (count == 1) {
+    if (root[0]<0.0 || root[0]>1.0) {
+      --count;
+    }
+  }
+
+
+cout << "processCurve:" << endl;
+for(int i=0; i<4; ++i) {
+  cout << "  " << p[i] << endl;
+}
+cout << "  -> " << count << endl;
+
+  TPoint buf[7];
+  switch(count) {
+    case 0:
+      addCurve(p, type);
+      break;
+    case 1:
+      divideBezier(p, buf, root[0]);
+      addCurve(buf, type);
+      addCurve(buf+3, type);
+      break;
+    case 2:
+      // FIXME: this can be done faster
+      if (root[0]>root[1])
+        swap(root[0], root[1]);
+      divideBezier(p, buf, root[0]);
+      addCurve(buf, type);
+      divideBezier(p, buf, root[0], root[1]);
+      addCurve(buf, type);
+      divideBezier(p, buf, root[1]);
+      addCurve(buf+3, type);
+      break;
   }
 }
 
@@ -393,15 +448,23 @@ drawArrow(TPen &pen, const TPoint &p2, const TPoint &p1)
 void
 drawLineWithArrow(TPen &pen, SweepEvent *x)
 {
+  if (!x->left)
+    x = x->otherEvent;
+
   TPoint p = (x->point - x->otherEvent->point) * 0.5 + x->otherEvent->point;
-  pen.drawLine(x->point, x->otherEvent->point);
-  if (x->left) {
-    drawArrow(pen, x->point, x->otherEvent->point);
-    pen.drawString(p.x, p.y, format("%u", x->id));
+  if (!x->curve) {
+    pen.drawLine(x->point, x->otherEvent->point);
   } else {
-    drawArrow(pen, x->otherEvent->point, x->point);
-    pen.drawString(p.x, p.y, format("%u", x->otherEvent->id));
+    TPoint b[4];
+    b[0] = x->point;
+    b[1] = x->point1;
+    b[2] = x->point2;
+    b[3] = x->otherEvent->point;
+    pen.drawBezier(b, 4);
   }
+  drawArrow(pen, x->point, x->otherEvent->point);
+  pen.drawCircle(x->point.x-2/::scale, x->point.y-2/::scale, 4/::scale, 4/::scale);
+  pen.drawString(p.x, p.y, format("%u", x->id));
 }
 
 void

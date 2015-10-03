@@ -24,6 +24,8 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
+#include <toad/booleanop.hh>
+
 using namespace toad;
 
 TVectorPath
@@ -51,14 +53,19 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
-  
+#if 0
   TPoint p[4] = {
+/*
     { 10, 40 },
     { 300, 10 },
     { 30, 100 },
-    { 200, 80 }
+*/
+    { 200, 80 },
+    { 300, 80 },
+    { 30, 150 },
+    { 10, 50 }
   };
-  
+
   pen.drawLines(p, 4);
   pen.drawBezier(p, 4);
   
@@ -82,19 +89,64 @@ TMyWindow::paint()
   TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
          b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
          c = qx[1] - qx[0];
-  TCoord roots[2];
-  int count = solveQuadratic(a, b, c, roots);
+  TCoord root[2];
+  int count = solveQuadratic(a, b, c, root);
+  if (count == 2) {
+    if (root[0]<0.0 || root[0]>1.0) {
+      root[0] == root[1];
+      --count;
+    } else
+    if (root[1]<0.0 || root[1]>1.0) {
+      --count;
+    }
+  }
+  if (count == 1) {
+    if (root[0]<0.0 || root[0]>1.0) {
+      --count;
+    }
+  }
   
+  
+  pen.setColor(0,0,1);
+  for(int i=0; i<count; ++i) {
+cout << "    " << root[i] << endl;
+    TPoint pt = bez2point(p, root[i]);
+    pen.drawCircle(pt.x-2,pt.y-2,4,4);
+  }
+  
+#endif
+  
+#if 1
+  TVectorPath p0;
+  p0.move(TPoint(10,40));
+  p0.curve(TPoint(300,10),
+           TPoint(30,100),
+           TPoint(200,80));
+  p0.curve(TPoint(300,80),
+           TPoint(30,150),
+           TPoint(10,50));
+  p0.close();
+
+  p0.apply(pen);
+  pen.stroke();
+
+  TVectorPath p1;
+  p1.move(TPoint(30,90));
+  p1.line(TPoint(180,90));
+  p1.line(TPoint(110,20));
+  p1.close();
+
+  pen.setColor(0,1,0);
+  p0.apply(pen);
+  pen.stroke();
+
+  pen.setColor(0,0,1);
+  p1.apply(pen);
+  pen.stroke();
+
   pen.setColor(1,0,0);
-  if (count>=1) {
-    TPoint r = bez2point(p, roots[0]);
-    pen.drawCircle(r.x-2, r.y-2, 5, 5);
-  }
-  if (count>=2) {
-    TPoint r = bez2point(p, roots[1]);
-    pen.drawCircle(r.x-2, r.y-2, 5, 5);
-  }
-  
+  TVectorPath poly;
+#endif  
 #if 0
   TVectorPath p0;
   p0.move(TPoint(10,10));
@@ -131,12 +183,13 @@ TMyWindow::paint()
   p1.apply(pen);
   pen.stroke();
 #endif
-#if 0
-  cout << "intersection -------" << endl;
-  poly = boolean(p0, p1, INTERSECTION);
-  pen.translate(160,0);
+#if 1
+  cout << "intersection -------" << endl; // HERE
+booleanop_debug=true;
+  boolean(p0, p1, &poly, UNION);
+  pen.translate(0,150);
   poly.apply(pen);
-  pen.fill();
+  pen.stroke();
 #endif
 #if 0
   cout << "difference ---------" << endl;
