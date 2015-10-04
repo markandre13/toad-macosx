@@ -1008,7 +1008,7 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
     intersectLineLine2(il, pt, pt+2);
   
     if (il.size()>0) pi0 = il[0];
-    if (il.size()>1) pi0 = il[1];
+    if (il.size()>1) pi1 = il[1];
   
     return il.size();
   }
