@@ -156,11 +156,11 @@ class BooleanOpImp
     void addCurve(const TPoint *p, PolygonType type);
 
     /** @brief Store the SweepEvent e into the event holder, returning the address of e */
-    SweepEvent *storeSweepEvent (const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
+    SweepEvent *storeSweepEvent(const SweepEvent& e) { eventHolder.push_back (e); return &eventHolder.back (); }
     /** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
-    int possibleIntersection (SweepEvent* le1, SweepEvent* le2);
+    int possibleIntersection(SweepEvent* le1, SweepEvent* le2);
     /** @brief Divide the segment associated to left event le, updating pq and (implicitly) the status line */
-    void divideSegment (SweepEvent* le, const TPoint& p);
+    void divideSegment(SweepEvent* le, const TPoint& p);
     /** @brief return if the left event le belongs to the result of the Boolean operation */
     bool inResult(const SweepEvent* le) const;
     /** @brief compute several fields of left event le */
@@ -170,7 +170,7 @@ class BooleanOpImp
     ssize_t nextPos (ssize_t pos, const std::vector<SweepEvent*>& resultEvents, const std::vector<bool>& processed);
 };
 
-SweepEvent::SweepEvent (bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et):
+SweepEvent::SweepEvent(bool b, const TPoint& p, SweepEvent* other, PolygonType pt, EdgeType et):
   left(b), point(p), curve(false), otherEvent(other), pol(pt), type(et), inResult(false) //, prevInResult(0)
 {
   id = sweepcntr++;
@@ -304,8 +304,6 @@ BooleanOpImp::addCurve(const TPoint *p, PolygonType type)
   SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p[0], 0, type));
   SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p[3], e1, type));
 
-cout << "    add curve " << e1->id << " & " << e2->id << endl;
-
   e1->otherEvent = e2;
 
   if (minlex(p[0], p[3]) == p[0]) {
@@ -367,7 +365,7 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
   // remove all solutions <0.0 && >1.0
   if (count == 2) {
     if (root[0]<0.0 || root[0]>1.0) {
-      root[0] == root[1];
+      root[0] = root[1];
       --count;
     } else
     if (root[1]<0.0 || root[1]>1.0) {
@@ -379,13 +377,6 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
       --count;
     }
   }
-
-
-cout << "processCurve:" << endl;
-for(int i=0; i<4; ++i) {
-  cout << "  " << p[i] << endl;
-}
-cout << "  -> " << count << endl;
 
   TPoint buf[7];
   switch(count) {
@@ -922,27 +913,6 @@ BooleanOpImp::inResult(const SweepEvent* le) const
   return false; // just to avoid the compiler warning
 }
 
-static int findIntersection(double u0, double u1, double v0, double v1, double w[2])
-{
-  if ((u1 < v0) || (u0 > v1))
-    return 0;
-  if (u1 > v0) {
-    if (u0 < v1) {
-      w[0] = (u0 < v0) ? v0 : u0;
-      w[1] = (u1 > v1) ? v1 : u1;
-      return 2;
-    } else {
-      // u0 == v1
-      w[0] = u0;
-      return 1;
-    }
-  } else {
-    // u1 == v0
-    w[0] = u1;
-    return 1;
-  }
-}
-
 // distance of line (p0, p1) to point q
 static TCoord
 distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
@@ -958,6 +928,7 @@ distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
 }
 
 /**
+ * FIXME: rename into intersectLineLineWithOverlap?
  * \param ilist points found
  * \param l0    line
  * \param l1    other line
@@ -1024,17 +995,55 @@ intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1)
 static int 
 findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint& pi1)
 {
-  TPoint pt[4];
-  pt[0] = e0->point;
-  pt[1] = e0->otherEvent->point;
-  pt[2] = e1->point;
-  pt[3] = e1->otherEvent->point;
+  const SweepEvent *le0 = e0->left ? e0 : e0->otherEvent;
+  const SweepEvent *le1 = e1->left ? e1 : e1->otherEvent;
+  if (!le0->curve && !le1->curve) {
+    TPoint pt[4];
+    pt[0] = e0->point;
+    pt[1] = e0->otherEvent->point;
+    pt[2] = e1->point;
+    pt[3] = e1->otherEvent->point;
   
-  vector<TPoint> il;
-  intersectLineLine2(il, pt, pt+2);
+    vector<TPoint> il;
+    intersectLineLine2(il, pt, pt+2);
   
-  if (il.size()>0) pi0 = il[0];
-  if (il.size()>1) pi0 = il[1];
+    if (il.size()>0) pi0 = il[0];
+    if (il.size()>1) pi0 = il[1];
+  
+    return il.size();
+  }
+  
+  if (le0->curve && le1->curve) {
+    cerr << "findIntersection(): curve on curve not implemented yet" << endl;
+    return 0;
+  }
+  
+  // intersect curve and line
+  if (le1->curve) {
+    swap(le0, le1);
+    swap(e0, e1);
+  }
+  
+  TPoint pt[6] = {
+    le0->point,
+    le0->point1,
+    le0->point2,
+    le0->otherEvent->point,
+    le1->point,
+    le1->otherEvent->point
+  };
+  
+  TIntersectionList il;
+  intersectCurveLine(il, pt, pt+4);
+  
+  txt << "INTERSECTCURVELINE FOUND " << il.size() << " INTERSECTIONS" << endl;
+  
+  if (il.size()>=1) {
+    pi0 = il[0].seg1.pt;
+  }
+  if (il.size()>=2) {
+    pi1 = il[1].seg1.pt;
+  }
   
   return il.size();
 }
@@ -1170,30 +1179,34 @@ return 0;
  *    (le -> le->otherEvent)
  * at p into
  *    (le -> r) (l -> le->leOtherEvent)
+ * \param le left event of line segment to be divided
+ * \param p  point at which to divide
  */
-void BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
+void
+BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
 {
-DEBUG_PDF(txt << "divide: "<<endl; sweep2txt(le);)
-	// "Right event" of the "left line segment" resulting from dividing le->segment ()
-	SweepEvent* r = storeSweepEvent(SweepEvent(false, p, le, le->pol/*, le->type*/));
-	// "Left event" of the "right line segment" resulting from dividing le->segment ()
-	SweepEvent* l = storeSweepEvent(SweepEvent(true, p, le->otherEvent, le->pol/*, le->other->type*/));
-	if (sec(l, le->otherEvent)) { // avoid a rounding error. The left event would be processed after the right event
-		std::cout << "Oops" << std::endl;
-		le->otherEvent->left = true;
-		l->left = false;
-	}
-	if (sec(le, r)) { // avoid a rounding error. The left event would be processed after the right event
-		std::cout << "Oops2" << std::endl;
-	}
-	le->otherEvent->otherEvent = l;
-	le->otherEvent = r;
-DEBUG_PDF(
-txt << "into:"<<endl; sweep2txt(le);
-txt<<"and"<<endl;     sweep2txt(l);
-)
-	eq.push(l);
-	eq.push(r);
+  assert(le->left);
+  DEBUG_PDF(txt << "divide: "<<endl; sweep2txt(le);)
+  // "Right event" of the "left line segment" resulting from dividing le->segment ()
+  SweepEvent* r = storeSweepEvent(SweepEvent(false, p, le, le->pol/*, le->type*/));
+  // "Left event" of the "right line segment" resulting from dividing le->segment ()
+  SweepEvent* l = storeSweepEvent(SweepEvent(true, p, le->otherEvent, le->pol/*, le->other->type*/));
+  if (sec(l, le->otherEvent)) { // avoid a rounding error. The left event would be processed after the right event
+    std::cout << "Oops" << std::endl;
+    le->otherEvent->left = true;
+    l->left = false;
+  }
+  if (sec(le, r)) { // avoid a rounding error. The left event would be processed after the right event
+    std::cout << "Oops2" << std::endl;
+  }
+  le->otherEvent->otherEvent = l;
+  le->otherEvent = r;
+  DEBUG_PDF(
+    txt << "into:"<<endl; sweep2txt(le);
+    txt<<"and"<<endl;     sweep2txt(l);
+  )
+  eq.push(l);
+  eq.push(r);
 }
 
 void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toad::TVectorPath& out)
