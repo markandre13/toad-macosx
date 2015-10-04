@@ -934,7 +934,7 @@ distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
  * \param l1    other line
  */
 void
-intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1)
+intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
 {
   // IMPROVE ME: we might want to pick a middle point if available?
 
@@ -943,34 +943,42 @@ intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1)
 
   // overlapping endpoints
   if (distance(l0[0], l1[0]) < tolerance) {
-    ilist.push_back(l0[0]);
+    ilist->add(TVectorPath::LINE, l0, 0, l0[0],
+               TVectorPath::LINE, l1, 0, l1[0]);
     f00=f10=true;
   }
   if (distance(l0[0], l1[1]) < tolerance) {
-    ilist.push_back(l0[0]);
+    ilist->add(TVectorPath::LINE, l0  , 0, l0[0],
+               TVectorPath::LINE, l1+1, 1, l1[1]);
     f00=f11=true;
   }
   if (distance(l0[1], l1[0]) < tolerance) {
-    ilist.push_back(l0[1]);
+    ilist->add(TVectorPath::LINE, l0+1, 1, l0[1],
+               TVectorPath::LINE, l1  , 0, l1[0]);
     f01=f10=true;
   }
   if (distance(l0[1], l1[1]) < tolerance) {
-    ilist.push_back(l0[1]);
+    ilist->add(TVectorPath::LINE, l0+1, 1, l0[1],
+               TVectorPath::LINE, l1+1, 1, l1[1]);
     f01=f11=true;
   }
   
   // end point overlaps with line
   if (!f10 && distance(l0[0], l0[1], l1[0]) < tolerance)
-    ilist.push_back(l1[0]);
+    ilist->add(TVectorPath::LINE, nullptr, -1, l1[0],
+               TVectorPath::LINE, l1     ,  0, l1[0]);
   if (!f00 && distance(l1[0], l1[1], l0[0]) < tolerance)
-    ilist.push_back(l0[0]);
+    ilist->add(TVectorPath::LINE, l0     ,  0, l0[0],
+               TVectorPath::LINE, nullptr, -1, l0[0]);
   if (!f11 && distance(l0[0], l0[1], l1[1]) < tolerance)
-    ilist.push_back(l1[1]);
+    ilist->add(TVectorPath::LINE, nullptr, -1, l1[1],
+               TVectorPath::LINE, l1+1   ,  1, l1[1]);
   if (!f01 && distance(l1[0], l1[1], l0[1]) < tolerance)
-    ilist.push_back(l0[1]);
+    ilist->add(TVectorPath::LINE, l0+1   ,  1, l0[1],
+               TVectorPath::LINE, nullptr, -1, l0[1]);
 
   // crossing
-  if (!ilist.empty())
+  if (!ilist->empty())
     return;
 
   TCoord ax = l0[1].x - l0[0].x;
@@ -989,7 +997,10 @@ intersectLineLine2(vector<TPoint> &ilist, const TPoint *l0, const TPoint *l1)
     b = (ax * dy - ay * dx) / cross;
   if (a<0.0 || a>1.0 || b<0.0 || b>1.0)
     return;
-  ilist.push_back(TPoint(l0[0].x + a * ax, l0[0].y + a * ay));
+
+  TPoint x(l0[0].x + a * ax, l0[0].y + a * ay);
+  ilist->add(TVectorPath::LINE, nullptr, -1, x,
+             TVectorPath::LINE, nullptr, -1, x);
 }
 
 static int 
@@ -1004,11 +1015,11 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
     pt[2] = e1->point;
     pt[3] = e1->otherEvent->point;
   
-    vector<TPoint> il;
-    intersectLineLine2(il, pt, pt+2);
-  
-    if (il.size()>0) pi0 = il[0];
-    if (il.size()>1) pi1 = il[1];
+    TIntersectionList il;
+    intersectLineLine2(&il, pt, pt+2);
+
+    if (il.size()>0) pi0 = il[0].seg0.pt;
+    if (il.size()>1) pi1 = il[1].seg0.pt;
   
     return il.size();
   }
