@@ -160,7 +160,7 @@ class BooleanOpImp
     /** @brief Process a posible intersection between the edges associated to the left events le1 and le2 */
     int possibleIntersection(SweepEvent* le1, SweepEvent* le2);
     /** @brief Divide the segment associated to left event le, updating pq and (implicitly) the status line */
-    void divideSegment(SweepEvent* le, const TPoint& p);
+    void divideSegment(SweepEvent* le, const TPoint& p, TCoord u=-1);
     /** @brief return if the left event le belongs to the result of the Boolean operation */
     bool inResult(const SweepEvent* le) const;
     /** @brief compute several fields of left event le */
@@ -506,11 +506,12 @@ sweep2txt(SweepEvent *se)
 }  
 )
 
+DEBUG_PDF_INIT(static TPen *pdf = 0;)
+
 void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
 {
 DEBUG_PDF_INIT(
   unsigned cntr = 0;
-  TPen *pdf = 0;
   if (booleanop_debug)
     pdf = new TPen("bool.pdf");
   sweepcntr=0;
@@ -825,6 +826,7 @@ DEBUG_PDF(
     out.apply(*pdf);
     pdf->stroke();
     delete pdf;
+    pdf = 0;
   })
 }
 
@@ -1003,8 +1005,8 @@ intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
              TVectorPath::LINE, nullptr, -1, x);
 }
 
-static int 
-findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint& pi1)
+static int
+findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *il)
 {
   const SweepEvent *le0 = e0->left ? e0 : e0->otherEvent;
   const SweepEvent *le1 = e1->left ? e1 : e1->otherEvent;
@@ -1015,13 +1017,9 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
     pt[2] = e1->point;
     pt[3] = e1->otherEvent->point;
   
-    TIntersectionList il;
-    intersectLineLine2(&il, pt, pt+2);
-
-    if (il.size()>0) pi0 = il[0].seg0.pt;
-    if (il.size()>1) pi1 = il[1].seg0.pt;
+    intersectLineLine2(il, pt, pt+2);
   
-    return il.size();
+    return il->size();
   }
   
   if (le0->curve && le1->curve) {
@@ -1044,19 +1042,11 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TPoint& pi0, TPoint
     le1->otherEvent->point
   };
   
-  TIntersectionList il;
-  intersectCurveLine(il, pt, pt+4);
+  intersectCurveLine(*il, pt, pt+4);
   
-  txt << "INTERSECTCURVELINE FOUND " << il.size() << " INTERSECTIONS" << endl;
+  txt << "INTERSECTCURVELINE FOUND " << il->size() << " INTERSECTIONS" << endl;
   
-  if (il.size()>=1) {
-    pi0 = il[0].seg1.pt;
-  }
-  if (il.size()>=2) {
-    pi1 = il[1].seg1.pt;
-  }
-  
-  return il.size();
+  return il->size();
 }
 
 /*
@@ -1071,14 +1061,19 @@ int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
 //	if (e1->pol == e2->pol) // you can uncomment these two lines if self-intersecting polygons are not allowed
 //		return 0;
 
-  TPoint ip1, ip2;  // intersection points
+  TIntersectionList il;
   int nintersections;
 
-  if (!(nintersections = findIntersection(le1, le2, ip1, ip2))) {
+  if (!(nintersections = findIntersection(le1, le2, &il))) {
     DEBUG_PDF(txt<<"no intersection => do nothing" << endl;)
     return 0;  // no intersection
   }
-  DEBUG_PDF(txt<<"found " << nintersections << " intersections" << endl;)
+  DEBUG_PDF(
+    txt<<"found " << nintersections << " intersections" << endl;
+    for(auto &x: il) {
+      txt<<"seg0: " << x.seg0.pt << " " << x.seg0.u << " seg1: " << x.seg1.pt << " " << x.seg1.u << endl;
+    }
+  )
 
   if ( nintersections == 1 &&
        ( distance(le1->point, le2->point) < tolerance || 
@@ -1100,6 +1095,7 @@ return 0;
 
   // The line segments associated to le1 and le2 intersect
   if (nintersections == 1) {
+    TPoint &ip1(il[0].seg0.pt);
     DEBUG_PDF(txt<<"one intersection => divide" << endl;)
     bool flag=false;
     if (distance(le1->point, ip1) >= tolerance && 
@@ -1107,13 +1103,13 @@ return 0;
     { // if the intersection point is not an endpoint of le1
       DEBUG_PDF(txt<<"one intersection => divide le1" << endl;)
       flag=true;
-      divideSegment(le1, ip1);
+      divideSegment(le1, ip1, il[0].seg0.u);
     }
     if (distance(le2->point, ip1) >= tolerance && 
         distance(le2->otherEvent->point, ip1) >= tolerance)
     { // if the intersection point is not an endpoint of le2
       DEBUG_PDF(txt<<"one intersection => divide le2" << endl;)
-      divideSegment(le2, ip1);
+      divideSegment(le2, ip1, il[0].seg0.u);
     }
     
     // this fixes BackupGlitch010
@@ -1169,7 +1165,7 @@ return 0;
 
   if (sortedEvents.size () == 3) { // the line segments share the right endpoint
     DEBUG_PDF(txt<<"overlap: line segments share the right endpoint, divide " << sortedEvents[0]->point << " - " << sortedEvents[0]->otherEvent->point << " at " << sortedEvents[1]->point << endl;)
-    divideSegment (sortedEvents[0], sortedEvents[1]->point);
+    divideSegment(sortedEvents[0], sortedEvents[1]->point);
     return 3;
   }
   if (sortedEvents[0] != sortedEvents[3]->otherEvent) { // no line segment includes totally the other one
@@ -1194,14 +1190,24 @@ return 0;
  * \param p  point at which to divide
  */
 void
-BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
+BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
 {
   assert(le->left);
+
+  TPoint in[4] = {
+    le->point,
+    le->point1,
+    le->point2,
+    le->otherEvent->point
+  };
+
   DEBUG_PDF(txt << "divide: "<<endl; sweep2txt(le);)
+  
   // "Right event" of the "left line segment" resulting from dividing le->segment ()
   SweepEvent* r = storeSweepEvent(SweepEvent(false, p, le, le->pol/*, le->type*/));
   // "Left event" of the "right line segment" resulting from dividing le->segment ()
   SweepEvent* l = storeSweepEvent(SweepEvent(true, p, le->otherEvent, le->pol/*, le->other->type*/));
+
   if (sec(l, le->otherEvent)) { // avoid a rounding error. The left event would be processed after the right event
     std::cout << "Oops" << std::endl;
     le->otherEvent->left = true;
@@ -1210,12 +1216,57 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p)
   if (sec(le, r)) { // avoid a rounding error. The left event would be processed after the right event
     std::cout << "Oops2" << std::endl;
   }
+
   le->otherEvent->otherEvent = l;
   le->otherEvent = r;
+
   DEBUG_PDF(
     txt << "into:"<<endl; sweep2txt(le);
     txt<<"and"<<endl;     sweep2txt(l);
   )
+
+  if (le->curve) {
+    TPoint out[7];
+    divideBezier(in, out, u);
+
+    DEBUG_PDF(txt << "DIVIDE CURVE AT " << u << " p=" << p << ", u at " << out[3] << endl;)
+
+    DEBUG_PDF(
+      pdf->setColor(1,0,0.5);
+      for(int i=0; i<4; ++i)
+        pdf->drawCircle(in[i].x-5.0/::scale, in[i].y-5.0/::scale, 10.0/::scale, 10.0/::scale);
+      for(int i=0; i<3; ++i)
+        pdf->drawLine(in[i], in[i+1]);
+      txt << "DIVIDE CURVE AT " << u << " " << p << " vs " << out[3] << endl;
+      pdf->setColor(1,0,1); 
+      for(int i=0; i<8; ++i)
+        pdf->drawCircle(out[i].x-3.0/::scale, out[i].y-3.0/::scale, 6.0/::scale, 6.0/::scale);
+      for(int i=0; i<7; ++i)
+        pdf->drawLine(out[i], out[i+1]);
+    )
+
+
+    
+    // adjust left curve
+    le->point1 = out[1];
+    le->point2 = out[2];
+
+//    le->otherEvent->point = l->point  = out[3]; // FIXME: should equal p
+
+    // adjust right curve
+    if (l->left) {    
+txt<<"l->curve" << endl;
+      l->curve = true;
+      l->point1 = out[4];
+      l->point2 = out[5];
+    } else {
+txt<<"l->otherEvent->curve" << endl;
+      l->otherEvent->curve = true;
+      l->otherEvent->point1 = out[5];
+      l->otherEvent->point2 = out[4];
+    }
+  }
+
   eq.push(l);
   eq.push(r);
 }
@@ -1262,6 +1313,11 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
       if(resultEvents[pos]->curve) {
         out.curve(resultEvents[pos]->point1,
                   resultEvents[pos]->point2,
+                  resultEvents[pos]->point);
+      } else
+      if(resultEvents[pos]->otherEvent->curve) {
+        out.curve(resultEvents[pos]->otherEvent->point2,
+                  resultEvents[pos]->otherEvent->point1,
                   resultEvents[pos]->point);
       } else {
         out.line(resultEvents[pos]->point);
