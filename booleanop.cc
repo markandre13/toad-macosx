@@ -1028,11 +1028,17 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   }
   
   // intersect curve and line
+  if (le0 != e0)
+    txt << "SWAPPED 1 <-----------------------------------" << endl;
+  if (le1 != e1)
+    txt << "SWAPPED 2 <-----------------------------------" << endl;
   if (le1->curve) {
     swap(le0, le1);
     swap(e0, e1);
+    txt << "SWAPPED 3 <-----------------------------------" << endl;
   }
   
+  assert(le0->curve);
   TPoint pt[6] = {
     le0->point,
     le0->point1,
@@ -1045,6 +1051,18 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   intersectCurveLine(*il, pt, pt+4);
   
   txt << "INTERSECTCURVELINE FOUND " << il->size() << " INTERSECTIONS" << endl;
+  DEBUG_PDF(
+    pdf->setFont(format("helvetica:size=%f", 8.0/scale));
+    for(int i=0; i<6; ++i) {
+      txt<<pt[i]<<endl;
+      pdf->drawRectangle(pt[i].x, pt[i].y, 8, 8);
+      pdf->drawString(pt[i].x, pt[i].y, format("%i", i));
+    }
+    for(auto &p: *il) {
+      pdf->drawRectangle(p.seg0.pt.x, p.seg0.pt.y, 8,8);
+    }
+  )
+
   
   return il->size();
 }
@@ -1232,6 +1250,10 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
     DEBUG_PDF(txt << "DIVIDE CURVE AT " << u << " p=" << p << ", u at " << out[3] << endl;)
 
     DEBUG_PDF(
+      pdf->setColor(1,0,1);
+      pdf->fillCircle(p.x-5.0/::scale, p.y-5.0/::scale, 10.0/::scale, 10.0/::scale);
+      pdf->setColor(0.5,0,0.5);
+      pdf->drawCircle(p.x-5.0/::scale, p.y-5.0/::scale, 10.0/::scale, 10.0/::scale);
       pdf->setColor(1,0,0.5);
       for(int i=0; i<4; ++i)
         pdf->drawCircle(in[i].x-5.0/::scale, in[i].y-5.0/::scale, 10.0/::scale, 10.0/::scale);
@@ -1243,6 +1265,7 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
         pdf->drawCircle(out[i].x-3.0/::scale, out[i].y-3.0/::scale, 6.0/::scale, 6.0/::scale);
       for(int i=0; i<7; ++i)
         pdf->drawLine(out[i], out[i+1]);
+      pdf->drawCircle(p.x-5.0/::scale, p.y-5.0/::scale, 10.0/::scale, 10.0/::scale);
     )
 
 

@@ -1,20 +1,22 @@
-/*
+/* 
+/* poly/solve_cubic.c
+ * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2007, 2009 Brian Gough
+ *
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
  * Copyright (C) 2015 by Mark-André Hopf <mhopf@mark13.org>
  *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,   
+ * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Library General Public 
- * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <toad/geometry.hh>
@@ -431,7 +433,7 @@ bezierClipping(const TPoint *p,
 }
 
 void
-intersectCurveCurve(TIntersectionList &ilist, TPoint *curve0, TPoint *curve1)
+intersectCurveCurve(TIntersectionList &ilist, const TPoint *curve0, const TPoint *curve1)
 {
   bezierClipping(curve0, curve0, curve1, curve1, 0.0, 1.0, 0.0, 1.0, 0.0, false, 0, ilist);
 }
@@ -490,64 +492,91 @@ solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots, TCoord min, TCoord m
   return j;
 }
 
+// The function gsl_poly_solve_cubic is copied from the GNU Scientific Library.
+// It's modified to return only unique solutions.
+// For the math and history, which dates back to Scipione del Ferro (1465-1526)
+// see:
+//   https://en.wikipedia.org/wiki/Cubic_function
+//   http://mathworld.wolfram.com/CubicFormula.html
+static int 
+gsl_poly_solve_cubic(TCoord a, TCoord b, TCoord c, TCoord *roots)
+{
+  TCoord q = (a * a - 3 * b);
+  TCoord r = (2 * a * a * a - 9 * a * b + 27 * c);
+
+  TCoord Q = q / 9;
+  TCoord R = r / 54;
+
+  TCoord Q3 = Q * Q * Q;
+  TCoord R2 = R * R;
+
+  TCoord CR2 = 729 * r * r;
+  TCoord CQ3 = 2916 * q * q * q;
+
+  if (R == 0 && Q == 0) {
+    roots[0] = - a / 3 ;
+    return 1; // the original gsl function return 3 values here
+  } else
+  if (CR2 == CQ3) {
+    /* this test is actually R2 == Q3, written in a form suitable
+       for exact computation with integers */
+
+    /* Due to finite precision some double roots may be missed, and
+       considered to be a pair of complex roots z = x +/- epsilon i
+       close to the real axis. */
+
+    TCoord sqrtQ = sqrt(Q);
+
+    if (R > 0) {
+      roots[0] = -2 * sqrtQ  - a / 3;
+      roots[1] = sqrtQ - a / 3;
+    } else {
+      roots[0] = - sqrtQ  - a / 3;
+      roots[1] = 2 * sqrtQ - a / 3;
+    }
+    return 2; // the original gsl function returns 3 value here
+  } else
+  if (R2 < Q3) {
+    double sgnR = (R >= 0 ? 1 : -1);
+    double ratio = sgnR * sqrt (R2 / Q3);
+    double theta = acos (ratio);
+    double norm = -2 * sqrt (Q);
+    roots[0] = norm * cos (theta / 3) - a / 3;
+    roots[1] = norm * cos ((theta + 2.0 * M_PI) / 3) - a / 3;
+    roots[2] = norm * cos ((theta - 2.0 * M_PI) / 3) - a / 3;
+      
+    /* Sort *x0, *x1, *x2 into increasing order */
+
+    if (roots[0] > roots[1])
+      swap(roots[0], roots[1]);
+      
+    if (roots[1] > roots[2]) {
+      swap(roots[1], roots[2]);
+      if (roots[0] > roots[1])
+        swap(roots[0], roots[1]);
+    }
+    return 3;
+  } else {
+    double sgnR = (R >= 0 ? 1 : -1);
+    double A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
+    double B = Q / A ;
+    roots[0] = A + B - a / 3;
+    return 1;
+  }
+}
+
 static int
 solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TCoord max)
 {
-  TCoord x, b1, c2;
-  int count = 0;
-  if (a == 0) {
-    a = b;
-    b1 = c;
-    c2 = d;
-    x = INFINITY;
-  } else if (d == 0) {
-    b1 = b;
-    c2 = c;
-    x = 0;
-  } else {
-    TCoord ec = 1 + machine_epsilon,
-            x0, q, qd, t, r, s, tmp;
-    x = -(b / a) / 3;
-    tmp = a * x,
-    b1 = tmp + b,
-    c2 = b1 * x + c,
-    qd = (tmp + b1) * x + c2,
-    q = c2 * x + d;
-    t = q /a;
-    r = pow(fabs(t), 1/3);
-    s = t < 0 ? -1 : 1;
-    t = -qd / a;
-    r = t > 0 ? 1.3247179572 * std::max(r, sqrt(t)) : r;
-    x0 = x - s * r;
-    if (x0 != x) {
-      do {
-        x = x0;
-        tmp = a * x,
-        b1 = tmp + b,
-        c2 = b1 * x + c,
-        qd = (tmp + b1) * x + c2,
-        q = c2 * x + d;
-        x0 = qd == 0 ? x : x - q / qd / ec;
-        if (x0 == x) {
-          x = x0;
-          break;
-        }
-      } while (s * x0 > s * x);
-      if (fabs(a) * x * x > fabs(d / x)) {
-        c2 = -d / x;
-        b1 = (c2 - c) / x;
-      }
-    }
+  int i, j, n = gsl_poly_solve_cubic(b/a, c/a, d/a, roots);
+  for(i=0, j=0; i<n; ++i) {
+    if (j!=i)
+      roots[j] = roots[i];
+    if (roots[i]>=min && roots[i]<=max)
+      ++j;
   }
-  count = solveQuadratic(a, b1, c2, roots, min, max);
-  if (x!=INFINITY && (count == 0 || x != roots[count - 1])
-                  && (x >= min && x <= max))
-  {
-    roots[count++] = x;
-  }
-  return count;
+  return j;
 }
-
 
 // Converts from the point coordinates (p1, c1, c2, p2) for one axis to
 // the polynomial coefficients and solves the polynomial for val
@@ -568,12 +597,17 @@ solveCubic(TPoint *v, int coord, TCoord val, TCoord *roots, TCoord min, TCoord m
   c = 3 * (c1 - p1),
   b = 3 * (c2 - c1) - c,
   a = p2 - p1 - c - b;
+
   // If both a and b are near zero, we should treat the curve as a line in
   // order to find the right solutions in some edge-cases in
   // Curve.getParameterOf()
   if (isZero(a) && isZero(b))
     a = b = 0;
-  return solveCubic(a, b, c, p1 - val, roots, min, max);
+  TCoord d = p1-val;
+  
+//  a=2;b=-4;c=-22;d=24; // this returns 1
+  
+  return solveCubic(a, b, c, d, roots, min, max);
 }
 
 /**
