@@ -1,5 +1,5 @@
-/* 
-/* poly/solve_cubic.c
+/*
+ * poly/solve_cubic.c
  * Copyright (C) 1996, 1997, 1998, 1999, 2000, 2007, 2009 Brian Gough
  *
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
@@ -692,7 +692,7 @@ _addBounds(TCoord v0, TCoord v1, TCoord v2, TCoord v3, int coord, TCoord padding
          b = 2 * (v0 + v2) - 4 * v1,
          c = v1 - v0;
   TCoord roots[2];
-  int count = solveQuadratic(a, b, c, roots);
+  int count = solveQuadratic(a, b, c, roots, 0, 1);
   // Add some tolerance for good roots, as t = 0, 1 are added
   // separately anyhow, and we don't want joins to be added with radii
   // in getStrokeBounds()

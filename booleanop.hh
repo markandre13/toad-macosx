@@ -34,9 +34,8 @@ struct SweepEvent {
   //------------------------------------------------
   TPoint point;           // point associated with the event
 	
-  bool curve;
-  TPoint point1;		// point on curve
-  TPoint point2;
+  bool curve;             // 'true' for curve
+  TPoint cpoint;	  // curve's control point
 	
   SweepEvent* otherEvent; // event associated to the other endpoint of the edge
   PolygonType pol;        // Polygon to which the associated segment belongs to

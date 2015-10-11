@@ -301,24 +301,21 @@ std::cout << "  " << e2->toString() << std::endl;
 void
 BooleanOpImp::addCurve(const TPoint *p, PolygonType type)
 {
-  SweepEvent* e1 = storeSweepEvent(SweepEvent(true, p[0], 0, type));
-  SweepEvent* e2 = storeSweepEvent(SweepEvent(true, p[3], e1, type));
+  SweepEvent* e0 = storeSweepEvent(SweepEvent(false, p[0], 0, type));
+  SweepEvent* e1 = storeSweepEvent(SweepEvent(false, p[3], e0, type));
+  e0->otherEvent = e1;
 
-  e1->otherEvent = e2;
-
+  e0->curve = e1->curve = true;
+  e0->cpoint = p[1];
+  e1->cpoint = p[2];
+  
   if (minlex(p[0], p[3]) == p[0]) {
-    e2->left = false;
-    e1->point1 = p[1];
-    e1->point2 = p[2];
-    e1->curve = true;
+    e0->left = true;
   } else {
-    e1->left = false;
-    e2->point1 = p[2];
-    e2->point2 = p[1];
-    e2->curve = true;
+    e1->left = true;
   }
+  eq.push(e0);
   eq.push(e1);
-  eq.push(e2);
 }
 
 void
@@ -448,8 +445,8 @@ drawLineWithArrow(TPen &pen, SweepEvent *x)
   } else {
     TPoint b[4];
     b[0] = x->point;
-    b[1] = x->point1;
-    b[2] = x->point2;
+    b[1] = x->cpoint;
+    b[2] = x->otherEvent->cpoint;
     b[3] = x->otherEvent->point;
     pen.drawBezier(b, 4);
   }
@@ -1008,9 +1005,7 @@ intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
 static int
 findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *il)
 {
-  const SweepEvent *le0 = e0->left ? e0 : e0->otherEvent;
-  const SweepEvent *le1 = e1->left ? e1 : e1->otherEvent;
-  if (!le0->curve && !le1->curve) {
+  if (!e0->curve && !e1->curve) {
     TPoint pt[4];
     pt[0] = e0->point;
     pt[1] = e0->otherEvent->point;
@@ -1022,30 +1017,24 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
     return il->size();
   }
   
-  if (le0->curve && le1->curve) {
+  if (e0->curve && e1->curve) {
     cerr << "findIntersection(): curve on curve not implemented yet" << endl;
     return 0;
   }
   
   // intersect curve and line
-  if (le0 != e0)
-    txt << "SWAPPED 1 <-----------------------------------" << endl;
-  if (le1 != e1)
-    txt << "SWAPPED 2 <-----------------------------------" << endl;
-  if (le1->curve) {
-    swap(le0, le1);
+  if (e1->curve) {
     swap(e0, e1);
-    txt << "SWAPPED 3 <-----------------------------------" << endl;
+    txt << "SWAPPED <-----------------------------------" << endl;
   }
   
-  assert(le0->curve);
   TPoint pt[6] = {
-    le0->point,
-    le0->point1,
-    le0->point2,
-    le0->otherEvent->point,
-    le1->point,
-    le1->otherEvent->point
+    e0->point,
+    e0->cpoint,
+    e0->otherEvent->cpoint,
+    e0->otherEvent->point,
+    e1->point,
+    e1->otherEvent->point
   };
   
   intersectCurveLine(*il, pt, pt+4);
@@ -1214,8 +1203,8 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
 
   TPoint in[4] = {
     le->point,
-    le->point1,
-    le->point2,
+    le->cpoint,
+    le->otherEvent->cpoint,
     le->otherEvent->point
   };
 
@@ -1267,27 +1256,14 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
         pdf->drawLine(out[i], out[i+1]);
       pdf->drawCircle(p.x-5.0/::scale, p.y-5.0/::scale, 10.0/::scale, 10.0/::scale);
     )
-
-
     
     // adjust left curve
-    le->point1 = out[1];
-    le->point2 = out[2];
+    le->cpoint = out[1];
+    le->otherEvent -> cpoint = out[2];
 
-//    le->otherEvent->point = l->point  = out[3]; // FIXME: should equal p
-
-    // adjust right curve
-    if (l->left) {    
-txt<<"l->curve" << endl;
-      l->curve = true;
-      l->point1 = out[4];
-      l->point2 = out[5];
-    } else {
-txt<<"l->otherEvent->curve" << endl;
-      l->otherEvent->curve = true;
-      l->otherEvent->point1 = out[5];
-      l->otherEvent->point2 = out[4];
-    }
+    l->curve = l->otherEvent->curve = true;
+    l->cpoint = out[4];
+    l->otherEvent->cpoint = out[5];
   }
 
   eq.push(l);
@@ -1334,13 +1310,8 @@ void BooleanOpImp::connectEdges(const std::deque<SweepEvent*> &sortedEvents, toa
       pos = resultEvents[pos]->pos;
       processed[pos] = true;
       if(resultEvents[pos]->curve) {
-        out.curve(resultEvents[pos]->point1,
-                  resultEvents[pos]->point2,
-                  resultEvents[pos]->point);
-      } else
-      if(resultEvents[pos]->otherEvent->curve) {
-        out.curve(resultEvents[pos]->otherEvent->point2,
-                  resultEvents[pos]->otherEvent->point1,
+        out.curve(resultEvents[pos]->otherEvent->cpoint,
+                  resultEvents[pos]->cpoint,
                   resultEvents[pos]->point);
       } else {
         out.line(resultEvents[pos]->point);
