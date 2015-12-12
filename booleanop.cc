@@ -20,6 +20,13 @@
  * o nextPos(): avoid segfault when newPos is -1
  * o todo: some glitches during union where cageo144.zip threw away points during union
  * o todo: support for curves
+ 
+ 
+   void BooleanOpImp::run(const toad::TVectorPath& subj, const toad::TVectorPath& clip, toad::TVectorPath& out)
+     int BooleanOpImp::possibleIntersection(SweepEvent* le1, SweepEvent* le2)
+       findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *il)
+       BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
+ 
  */    
 
 #include <toad/booleanop.hh>
@@ -102,6 +109,33 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 {
   if (le1 == le2)
     return false;
+  
+  // HACK WITH MEMORY LEAK: THE TANGENT AT LE1/LE2 IS IMPORTANT, SO AT
+  // CURVES WE HAVE TO USE THEIR CPOINT.
+  // WITHOUT CHANGING ALL THE FOLLOWING CODE, FOR NOW WE JUST CREATE SOME FAKE
+  // SWEEPEVENTS.
+  if (le1->curve) {
+    SweepEvent *f0 = new SweepEvent(le1->left, le1->point, nullptr, le1->pol, le1->type);
+    SweepEvent *f1 = new SweepEvent(!le1->left, le1->cpoint, f0, le1->pol, le1->type);
+    f0->otherEvent = f1;
+    le1 = f0;
+  }
+  if (le2->curve) {
+    SweepEvent *f0 = new SweepEvent(le2->left, le2->point, nullptr, le2->pol, le2->type);
+    SweepEvent *f1 = new SweepEvent(!le2->left, le2->cpoint, f0, le2->pol, le2->type);
+    f0->otherEvent = f1;
+    le2 = f0;
+  }
+
+  // in step 14 we fail to remove line 29 (still do?)
+  // in stel 14 the order of segment 27 and 29 is wrong
+#if 0
+  // this hack solves step 26
+  if (le1->id==3 && le2->id==4)
+    return true;
+  if (le1->id==4 && le2->id==3)
+    return false;
+#endif
 
   if (signedArea(le1->point, le1->otherEvent->point, le2->point) != 0 || 
       signedArea(le1->point, le1->otherEvent->point, le2->otherEvent->point) != 0)
@@ -605,6 +639,8 @@ DEBUG_PDF(
       next = prev = se->posSL = it = sl.insert(se).first;
 
       for(auto i=sl.begin(); i!=sl.end(); ++i) {
+if (cntr==26 && pdf)
+  txt<<"************"<<endl;
         DEBUG_PDF(txt<<"..."<<(*i)->id;)
         if(i!=sl.begin()) {
           auto p=i;
@@ -614,9 +650,9 @@ DEBUG_PDF(
             SweepEventComp comp;
             txt<<" SegmentComp("<<(*p)->id<<","<<(*i)->id<<")="<<sc(*p,*i)<<", "
                <<" SweepEventComp("<<(*p)->id<<","<<(*i)->id<<")="<<comp(*p,*i)<<endl;
-        } else {
-          txt<<endl;
           )
+        } else {
+          DEBUG_PDF(txt<<endl;)
         }
       }
 
@@ -1018,14 +1054,17 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   }
   
   if (e0->curve && e1->curve) {
+    txt << "CURVE ON CURVE NOT IMPLEMENTED YET <-----------------------" << endl;
     cerr << "findIntersection(): curve on curve not implemented yet" << endl;
     return 0;
   }
   
   // intersect curve and line
+  bool swapped = false;
   if (e1->curve) {
+    swapped = true;
     swap(e0, e1);
-    txt << "SWAPPED <-----------------------------------" << endl;
+    txt << "SWAPPED <----------------------------------- e0=" << e0->id << ", e1=" << e1->id << endl;
   }
   
   TPoint pt[6] = {
@@ -1039,19 +1078,25 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   
   intersectCurveLine(*il, pt, pt+4);
   
+  if (swapped) {
+    for(auto &p: *il)
+      swap(p.seg0, p.seg1);
+  }
+  
   txt << "INTERSECTCURVELINE FOUND " << il->size() << " INTERSECTIONS" << endl;
   DEBUG_PDF(
-    pdf->setFont(format("helvetica:size=%f", 8.0/scale));
-    for(int i=0; i<6; ++i) {
-      txt<<pt[i]<<endl;
-      pdf->drawRectangle(pt[i].x, pt[i].y, 8, 8);
-      pdf->drawString(pt[i].x, pt[i].y, format("%i", i));
-    }
-    for(auto &p: *il) {
-      pdf->drawRectangle(p.seg0.pt.x, p.seg0.pt.y, 8,8);
+    if (il->size()) {
+      pdf->setFont(format("helvetica:size=%f", 8.0/scale));
+      for(int i=0; i<6; ++i) {
+        txt<<pt[i]<<endl;
+        pdf->drawRectangle(pt[i].x, pt[i].y, 8, 8);
+        pdf->drawString(pt[i].x, pt[i].y, format("%i", i));
+      }
+      for(auto &p: *il) {
+        pdf->drawRectangle(p.seg0.pt.x, p.seg0.pt.y, 8,8);
+      }
     }
   )
-
   
   return il->size();
 }
@@ -1116,7 +1161,7 @@ return 0;
         distance(le2->otherEvent->point, ip1) >= tolerance)
     { // if the intersection point is not an endpoint of le2
       DEBUG_PDF(txt<<"one intersection => divide le2" << endl;)
-      divideSegment(le2, ip1, il[0].seg0.u);
+      divideSegment(le2, ip1, il[0].seg1.u);
     }
     
     // this fixes BackupGlitch010
@@ -1236,7 +1281,7 @@ BooleanOpImp::divideSegment(SweepEvent* le, const TPoint& p, TCoord u)
     TPoint out[7];
     divideBezier(in, out, u);
 
-    DEBUG_PDF(txt << "DIVIDE CURVE AT " << u << " p=" << p << ", u at " << out[3] << endl;)
+    DEBUG_PDF(txt << "DIVIDE CURVE " << le->id << " AT " << u << " p=" << p << ", u at " << out[3] << endl;)
 
     DEBUG_PDF(
       pdf->setColor(1,0,1);
