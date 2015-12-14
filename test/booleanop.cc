@@ -720,6 +720,19 @@ createSweep(TCoord x0, TCoord y0, TCoord x1, TCoord y1)
   return l;
 }
 
+SweepEvent*
+createSweep(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2, TCoord x3, TCoord y3)
+{
+  SweepEvent *l = new SweepEvent(true,  TPoint(x0, y0), nullptr, SUBJECT);
+  l->cpoint.set(x1, y1);
+  l->curve = true;
+  SweepEvent *r = new SweepEvent(false, TPoint(x2, y3), l, SUBJECT);
+  r->cpoint.set(x3, y3);
+  r->curve = true;
+  l->otherEvent = r;
+  return l;
+}
+
 TEST(BooleanOpSweepLineBufferComp, Simple) {
   auto s0 = createSweep(10,10, 20,10);
   auto s1 = createSweep(10,20, 20,20);
@@ -741,3 +754,26 @@ TEST(BooleanOpSweepLineBufferComp, TrickyAfterSplit) {
   ASSERT_EQ(true, cmp(s0, s1));
 }
 
+//       2
+//      /
+//     /
+//   4&3
+//   /|
+//  /  \________ 36
+//  \     __--
+//   \__--
+// SegmentComp(4,3) -> false (4 < 3)
+TEST(BooleanOpSweepLineBufferComp, Curve001) {
+  auto s0 = createSweep(
+              138.87270391526317,74.116354064879516,
+              137.56655333463428,80.32056932286693,
+              172.54618572748129,82.546185727481287,
+              144.10999471605044,84.207155298278522); // 4, 36
+  auto s1 = createSweep(
+              138.87270391526317,74.11635406487953,
+              140.31180066532067,67.28064450210627,
+              152.99397991594583,49.488900242947025,
+              151.27974918196568,57.631496229352749);
+  SegmentComp cmp;
+  ASSERT_EQ(false, cmp(s0, s1));
+}

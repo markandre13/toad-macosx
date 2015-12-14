@@ -109,7 +109,16 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 {
   if (le1 == le2)
     return false;
-  
+
+if (le1->id==4 && le2->id==3) {
+  cerr << "****************---------------***************------------------" << endl;
+  cerr << le1->toString() << endl;
+  cerr << le1->otherEvent->toString() << endl;
+  cerr << le2->toString() << endl;
+  cerr << le2->otherEvent->toString() << endl;
+}
+
+#if 0
   // HACK WITH MEMORY LEAK: THE TANGENT AT LE1/LE2 IS IMPORTANT, SO AT
   // CURVES WE HAVE TO USE THEIR CPOINT.
   // WITHOUT CHANGING ALL THE FOLLOWING CODE, FOR NOW WE JUST CREATE SOME FAKE
@@ -126,6 +135,7 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
     f0->otherEvent = f1;
     le2 = f0;
   }
+#endif
 
   // in step 14 we fail to remove line 29 (still do?)
   // in stel 14 the order of segment 27 and 29 is wrong
@@ -225,8 +235,10 @@ std::string SweepEvent::toString() const
         oss.precision(numeric_limits<double>::max_digits10);
 	
 	oss << "id:" << id
-	    << " point:(" << point.x << ',' << point.y << ')'
-	    << " (" << (left ? "left" : "right") << ')';
+	    << " point:" << point;
+        if (curve || otherEvent->curve)
+        oss << " cpoint:" << cpoint;
+	oss << " (" << (left ? "left" : "right") << ')';
 //	TPoint min = minlex(point, otherEvent->point);
 //	TPoint max = maxlex(point, otherEvent->point);
 //	oss << " S:[(" << min.x << ',' << min.y << ") - (" << max.x << ',' << max.y << ")]";
@@ -409,26 +421,38 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
     }
   }
 
-  TPoint buf[7];
   switch(count) {
     case 0:
       addCurve(p, type);
       break;
-    case 1:
+    case 1: {
+      TPoint buf[7];
       divideBezier(p, buf, root[0]);
       addCurve(buf, type);
       addCurve(buf+3, type);
-      break;
+      } break;
     case 2:
       // FIXME: this can be done faster
       if (root[0]>root[1])
         swap(root[0], root[1]);
-      divideBezier(p, buf, root[0]);
-      addCurve(buf, type);
-      divideBezier(p, buf, root[0], root[1]);
-      addCurve(buf, type);
-      divideBezier(p, buf, root[1]);
-      addCurve(buf+3, type);
+      // 0.....root[0].................1
+      // 0 1 2    3          4 5       6
+      // 0.....root[0].....root[1].....1
+      //          0    1 2    3
+      // 0.................root[1].....1
+      // 0       1 2          3    4 5 6
+      TPoint buf0[7], buf1[7], buf2[7];
+      divideBezier(p, buf0, root[0]);
+      divideBezier(p, buf1, root[0], root[1]);
+      divideBezier(p, buf2, root[1]);
+      
+      // ensure all end point are the same, due to more calculations buf1 may contain the largest error
+      buf1[0] = buf0[3];
+      buf1[3] = buf2[3];
+      
+      addCurve(buf0, type);
+      addCurve(buf1, type);
+      addCurve(buf2+3, type);
       break;
   }
 }
@@ -638,9 +662,9 @@ DEBUG_PDF(
       // sweep line has reached a new line, insert it into the sweep line status 'sl'
       next = prev = se->posSL = it = sl.insert(se).first;
 
-      for(auto i=sl.begin(); i!=sl.end(); ++i) {
 if (cntr==26 && pdf)
   txt<<"************"<<endl;
+      for(auto i=sl.begin(); i!=sl.end(); ++i) {
         DEBUG_PDF(txt<<"..."<<(*i)->id;)
         if(i!=sl.begin()) {
           auto p=i;
@@ -875,13 +899,13 @@ void BooleanOpImp::computeFields(SweepEvent* le, SweepEvent* prev)
   // compute inOut and otherInOut fields
   if (!prev) {
     // the previous line is not in the sweep line status
-    DEBUG_PDF(txt<<"compute: no previous: inOut=false, otherInOut=true"<<endl;)
+    DEBUG_PDF(txt<<"COMPUTE " << le->id << " without prev: no previous: inOut=false, otherInOut=true"<<endl;)
     le->inOut = false;     			// entering the polygon
     le->otherInOut = true; 			// there was no other polygon, but if there was, we would have left it
   } else if (le->pol == prev->pol) {
     // previous line segment in sl belongs to the same polygon that "se" belongs to
     DEBUG_PDF(
-      txt<<"compute: previous is same polygon: inOut=!prev->InOut="
+      txt<<"COMPUTE " << le->id << " from prev " << prev->id << ": previous is same polygon: inOut=!prev->InOut="
          <<((!prev->inOut)?"true":"false")
          <<", otherInOut=prev->otherInOut="<<(prev->otherInOut?"true":"false")
          <<endl;)
@@ -890,7 +914,7 @@ void BooleanOpImp::computeFields(SweepEvent* le, SweepEvent* prev)
   } else {
     // previous line segment in sl belongs to a different polygon that "se" belongs to
     DEBUG_PDF(
-      txt<<"compute: previous is different polygon: inOut=!prev->otherInOut="
+      txt<<"COMPUTE " << le->id << " from prev " << prev->id << ": previous is different polygon: inOut=!prev->otherInOut="
          <<((!prev->otherInOut)?"true":"false");
       if(prev->vertical()) {
         txt<<", prev=vertical -> otherInOut=!prev->InOut="<<((!prev->inOut)?"true":"false")<<endl;
@@ -1054,7 +1078,7 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   }
   
   if (e0->curve && e1->curve) {
-    txt << "CURVE ON CURVE NOT IMPLEMENTED YET <-----------------------" << endl;
+    txt << "CURVE " << e0->id << " ON CURVE " << e1->id << " NOT IMPLEMENTED YET <-----------------------" << endl;
     cerr << "findIntersection(): curve on curve not implemented yet" << endl;
     return 0;
   }
@@ -1101,7 +1125,8 @@ findIntersection(const SweepEvent* e0, const SweepEvent* e1, TIntersectionList *
   return il->size();
 }
 
-/*
+/**
+ * \return
  * 0: no intersections
  * 1: one intersection, don't recompute
  * 2: two intersections, recompute
