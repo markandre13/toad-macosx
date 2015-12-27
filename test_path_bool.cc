@@ -134,13 +134,13 @@ cout << "    " << root[i] << endl;
   
 #if 1
   TVectorPath p0;
-  p0.move(TPoint(10,40));
+  p0.move(TPoint(10,60));
   p0.curve(TPoint(300,10),
            TPoint(30,100),
            TPoint(200,80));
   p0.curve(TPoint(300,80),
            TPoint(30,150),
-           TPoint(10,50));
+           TPoint(10,70));
   p0.close();
 
   p0.apply(pen);
