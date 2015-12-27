@@ -102,7 +102,7 @@ bool SweepEventComp::operator() (const SweepEvent* e1, const SweepEvent* e2)
   return e1->pol > e2->pol;
 }
 
-// sweep event in the sweep line buffer are sorted by their y-coordinate
+// sweep events in the sweep line buffer are sorted by their y-coordinate
 // le1 and le2 are the left events of line segments (le1->point, le1->otherEvent->point) and (le2->point, le2->otherEvent->point)
 // return le1 > le2
 bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
@@ -197,6 +197,7 @@ class BooleanOpImp
     /** @brief Compute the events associated with line (p0, p1), and insert them into pq and eq */
     void processLine(const TPoint &p0, const TPoint &p1, PolygonType pt);
     void processCurve(const TPoint *p, PolygonType pt);
+    void processCurve2(const TPoint *p, PolygonType pt);
     void addCurve(const TPoint *p, PolygonType type);
 
     /** @brief Store the SweepEvent e into the event holder, returning the address of e */
@@ -345,26 +346,6 @@ std::cout << "  " << e2->toString() << std::endl;
 }
 
 void
-BooleanOpImp::addCurve(const TPoint *p, PolygonType type)
-{
-  SweepEvent* e0 = storeSweepEvent(SweepEvent(false, p[0], 0, type));
-  SweepEvent* e1 = storeSweepEvent(SweepEvent(false, p[3], e0, type));
-  e0->otherEvent = e1;
-
-  e0->curve = e1->curve = true;
-  e0->cpoint = p[1];
-  e1->cpoint = p[2];
-  
-  if (minlex(p[0], p[3]) == p[0]) {
-    e0->left = true;
-  } else {
-    e1->left = true;
-  }
-  eq.push(e0);
-  eq.push(e1);
-}
-
-void
 BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
 {
 /*	if (s.degenerate ()) // if the two edge endpoints are equal the segment is dicarded
@@ -382,41 +363,89 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
   //
   // FIXME: we can later try to keep as much of the original curve as possible
 
-  // rotate p[0] to p[3] into the horizontal
-  TCoord lx1 = p[0].x, ly1 = p[0].y,
-         lx2 = p[3].x, ly2 = p[3].y,
-         ldx = lx2 - lx1,
-         ldy = ly2 - ly1,
-         angle = atan2(-ldy, ldx),
-         sin = ::sin(angle),
-         cos = ::cos(angle);
-
-  TCoord qx[4];
-  for(int i=0; i<4; ++i) {
-    TCoord x = p[i].x - lx1,
-           y = p[i].y - ly1;
-    qx[i] = x * cos - y * sin;
-  }
-  
   // find extrema along the y-axis
-  TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
-         b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
-         c = qx[1] - qx[0];
+  TCoord a = 3 * (p[1].x - p[2].x) - p[0].x + p[3].x,
+         b = 2 * (p[0].x + p[2].x) - 4 * p[1].x,
+         c = p[1].x - p[0].x;
   TCoord root[2];
   int count = solveQuadratic(a, b, c, root);
   
-  // remove all solutions <0.0 && >1.0
+  // remove all solutions <=0.0 && >=1.0
   if (count == 2) {
-    if (root[0]<0.0 || root[0]>1.0) {
+    if (root[0]<=0.0 || root[0]>=1.0) {
       root[0] = root[1];
       --count;
     } else
-    if (root[1]<0.0 || root[1]>1.0) {
+    if (root[1]<=0.0 || root[1]>=1.0) {
       --count;
     }
   }
   if (count == 1) {
-    if (root[0]<0.0 || root[0]>1.0) {
+    if (root[0]<=0.0 || root[0]>=1.0) {
+      --count;
+    }
+  }
+
+  switch(count) {
+    case 0:
+      processCurve2(p, type);
+      break;
+    case 1: {
+      TPoint buf[7];
+      divideBezier(p, buf, root[0]);
+      processCurve2(buf, type);
+      processCurve2(buf+3, type);
+      } break;
+    case 2:
+      // FIXME: this can be done faster
+      if (root[0]>root[1])
+        swap(root[0], root[1]);
+      // 0.....root[0].................1
+      // 0 1 2    3          4 5       6
+      // 0.....root[0].....root[1].....1
+      //          0    1 2    3
+      // 0.................root[1].....1
+      // 0       1 2          3    4 5 6
+      TPoint buf0[7], buf1[7], buf2[7];
+      divideBezier(p, buf0, root[0]);
+      divideBezier(p, buf1, root[0], root[1]);
+      divideBezier(p, buf2, root[1]);
+      
+      // ensure all end point are the same, due to more calculations buf1 may contain the largest error
+      buf1[0] = buf0[3];
+      buf1[3] = buf2[3];
+      
+      processCurve2(buf0, type);
+      processCurve2(buf1, type);
+      processCurve2(buf2+3, type);
+      break;
+  }
+}
+
+void
+BooleanOpImp::processCurve2(const TPoint *p, PolygonType type)
+{
+//addCurve(p, type); return;
+  // find extrema along the x-axis
+  // find zero in the 1st derivative
+  TCoord a = 3 * (p[1].y - p[2].y) - p[0].y + p[3].y,
+         b = 2 * (p[0].y + p[2].y) - 4 * p[1].y,
+         c = p[1].y - p[0].y;
+  TCoord root[2];
+  int count = solveQuadratic(a, b, c, root);
+  
+  // remove all solutions <=0.0 && >=1.0
+  if (count == 2) {
+    if (root[0]<=0.0 || root[0]>=1.0) {
+      root[0] = root[1];
+      --count;
+    } else
+    if (root[1]<=0.0 || root[1]>=1.0) {
+      --count;
+    }
+  }
+  if (count == 1) {
+    if (root[0]<=0.0 || root[0]>=1.0) {
       --count;
     }
   }
@@ -456,6 +485,28 @@ BooleanOpImp::processCurve(const TPoint *p, PolygonType type)
       break;
   }
 }
+
+void
+BooleanOpImp::addCurve(const TPoint *p, PolygonType type)
+{
+  SweepEvent* e0 = storeSweepEvent(SweepEvent(false, p[0], 0, type));
+  SweepEvent* e1 = storeSweepEvent(SweepEvent(false, p[3], e0, type));
+  e0->otherEvent = e1;
+
+  e0->curve = e1->curve = true;
+  e0->cpoint = p[1];
+  e1->cpoint = p[2];
+  
+  if (minlex(p[0], p[3]) == p[0]) {
+    e0->left = true;
+  } else {
+    e1->left = true;
+  }
+  eq.push(e0);
+  eq.push(e1);
+}
+
+
 
 static TPoint origin;
 static TCoord scale;
@@ -763,7 +814,11 @@ DEBUG_PDF(
           txt << "next neighbour is" << endl;
           sweep2txt(*next);
         )
-        if (possibleIntersection(se, *next) == 2) {
+
+        DEBUG_PDF(txt << ">>> possibleIntersection" << endl;)
+        int pi = possibleIntersection(se, *next);
+        DEBUG_PDF(txt << "<<< possibleIntersection for next returned " << pi << endl;)
+        if (pi >= 2) {
           DEBUG_PDF(
             txt << "two intersections with next neighbour" << endl;
             txt << "compute fields of:" << endl;
@@ -794,8 +849,9 @@ DEBUG_PDF(
           txt << "previous neighbour is" << endl;
           sweep2txt(*prev);
         )
+        DEBUG_PDF(txt << ">>> possibleIntersection" << endl;)
         int pi = possibleIntersection(*prev, se);
-        DEBUG_PDF(txt << "possibleIntersection returned " << pi << endl;)
+        DEBUG_PDF(txt << "<<< possibleIntersection for prev returned " << pi << endl;)
         if (pi >= 2) {
           DEBUG_PDF(txt << "RECOMPUTE" << endl;)
           auto prevprev = prev;
@@ -832,6 +888,7 @@ DEBUG_PDF(
       // sweep line has reached end of a line, remove it from the sweep line status 'sl'
       se = se->otherEvent; // we work with the left event
       next = prev = it = se->posSL; // se->posSL; is equal than sl.find(se); but faster
+
       (prev != sl.begin()) ? --prev : prev = sl.end();
       ++next;
       DEBUG_PDF(

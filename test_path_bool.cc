@@ -99,26 +99,10 @@ TMyWindow::paint()
   pen.drawLines(p, 4);
   pen.drawBezier(p, 4);
   
-  // rotate p[0] to p[3] into the horizontal
-  TCoord lx1 = p[0].x, ly1 = p[0].y,
-         lx2 = p[3].x, ly2 = p[3].y,
-         ldx = lx2 - lx1,
-         ldy = ly2 - ly1,
-         angle = atan2(-ldy, ldx),
-         sin = ::sin(angle),
-         cos = ::cos(angle);
-
-  TCoord qx[4];
-  for(int i=0; i<4; ++i) {
-    TCoord x = p[i].x - lx1,
-           y = p[i].y - ly1;
-    qx[i] = x * cos - y * sin;
-  }
-  
   // find zero in the 1st derivative
-  TCoord a = 3 * (qx[1] - qx[2]) - qx[0] + qx[3],
-         b = 2 * (qx[0] + qx[2]) - 4 * qx[1],
-         c = qx[1] - qx[0];
+  TCoord a = 3 * (p[1].y - p[2].y) - p[0].y + p[3].y,
+         b = 2 * (p[0].y + p[2].y) - 4 * p[1].y,
+         c = p[1].y - p[0].y;
   TCoord root[2];
   int count = solveQuadratic(a, b, c, root);
   if (count == 2) {
@@ -143,6 +127,8 @@ cout << "    " << root[i] << endl;
     TPoint pt = bez2point(p, root[i]);
     pen.drawCircle(pt.x-2,pt.y-2,4,4);
   }
+
+  return;
   
 #endif
   
