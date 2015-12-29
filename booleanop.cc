@@ -782,7 +782,7 @@ DEBUG_PDF(
         DEBUG_PDF(txt << ">>> possibleIntersection" << endl;)
         int pi = possibleIntersection(se, *next);
         DEBUG_PDF(txt << "<<< possibleIntersection for next returned " << pi << endl;)
-        if (pi >= 2) {
+        if (pi == 2) {
           DEBUG_PDF(
             txt << "two intersections with next neighbour" << endl;
             txt << "compute fields of:" << endl;
