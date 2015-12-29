@@ -184,6 +184,8 @@ cout << "down" << endl;
 cout << "up" << endl;
     [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
+    path.simplify(0.001);
+    invalidateWindow();
   } else
   if (me.type==TMouseEvent::TABLET_POINT) {
 //cout << "point " << me.pos << endl;

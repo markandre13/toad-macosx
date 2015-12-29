@@ -71,7 +71,7 @@ class TVectorPath
     void subdivide();
     
     // reduce()
-    // void simplify(TCoord tolerance=2.5); <- convert points to bézier, it doesn't simplify béziers?
+    void simplify(TCoord tolerance=2.5); // <- convert points to bézier, it doesn't simplify béziers?
     // tangent
     // normal
     // curvature

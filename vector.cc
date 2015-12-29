@@ -249,9 +249,51 @@ TVectorPath::subdivide()
           TPoint cl[2];
           cl[0]=*(pt-1);
           cl[1]=*start;
-          subdivideCutter(TVectorPath::LINE, cl, r, linesToBezier);
+          subdivideCutter(LINE, cl, r, linesToBezier);
         }
         break;
     }
   }
+}
+
+void
+TVectorPath::simplify(double tolerance)
+{
+  vector<TPoint> oldpoints;
+  vector<EType> oldtype;
+  oldpoints.swap(points);
+  oldtype.swap(type);
+
+  const TPoint *start = 0;
+  const TPoint *pt = oldpoints.data();
+
+  for(auto p: oldtype) {
+    if (p!=LINE && start) {
+      size_t n = points.size();
+      fitPath(start, pt-start-1, tolerance, &points);
+      n = points.size() - n;
+cerr << "simplify: n=" << n << endl;
+      for(size_t i=1; i<n; i+=3)
+        type.push_back(TVectorPath::CURVE);
+      start = 0;
+    }
+    switch(p) {
+      case MOVE:
+        type.push_back(TVectorPath::MOVE);
+        start=pt;
+        ++pt;
+        break;
+      case LINE:
+        ++pt;
+        break;
+      case CURVE: // copy
+        cerr << "TVectorPath::simplify(double tolerance): CURVE not implemented yet" << endl;
+        pt+=3;
+        break;
+      case CLOSE:
+        type.push_back(TVectorPath::CLOSE);
+        break;
+    }
+  }
+  
 }
