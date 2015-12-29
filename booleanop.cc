@@ -103,55 +103,18 @@ bool SweepEventComp::operator() (const SweepEvent* e1, const SweepEvent* e2)
 }
 
 // sweep events in the sweep line buffer are sorted by their y-coordinate
-// le1 and le2 are the left events of line segments (le1->point, le1->otherEvent->point) and (le2->point, le2->otherEvent->point)
+// le1 and le2 are the left sweep events
 // return le1 > le2
 bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 {
   if (le1 == le2)
     return false;
 
-if (le1->id==4 && le2->id==3) {
-  cerr << "****************---------------***************------------------" << endl;
-  cerr << le1->toString() << endl;
-  cerr << le1->otherEvent->toString() << endl;
-  cerr << le2->toString() << endl;
-  cerr << le2->otherEvent->toString() << endl;
-}
-
-#if 0
-  // HACK WITH MEMORY LEAK: THE TANGENT AT LE1/LE2 IS IMPORTANT, SO AT
-  // CURVES WE HAVE TO USE THEIR CPOINT.
-  // WITHOUT CHANGING ALL THE FOLLOWING CODE, FOR NOW WE JUST CREATE SOME FAKE
-  // SWEEPEVENTS.
-  if (le1->curve) {
-    SweepEvent *f0 = new SweepEvent(le1->left, le1->point, nullptr, le1->pol, le1->type);
-    SweepEvent *f1 = new SweepEvent(!le1->left, le1->cpoint, f0, le1->pol, le1->type);
-    f0->otherEvent = f1;
-    le1 = f0;
-  }
-  if (le2->curve) {
-    SweepEvent *f0 = new SweepEvent(le2->left, le2->point, nullptr, le2->pol, le2->type);
-    SweepEvent *f1 = new SweepEvent(!le2->left, le2->cpoint, f0, le2->pol, le2->type);
-    f0->otherEvent = f1;
-    le2 = f0;
-  }
-#endif
-
-  // in step 14 we fail to remove line 29 (still do?)
-  // in stel 14 the order of segment 27 and 29 is wrong
-#if 0
-  // this hack solves step 26
-  if (le1->id==3 && le2->id==4)
-    return true;
-  if (le1->id==4 && le2->id==3)
-    return false;
-#endif
-
+  // when the line segments are not collinear (on a single line) then...
   if (signedArea(le1->point, le1->otherEvent->point, le2->point) != 0 || 
       signedArea(le1->point, le1->otherEvent->point, le2->otherEvent->point) != 0)
   {
-    // Segments are not collinear (on a single line)
-    // If they share their left endpoint use the right endpoint to sort
+    // if they share their left endpoint use the right endpoint to sort
     if (le1->point == le2->point) {
       return le1->below(le2->otherEvent->point);
     }
@@ -166,7 +129,8 @@ if (le1->id==4 && le2->id==3) {
     // The line segment associated to e2 has been inserted into S after the line segment associated to e1
     return le1->below(le2->point);
   }
-  // Segments are collinear
+  // else if the line segments are collinear then...
+  
   if (le1->pol != le2->pol) {
     return le1->pol < le2->pol;
   }
