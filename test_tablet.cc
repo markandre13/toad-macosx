@@ -171,9 +171,11 @@ addHull(vector<TPoint> *hull, vector<TFreehandPoint> handpath, size_t idx)
 void
 TMyWindow::mouseEvent(const TMouseEvent &me)
 {
+static double lasttime;
   if (me.type==TMouseEvent::LDOWN) {
 cout << "down" << endl;
     [NSEvent setMouseCoalescingEnabled: FALSE];
+    lasttime = [me.nsevent timestamp];
     backup.open("backup.txt", ofstream::out | ofstream::trunc);
     handpath.clear();
     path.clear();
@@ -247,6 +249,7 @@ cout << uniqueID << " left proximity" << endl;
   }
 
   if (me.modifier() & MK_LBUTTON) {
+
     vector<TPoint> hull;
     if (handpath.empty()) {
       backup << me.pos.x << " " << me.pos.y << " " << rotation/360.0 * 2.0 * M_PI << " " << pressure << endl;
@@ -277,6 +280,13 @@ cout << uniqueID << " left proximity" << endl;
       exit(EXIT_FAILURE);
     }
 //cout << "added" << endl;
+
+    // reduce window updates to 100fps, otherwise the program slows down too much
+    double thistime = [me.nsevent timestamp];
+    if (thistime - lasttime < 1.0/100)
+      return;
+    lasttime = thistime;
+
     invalidateWindow();
   }
   
