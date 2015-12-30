@@ -1456,7 +1456,7 @@ TTable::mouseLDown(const TMouseEvent &m)
 
   // invoke adapter mouseEvent (ie. for tree widgets, check boxes, etc.)
   if (adapter) {
-cout << "TTable::mouseLDown::adapter: dblClick="<<(m.dblClick?"true":"false")<<endl;
+//cout << "TTable::mouseLDown::adapter: dblClick="<<(m.dblClick?"true":"false")<<endl;
     TMouseEvent me(m, fp);
     TTableEvent te;
     te.mouse = &me;
@@ -1639,7 +1639,7 @@ DBM2(cerr << "enter mouseLUp" << endl;)
     invalidateWindow();
   }
   
-  if (m.modifier() & MK_DOUBLE)
+  if (m.dblClick)
     sigDoubleClicked();
   else  
     sigClicked();
