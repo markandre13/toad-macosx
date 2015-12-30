@@ -1211,10 +1211,11 @@ TWindow::createWindow()
       styleMask = NSBorderlessWindowMask;
     } else
     if (flagParentlessAssistant) {
-      styleMask = NSTitledWindowMask
+      styleMask = NSTitledWindowMask; 
+/*
                 | NSResizableWindowMask
                 ;
-                
+*/
     } else {
       styleMask = NSTitledWindowMask 
                 | NSMiniaturizableWindowMask
@@ -1233,6 +1234,8 @@ TWindow::createWindow()
     [nswindow setHasShadow: true];
     if (flagPopup)
       [nswindow setLevel: NSPopUpMenuWindowLevel];
+    if (flagParentlessAssistant)
+      [nswindow setLevel: NSFloatingWindowLevel];
   }
   // we must create the tracking window after the view was added to it's
   // parent, otherwise tracking does not work
