@@ -1301,6 +1301,9 @@ TWindow::doModalLoop()
     cerr << "error: TWindow::doModalLoop: FIXME: nesting not yet supported" << endl;
     return;
   }
+
+  NSWindow *keywindow = [NSApp keyWindow];
+
   createWindow();
   if (!nswindow) {
     cerr << "error: TWindow::doModalLoop requires '" << getTitle() << "' to be top level window" << endl;
@@ -1340,6 +1343,8 @@ TWindow::doModalLoop()
     [pool release];
   }
   destroyWindow();
+  
+  [keywindow makeKeyWindow];
 }
 
 void
