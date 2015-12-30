@@ -324,7 +324,7 @@ TPenBase::poly2Bezier(const TPoint* src, size_t n, TPolygon &dst)
   n-=3;
   size_t i=0;
   while(i<=n) {
-    curve(dst,
+    ::curve(dst,
           src[i].x,   src[i].y,
           src[i+1].x, src[i+1].y,
           src[i+2].x, src[i+2].y,
@@ -342,7 +342,7 @@ TPenBase::poly2Bezier(const TPolygon &src, TPolygon &dst)
   n-=3;
   size_t i=0;
   while(i<=n) {
-    curve(dst,
+    ::curve(dst,
           src[i].x,   src[i].y,
           src[i+1].x, src[i+1].y,
           src[i+2].x, src[i+2].y,

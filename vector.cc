@@ -49,7 +49,7 @@ ostream& toad::operator<<(ostream &out, const TVectorPath& path)
 }
 
 void
-TVectorPath::apply(TPen &pen) const
+TVectorPath::apply(TPenBase &pen) const
 {
 //cout << "TVectorPath::apply" << endl;
   const TPoint *pt = points.data();
@@ -296,4 +296,33 @@ cerr << "simplify: n=" << n << endl;
     }
   }
   
+}
+
+TVectorStrokeAndFillOp::TVectorStrokeAndFillOp(const TRGB &s,const TRGB &f):
+  stroke(s), fill(f)
+{
+}
+
+void
+TVectorStrokeAndFillOp::paint(TPenBase &pen, const TVectorPath *path)
+{
+  pen.setColor(stroke);
+  path->apply(pen);
+  pen.stroke();
+  pen.setColor(fill);
+  path->apply(pen);
+  pen.fill();
+}
+
+void
+TVectorPainter::paint(TPenBase &pen)
+{
+  operation->paint(pen, path);
+}
+
+void
+TVectorGraphic::paint(TPenBase &pen)
+{
+  for(auto p: *this)
+    p->paint(pen);
 }

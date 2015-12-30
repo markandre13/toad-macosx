@@ -59,7 +59,9 @@ class TVectorPath
     void join(const TVectorPath &); // append
     void clear();
     void move(const TPoint &p) { type.push_back(MOVE); points.push_back(p); }
+    void move(TCoord x, TCoord y) { move(TPoint(x, y)); }
     void line(const TPoint &p) { type.push_back(LINE); points.push_back(p); }
+    void line(TCoord x, TCoord y) { line(TPoint(x, y)); }
     void curve(const TPoint &p0, const TPoint &p1, const TPoint &p2) {
       type.push_back(CURVE); points.push_back(p0);  points.push_back(p1);  points.push_back(p2);
     }
@@ -67,7 +69,7 @@ class TVectorPath
     TBoundary bounds() const;
     TBoundary editBounds() const;
     
-    void apply(TPen &pen) const;
+    void apply(TPenBase &pen) const;
     void subdivide();
     
     // reduce()
@@ -88,7 +90,7 @@ class TVectorOperation
 {
   public:
     TVectorOperation *next;
-    virtual void paint(TPen &pen, const TVectorPath*) = 0;
+    virtual void paint(TPenBase &pen, const TVectorPath*) = 0;
 };
 
 class TVectorStrokeOp:
@@ -101,16 +103,37 @@ class TVectorFillOp:
 {
 };
 
+// what about TFigureAttributes?
+class TVectorStrokeAndFillOp:
+  public TVectorOperation
+{
+    TRGB stroke, fill;
+  public:
+    TVectorStrokeAndFillOp(const TRGB &stoke, const TRGB &fill);
+    void paint(TPenBase &pen, const TVectorPath*);
+};
+
+/**
+ * Combines a TVectorPath with a TVectorOperation which paints the path
+ */
 class TVectorPainter
 {
   public:
-  TVectorPath *path;
-  TVectorOperation *operation;
+    TVectorPainter(): operation(0), path(0) {}
+    TVectorPainter(TVectorOperation *o, TVectorPath *p): operation(o), path(p) {}
+    TVectorOperation *operation;
+    TVectorPath *path;
+    void paint(TPenBase &pen);
 };
 
-class TVectorBuffer:
+/**
+ * A collection of TVectorPainter
+ */
+class TVectorGraphic:
   public vector<TVectorPainter*>
 {
+  public:
+    void paint(TPenBase &pen);
 };
 
 } // namespace

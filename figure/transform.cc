@@ -18,6 +18,7 @@
  * MA  02111-1307,  USA
  */
 
+#include <toad/vector.hh>
 #include <toad/figure.hh>
 #include <toad/figureeditor.hh>
 
@@ -28,7 +29,6 @@ static const TCoord ADDING = 0.001; // to avoid dividing by zero
 // two vanishing point perspective
 void TFTransform::prepare()
 {
-cout << "prepare" << endl;
   A = orig[0];
   C = orig[2];
 
@@ -178,25 +178,18 @@ TFTransform::paint(TPenBase &pen, EPaintType type)
     pen.drawString(E.x, E.y, "E"); // top/bottom
     pen.drawString(F.x, F.y, "F"); // left/right
   }
-#if 1
+
   for(auto p: figures) {
-    TRectangle r = p->bounds();
-    
-    TPoint l[4];
-    l[0].set(r.x, r.y);
-    l[1].set(r.x+r.w, r.y);
-    l[2].set(r.x+r.w, r.y+r.h);
-    l[3].set(r.x, r.y+r.h);
-    for(int i=0; i<4; ++i)
-      l[i] = transform(l[i]);
-//    p->paint(pen, NORMAL);
-    pen.drawPolygon(l, 4);
+    TVectorGraphic *vg = p->getPath();
+    if (!vg)
+      continue;
+    for(auto &painter: *vg) {
+      for(auto &point: painter->path->points) {
+        point = transform(point);
+      }
+    }
+    vg->paint(pen);
   }
-#else
-  for(auto p: figures) {
-    p->paint(pen, NORMAL);
-  }
-#endif
 }
 
 TRectangle

@@ -62,6 +62,15 @@ class TPenBase
     };
 
     virtual void setFont(const string&) = 0;
+    
+    virtual void move(TCoord x, TCoord y) = 0;
+    virtual void line(TCoord x, TCoord y) = 0;
+    virtual void move(const TPoint*) = 0;
+    virtual void line(const TPoint*) = 0;
+    virtual void curve(const TPoint*) = 0;
+    virtual void close() = 0;
+    virtual void stroke() = 0;
+    virtual void fill() = 0;
 
     virtual void identity() = 0;
     virtual void translate(TCoord dx, TCoord dy) = 0;

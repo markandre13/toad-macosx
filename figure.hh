@@ -33,6 +33,7 @@ namespace toad {
 class TFigureEditor;
 class TFigureAttributes;
 class TMatrix2D;
+class TVectorGraphic;
 
 class TFigureEditEvent
 {
@@ -93,7 +94,7 @@ class TFigure:
     TFigure(const TFigure &);
     virtual ~TFigure();
     
-//    virtual TVectorPath *getPath() { return NULL; }
+    virtual TVectorGraphic *getPath() const { return NULL; }
 
     virtual bool editEvent(TFigureEditEvent &ee);
     
@@ -257,7 +258,8 @@ class TFRectangle:
       p2.x = x+w;
       p2.y = y+h;
     }
-    void paint(TPenBase &, EPaintType) override;
+    TVectorGraphic* getPath() const;
+    void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
 
     TCoord distance(const TPoint &pos) override;

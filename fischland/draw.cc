@@ -1134,6 +1134,7 @@ void test_text();
 void test_tablet();
 void test_path_bool();
 void test_guitar();
+void test_vector_buffer();
 
 int 
 main(int argc, char **argv, char **envv)
@@ -1226,6 +1227,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-guitar")==0) {
       toad::initialize(argc, argv);
       test_guitar();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-vector-buffer")==0) {
+      toad::initialize(argc, argv);
+      test_vector_buffer();
       toad::terminate();
       return 0;
     }

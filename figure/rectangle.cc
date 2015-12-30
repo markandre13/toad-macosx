@@ -18,6 +18,7 @@
  * MA  02111-1307,  USA
  */
 
+#include <toad/vector.hh>
 #include <toad/figure.hh>
 #include <toad/figureeditor.hh>
 
@@ -176,6 +177,26 @@ TFRectangle::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
       break;
   }
   return CONTINUE;
+}
+
+TVectorGraphic*
+TFRectangle::getPath() const
+{
+  // auto vb = make_shared<sync_queue>(200);
+  
+  auto *path = new TVectorPath;
+  path->move(p1.x, p1.y);
+  path->line(p2.x, p1.y);
+  path->line(p2.x, p2.y);
+  path->line(p1.x, p2.y);
+  path->close();
+  
+  auto *vg = new TVectorGraphic;
+  vg->push_back(new TVectorPainter(
+    new TVectorStrokeAndFillOp(line_color, fill_color),
+    path
+  ));
+  return vg;
 }
 
 void

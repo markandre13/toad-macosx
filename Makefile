@@ -30,7 +30,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
-	   test_path_bool.cc test_guitar.cc \
+	   test_path_bool.cc test_guitar.cc test_vector_buffer.cc \
 	   \
 	   booleanop.cc \
 	   \
@@ -826,7 +826,7 @@ figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/line.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 figure/line.o: include/toad/figuretool.hh include/toad/core.hh
 figure/line.o: include/toad/pen.hh
-figure/transform.o: include/toad/figure.hh include/toad/penbase.hh
+figure/transform.o: include/toad/vector.hh include/toad/penbase.hh
 figure/transform.o: include/toad/color.hh include/toad/types.hh
 figure/transform.o: include/toad/io/serializable.hh
 figure/transform.o: include/toad/io/atvparser.hh include/toad/font.hh
@@ -835,14 +835,15 @@ figure/transform.o: include/toad/window.hh include/toad/interactor.hh
 figure/transform.o: include/toad/cursor.hh include/toad/region.hh
 figure/transform.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 figure/transform.o: include/toad/model.hh include/toad/connect.hh
-figure/transform.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/transform.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/transform.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/transform.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+figure/transform.o: include/toad/figure.hh include/toad/figureeditor.hh
+figure/transform.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/transform.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/transform.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/transform.o: include/toad/floatmodel.hh
 figure/transform.o: include/toad/figure/createtool.hh
 figure/transform.o: include/toad/figuretool.hh include/toad/core.hh
 figure/transform.o: include/toad/pen.hh
-figure/rectangle.o: include/toad/figure.hh include/toad/penbase.hh
+figure/rectangle.o: include/toad/vector.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh
 figure/rectangle.o: include/toad/io/atvparser.hh include/toad/font.hh
@@ -851,10 +852,11 @@ figure/rectangle.o: include/toad/window.hh include/toad/interactor.hh
 figure/rectangle.o: include/toad/cursor.hh include/toad/region.hh
 figure/rectangle.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 figure/rectangle.o: include/toad/model.hh include/toad/connect.hh
-figure/rectangle.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/rectangle.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/rectangle.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/rectangle.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+figure/rectangle.o: include/toad/figure.hh include/toad/figureeditor.hh
+figure/rectangle.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/rectangle.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/rectangle.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/rectangle.o: include/toad/floatmodel.hh
 figure/rectangle.o: include/toad/figure/createtool.hh
 figure/rectangle.o: include/toad/figuretool.hh include/toad/core.hh
 figure/rectangle.o: include/toad/pen.hh
@@ -1058,9 +1060,7 @@ test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
 test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
 test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
-test_tablet.o: include/toad/floatmodel.hh bop12/booleanop.h bop12/polygon.h
-test_tablet.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
-test_tablet.o: bop12/segment_2.h
+test_tablet.o: include/toad/floatmodel.hh booleanop.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1071,6 +1071,7 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
+test_path_bool.o: include/toad/booleanop.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1088,16 +1089,26 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
+test_vector_buffer.o: include/toad/vector.hh include/toad/penbase.hh
+test_vector_buffer.o: include/toad/color.hh include/toad/types.hh
+test_vector_buffer.o: include/toad/io/serializable.hh
+test_vector_buffer.o: include/toad/io/atvparser.hh include/toad/font.hh
+test_vector_buffer.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_vector_buffer.o: include/toad/window.hh include/toad/interactor.hh
+test_vector_buffer.o: include/toad/cursor.hh include/toad/region.hh
+test_vector_buffer.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+test_vector_buffer.o: include/toad/model.hh include/toad/connect.hh
+test_vector_buffer.o: include/toad/figure.hh include/toad/pen.hh
+booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
-booleanop.o: include/toad/color.hh include/toad/types.hh
-booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-booleanop.o: include/toad/font.hh include/toad/pointer.hh
-booleanop.o: include/toad/matrix2d.hh include/toad/geometry.hh
-booleanop.o: include/toad/vector.hh include/toad/window.hh
-booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
-booleanop.o: include/toad/region.hh include/toad/bitmap.hh
-booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh
+booleanop.o: include/toad/color.hh include/toad/io/serializable.hh
+booleanop.o: include/toad/io/atvparser.hh include/toad/font.hh
+booleanop.o: include/toad/pointer.hh include/toad/matrix2d.hh
+booleanop.o: include/toad/geometry.hh include/toad/vector.hh
+booleanop.o: include/toad/window.hh include/toad/interactor.hh
+booleanop.o: include/toad/cursor.hh include/toad/region.hh
+booleanop.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+booleanop.o: include/toad/model.hh include/toad/connect.hh
 bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
 bop12/booleanop.o: bop12/point_2.h bop12/bbox_2.h bop12/segment_2.h
 bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h
@@ -1490,7 +1501,8 @@ test/booleanop.o: include/toad/pointer.hh include/toad/matrix2d.hh
 test/booleanop.o: include/toad/window.hh include/toad/interactor.hh
 test/booleanop.o: include/toad/cursor.hh include/toad/region.hh
 test/booleanop.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-test/booleanop.o: include/toad/model.hh include/toad/connect.hh test/gtest.h
+test/booleanop.o: include/toad/model.hh include/toad/connect.hh
+test/booleanop.o: include/toad/booleanop.hh test/gtest.h
 test/lineintersection.o: include/toad/geometry.hh include/toad/types.hh
 test/lineintersection.o: include/toad/vector.hh include/toad/penbase.hh
 test/lineintersection.o: include/toad/color.hh
@@ -1501,6 +1513,7 @@ test/lineintersection.o: include/toad/window.hh include/toad/interactor.hh
 test/lineintersection.o: include/toad/cursor.hh include/toad/region.hh
 test/lineintersection.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test/lineintersection.o: include/toad/model.hh include/toad/connect.hh
+test/lineintersection.o: test/gtest.h
 interactor.o: include/toad/interactor.hh include/toad/types.hh
 control.o: include/toad/control.hh include/toad/window.hh
 control.o: include/toad/interactor.hh include/toad/types.hh
@@ -2229,7 +2242,7 @@ figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/line.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 figure/line.o: include/toad/figuretool.hh include/toad/core.hh
 figure/line.o: include/toad/pen.hh
-figure/transform.o: include/toad/figure.hh include/toad/penbase.hh
+figure/transform.o: include/toad/vector.hh include/toad/penbase.hh
 figure/transform.o: include/toad/color.hh include/toad/types.hh
 figure/transform.o: include/toad/io/serializable.hh
 figure/transform.o: include/toad/io/atvparser.hh include/toad/font.hh
@@ -2238,14 +2251,15 @@ figure/transform.o: include/toad/window.hh include/toad/interactor.hh
 figure/transform.o: include/toad/cursor.hh include/toad/region.hh
 figure/transform.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 figure/transform.o: include/toad/model.hh include/toad/connect.hh
-figure/transform.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/transform.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/transform.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/transform.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+figure/transform.o: include/toad/figure.hh include/toad/figureeditor.hh
+figure/transform.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/transform.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/transform.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/transform.o: include/toad/floatmodel.hh
 figure/transform.o: include/toad/figure/createtool.hh
 figure/transform.o: include/toad/figuretool.hh include/toad/core.hh
 figure/transform.o: include/toad/pen.hh
-figure/rectangle.o: include/toad/figure.hh include/toad/penbase.hh
+figure/rectangle.o: include/toad/vector.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh
 figure/rectangle.o: include/toad/io/atvparser.hh include/toad/font.hh
@@ -2254,10 +2268,11 @@ figure/rectangle.o: include/toad/window.hh include/toad/interactor.hh
 figure/rectangle.o: include/toad/cursor.hh include/toad/region.hh
 figure/rectangle.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 figure/rectangle.o: include/toad/model.hh include/toad/connect.hh
-figure/rectangle.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/rectangle.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/rectangle.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/rectangle.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+figure/rectangle.o: include/toad/figure.hh include/toad/figureeditor.hh
+figure/rectangle.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/rectangle.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/rectangle.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/rectangle.o: include/toad/floatmodel.hh
 figure/rectangle.o: include/toad/figure/createtool.hh
 figure/rectangle.o: include/toad/figuretool.hh include/toad/core.hh
 figure/rectangle.o: include/toad/pen.hh
@@ -2461,9 +2476,7 @@ test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
 test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
 test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
-test_tablet.o: include/toad/floatmodel.hh bop12/booleanop.h bop12/polygon.h
-test_tablet.o: bop12/utilities.h bop12/point_2.h bop12/bbox_2.h
-test_tablet.o: bop12/segment_2.h
+test_tablet.o: include/toad/floatmodel.hh booleanop.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2474,6 +2487,7 @@ test_path_bool.o: include/toad/matrix2d.hh include/toad/figure.hh
 test_path_bool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_bool.o: include/toad/model.hh include/toad/connect.hh
 test_path_bool.o: include/toad/vector.hh include/toad/geometry.hh
+test_path_bool.o: include/toad/booleanop.hh
 test_guitar.o: include/toad/window.hh include/toad/interactor.hh
 test_guitar.o: include/toad/types.hh include/toad/cursor.hh
 test_guitar.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2491,16 +2505,26 @@ test_guitar.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test_guitar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_guitar.o: include/toad/labelowner.hh include/toad/table.hh
 test_guitar.o: include/toad/scrollpane.hh include/toad/dragndrop.hh
+test_vector_buffer.o: include/toad/vector.hh include/toad/penbase.hh
+test_vector_buffer.o: include/toad/color.hh include/toad/types.hh
+test_vector_buffer.o: include/toad/io/serializable.hh
+test_vector_buffer.o: include/toad/io/atvparser.hh include/toad/font.hh
+test_vector_buffer.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_vector_buffer.o: include/toad/window.hh include/toad/interactor.hh
+test_vector_buffer.o: include/toad/cursor.hh include/toad/region.hh
+test_vector_buffer.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+test_vector_buffer.o: include/toad/model.hh include/toad/connect.hh
+test_vector_buffer.o: include/toad/figure.hh include/toad/pen.hh
+booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
-booleanop.o: include/toad/color.hh include/toad/types.hh
-booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-booleanop.o: include/toad/font.hh include/toad/pointer.hh
-booleanop.o: include/toad/matrix2d.hh include/toad/geometry.hh
-booleanop.o: include/toad/vector.hh include/toad/window.hh
-booleanop.o: include/toad/interactor.hh include/toad/cursor.hh
-booleanop.o: include/toad/region.hh include/toad/bitmap.hh
-booleanop.o: include/toad/figuremodel.hh include/toad/model.hh
-booleanop.o: include/toad/connect.hh
+booleanop.o: include/toad/color.hh include/toad/io/serializable.hh
+booleanop.o: include/toad/io/atvparser.hh include/toad/font.hh
+booleanop.o: include/toad/pointer.hh include/toad/matrix2d.hh
+booleanop.o: include/toad/geometry.hh include/toad/vector.hh
+booleanop.o: include/toad/window.hh include/toad/interactor.hh
+booleanop.o: include/toad/cursor.hh include/toad/region.hh
+booleanop.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+booleanop.o: include/toad/model.hh include/toad/connect.hh
 bop12/booleanop.o: bop12/booleanop.h bop12/polygon.h bop12/utilities.h
 bop12/booleanop.o: bop12/point_2.h bop12/bbox_2.h bop12/segment_2.h
 bop12/polygon.o: bop12/polygon.h bop12/utilities.h bop12/point_2.h
