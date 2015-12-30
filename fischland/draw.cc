@@ -745,14 +745,7 @@ printLayer(TPenBase &pen, TLayer *layer)
           p != layer->content.end();
           ++p)
       {
-        if ((*p)->mat) {
-          pen.push();   
-          pen.multiply( (*p)->mat );
-          (*p)->paint(pen, TFigure::NORMAL);
-          pen.pop();
-        } else {
-          (*p)->paint(pen, TFigure::NORMAL);
-        }
+        (*p)->paint(pen, TFigure::NORMAL);
       }
     }
     printLayer(pen, layer->down);

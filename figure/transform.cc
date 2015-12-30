@@ -96,16 +96,7 @@ TFTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
 {
   TCoord d = OUT_OF_RANGE;
   for (auto p: figures) {
-    TCoord td;
-    if ( p->mat) {
-      TCoord x, y;
-      TMatrix2D m(*p->mat);
-      m.invert();
-      m.map(mx, my, &x, &y);
-      td = p->_distance(fe, x, y);
-    } else {
-      td = p->_distance(fe, mx, my);
-    }
+    TCoord td = p->_distance(fe, mx, my);
     if (td<d)
       d=td;
   }
@@ -115,10 +106,6 @@ TFTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
 void
 TFTransform::translate(TCoord dx, TCoord dy)
 {
-  if (mat) {
-    mat->translate(dx, dy);
-    return;
-  }
   TPoint d(dx, dy);
   for(size_t i=0; i<4; ++i)
     handle[i]+=d;
@@ -139,8 +126,6 @@ TFTransform::init()
   for(auto f: figures) {
     r = f->bounds();
     m.identity();
-    if (f->mat)
-      m.multiply(f->mat);
     for(int i=0; i<4; ++i) {
       int x, y;
       switch(i) {
@@ -204,27 +189,12 @@ TFTransform::paint(TPenBase &pen, EPaintType type)
     l[3].set(r.x, r.y+r.h);
     for(int i=0; i<4; ++i)
       l[i] = transform(l[i]);
-    if (p->mat) {
-      pen.push();
-      pen.multiply(p->mat);
-      // p->paint(pen, NORMAL);
-      pen.drawPolygon(l, 4);
-      pen.pop();
-    } else {
-//      p->paint(pen, NORMAL);
-      pen.drawPolygon(l, 4);
-    }
+//    p->paint(pen, NORMAL);
+    pen.drawPolygon(l, 4);
   }
 #else
   for(auto p: figures) {
-    if (p->mat) {
-      pen.push();
-      pen.multiply(p->mat);
-      p->paint(pen, NORMAL);
-      pen.pop();
-    } else {
-      p->paint(pen, NORMAL);
-    }
+    p->paint(pen, NORMAL);
   }
 #endif
 }
@@ -268,9 +238,6 @@ TFTransform::translateHandle(unsigned n, TCoord x, TCoord y, unsigned modifier)
 void
 TFTransform::store(TOutObjectStream &out) const
 {
-  if (mat) {
-    ::store(out, "trans", mat);
-  }
   figures.store(out);
 }
 
@@ -278,9 +245,6 @@ bool
 TFTransform::restore(TInObjectStream &in)
 {
   if (in.what == ATV_FINISHED) {
-    return true;
-  }
-  if (::restorePtr(in, "trans", &mat)) {
     return true;
   }
   if (figures.restore(in))

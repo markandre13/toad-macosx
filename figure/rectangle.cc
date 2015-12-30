@@ -34,8 +34,6 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
 {
   pen.push();
   pen.setAlpha(alpha);
-  if (cmat)
-    pen.multiply(cmat);
   if (filled) {
     pen.setFillColor(fill_color);
     pen.fillRectangle(p1,p2);
@@ -107,9 +105,6 @@ TFRectangle::getHandle(unsigned handle, TPoint *p)
       p->x = p1.x;
       p->y = p2.y;
       break;
-  }
-  if (cmat) {
-    cmat->map(p->x, p->y, &p->x, &p->y);
   }
   if (handle<4)
     return true;

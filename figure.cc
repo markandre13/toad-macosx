@@ -118,25 +118,15 @@ TInObjectStream TFigure::serialize;
 TFigure::TFigure()
 {
   removeable = true;
-  mat = cmat = 0;
 }
 
 TFigure::TFigure(const TFigure &f)
 {
   removeable = f.removeable;
-  mat = cmat = 0;
-  if (f.mat)
-    mat = new TMatrix2D(*f.mat);
-  if (f.cmat)
-    cmat = new TMatrix2D(*f.cmat);
 }
 
 TFigure::~TFigure()
 {
-  if (mat)
-    delete mat;
-  if (cmat)
-    delete cmat;
 }
 
 /**
@@ -413,12 +403,6 @@ TStylePair sp[] = {
 void
 TFigure::store(TOutObjectStream &out) const
 {
-  if (mat) {
-    ::store(out, "trans", mat);
-  }
-  if (cmat) {
-    ::store(out, "coord-trans", cmat);
-  }
 }
 
 void
@@ -449,8 +433,6 @@ bool
 TFigure::restore(TInObjectStream &in)
 {
   if (
-    ::restorePtr(in, "trans", &mat) ||
-    ::restorePtr(in, "coord-trans", &cmat) ||
     TSerializable::restore(in)
   ) return true;
   ATV_FAILED(in)

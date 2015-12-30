@@ -253,12 +253,6 @@ TFCreateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
     return false;
-  pen.push();
-  if (figure->mat)
-    pen.multiply(figure->mat);
-  if (figure->cmat)
-    pen.multiply(figure->cmat);
   figure->paint(pen, TFigure::EDIT);
-  pen.pop();
   return true;
 }

@@ -418,19 +418,12 @@ TFigureModel::translate(const TFigureSet &set, TCoord dx, TCoord dy)
       p!=set.end();
       ++p)
   {
-    if ( !(*p)->mat) {
-      TFigureEditEvent ee;
-      ee.model = this;
-      ee.type = TFigureEditEvent::TRANSLATE;
-      ee.x = dx;
-      ee.y = dy;
-      (*p)->editEvent(ee);
-    } else {
-      TMatrix2D m;
-      m.translate(dx, dy);
-      m.multiply((*p)->mat);
-      *(*p)->mat = m;
-    }
+    TFigureEditEvent ee;
+    ee.model = this;
+    ee.type = TFigureEditEvent::TRANSLATE;
+    ee.x = dx;
+    ee.y = dy;
+    (*p)->editEvent(ee);
   }
   type = MODIFIED;
   sigChanged();
@@ -628,19 +621,6 @@ TFigureModel::ungroup(TFigureSet &grouped, TFigureSet *ungrouped)
     if (grouped.find(*p)!=grouped.end()) {
       TFGroup *group = dynamic_cast<TFGroup*>(*p);
       if (group) {
-        if (group->mat) {
-          for(TFigureModel::iterator vp = group->gadgets.begin();
-              vp != group->gadgets.end();
-              ++vp)
-          {
-            TMatrix2D *m = new TMatrix2D(*group->mat);
-            if ((*vp)->mat) {
-              m->multiply((*vp)->mat);
-              delete((*vp)->mat);
-            }
-            (*vp)->mat = m;
-          }
-        }
         int pi = p - storage.begin();
         storage.erase(p);
         p = storage.begin() + pi;

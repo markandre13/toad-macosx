@@ -32,34 +32,13 @@ TFGroup::TFGroup()
 TFGroup::TFGroup(const TFGroup &g):
   gadgets(g.gadgets)
 {
-  if (g.mat && !mat)
-    mat = new TMatrix2D(*g.mat);
   calcSize();
   connect(gadgets.sigChanged, this, &TFGroup::modelChanged);
 }
 
-/**
- * Adds a transformation matrix to the group in case one of the
- * groups figures contains a transformation matrix.
- *
- * This is to avoid unwanted calls to 'translate'.
- */
 void
 TFGroup::modelChanged()
 {
-  if (mat)
-    return;
-
-  TFigureModel::iterator p,e;
-  p = gadgets.begin();
-  e = gadgets.end();
-  while(p!=e) {
-    if ( (*p)->mat ) {
-      mat = new TMatrix2D();
-      return;
-    }
-    ++p;
-  }
 }
 
 TFGroup::~TFGroup()
@@ -74,6 +53,7 @@ TFGroup::~TFGroup()
 void 
 TFGroup::calcSize()
 {
+#if 0
   TFigureModel::iterator p,e;
   p = gadgets.begin();
   e = gadgets.end();
@@ -127,6 +107,7 @@ TFGroup::calcSize()
     }
     ++p;
   }
+#endif
 }
 
 void 
@@ -136,14 +117,7 @@ TFGroup::paint(TPenBase &pen, EPaintType)
   p = gadgets.begin();
   e = gadgets.end();
   while(p!=e) {
-    if ((*p)->mat) {
-      pen.push();
-      pen.multiply((*p)->mat);
-      (*p)->paint(pen, NORMAL);
-      pen.pop();
-    } else {
-      (*p)->paint(pen, NORMAL);
-    }
+    (*p)->paint(pen, NORMAL);
     p++;
   }
 }
@@ -177,6 +151,7 @@ static TPoint lp1, lp2, lpi1, lpi2;
 bool
 TFGroup::startTranslateHandle()
 {
+#if 0
   // in case there's no matrix yet, add one and set upper left corner to
   // (0, 0)
   if (!mat) {
@@ -195,6 +170,7 @@ TFGroup::startTranslateHandle()
   lastimatrix.invert();
   lastimatrix.map(p1.x, p1.y, &lpi1.x, &lpi1.y);
   lastimatrix.map(p2.x, p2.y, &lpi2.x, &lpi2.y);
+#endif
   return false;
 }
 
@@ -206,6 +182,8 @@ TFGroup::endTranslateHandle()
 void
 TFGroup::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 {
+return;
+#if 0
   TCoord w0, w1, h0, h1;
 #if 1
 //cout << "TFGroup::translateHandle("<<handle<<", "<<x<<", "<<y<<",m)"<<endl;
@@ -260,6 +238,7 @@ cerr << "  p2.x = " << p2.x << ", x = " << x << endl;
   }
 #endif
 #endif
+#endif
 }
 
 TCoord
@@ -270,16 +249,7 @@ TFGroup::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
        p != gadgets.end();
        ++p)
   {
-    TCoord td;
-    if ( (*p)->mat) {
-      TCoord x, y;
-      TMatrix2D m(*(*p)->mat);
-      m.invert();
-      m.map(mx, my, &x, &y);
-      td = (*p)->_distance(fe, x, y);
-    } else {
-      td = (*p)->_distance(fe, mx, my);
-    }
+    TCoord td = (*p)->_distance(fe, mx, my);
     if (td<d)
       d=td;
   }
@@ -302,10 +272,6 @@ TFGroup::editEvent(TFigureEditEvent &ee)
 void
 TFGroup::translate(TCoord dx, TCoord dy)
 {
-  if (mat) {
-    mat->translate(dx, dy);
-    return;
-  }
   p1.x+=dx;
   p1.y+=dy;
   p2.x+=dx;
@@ -322,9 +288,6 @@ TFGroup::translate(TCoord dx, TCoord dy)
 void
 TFGroup::store(TOutObjectStream &out) const
 {
-  if (mat) {
-    ::store(out, "trans", mat);
-  }
   gadgets.store(out);
 }
 
@@ -333,9 +296,6 @@ TFGroup::restore(TInObjectStream &in)
 {
   if (in.what == ATV_FINISHED) {
     calcSize();
-    return true;
-  }
-  if (::restorePtr(in, "trans", &mat)) {
     return true;
   }
   if (gadgets.restore(in))

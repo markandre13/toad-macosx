@@ -120,14 +120,7 @@ void
 printPage(const TFigureModel &model)
 {
   for(auto p = model.begin(); p != model.end(); ++p) {
-    if ((*p)->mat) {
-      pen->push();
-      pen->multiply( (*p)->mat );
-      (*p)->paint(*pen);
-      pen->pop();
-    } else {
-      (*p)->paint(*pen);
-    }
+    (*p)->paint(*pen);
   }
 }
 

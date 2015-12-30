@@ -255,14 +255,7 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
           p != fe->selection.end();
           ++p)
       {
-        if ( (*p)->mat || (*p)->cmat ) {
-          if (scale_strokes_and_fx)
-            oldmat.push_back(*(*p)->mat);
-          else
-            oldmat.push_back(*(*p)->cmat);
-        } else {
-          oldmat.push_back(TMatrix2D());
-        }
+        oldmat.push_back(TMatrix2D());
       }
 // cout << "its inside handle " << i << endl;
       return true;
@@ -275,6 +268,7 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 {
+#if 0
   // mouse is holding a handle, scale the selection
   invalidateBounding(fe);
 //TCoord x0, y0;
@@ -350,6 +344,7 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
   }
 
   invalidateBounding(fe);
+#endif
 }
 
 void
@@ -433,10 +428,6 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   if (fe->state == TFigureEditor::STATE_EDIT) {
     TFigure *figure = *tmpsel.begin();
     pen.push();
-    if (figure->mat)
-      pen.multiply(figure->mat);
-    if (figure->cmat)
-      pen.multiply(figure->cmat);
     figure->paint(pen, TFigure::EDIT);
     pen.pop();
     return true;
@@ -447,14 +438,8 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   if (down) {
     // draw the selection marks over all figures
     for(auto sp = tmpsel.begin(); sp != tmpsel.end(); ++sp) {
-      if ((*sp)->mat) {
-        pen.push();
-        pen.multiply( (*sp)->mat );
-      }
       pen.setLineWidth(1);   
       (*sp)->paintSelection(pen, -1);
-      if ((*sp)->mat)
-        pen.pop(); 
     }
     
     // draw selection rectangle

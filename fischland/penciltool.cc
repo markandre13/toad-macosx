@@ -85,8 +85,6 @@ TPencilTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 
   for(; sp != se; ++sp) {
     pen.push();
-    if ((*sp)->mat)
-      pen.multiply( (*sp)->mat );
     (*sp)->paint(pen);
     pen.pop();
   }  

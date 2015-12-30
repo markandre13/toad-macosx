@@ -21,6 +21,8 @@
 #include "rotatetool.hh"
 #include "fischland.hh"
 
+#if 0
+
 TRotateTool*
 TRotateTool::getTool()
 {
@@ -191,3 +193,5 @@ TRotateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   
   return true;
 }
+
+#endif

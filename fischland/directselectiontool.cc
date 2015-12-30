@@ -73,15 +73,6 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         fe->mouse2sheet(me.pos, &pos);
         // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
         TCoord x, y;
-        if (figure->mat || figure->cmat) {
-          TMatrix2D m;
-          if (figure->mat)
-            m = *figure->mat;
-          if (figure->cmat)
-            m.multiply(figure->cmat);
-          m.invert();
-          m.map(pos, &pos);
-        }
 
         // loop over all handles
         unsigned h = 0;
@@ -138,31 +129,12 @@ cout << "selected figure " << figure << endl;
         TPoint pos;
         fe->mouse2sheet(me.pos, &pos);
         fe->sheet2grid(pos, &pos);
-        if (tht && (figure->mat || figure->cmat)) {
-          TMatrix2D m;
-          if (figure->mat)
-            m = *figure->mat;
-          if (figure->cmat)
-            m.multiply(figure->cmat);
-          m.invert();
-          m.map(pos, &pos);
-        }
         fe->getModel()->translateHandle(figure, handle, pos.x, pos.y, me.modifier());
       } else
       if (figure) {
 
         TPoint pos;
         fe->mouse2sheet(me.pos, &pos);
-        // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-        if (figure->mat || figure->cmat) {
-          TMatrix2D m;
-          if (figure->mat)
-            m = *figure->mat;
-          if (figure->cmat)
-            m.multiply(figure->cmat);
-          m.invert();
-          m.map(pos, &pos);
-        }
 
         // loop over all handles
         unsigned h = 0;
@@ -207,8 +179,6 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 
   pen.push();
   pen.setColor(TColor::FIGURE_SELECTION);
-  if (figure->mat)
-    pen.multiply(figure->mat);
   pen.setLineWidth(1);
   figure->paint(pen);
   pen.setLineWidth(1);

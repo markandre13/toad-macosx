@@ -306,18 +306,12 @@ TDialogSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   // draw the selection marks over all figures
   for_each(fe->selection.begin(), fe->selection.end(), [&] (TFigure *f) {
-    if (f->mat) {
-      pen.push();
-      pen.multiply(f->mat);
-    }
     pen.setLineWidth(1);
     if (f!=figure) {
       f->paintSelection(pen, -1);
     } else {
       f->paintSelection(pen, handle);
     }
-    if (f->mat)
-      pen.pop();
   });
 
   if (state==STATE_SELECT_RECT) {

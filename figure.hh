@@ -132,20 +132,10 @@ class TFigure:
   
     /**
      * 'true' when TFigureEditor is allowed to delete this object.
+     *  NOTE: might be better as a virtual function
      */
     bool removeable:1;
     
-    /**
-     * Transformation matrix to be applied before this object is painted
-     * or 0.
-     */
-    TMatrix2D *mat;
-    
-    /**
-     * Coordinate transformation matrix
-     */
-    TMatrix2D *cmat;
-  
     // editor related stuff per figure for manipulation
     //-------------------------------------------------
     static const unsigned NOTHING  = 0;

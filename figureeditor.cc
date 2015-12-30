@@ -602,18 +602,12 @@ TFigureEditor::paintSelection(TPenBase &pen)
 
   // draw the selection marks over all figures
   for(auto sp = selection.begin(); sp != selection.end(); ++sp) {
-    if ((*sp)->mat) {
-      pen.push();
-      pen.multiply( (*sp)->mat );
-    }
     pen.setLineWidth(1);
     if (*sp!=gadget) {
       (*sp)->paintSelection(pen, -1);
     } else {
       (*sp)->paintSelection(pen, handle);
     }
-    if ((*sp)->mat)
-      pen.pop();
   }
 
   if (state==STATE_SELECT_RECT) {
@@ -721,12 +715,6 @@ TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection, boo
       }
     }
 
-    if ((*p)->mat) {
-      pen.push();
-      pushs++;
-      pen.multiply( (*p)->mat );
-    }
-    
     bool skip = false;
     if (withSelection || justSelection) {
       if (gadget==*p || selection.find(*p)!=selection.end()) {
@@ -1402,14 +1390,10 @@ TFigureEditor::getFigureEditShape(TFigure* figure, TRectangle *r, const TMatrix2
 void
 TFigureEditor::_getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
-  if (mat || figure->mat || figure->cmat) {
+  if (mat) {
     TMatrix2D m;
     if (mat)
       m=*mat;
-    if (figure->mat)
-      m.multiply(figure->mat);
-    if (figure->cmat)
-      m.multiply(figure->cmat);
       
     TCoord x1, x2, y1, y2;
     TCoord x, y;
@@ -1480,17 +1464,8 @@ TCoord my = m.y;
     --p;
     if (*p!=gadget) {
       TCoord x, y;
-      if ((*p)->mat || (*p)->cmat) {
-        if ( (*p)->mat )
-          stack.multiply((*p)->mat);
-        if ( (*p)->cmat )
-          stack.multiply((*p)->cmat);
-        stack.invert();
-        stack.map(mx, my, &x, &y);
-      } else {
-        x = mx;
-        y = my;
-      }
+      x = mx;
+      y = my;
 //cerr << "  after rotation ("<<x<<", "<<y<<")\n";
       TCoord d = (*p)->_distance(this, x, y);
       if (d==TFigure::INSIDE) {
@@ -1569,58 +1544,7 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
       ay1=r.y;
       ax2=r.x+r.w-1;
       ay2=r.y+r.h-1;
-    
-      if ((*p)->mat) {
-        (*p)->mat->map(ax1, ay2, &ax1, &ay1);
-        (*p)->mat->map(ax2, r.y, &ax2, &ay2);
-
-//printf("lower left  (%i, %i)\n"
-//       "upper right (%i, %i)\n", ax1, ay1, ax2, ay2);
-      
-        if (ax1>ax2) {
-          TCoord a = ax1; ax1 = ax2; ax2 = a;
-        }
-        if (ay1>ay2) {
-          TCoord a = ay1; ay1 = ay2; ay2 = a;
-        }
-      
-        if (ax1<x1)
-          x1=ax1;
-        if (ax2>x2)
-          x2=ax2;
-        if (ay1<y1)
-          y1=ay1;
-        if (ay2>y2)
-          y2=ay2;
-
-        ax1=r.x;
-        ay1=r.y;
-        ax2=r.x+r.w-1;
-        ay2=r.y+r.h-1;
-
-        (*p)->mat->map(ax1, ay1, &ax1, &ay1);
-        (*p)->mat->map(ax2, ay2, &ax2, &ay2);
-        //printf("upper left  (%i, %i)\n"
-        //       "lower right (%i, %i)\n\n", ax1, ay1, ax2, ay2);
-        if (ax1>ax2) {
-          TCoord a = ax1; ax1 = ax2; ax2 = a;
-        }
-        if (ay1>ay2) {
-          TCoord a = ay1; ay1 = ay2; ay2 = a;
-        }
-      }
-
-      if (ax1<x1)
-        x1=ax1;
-      if (ax2>x2)
-        x2=ax2;
-      if (ay1<y1)
-        y1=ay1;
-      if (ay2>y2)
-        y2=ay2;
-      //cout << "area size: (" << x1 << ", " << y1 << ") - (" << x2 << ", " << y2 << ")\n";
     }
-
   }
   
   if (x1>0) x1=0;

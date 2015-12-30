@@ -212,18 +212,9 @@ TFPath::paintSelection(TPenBase &pen, int handle)
 
   TMatrix2D _m0;
   const TMatrix2D *m0 = pen.getMatrix();
-  if (m0 || cmat) {
+  if (m0) {
     pen.push();
     pen.identity();
-    if (cmat) {
-      if (!m0) {
-        m0 = cmat;
-      } else {
-        _m0 = *m0;
-        _m0 *= *cmat;
-        m0 = &_m0;
-      }
-    }
   }
   
   pen.setLineColor(TColor::FIGURE_SELECTION);
@@ -289,7 +280,7 @@ TFPath::paintSelection(TPenBase &pen, int handle)
     }
   }
   
-  if (m0 || cmat) {
+  if (m0) {
     pen.pop();
   }
 }
@@ -314,10 +305,6 @@ TFPath::paint(TPenBase &pen, EPaintType type)
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
 
-  if (cmat) {
-    pen.push();
-    pen.multiply(cmat);
-  }
   if (closed && filled) {
     pen.setFillColor(fill_color);
     pen.fillBezier(polygon);
@@ -348,9 +335,6 @@ TFPath::paint(TPenBase &pen, EPaintType type)
 //pen.setColor(1,0,0);
 //pen.drawLine(polygon[polygon.size()-1], polygon[polygon.size()-3]);
   }
-  
-  if (cmat)
-    pen.pop();
   
   if (type!=EDIT && type!=SELECT)
     return;

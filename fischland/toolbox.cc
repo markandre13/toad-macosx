@@ -441,7 +441,7 @@ serialize.registerObject(new TFPath());
       case 9:
         y+=5;
         wnd = rb = new TFatRadioButton(this, "rotate", state);
-        CONNECT(rb->sigClicked, me, setTool, TRotateTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TRotateTool::getTool());
         wnd->setToolTip("rotate");
         rb->loadBitmap(RESOURCE("tool_rotate.png"));
         break;
