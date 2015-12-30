@@ -141,7 +141,8 @@ toad::mainLoop()
 //cerr << __FILE__ << ":" << __LINE__ << endl;
   NSApplication *app = [NSApplication sharedApplication];
 //cerr << __FILE__ << ":" << __LINE__ << endl;
-  [NSBundle loadNibNamed:@"myMain" owner: app];
+  [[NSBundle mainBundle] loadNibNamed:@"myMain" owner:app topLevelObjects:nil];
+
 //cerr << __FILE__ << ":" << __LINE__ << endl;
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
