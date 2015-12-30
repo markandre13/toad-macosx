@@ -78,6 +78,13 @@ TPoint bez2point(const TPoint *p, TCoord t);
 void fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
 void convexHull(vector<TPoint> *points);
 
+/*
+A Bézier curve does not have self-intersections if the sum of all absolute
+values of the outer rotation angles of the Bézier polygon is smaller than or
+equal to π.
+bool isSelfIntersecting(...)
+*/
+
 int solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots);
 
 enum BooleanOpType { INTERSECTION, UNION, DIFFERENCE, XOR };
