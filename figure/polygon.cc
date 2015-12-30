@@ -117,7 +117,7 @@ TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
       editor->setAllMouseMoveEvents(true);
       break;
     case TFigureEditor::STATE_CREATE: {
-      if (m.modifier() & MK_DOUBLE) {
+      if (m.dblClick) {
         if (polygon.size()<4)
           return STOP|DELETE;
         polygon.erase(--polygon.end());

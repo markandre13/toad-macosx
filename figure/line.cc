@@ -193,7 +193,7 @@ unsigned
 TFLine::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
   if (editor->state == TFigureEditor::STATE_CREATE &&
-      m.modifier() & MK_DOUBLE) 
+      m.dblClick) 
   {
     if (polygon.size()<3)
       return STOP|DELETE;

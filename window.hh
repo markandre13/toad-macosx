@@ -46,7 +46,6 @@ using namespace std;
 #define MK_LBUTTON (1<<25)
 #define MK_MBUTTON (1<<26)
 #define MK_RBUTTON (1<<27)
-#define MK_DOUBLE  (1<<28)
 
 #define TK_SHIFT_L 56
 #define TK_SHIFT_R 56

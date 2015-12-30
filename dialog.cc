@@ -155,7 +155,7 @@ TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       TFigure *f = fe->findFigureAt(m);
       if (f) {
 	TFigureSet::iterator fi = fe->selection.find(f);
-        if (me.modifier() & MK_DOUBLE) {
+        if (me.dblClick) {
         } else
         if (me.modifier() & MK_CONTROL) {
         } else

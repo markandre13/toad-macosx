@@ -1075,8 +1075,7 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
   window = aWindow;
   dblClick = false;
   __modifier = [nsevent modifierFlags] 
-           | _modifier
-           | (dblClick ? MK_DOUBLE : 0);
+           | _modifier;
 }
 
 unsigned TMouseEvent::_modifier = 0;

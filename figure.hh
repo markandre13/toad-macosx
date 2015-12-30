@@ -597,6 +597,7 @@ class TFTransform:
     bool restore(TInObjectStream&) override;
 };
 
+// class TFTransformRotate
 // class TFTransformPerspective
 // class TFTransformBezier
 // ...

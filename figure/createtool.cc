@@ -194,7 +194,7 @@ redo:
       }
       if (r & TFigure::REPEAT) {
 //        cout << "  repeat" << endl;
-        if (me.modifier() & MK_DOUBLE) {
+        if (me.dblClick) {
 //          cerr << "TFigureEditor: kludge: avoiding endless loop bug\n";
           break;
         }

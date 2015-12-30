@@ -108,7 +108,7 @@ TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         path->setAttributes(fe->getAttributes());
         fe->getAttributes()->clearReasons();
       } else
-      if (me.modifier() & MK_CONTROL || me.modifier() & MK_DOUBLE) {
+      if (me.modifier() & MK_CONTROL || me.dblClick) {
         // end with open path
         stop(fe);
         fe->getWindow()->setCursor(fischland::cursor[0]);
