@@ -102,6 +102,29 @@ bool SweepEventComp::operator() (const SweepEvent* e1, const SweepEvent* e2)
   return e1->pol > e2->pol;
 }
 
+// le1->x < le2->x && le2==curve
+static bool compareWithCurve(SweepEvent* le1, SweepEvent* le2)
+{
+  TPoint curve[4] = {
+    le2->point,
+    le2->cpoint,
+    le2->otherEvent->cpoint,
+    le2->otherEvent->point
+  };
+  TPoint line[2] = {
+    { le1->point.x, -2000 }, // FIXME: just calculate y of curve at le1->point.x
+    { le1->point.x, 2000 }
+  };
+  TIntersectionList il;
+  intersectCurveLine(il, curve, line);
+  if (il.size()>0) {
+    return il[0].seg1.pt.y > le1->point.y;
+  }
+  txt<<"=========compareWithCurve failed"<<endl;
+  exit(1);
+  return false;
+}
+
 // sweep events in the sweep line buffer are sorted by their y-coordinate
 // le1 and le2 are the left sweep events
 // return le1 > le2
@@ -109,6 +132,35 @@ bool SegmentComp::operator() (SweepEvent* le1, SweepEvent* le2)
 {
   if (le1 == le2)
     return false;
+
+  // curve on the left overlaps along y-axis with curve/line on the right
+  // FIXME: need to handle cases where le1 & le2 overlap in more than one point
+  if (le1->curve || le2->curve) {
+    TCoord minx1 = min(le1->point.x, le1->otherEvent->point.x);
+    TCoord minx2 = min(le2->point.x, le2->otherEvent->point.x);
+    TCoord maxx1 = max(le1->point.x, le1->otherEvent->point.x);
+    TCoord maxx2 = max(le2->point.x, le2->otherEvent->point.x);
+    if (le1->curve) {
+      minx1=min(minx1, min(le1->cpoint.x, le1->otherEvent->cpoint.x));
+      maxx1=max(maxx1, max(le1->cpoint.x, le1->otherEvent->cpoint.x));
+    }
+    if (le2->curve) {
+      minx2=min(minx2, min(le2->cpoint.x, le2->otherEvent->cpoint.x));
+      maxx2=max(maxx2, max(le2->cpoint.x, le2->otherEvent->cpoint.x));
+    }
+    if ( ( minx1 < minx2 && minx2 < maxx1 ) ||
+         ( minx1 < maxx2 && maxx2 < maxx1 ) )
+    {
+      if (le1->point.x < le2->point.x && le1->curve) {
+        txt << "=========LE1X " << le1->id << " < LE2X " << le2->id <<endl;
+        return !compareWithCurve(le2, le1);
+      }
+      if (le1->point.x > le2->point.x && le2->curve) {
+        txt << "=========LE1X " << le1->id << " > LE2X " << le2->id <<endl;
+        return compareWithCurve(le1, le2);
+      }
+    }
+  }
 
   // when the line segments are not collinear (on a single line) then...
   if (signedArea(le1->point, le1->otherEvent->point, le2->point) != 0 || 
