@@ -30,7 +30,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
-	   test_path_bool.cc test_guitar.cc test_vector_buffer.cc \
+	   test_path_bool.cc test_guitar.cc test_vector_buffer.cc test_path_offset.cc \
 	   \
 	   booleanop.cc \
 	   \
