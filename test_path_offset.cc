@@ -49,31 +49,14 @@ class TMyWindow:
     void mouseEvent(const TMouseEvent &) override;
 };
 
-void
-offset(TPoint *q, const TPoint *p, TCoord d)
-{
-  for(auto i=0; i<4; ++i) {
-    q[i]=p[i];
-  }
-  
-  TPoint l, o;
-  
-  l = p[1]-p[0];
-  o=normalize(TPoint(-l.y, l.x))*d;
-  q[0] += o;
-
-  l = p[2]-p[1];
-  o=normalize(TPoint(-l.y, l.x))*d;
-  q[1] += o;
-  q[2] += o;
-}
+unsigned cntr;
 
 // approximation of offset curve based on:
 // Wayne Tiller, Eric Hanson, "Offsets of Two-Dimensional Profiles",
 // IEEE Computer Graphics and Applications, vol.4, no.  9, pp.  36-46,
 // September 1984
 void
-drawOffset(TPen &pen, const TPoint *p, TCoord d)
+drawOffset(TPen &pen, const TPoint *p, TCoord d0, TCoord d3)
 {
   pen.setColor(1,0.9,0.7);
   
@@ -81,20 +64,24 @@ drawOffset(TPen &pen, const TPoint *p, TCoord d)
   
   TPoint l, o;
   
+  TCoord totaldistance = distance(p[0], p[1]) +  distance(p[1], p[2]) +  distance(p[2], p[3]);
+  TCoord d1 = distance(p[0], p[1]) / totaldistance * (d3-d0) + d0;
+  TCoord d2 = (totaldistance - distance(p[2], p[3])) / totaldistance * (d3-d0) + d0;
+  
   l = p[1]-p[0];
-  o=normalize(TPoint(-l.y, l.x))*d;
-  lineA[0] = p[0]+o;
-  lineA[1] = p[1]+o;
+  o=normalize(TPoint(-l.y, l.x));
+  lineA[0] = p[0]+o*d0;
+  lineA[1] = p[1]+o*d1;
 
   l = p[2]-p[1];
-  o=normalize(TPoint(-l.y, l.x))*d;
-  lineB[0] = p[1]+o;
-  lineB[1] = p[2]+o;
+  o=normalize(TPoint(-l.y, l.x));
+  lineB[0] = p[1]+o*d1;
+  lineB[1] = p[2]+o*d2;
 
   l = p[3]-p[2];
-  o=normalize(TPoint(-l.y, l.x))*d;
-  lineC[0] = p[2]+o;
-  lineC[1] = p[3]+o;
+  o=normalize(TPoint(-l.y, l.x));
+  lineC[0] = p[2]+o*d2;
+  lineC[1] = p[3]+o*d3;
   
 //  pen.drawLines(lineA,2);
 //  pen.drawLines(lineB,2);
@@ -134,12 +121,16 @@ drawOffset(TPen &pen, const TPoint *p, TCoord d)
 
   pen.drawLines(q,4);
 
-  TCoord d0 = (d<0) ? -d : d;
-  
   TCoord e = 0.0;
   const TCoord step = 1.0 / 9.0;
   for(TCoord f=step; f<1.0; f+=step) {
-    TCoord e0 = d0 - distance(bez2point(p, f), bez2point(q, f));
+  
+    TCoord df = d0 + (d3-d0) * f;
+  
+    if (df<0)
+      df=-df;
+  
+    TCoord e0 = df - distance(bez2point(p, f), bez2point(q, f));
     if (e0<0)
       e0=-e0;
     if (e0>e)
@@ -149,9 +140,10 @@ drawOffset(TPen &pen, const TPoint *p, TCoord d)
   if (e>0.25) {
     TPoint r[7];
     divideBezier(p, r, 0.5);
-    drawOffset(pen, r, d);
-    drawOffset(pen, r+3, d);
+    drawOffset(pen, r, d0, d0+(d3-d0)*0.5);
+    drawOffset(pen, r+3, d0+(d3-d0)*0.5, d3);
   } else {
+    ++cntr;
     pen.setColor(0,0.5,0);
     pen.drawBezier(q, 4);
   }
@@ -172,8 +164,12 @@ TMyWindow::paint()
     pen.drawRectangle(p[i].x-2, p[i].y-2, 5, 5);
   }
 
-  drawOffset(pen, p, -10);
-  drawOffset(pen, p, 10);
+  cntr=0;
+  drawOffset(pen, p, 0, -10);
+  cout << cntr << endl;
+
+  drawOffset(pen, p, 0, 10);
+//  drawOffset(pen, p, 10);
 }
 
 void
