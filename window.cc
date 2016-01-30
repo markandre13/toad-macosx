@@ -1132,6 +1132,7 @@ TWindow::TWindow(TWindow *parent, const string &title):
   _bToolTipAvailable = false;
   flagNoFocus = false;
   flagPopup = false;
+  flagParentlessAssistant = false;
 
   flag_wm_resize = false;
 }
