@@ -200,6 +200,12 @@ TPoint bez2point(const TPoint *p, TCoord t)
   return p[0]*u2*u+p[1]*t*u2*3+p[2]*t2*u*3+p[3]*t2*t;
 }
 
+TPoint bez2direction(const TPoint *p, TCoord t)
+{
+  TCoord u=1-t;
+  return (p[1]-p[0])*(u*u) + 2*(p[2]-p[1])*(t*u) + (p[3]-p[2])*(t*t);
+}
+
 TCoord bez2x(const TPoint *p, TCoord t)
 {
   TCoord u=1-t;

@@ -23,6 +23,8 @@
 
 using namespace toad;
 
+namespace {
+
 /**
  * The applications main window.
  */
@@ -49,13 +51,6 @@ class TCWindow:
     void mouseEnter(const TMouseEvent &);
     void mouseLeave(const TMouseEvent &);
 };
-
-void
-test_cursor()
-{
-  TMyWindow wnd(NULL, "Cursor Demo");
-  toad::mainLoop();
-}
 
 TMyWindow::TMyWindow(TWindow *p, const string &t):
   TWindow(p,t)
@@ -205,3 +200,13 @@ TCWindow::mouseLeave(const TMouseEvent &)
 {
   mywindow->setName("");
 }
+
+}
+
+void
+test_cursor()
+{
+  TMyWindow wnd(NULL, "Cursor Demo");
+  toad::mainLoop();
+}
+

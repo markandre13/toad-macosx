@@ -182,6 +182,14 @@ TMatrix2D::operator*(const TMatrix2D &p) const
   r.multiply(&p);
   return r;
 }
+
+TPoint
+TMatrix2D::map(const TPoint &p) const
+{
+  CGPoint q = CGPointApplyAffineTransform(p, *this);
+  return TPoint(q.x, q.y);
+}
+
  
 /**
  * \pre
@@ -190,20 +198,6 @@ TMatrix2D::operator*(const TMatrix2D &p) const
    \ 1.0  /      \ 0.0 0.0 1.0 /     \ 1.0 / 
    \endpre
  */
-void
-TMatrix2D::map(TCoord inX, TCoord inY, short int *outX, short int *outY) const
-{
-  CGPoint p = { inX, inY };
-  p = CGPointApplyAffineTransform(p, *this);
-  *outX = p.x;
-  *outY = p.y;
-/*
-  TCoord x, y;
-  x = inX; y=inY;
-  *outX = static_cast<short int>(lround(m.m11 * x + m.m21 * y + m.tX));
-  *outY = static_cast<short int>(lround(m.m12 * x + m.m22 * y + m.tY));
-*/
-}
 
 void
 TMatrix2D::map(TCoord inX, TCoord inY, int *outX, int *outY) const

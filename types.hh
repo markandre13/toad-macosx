@@ -142,6 +142,9 @@ inline bool pointInTriangle (const Segment_2& s, const TPoint& o, const TPoint& 
 struct TSize:
   public CGSize
 {
+  public:
+    TSize() { width=height=0; }
+    TSize(TCoord w, TCoord h) { width=w; height=h; }
 };
 
 struct TRectangle;

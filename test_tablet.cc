@@ -125,7 +125,7 @@ TMyWindow::paint()
   path.apply(pen);
   pen.stroke();
 
-#if 0
+#if 1
   if (proximity) {
     TCoord r = 50.0*pressure+4.0;
     pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
@@ -283,9 +283,12 @@ cout << uniqueID << " left proximity" << endl;
     }
 //cout << "added" << endl;
 
-    // reduce window updates to 100fps, otherwise the program slows down too much
+    // reduce window updates to 60fps, otherwise the program slows down too
+    // much well: cocoa is already coalescing screen updates and even syncs
+    // them with the screen refresh rate but some reason then the screen
+    // updates are lagging
     double thistime = [me.nsevent timestamp];
-    if (thistime - lasttime < 1.0/100)
+    if (thistime - lasttime < 1.0/60)
       return;
     lasttime = thistime;
 

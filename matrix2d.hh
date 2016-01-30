@@ -82,6 +82,9 @@ class TMatrix2D:
       this->ty  = ty;
     }
     
+    TPoint map(const TPoint&) const;
+    
+    // obsolete
     void map(TCoord inX, TCoord inY, short int *outX, short int *outY) const;
     void map(TCoord inX, TCoord inY, int *outX, int *outY) const;
     void map(TCoord inX, TCoord inY, long *outX, long *outY) const;

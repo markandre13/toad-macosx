@@ -262,7 +262,6 @@ static timeval t0;
 //printf("delta: %u.%06u\n", d.tv_sec, d.tv_usec);
 
       if (d.tv_sec>0 || d.tv_usec>(1000000UL/12UL)) {
-//printf("  draw\n");
         t0=t1;
         fe->getWindow()->invalidateWindow();
       }
