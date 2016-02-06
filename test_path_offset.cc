@@ -24,6 +24,11 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
+namespace toad {
+extern int solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TCoord max);
+extern int solveCubic(const TPoint *v, int coord, TCoord val, TCoord *roots, TCoord min, TCoord max);
+}
+
 using namespace toad;
 
 namespace {
@@ -309,9 +314,8 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
   TCoord x1 = ( -b - sq ) / (2*a) + Q.x;
 
   TPoint Pv = bez2point(p, v);
-
   
-#if 1
+#if 0
   pen.setColor(1,0,0);
   pen.drawRectangle(x0+160-1,100-1,3,3);
   pen.drawRectangle(x1+160-1,100-1,3,3);
@@ -347,23 +351,23 @@ drawMinMax2(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
   TPoint d = bez2direction(p, u);
 
   TCoord R = atan2(d.y, d.x)+M_PI/2.0;
-
-  TCoord h = s.height;
-  TCoord w = s.width;
-
+  
+//  TPoint pressure[4] = { {0,0}, {0.5,0}, {0.5,1}, {1,1} };
 
   TCoord cosa = cos(r-R);
   TCoord cos2a = cosa*cosa;
   TCoord sina = sin(r-R);
   TCoord sin2a = sina*sina;
   
+  TCoord h = s.height;
+  TCoord w = s.width;
   TCoord h2 = h*h;
   TCoord w2 = w*w;
 
 //  TPoint Q = bez2point(q, v);
 
 TCoord x00, x10, v0, sq0=-1, dx00;
-for(TCoord v=0; v<=1.0; v+=0.001) {
+for(TCoord v=-1; v<=2.0; v+=0.001) {
   TCoord u=1-v;
   TCoord u2=u*u;
   TCoord u3=u2*u;
@@ -371,6 +375,8 @@ for(TCoord v=0; v<=1.0; v+=0.001) {
   TCoord v3=v2*v;
   TPoint Q = q[0]*u3+q[1]*v*u2*3+q[2]*v2*u*3+q[3]*v3;
   TPoint dQ = (q[1]-q[0])*u2 + 2*(q[2]-q[1])*u*v + (q[3]-q[2])*v2;
+  
+//cout << "dQ="<<dQ<<" =? ("<<dQx<<", "<<dQy<<")"<<endl;
 
   TCoord y=-Q.y;
   TCoord
@@ -396,39 +402,57 @@ for(TCoord v=0; v<=1.0; v+=0.001) {
   TCoord x0 = ( B*y + sqrt( pow(B*y, 2) - 4 * a * (pow(y,2)*C-D) ) ) / (2*a + Q.x);
   TCoord x1 = ( B*y - sqrt( pow(B*y, 2) - 4 * a * (pow(y,2)*C-D) ) ) / (2*a + Q.x);
 
-  TCoord dx0, dx1;
+  TCoord dx0, dx1, X0;
 {
   TCoord
     A = 2*a,
     B = 2*cosa*sina*(h2-w2);
-  TCoord X0 =
-    ( B*Q.y + sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D)) )
+
+  X0 =
+    ( B*Q.y + sqrt(pow(B*Q.y,2) - 2*A*C*pow(Q.y,2) + 2*A*D) )
   / 
     (A + Q.x);
 
-//    B * Q.y + sqrt( pow( B*Q.y, 2 ) - 2 * A * ( Q.y*Q.y*C-D) ) / A + Q.x;
-  cout << x0 << " <-> " << X0 << endl;
-  // f(x) -> Q.y, g(x) -> Q.x
-  dx0 = ( B * (dQ.y + dQ.x)
-          +   Q.y * dQ.y * 2 * (-2*A*C+pow(B, 2))
+  dx0 = ( B * dQ.y
+          +   Q.y * dQ.y * (-2*A*C+pow(B,2))
             / 
               sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
         ) * (A+Q.x)
-      - ( B*Q.y + sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D)) )
+      - ( B*Q.y + sqrt(  pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D)  ) )
         * dQ.x;
-
   dx0 /= pow(A+Q.x,2);
+
+  dx1 =   A*B * dQ.y   * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+        + B*dQ.y * Q.x * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+        - B*Q.y * dQ.x * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+        - 2*A*A*C* Q.y * dQ.y
+        + A*B*B*Q.y * dQ.y
+        - 2*A*C * Q.y * dQ.y * Q.x
+        + B*B * Q.y * dQ.y * Q.x
+        - B*B*Q.y*Q.y * dQ.x
+        + 2*A*C*Q.y*Q.y * dQ.x
+        - 2*A*D * dQ.x
+        ;
+
+  dx1 /= pow(A+Q.x,2) * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D));
+
+  if (!isnan(dx0) && fabs(dx0-dx1)>tolerance ) {
+    cerr << "differ: " << (dx0 - dx1) << endl;
+    exit(0);
+  }
 }
 
 //  if (sq>=0) {
 //cout << x0 << ":" << dx0 << endl;
+  if (v!=0) {
     pen.setColor(0,0,1);
-    pen.drawLine(v0*320,x00+100, v*320,x0+100);
+    pen.drawLine(v0*160+80,x00+100, v*160+80,X0+100);
     pen.setColor(0,0.5,1);
-    pen.drawLine(v0*320,dx00+100, v*320,dx0+100);
-//  }
+    pen.drawLine(v0*160+80,dx00+100, v*160+80,dx0+100);
+//    pen.drawRectangle(v*320,dx1+99,3,3);
+  }
   v0=v; sq0=sq;
-  x00=x0; x10=x1; dx00=dx0;
+  x00=X0; x10=x1; dx00=dx0;
 }
 #if 0
   TPoint Q;
@@ -751,6 +775,7 @@ TMyWindow::paint()
 #endif
 
   // draw nib
+#if 0
   pen.setColor(0,0.5,0);
   TPoint pr0;
   for(TCoord i = 0.0; i<=360.0; i+=20.0) {
@@ -766,15 +791,17 @@ TMyWindow::paint()
     }
     pr0 = pr;
   }
+#endif
 
   // draw normal
 {
   pen.setColor(0,0.5,0);
   d.set(-d.y, d.x);
-  d = normalize(d)*40.0;
-  TPoint pt = C + d;
-  pen.drawLine(pt.x, pt.y, C.x, C.y);
-  pen.drawRectangle(pt.x, pt.y, 1, 1);
+  d = normalize(d)*200.0;
+  TPoint pt0 = C + d;
+  TPoint pt1 = C - d;
+  pen.drawLine(pt0.x, pt0.y, pt1.x, pt1.y);
+//  pen.drawRectangle(pt.x, pt.y, 1, 1);
 }
 
   TPoint p0[4];
@@ -783,14 +810,30 @@ TMyWindow::paint()
   for(int i=0;i<4;++i) {
     p0[i]=mat.map(p[i]-C);
   }
-#if 1
   for(TCoord i=0.0; i<=1.0; i+=0.05) {
+    pen.setColor(1,0,0);
     drawMinMax(pen, p, p0, u, i, s, pen_r);
+    // draw nib
+    pen.setColor(0.5,1,0.5);
+    TPoint pr0;
+    TPoint D = bez2point(p, i);
+//    D.x-=160;
+//    D.y-=100;
+    for(TCoord j = 0.0; j<=360.0; j+=20.0) {
+      TCoord r11, r12, r21, r22;
+      TCoord r = j/360.0 * 2.0 * M_PI;
+      TPoint pr(sin(r)*s.width, cos(r)*s.height);
+      r11 = r22 = cos(pen_r);
+      r21 = sin(pen_r);
+      r12 = -r21;
+      pr.set(r11 * pr.x + r12 * pr.y, r21 * pr.x + r22 * pr.y);
+      if (j>0.0) {
+        pen.drawLine(pr0+D, pr+D);
+      }
+      pr0 = pr;
+    }
   }
   drawMinMax2(pen, p, p0, u, s, pen_r);
-#else
-  drawMinMax(pen, p, p0, u, V, s, pen_r);
-#endif
 
   pen.setColor(0,0,0);
   pen.drawBezier(p, 4);
@@ -816,7 +859,7 @@ TMyWindow::paint()
 
   pen.setColor(0,1,0);
   pen.drawRectangle(Q.x-1, Q.y-1, 3,3);
-
+#if 0
   pen.setColor(1,0.5,0);
   pen.drawLines(p0,4);
   pen.drawBezier(p0,4);
@@ -836,6 +879,7 @@ TMyWindow::paint()
     }
     pr0 = pr;
   }
+#endif
 #endif
 
 }
@@ -881,12 +925,160 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
   }
 }
 
+class TNewtonHorner:
+  public TWindow
+{
+  public:
+    TNewtonHorner(TWindow *parent, const string &title):
+      TWindow(parent, title)
+    {
+    }
+    
+    void paint() override;
+};
+
+double
+f(double *a, size_t n, double x)
+{
+  double r = a[0];
+  for(int i=1; i<=n; ++i) {
+    r = r * x + a[i];
+  }
+  return r;
+}
+
+double
+df(double *a, size_t n, double x)
+{
+  double r = a[0] * n;
+  for(int i=1; i<n; ++i) {
+    r = r * x + a[i] * (n-i);
+  }
+  return r;
+}
+
+void
+TNewtonHorner::paint()
+{
+  TPen pen(this);
+  pen.translate(160.5, 100.5);
+  pen.drawLine(-160,0,160,0);
+  pen.drawLine(0,-100,0,100);
+
+  size_t n = 3;
+  double a[4] = {
+    5,
+    -20,
+    10,
+    10
+  };
+
+  double y0, x0;
+  for(double x=-16; x<16; x+=0.1) {
+    double y=f(a, n, x);
+    if (x>-16) {
+      pen.drawLine(x0*10,y0, x*10,y);
+    }
+    y0=y; x0=x;
+  }
+  
+  double x = 16000; // start
+  for(int i=0; i<3; ++i) {
+  
+    // newton-raphson
+    for(int i=0; i<200000; ++i) {
+      double x0 = x - f(a, n, x)/df(a, n, x);
+      if (x0 == x) // no refinement, done
+        break;
+      x=x0;
+    }
+  
+    // f / (x-x0) via synthetic division (based on horner schema)
+    for(int i=1; i<=n; ++i) {
+      a[i] = a[i-1] * x + a[i];
+    }
+    --n;
+  
+    pen.setColor(1,0,0);
+    pen.drawRectangle(x*10-1,-1,3,3);
+  }
+  
+}
+
+class TPressure:
+  public TWindow
+{
+  public:
+    TPressure(TWindow *parent, const string &title):
+      TWindow(parent, title)
+    {
+    }
+    
+    void paint() override;
+};
+
+void
+TPressure::paint()
+{
+  TPen pen(this);
+  
+  double y0, x0;
+  for(double v=0; v<=1.0; v+=0.01) {
+    TCoord u=1-v;
+    TCoord u2=u*u;
+    TCoord u3=u2*u;
+    TCoord v2=v*v;
+    TCoord v3=v2*v;
+//    TCoord q[4]={0,0.33333,0.66666,1}; // linear
+    TCoord q[4]={1,0,1,0};
+    double p = q[0]*u3+q[1]*v*u2*3+q[2]*v2*u*3+q[3]*v3;
+    
+    cout << v << ": " << p << endl;
+    
+    pen.drawRectangle(v*320, 200-p*200,1,1);
+  }
+}
+
+void
+curveYatX(const TPoint *vc, const TCoord x)
+{
+  TCoord
+    d = vc[0].x - x,
+    c1 = vc[1].x - x,
+    c2 = vc[2].x - x,
+    p2 = vc[3].x - x,
+    c = 3 * (c1 - d),
+    b = 3 * (c2 - c1) - c,
+    a = p2 - d - c - b;
+
+  // If both a and b are near zero, we should treat the curve as a line in
+  // order to find the right solutions in some edge-cases in
+  // Curve.getParameterOf()
+  if (isZero(a) && isZero(b))
+    a = b = 0;
+  
+  TCoord roots[4];
+  int count = toad::solveCubic(a, b, c, d, roots, 0, 1);
+
+  // NOTE: count could be -1 for infinite solutions, but that should only
+  // happen with lines, in which case we should not be here.
+  for(int i = 0; i < count; ++i) {
+    cout << bez2point(vc, roots[i]) << endl;
+  }
+}
+
 
 } // unnamed namespace
 
 void
 test_path_offset()
 {
-  TMyWindow wnd(NULL, "test path offset");
+  TPoint c[] = { {0,0}, {0.5,0}, {0.5,1}, {1,1}};
+  for (TCoord x=0; x<=1.0; x+=0.1) {
+    curveYatX(c, x);
+  }
+  return;
+
+  TPressure wnd(NULL, "test path offset");
   toad::mainLoop();
 }
