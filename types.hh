@@ -79,6 +79,9 @@ inline TPoint operator*(TCoord a, const TPoint &b) {
 inline TPoint operator*(const TPoint &b, TCoord a) {
   return TPoint(a*b.x, a*b.y);
 }
+inline TPoint operator/(const TPoint &a, TCoord b) {
+  return TPoint(a.x/b, a.y/b);
+}
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }

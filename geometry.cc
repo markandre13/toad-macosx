@@ -742,9 +742,9 @@ curveBounds(const TPoint *v)
  ****************************************************************************/
 
 /*
- * An Algorithm for Automatically Fitting Digitized Curves
- * by Philip J. Schneider
- * from "Graphics Gems", Academic Press, 1990
+ * Philip J. Schneider. “An Algorithm for Automatically Fitting Digitized
+ * Curves”.  In Graphics Gems, Academic Press, 1990, pp.  612–626.
+ *
  * This code is in the public domain.
  */
 
@@ -797,7 +797,7 @@ static void
 generateBezier(const TPoint *d, int first, int last, const double *uPrime, TPoint tHat1, TPoint tHat2, TPoint *bezCurve)
 {
   int 	i;
-  int 	nPts;			/* Number of pts in sub-curve 	*/
+  int 	nPts;				/* Number of pts in sub-curve 	*/
   double 	C[2][2];		/* Matrix C			*/
   double 	X[2];			/* Matrix X			*/
   double 	det_C0_C1,		/* Determinants of matrices	*/
@@ -882,10 +882,11 @@ generateBezier(const TPoint *d, int first, int last, const double *uPrime, TPoin
 static TPoint
 evaluateBezier(int degree, const TPoint *V, double t)
 {
-  int i, j;		
+  assert(degree<=3);
+  int i, j;
 
   /* Copy array	*/
-  CGPoint Vtemp[degree+1];     	/* Local copy of control points         */
+  TPoint Vtemp[4];     	/* Local copy of control points         */
   for (i = 0; i <= degree; i++) {
     Vtemp[i] = V[i];
   }
@@ -893,8 +894,7 @@ evaluateBezier(int degree, const TPoint *V, double t)
   /* Triangle computation	*/
   for (i = 1; i <= degree; i++) {	
     for (j = 0; j <= degree-i; j++) {
-      Vtemp[j].x = (1.0 - t) * Vtemp[j].x + t * Vtemp[j+1].x;
-      Vtemp[j].y = (1.0 - t) * Vtemp[j].y + t * Vtemp[j+1].y;
+      Vtemp[j] = (1.0 - t) * Vtemp[j] + t * Vtemp[j+1];
     }
   }
 
@@ -921,14 +921,12 @@ newtonRaphsonRootFind(const TPoint* Q, TPoint P, double u)
     
   /* Generate control vertices for Q'	*/
   for (i = 0; i <= 2; i++) {
-    Q1[i].x = (Q[i+1].x - Q[i].x) * 3.0;
-    Q1[i].y = (Q[i+1].y - Q[i].y) * 3.0;
+    Q1[i] = (Q[i+1] - Q[i]) * 3.0;
   }
     
   /* Generate control vertices for Q'' */
   for (i = 0; i <= 1; i++) {
-    Q2[i].x = (Q1[i+1].x - Q1[i].x) * 2.0;
-    Q2[i].y = (Q1[i+1].y - Q1[i].y) * 2.0;
+    Q2[i] = (Q1[i+1] - Q1[i]) * 2.0;
   }
     
   /* Compute Q'(u) and Q''(u)	*/
@@ -995,8 +993,7 @@ computeCenterTangent(const TPoint *d, int center)
 
   V1 = d[center-1] - d[center];
   V2 = d[center] - d[center+1];
-  tHatCenter.x = (V1.x + V2.x)/2.0;
-  tHatCenter.y = (V1.y + V2.y)/2.0;
+  tHatCenter = (V1 + V2)/2.0;
   return normalize(tHatCenter);
 }
 
