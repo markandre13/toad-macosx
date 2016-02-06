@@ -513,16 +513,13 @@ gsl_poly_solve_cubic(TCoord a, TCoord b, TCoord c, TCoord *roots)
   TCoord Q = q / 9;
   TCoord R = r / 54;
 
-  TCoord Q3 = Q * Q * Q;
-  TCoord R2 = R * R;
+  if (R == 0 && Q == 0) {
+    roots[0] = - a / 3 ;
+    return 1; // the original gsl function returns 3 values here
+  }
 
   TCoord CR2 = 729 * r * r;
   TCoord CQ3 = 2916 * q * q * q;
-
-  if (R == 0 && Q == 0) {
-    roots[0] = - a / 3 ;
-    return 1; // the original gsl function return 3 values here
-  } else
   if (CR2 == CQ3) {
     /* this test is actually R2 == Q3, written in a form suitable
        for exact computation with integers */
@@ -540,8 +537,11 @@ gsl_poly_solve_cubic(TCoord a, TCoord b, TCoord c, TCoord *roots)
       roots[0] = - sqrtQ  - a / 3;
       roots[1] = 2 * sqrtQ - a / 3;
     }
-    return 2; // the original gsl function returns 3 value here
-  } else
+    return 2; // the original gsl function returns 3 values here
+  }
+
+  TCoord Q3 = Q * Q * Q;
+  TCoord R2 = R * R;
   if (R2 < Q3) {
     double sgnR = (R >= 0 ? 1 : -1);
     double ratio = sgnR * sqrt (R2 / Q3);
@@ -562,16 +562,16 @@ gsl_poly_solve_cubic(TCoord a, TCoord b, TCoord c, TCoord *roots)
         swap(roots[0], roots[1]);
     }
     return 3;
-  } else {
-    double sgnR = (R >= 0 ? 1 : -1);
-    double A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
-    double B = Q / A ;
-    roots[0] = A + B - a / 3;
-    return 1;
   }
+
+  double sgnR = (R >= 0 ? 1 : -1);
+  double A = -sgnR * pow (fabs (R) + sqrt (R2 - Q3), 1.0/3.0);
+  double B = Q / A ;
+  roots[0] = A + B - a / 3;
+  return 1;
 }
 
-static int
+int
 solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TCoord max)
 {
   int i, j, n = gsl_poly_solve_cubic(b/a, c/a, d/a, roots);
@@ -586,8 +586,8 @@ solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TC
 
 // Converts from the point coordinates (p1, c1, c2, p2) for one axis to
 // the polynomial coefficients and solves the polynomial for val
-static int
-solveCubic(TPoint *v, int coord, TCoord val, TCoord *roots, TCoord min, TCoord max) {
+int
+solveCubic(const TPoint *v, int coord, TCoord val, TCoord *roots, TCoord min, TCoord max) {
   TCoord p1, c1, c2, p2, a, b, c;
   if (!coord) {
     p1 = v[0].x;
@@ -635,9 +635,10 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
          sin = ::sin(angle),
          cos = ::cos(angle),
          // (rlx1, rly1) = (0, 0)
-         rlx2 = ldx * cos - ldy * sin;
+         rlx2 = ldx * cos - ldy * sin
+         ;
   // rotated line: The curve values for the rotated line.
-  TPoint rvl[2] = {{0, 0}, {rlx2, 0}};
+  // TPoint rvl[2] = {{0, 0}, {rlx2, 0}};
   // rotated curve: Calculate the curve values of the rotated curve.
   TPoint rvc[4];
   for(int i = 0; i < 4; ++i) {
