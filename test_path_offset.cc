@@ -1196,15 +1196,13 @@ void generateBezier(const T* d, int first, int last, const double* uPrime, T tHa
   T		tmp;			/* Utility variable		*/
   nPts = last - first + 1;
   // CGPoint      A[nPts][2];		/* Precomputed rhs for eqn      */
-  unique_ptr<TFreehandPoint[]> A[2] = {
-    unique_ptr<TFreehandPoint[]>(new TFreehandPoint[nPts]),
-    unique_ptr<TFreehandPoint[]>(new TFreehandPoint[nPts])
-  };
+  unique_ptr<TFreehandPoint[]> A0(new TFreehandPoint[nPts]);
+  unique_ptr<TFreehandPoint[]> A1(new TFreehandPoint[nPts]);
  
   /* Compute the A's	*/
   for (i = 0; i < nPts; i++) {
-    A[i][0] = tHat1 * B1(uPrime[i]);
-    A[i][1] = tHat2 * B2(uPrime[i]);
+    A0[i] = tHat1 * B1(uPrime[i]);
+    A1[i] = tHat2 * B2(uPrime[i]);
   }
 
   /* Create the C and X matrices */
@@ -1216,18 +1214,18 @@ void generateBezier(const T* d, int first, int last, const double* uPrime, T tHa
   X[1]    = 0.0;
 
   for (i = 0; i < nPts; i++) {
-    C[0][0] += dot(A[i][0], A[i][0]);
-    C[0][1] += dot(A[i][0], A[i][1]);
+    C[0][0] += dot(A0[i], A0[i]);
+    C[0][1] += dot(A1[i], A1[i]);
     // C[1][0] += dot(A[i][0], A[i][1]);
     C[1][0] = C[0][1];
-    C[1][1] += dot(A[i][1], A[i][1]);
+    C[1][1] += dot(A1[i], A1[i]);
     tmp = d[first + i]
           - d[first]* B0(uPrime[i])
           - d[first]* B1(uPrime[i])
           - d[last] * B2(uPrime[i])
           - d[last] * B3(uPrime[i]);
-    X[0] += dot(A[i][0], tmp);
-    X[1] += dot(A[i][1], tmp);
+    X[0] += dot(A0[i], tmp);
+    X[1] += dot(A1[i], tmp);
   }
 
   /* Compute the determinants of C and X	*/
@@ -1536,6 +1534,102 @@ void fitPath(const T *d, size_t nPts, TCoord error, vector<T> *out)
   out->push_back(d[nPts-1]);
 }
 
+TFreehandPoint in[] = {
+  {  40, 175, 0, 1.0 },
+//  {  40, 100, 0, 1.0 },
+  { 120,  50, M_PI/2, 5.0 },
+//  { 160, 100, 0, 1.0 },
+  { 240, 100, M_PI, 2.0 },
+  { 280, 175, M_PI/2, 3.0 }
+};
+
+class TFitWindow:
+  public TWindow
+{
+    vector<TFreehandPoint> out;
+  public:
+    TFitWindow(TWindow *parent, const string &title):
+      TWindow(parent, title)
+    {
+      fitPath(in, 4, 0.1, &out);
+    }
+    
+    void paint() override;
+};
+
+void
+TFitWindow::paint()
+{
+  TPen pen(this);
+  
+  for(int i=0; i<3; ++i) {
+    pen.drawLine(in[i].x, in[i].y, in[i+1].x, in[i+1].y);
+  }
+/*
+  pen.setColor(0,0,1);
+  for(int i=0; i<out.size()-1; ++i) {
+    pen.drawLine(out[i].x, out[i].y, out[i+1].x, out[i+1].y);
+  }
+*/
+  pen.setColor(0,0.5,1);
+  for(int i=0; i<out.size()-1; i+=3) {
+    pen.drawCurve(
+      out[i].x, out[i].y,
+      out[i+1].x, out[i+1].y,
+      out[i+2].x, out[i+2].y,
+      out[i+3].x, out[i+3].y);
+  }
+  
+  // draw nib
+  pen.setColor(0.5,1,0.5);
+  TSize s(4,8);
+  for(int j=0; j<out.size()-1; j+=3) {
+    TPoint p[] = {
+      { out[j  ].x, out[j  ].y },
+      { out[j+1].x, out[j+1].y },
+      { out[j+2].x, out[j+2].y },
+      { out[j+3].x, out[j+3].y }
+    };
+    TCoord pen_r = 0.0;
+    for(TCoord i=0.0; i<=1.0; i+=0.05) {
+      TPoint pr0;
+      TPoint D = bez2point(p, i);
+
+      TCoord pressure;
+      {
+        TCoord t=i;
+        TCoord u=1-t;
+        TCoord u2=u*u;
+        TCoord t2=t*t;
+        pressure = out[j].pressure*u2*u+out[j+1].pressure*t*u2*3+out[j+2].pressure*t2*u*3+out[j+3].pressure*t2*t;
+      }
+      TCoord rotation;
+      {
+        TCoord t=i;
+        TCoord u=1-t;
+        TCoord u2=u*u;
+        TCoord t2=t*t;
+        rotation = out[j].rotation*u2*u+out[j+1].rotation*t*u2*3+out[j+2].rotation*t2*u*3+out[j+3].rotation*t2*t;
+      }
+      //    D.x-=160;
+      //    D.y-=100;
+      for(TCoord j = 0.0; j<=360.0; j+=20.0) {
+        TCoord r11, r12, r21, r22;
+        TCoord r = j/360.0 * 2.0 * M_PI;
+        TPoint pr(sin(r)*s.width*pressure, cos(r)*s.height*pressure);
+        r11 = r22 = cos(rotation);
+        r21 = sin(rotation);
+        r12 = -r21;
+        pr.set(r11 * pr.x + r12 * pr.y, r21 * pr.x + r22 * pr.y);
+        if (j>0.0) {
+          pen.drawLine(pr0+D, pr+D);
+        }
+        pr0 = pr;
+      }
+    }
+  }
+  
+}
 
 
 } // unnamed namespace
@@ -1543,9 +1637,6 @@ void fitPath(const T *d, size_t nPts, TCoord error, vector<T> *out)
 void
 test_path_offset()
 {
-  TFreehandPoint in;
-  vector<TFreehandPoint> out;
-  fitPath(&in, 10, 0.1, &out);
 
 #if 0
   TPoint c[] = { {0,0}, {0.5,0}, {0.5,1}, {1,1}};
@@ -1554,6 +1645,6 @@ test_path_offset()
   }
   return;
 #endif
-  TPressure wnd(NULL, "test path offset");
+  TFitWindow wnd(NULL, "test path offset");
   toad::mainLoop();
 }

@@ -848,6 +848,15 @@ TPen::drawBezier(const TPoint *p, size_t n)
 }
 
 void
+TPen::drawCurve(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2, TCoord x3, TCoord y3)
+{
+  CGContextMoveToPoint(ctx, x0, y0);
+  CGContextAddCurveToPoint(ctx, x1, y1, x2, y2, x3, y3);
+  CGContextDrawPath(ctx, kCGPathStroke);
+}
+
+
+void
 TPen::fillBezier(const TPoint *p, size_t n)
 {
   if (n<4)

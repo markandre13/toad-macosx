@@ -123,6 +123,7 @@ class TPen:
     void fillPolygon(const TPolygon &p);
 
     void drawBezier(const TPoint *points, size_t n);
+    void drawCurve(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2, TCoord x3, TCoord y3);
     void drawBezier(const TPolygon &p);
     void fillBezier(const TPoint *points, size_t n);
     void fillBezier(const TPolygon &p);
