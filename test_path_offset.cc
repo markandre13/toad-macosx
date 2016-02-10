@@ -336,6 +336,8 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
 #endif
 }
 
+TCoord pressure[4] = { 0.8, 0.1, 1.5, 0.2 };
+
 /**
  * \param pen
  * \param p   cubic bézier
@@ -347,24 +349,13 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
 void
 drawMinMax2(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s, TCoord r)
 {
+cout << __FUNCTION__ << endl;
   // find 1st derivative over v to find extrema
   TPoint Pu = bez2point(p, u);
 
   TPoint d = bez2direction(p, u);
 
   TCoord R = atan2(d.y, d.x)+M_PI/2.0;
-  
-//  TPoint pressure[4] = { {0,0}, {0.5,0}, {0.5,1}, {1,1} };
-
-  TCoord cosa = cos(r-R);
-  TCoord cos2a = cosa*cosa;
-  TCoord sina = sin(r-R);
-  TCoord sin2a = sina*sina;
-  
-  TCoord h = s.height;
-  TCoord w = s.width;
-  TCoord h2 = h*h;
-  TCoord w2 = w*w;
 
 //  TPoint Q = bez2point(q, v);
 
@@ -375,8 +366,19 @@ for(TCoord v=-1; v<=2.0; v+=0.001) {
   TCoord u3=u2*u;
   TCoord v2=v*v;
   TCoord v3=v2*v;
+
   TPoint Q = q[0]*u3+q[1]*v*u2*3+q[2]*v2*u*3+q[3]*v3;
   TPoint dQ = (q[1]-q[0])*u2 + 2*(q[2]-q[1])*u*v + (q[3]-q[2])*v2;
+
+  TCoord cosa = cos(r-R);
+  TCoord cos2a = cosa*cosa;
+  TCoord sina = sin(r-R);
+  TCoord sin2a = sina*sina;
+  
+  TCoord h = s.height;
+  TCoord w = s.width;
+  TCoord h2 = h*h;
+  TCoord w2 = w*w;
   
 //cout << "dQ="<<dQ<<" =? ("<<dQx<<", "<<dQy<<")"<<endl;
 
@@ -539,19 +541,145 @@ for(TCoord v=-1; v<=2.0; v+=0.001) {
   pen.drawRectangle(x1+160-1,100-1,3,3);
 #endif
 #if 0
+  pen.setColor(1,0,0);
   pen.drawRectangle(Pu.x-1, Pu.y-1, 3,3);
   pen.drawRectangle(Pv.x-1, Pv.y-1, 3,3);
 #endif  
 #if 1
+  pen.setColor(1,0,0);
   d.set(-d.y, d.x);
   d = normalize(d);
   TPoint P0 = Pu+d*x0;
   TPoint P1 = Pu+d*x1;
+cout << P0 << ", " << P1 << endl;
   pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
   pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
 #endif
 #endif
 }
+
+/**
+ * \param pen
+ * \param p  cubic bézier
+ * \param q  transformed cubic bézier
+ * \param u  location on bézier of cut line
+ * \param s  size of ellipse
+ * \param r  rotation of ellipse (radiants)
+ */
+void
+drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s, TCoord r)
+{
+cout << __FUNCTION__ << endl;
+  TPoint Pu = bez2point(p, u);
+
+  TPoint d = bez2direction(p, u);
+  TCoord R = atan2(d.y, d.x)+M_PI/2.0;
+  
+  d.set(-d.y, d.x);
+  d = normalize(d);
+
+  TCoord x00, x10, v0, sq0=-1, dx00;
+  for(TCoord v=0; v<=0.4; v+=0.01) {
+    TCoord u=1-v;
+    TCoord u2=u*u;
+    TCoord u3=u2*u;
+    TCoord v2=v*v;
+    TCoord v3=v2*v;
+
+    // Q  := curve(v)
+    TPoint Q = q[0]*u3+q[1]*v*u2*3+q[2]*v2*u*3+q[3]*v3;
+    // dQ := curve'(v)
+    TPoint dQ = (q[1]-q[0])*u2 + 2*(q[2]-q[1])*u*v + (q[3]-q[2])*v2;
+    TCoord pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+
+    TCoord cosa = cos(r-R);
+    TCoord cos2a = cosa*cosa;
+    TCoord sina = sin(r-R);
+    TCoord sin2a = sina*sina;
+  
+    TCoord h = s.height*pressureAtV;
+    TCoord w = s.width*pressureAtV;
+    TCoord h2 = h*h;
+    TCoord w2 = w*w;
+  
+//cout << "dQ="<<dQ<<" =? ("<<dQx<<", "<<dQy<<")"<<endl;
+
+    TCoord y=-Q.y;
+    TCoord
+      a = h2 * cos2a + w2 * sin2a,
+      b = 2*y*cosa*sina*(h2-w2),
+      c = y*y*(h2*sin2a+w2*cos2a)-w2*h2;
+
+    TCoord
+      B = -2*cosa*sina*(h2-w2),
+      C = h2*sin2a+w2*cos2a,
+      D = w2*h2;
+
+    // intersection of circle with line 
+    // FIXME: but this somehow wrong!!! results are relative to curve(v), curve(u)).
+    // drawMinMax get this one right!
+    // also: only pick x0 and x1, when they are around curve(u)
+    TCoord x0 = ( B*y + sqrt( pow(B*y, 2) - 4 * a * (pow(y,2)*C-D) ) ) / (2*a + Q.x);
+    TCoord x1 = ( B*y - sqrt( pow(B*y, 2) - 4 * a * (pow(y,2)*C-D) ) ) / (2*a + Q.x);
+    
+    TCoord dx0, dx1, X0;
+    {
+      TCoord
+        A = 2*a,
+        B = 2*cosa*sina*(h2-w2);
+      
+      X0 =
+        ( B*Q.y + sqrt(pow(B*Q.y,2) - 2*A*C*pow(Q.y,2) + 2*A*D) )
+      / 
+        (A + Q.x);
+        
+      dx0 = ( B * dQ.y
+              +   Q.y * dQ.y * (-2*A*C+pow(B,2))
+                / 
+                  sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+            ) * (A+Q.x)
+          - ( B*Q.y + sqrt(  pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D)  ) )
+            * dQ.x;
+      dx0 /= pow(A+Q.x,2);
+      
+      dx1 =   A*B * dQ.y   * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+            + B*dQ.y * Q.x * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+            - B*Q.y * dQ.x * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D))
+            - 2*A*A*C* Q.y * dQ.y
+            + A*B*B*Q.y * dQ.y
+            - 2*A*C * Q.y * dQ.y * Q.x
+            + B*B * Q.y * dQ.y * Q.x
+            - B*B*Q.y*Q.y * dQ.x
+            + 2*A*C*Q.y*Q.y * dQ.x
+            - 2*A*D * dQ.x
+            ;
+            
+      dx1 /= pow(A+Q.x,2) * sqrt(pow(B*Q.y,2) - 2*A*(C*pow(Q.y,2)-D));
+      
+      if (!isnan(dx0) && fabs(dx0-dx1)>tolerance ) {
+        cerr << "differ: " << (dx0 - dx1) << endl;
+//        exit(0);
+      }
+    }
+      
+    if (v!=0) {
+      pen.setColor(0,0,1);
+      pen.drawLine(v0*160+80,x00+100, v*160+80,X0+100);
+      pen.setColor(0,0.5,1);
+      pen.drawLine(v0*160+80,dx00+100, v*160+80,dx0+100);
+    }
+#if 0    
+    TPoint P0 = Pu+x0*d;
+    TPoint P1 = Pu+x1*d;
+    pen.setColor(1,0,0);
+    pen.drawRectangle(P0.x, P0.y, 0.5,0.5);
+    pen.drawRectangle(P1.x, P1.y, 0.5,0.5);
+#endif
+    v0=v;
+    x00=X0; x10=x1; dx00=dx0;
+  }
+}
+
 
 void
 TMyWindow::paint()
@@ -814,9 +942,18 @@ TMyWindow::paint()
   }
   for(TCoord i=0.0; i<=1.0; i+=0.05) {
     pen.setColor(1,0,0);
-    drawMinMax(pen, p, p0, u, i, s, pen_r);
+//    drawMinMax(pen, p, p0, u, i, s, pen_r);
     // draw nib
     pen.setColor(0.5,1,0.5);
+
+    TCoord v = i;
+    TCoord u=1-v;
+    TCoord u2=u*u;
+    TCoord u3=u2*u;
+    TCoord v2=v*v;
+    TCoord v3=v2*v;
+    TCoord pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+
     TPoint pr0;
     TPoint D = bez2point(p, i);
 //    D.x-=160;
@@ -824,7 +961,7 @@ TMyWindow::paint()
     for(TCoord j = 0.0; j<=360.0; j+=20.0) {
       TCoord r11, r12, r21, r22;
       TCoord r = j/360.0 * 2.0 * M_PI;
-      TPoint pr(sin(r)*s.width, cos(r)*s.height);
+      TPoint pr(sin(r)*s.width*pressureAtV, cos(r)*s.height*pressureAtV);
       r11 = r22 = cos(pen_r);
       r21 = sin(pen_r);
       r12 = -r21;
@@ -835,7 +972,7 @@ TMyWindow::paint()
       pr0 = pr;
     }
   }
-  drawMinMax2(pen, p, p0, u, s, pen_r);
+  drawMinMax3(pen, p, p0, u, s, pen_r);
 
   pen.setColor(0,0,0);
   pen.drawBezier(p, 4);
@@ -846,8 +983,6 @@ TMyWindow::paint()
     pen.fillRectangle(p[i].x-2, p[i].y-2, 5, 5);
     pen.drawRectangle(p[i].x-2, p[i].y-2, 5, 5);
   }
-
-  pen.setColor(1,0,0);
 
   pen.setColor(0,0,0);
   pen.translate(160,100);
@@ -1562,15 +1697,12 @@ TFitWindow::paint()
 {
   TPen pen(this);
   
+  // draw input
   for(int i=0; i<3; ++i) {
     pen.drawLine(in[i].x, in[i].y, in[i+1].x, in[i+1].y);
   }
-/*
-  pen.setColor(0,0,1);
-  for(int i=0; i<out.size()-1; ++i) {
-    pen.drawLine(out[i].x, out[i].y, out[i+1].x, out[i+1].y);
-  }
-*/
+
+  // draw fitted curve
   pen.setColor(0,0.5,1);
   for(int i=0; i<out.size()-1; i+=3) {
     pen.drawCurve(
@@ -1580,7 +1712,7 @@ TFitWindow::paint()
       out[i+3].x, out[i+3].y);
   }
   
-  // draw nib
+  // draw nibs
   pen.setColor(0.5,1,0.5);
   TSize s(4,8);
   for(int j=0; j<out.size()-1; j+=3) {
@@ -1628,7 +1760,66 @@ TFitWindow::paint()
       }
     }
   }
+
+  int j = 0;
+  TPoint p[] = {
+    { out[j  ].x, out[j  ].y },
+    { out[j+1].x, out[j+1].y },
+    { out[j+2].x, out[j+2].y },
+    { out[j+3].x, out[j+3].y }
+  };
+
+  TCoord u = 0.8;
+
+  TCoord pressure;
+  {
+    TCoord t=1-u;
+    TCoord u2=u*u;
+    TCoord t2=t*t;
+    pressure = out[j].pressure*t2*t+out[j+1].pressure*u*t2*3+out[j+2].pressure*u2*t*3+out[j+3].pressure*u2*u;
+  }
+  TCoord rotation;
+  {
+    TCoord t=1-u;
+    TCoord u2=u*u;
+    TCoord t2=t*t;
+    rotation = out[j].rotation*t2*t+out[j+1].rotation*u*t2*3+out[j+2].rotation*u2*t*3+out[j+3].rotation*u2*u;
+  }
+
+  TCoord v = s.height*pressure;
+  TCoord h = s.width*pressure;
   
+  TCoord pen_r = rotation;
+
+  TPoint C = bez2point(p, u);			// point through which we want to find min & max
+  TPoint d = bez2direction(p, u);
+  TCoord A = atan2(d.y, d.x)+M_PI/2.0;		// rotation of curve at C
+
+  TCoord cosa = cos(pen_r-A);
+  TCoord cos2a = cosa*cosa;
+  TCoord sina = sin(pen_r-A);
+  TCoord sin2a = sina*sina;
+  
+  TCoord v2 = v*v;
+  TCoord h2 = h*h;
+
+  // draw normal at u
+  pen.setColor(0,0.5,0);
+  d.set(-d.y, d.x);
+  d = normalize(d)*200.0;
+  TPoint pt0 = C + d;
+  TPoint pt1 = C - d;
+  pen.drawLine(pt0.x, pt0.y, pt1.x, pt1.y);
+  
+  // rotate curve
+  TPoint p0[4];
+  TMatrix2D mat;
+  mat.rotate(-A);
+  for(int i=0;i<4;++i) {
+    p0[i]=mat.map(p[i]-C);
+  }
+
+  drawMinMax3(pen, p, p0, u, s, pen_r);
 }
 
 
@@ -1637,7 +1828,6 @@ TFitWindow::paint()
 void
 test_path_offset()
 {
-
 #if 0
   TPoint c[] = { {0,0}, {0.5,0}, {0.5,1}, {1,1}};
   for (TCoord x=0; x<=1.0; x+=0.1) {
@@ -1645,6 +1835,8 @@ test_path_offset()
   }
   return;
 #endif
-  TFitWindow wnd(NULL, "test path offset");
+//  TFitWindow wnd(NULL, "test path offset");
+  TMyWindow wnd(NULL, "test path offset");
+  
   toad::mainLoop();
 }
