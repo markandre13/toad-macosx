@@ -280,7 +280,7 @@ intersectLineEllipse(TPen &pen, const TPoint &l0, const TPoint &l1, const TPoint
  * \param r   rotation of ellipse (radiants)
  */
 void
-drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, const TSize s, TCoord r)
+drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, const TSize s, TCoord r, TCoord pressure=1.0)
 {
   TPoint Pu = bez2point(p, u);
 
@@ -288,9 +288,8 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
 
   TCoord A = atan2(d.y, d.x)+M_PI/2.0;
 
-  TCoord h = s.height;
-  TCoord w = s.width;
-
+  TCoord h = s.height * pressure;
+  TCoord w = s.width * pressure;
 
   TCoord cosa = cos(r-A);
   TCoord cos2a = cosa*cosa;
@@ -333,10 +332,12 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
   TPoint P1 = Pu+d*x1;
   pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
   pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
+  pen.drawLine(P0.x,P0.y,P1.x,P1.y);
 #endif
 }
 
 TCoord pressure[4] = { 0.8, 0.1, 1.5, 0.2 };
+TCoord rotation[4] = { 0, M_PI/2, M_PI, M_PI/2 };
 
 /**
  * \param pen
@@ -569,6 +570,75 @@ cout << P0 << ", " << P1 << endl;
 void
 drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s, TCoord r)
 {
+#if 1
+  pen.setColor(1,0,0);
+  for(TCoord i=0.0; i<=1.0; i+=0.05) {
+    // draw nib
+    TCoord pressureAtV;
+    TCoord rotationAtV;
+    {
+      TCoord v = i;
+      TCoord u=1-v;
+      TCoord u2=u*u;
+      TCoord u3=u2*u;
+      TCoord v2=v*v;
+      TCoord v3=v2*v;
+      pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+      rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
+    }
+
+//    drawMinMax(pen, p, q, u, i, s, rotationAtV, pressureAtV);
+  // drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, const TSize s, TCoord r, TCoord pressure=1.0)
+    TCoord v = i;
+    TCoord r = rotationAtV;
+    TCoord pressure = pressureAtV;
+
+    TPoint Pu = bez2point(p, u);
+
+    TPoint d = bez2direction(p, u);
+
+    TCoord A = atan2(d.y, d.x)+M_PI/2.0;
+
+    TCoord h = s.height * pressure;
+    TCoord w = s.width * pressure;
+
+    TCoord cosa = cos(r-A);
+    TCoord cos2a = cosa*cosa;
+    TCoord sina = sin(r-A);
+    TCoord sin2a = sina*sina;
+  
+    TCoord h2 = h*h;
+    TCoord w2 = w*w;
+
+    TPoint Q = bez2point(q, v);
+    TCoord y=-Q.y;
+    TCoord
+      a = h2 * cos2a + w2 * sin2a,
+      b = 2*y*cosa*sina*(h2-w2),
+      c = y*y*(h2*sin2a+w2*cos2a)-w2*h2;
+
+    TCoord sq = b*b-4*a*c;
+    if (sq<0)
+      continue;
+    sq = sqrt(sq);
+
+    TCoord x0 = ( -b + sq ) / (2*a) + Q.x;
+    TCoord x1 = ( -b - sq ) / (2*a) + Q.x;
+
+    TPoint Pv = bez2point(p, v);
+  
+    d.set(-d.y, d.x);
+    d = normalize(d);
+    TPoint P0 = Pu+d*x0;
+    TPoint P1 = Pu+d*x1;
+    pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
+    pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
+    pen.drawLine(P0.x,P0.y,P1.x,P1.y);
+    
+    // and now for the 1st derivative...
+  }
+    
+#else
 cout << __FUNCTION__ << endl;
   TPoint Pu = bez2point(p, u);
 
@@ -678,6 +748,7 @@ cout << __FUNCTION__ << endl;
     v0=v;
     x00=X0; x10=x1; dx00=dx0;
   }
+#endif
 }
 
 
@@ -941,19 +1012,32 @@ TMyWindow::paint()
     p0[i]=mat.map(p[i]-C);
   }
   for(TCoord i=0.0; i<=1.0; i+=0.05) {
-    pen.setColor(1,0,0);
-//    drawMinMax(pen, p, p0, u, i, s, pen_r);
     // draw nib
+    TCoord pressureAtV;
+    {
+      TCoord v = i;
+      TCoord u=1-v;
+      TCoord u2=u*u;
+      TCoord u3=u2*u;
+      TCoord v2=v*v;
+      TCoord v3=v2*v;
+      pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+    }
+    TCoord rotationAtV;
+    {
+      TCoord v = i;
+      TCoord u=1-v;
+      TCoord u2=u*u;
+      TCoord u3=u2*u;
+      TCoord v2=v*v;
+      TCoord v3=v2*v;
+      rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
+    }
+/*
+    pen.setColor(1,0,0);
+    drawMinMax(pen, p, p0, u, i, s, rotationAtV, pressureAtV);
+*/
     pen.setColor(0.5,1,0.5);
-
-    TCoord v = i;
-    TCoord u=1-v;
-    TCoord u2=u*u;
-    TCoord u3=u2*u;
-    TCoord v2=v*v;
-    TCoord v3=v2*v;
-    TCoord pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
-
     TPoint pr0;
     TPoint D = bez2point(p, i);
 //    D.x-=160;
@@ -962,8 +1046,8 @@ TMyWindow::paint()
       TCoord r11, r12, r21, r22;
       TCoord r = j/360.0 * 2.0 * M_PI;
       TPoint pr(sin(r)*s.width*pressureAtV, cos(r)*s.height*pressureAtV);
-      r11 = r22 = cos(pen_r);
-      r21 = sin(pen_r);
+      r11 = r22 = cos(rotationAtV);
+      r21 = sin(rotationAtV);
       r12 = -r21;
       pr.set(r11 * pr.x + r12 * pr.y, r21 * pr.x + r22 * pr.y);
       if (j>0.0) {
