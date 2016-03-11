@@ -559,12 +559,6 @@ cout << P0 << ", " << P1 << endl;
 #endif
 }
 
-inline TPoint
-rot90(const TPoint &in)
-{
-  return TPoint(-in.y, in.x);
-}
-
 /**
  * \param pen
  * \param p  cubic bézier
@@ -580,44 +574,36 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
   const TPoint d = normalize(rot90(bez2direction(p, u)));
   const TCoord A = atan2(d.y, d.x);
 
-  TCoord i0, x00, x10;
-  for(TCoord i=0.0; i<=1.0; i+=0.005) {
-    // draw nib
+  TCoord v0, x00, x10;
+  for(TCoord v=0.0; v<=1.0; v+=0.005) {
+  
     TCoord pressureAtV;
     TCoord rotationAtV;
-    {
-      TCoord v = i;
-      TCoord u=1-v;
-      TCoord u2=u*u;
-      TCoord u3=u2*u;
-      TCoord v2=v*v;
-      TCoord v3=v2*v;
-      pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
-      rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
-    }
+    TCoord u=1-v;
+    TCoord u2=u*u;
+    TCoord u3=u2*u;
+    TCoord v2=v*v;
+    TCoord v3=v2*v;
+    pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+    rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
 
-    TCoord v = i;
-    TCoord r = rotationAtV;
-    TCoord pressure = pressureAtV;
-
-    TCoord h = s.height * pressure;
-    TCoord w = s.width * pressure;
-
-    TCoord cosa = cos(r-A);
-    TCoord cos2a = cosa*cosa;
-    TCoord sina = sin(r-A);
-    TCoord sin2a = sina*sina;
-  
+    TCoord h = s.height * pressureAtV;
+    TCoord w = s.width * pressureAtV;
     TCoord h2 = h*h;
     TCoord w2 = w*w;
 
+    TCoord cosa = cos(rotationAtV-A);
+    TCoord cos2a = cosa*cosa;
+    TCoord sina = sin(rotationAtV-A);
+    TCoord sin2a = sina*sina;
+
     TPoint Q = bez2point(q, v);
+
     TCoord y=-Q.y;
     TCoord
       a = h2 * cos2a + w2 * sin2a,
       b = 2*y*cosa*sina*(h2-w2),
       c = y*y*(h2*sin2a+w2*cos2a)-w2*h2;
-
     TCoord sq = b*b-4*a*c;
 //    if (sq<0)
 //      continue;
@@ -625,6 +611,9 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
 
     TCoord x0 = ( -b + sq ) / (2*a) + Q.x;
     TCoord x1 = ( -b - sq ) / (2*a) + Q.x;
+
+    if (x0*x1>0)
+      x0=x1=NAN;
 
     TPoint Pv = bez2point(p, v);
   
@@ -635,16 +624,15 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
 //    pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
     pen.drawLine(P0.x,P0.y,P1.x,P1.y);
 
-    if (i!=0.0) {
+    if (v!=0.0) {
       pen.setColor(0,0,1);
-      pen.drawLine(i0*160+80,x00+100, i*160+80,x0+100);
+      pen.drawLine(v0*160+80,x00+100, v*160+80,x0+100);
       
       pen.setColor(0,1,0);
-      pen.drawLine(i0*160+80,x10+100, i*160+80,x1+100);
+      pen.drawLine(v0*160+80,x10+100, v*160+80,x1+100);
     }
-    i0=i; x00=x0; x10=x1;
+    v0=v; x00=x0; x10=x1;
     
-    // and now for the 1st derivative...
   }
 }
 

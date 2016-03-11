@@ -89,17 +89,17 @@ inline TCoord squaredLength(const TPoint &a) {
   return a.x*a.x+a.y*a.y;
 }
 
-/* returns length of input vector */
+/** returns length of input vector */
 inline TCoord length(const TPoint &a) {
   return sqrt(squaredLength(a));
 }
 
-/* return the distance between two points */
+/** return the distance between two points */
 inline TCoord distance(const TPoint &a, const TPoint &b) {
   return length(a-b);
 }
 	
-/* normalizes the input vector and returns it */
+/** normalize the input vector and returns it */
 inline TPoint normalize(const TPoint &v) {
   TPoint result;
   TCoord len = length(v);
@@ -113,9 +113,14 @@ inline TPoint normalize(const TPoint &v) {
   return(result);
 }
 
-/* return the dot product of vectors a and b */
+/** return the dot product of vectors a and b */
 inline TCoord dot(const CGPoint &a, const CGPoint &b) {
   return a.x*b.x+a.y*b.y;
+}
+
+/** rotate the direction by 90 degrees */
+inline TPoint rot90(const TPoint &in) {
+  return TPoint(-in.y, in.x);
 }
 
 /** Signed area of the triangle (p0, p1, p2) */
