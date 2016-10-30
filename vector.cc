@@ -256,34 +256,72 @@ TVectorPath::subdivide()
   }
 }
 
+/**
+ * Convert all lines in the path to curves
+ *
+ * @param   tolerance for the path fitting algorithm
+ * @radians when the angle between two lines exceeds radians, begin a new curve
+ */
 void
-TVectorPath::simplify(double tolerance)
+TVectorPath::simplify(double tolerance, double radians)
 {
+cerr << "simplify("<<tolerance<<", "<<radians<<")"<<endl;
   vector<TPoint> oldpoints;
   vector<EType> oldtype;
   oldpoints.swap(points);
   oldtype.swap(type);
 
-  const TPoint *start = 0;
+  const TPoint *lineStart = 0;
   const TPoint *pt = oldpoints.data();
+  const TPoint *lastPoint = pt + oldpoints.size()-1;
 
   for(auto p: oldtype) {
-    if (p!=LINE && start) {
+    if (p!=LINE && lineStart) {
+      cout << "end of line fitcurve" << endl;
       size_t n = points.size();
-      fitPath(start, pt-start-1, tolerance, &points);
+      points.pop_back();
+      fitPath(lineStart, pt-lineStart-1, tolerance, &points);
       n = points.size() - n;
-cerr << "simplify: n=" << n << endl;
       for(size_t i=1; i<n; i+=3)
         type.push_back(TVectorPath::CURVE);
-      start = 0;
+      lineStart = nullptr;
     }
+again:
     switch(p) {
       case MOVE:
+cout << "move " << *pt << endl;
         type.push_back(TVectorPath::MOVE);
-        start=pt;
+        points.push_back(*pt);
+        lineStart = pt;
         ++pt;
         break;
       case LINE:
+cout << "line " << *pt << endl;
+        if (lineStart+1<pt && pt!=lastPoint) {
+          const TPoint *p0 = pt-2;
+          const TPoint *p1 = pt-1;
+cout << "look for edge at " << *p0 << *p1 << *pt << endl;
+          double d = atan2(p0->y - p1->y, p0->x - p1->x) - atan2(p1->y - pt->y, p1->x - pt->x);
+          if (d>radians || d<-radians) {
+cout << "edge at " << *p1 << endl;
+            if (p1-lineStart < 2) {
+cout << "line for " << (p1-lineStart) << " points" << endl;
+              type.push_back(TVectorPath::LINE);
+              points.push_back(*p1);
+            } else {
+cout << "fitPath for " << (p1-lineStart) << " points" << endl;
+              size_t oldSize = points.size();
+              points.pop_back();
+              fitPath(lineStart, p1-lineStart+1, tolerance, &points);
+              size_t delta = points.size() - oldSize;
+              for(size_t i=1; i<delta; i+=3)
+                type.push_back(TVectorPath::CURVE);
+            }
+            lineStart = p1;
+cout << "new line start at " << *p1 << endl;
+            goto again;
+          }
+        }
         ++pt;
         break;
       case CURVE: // copy
@@ -291,11 +329,73 @@ cerr << "simplify: n=" << n << endl;
         pt+=3;
         break;
       case CLOSE:
+cout<<"close"<<endl;
+        lineStart = nullptr;
         type.push_back(TVectorPath::CLOSE);
         break;
     }
   }
-  
+
+  if (lineStart) {
+
+cout << "final: lineStart=" << *lineStart <<", pt="<<*pt<<", lastPoint="<<*lastPoint<<endl;
+
+//        if (lineStart+1<pt && pt!=lastPoint) {
+      {
+        pt=lastPoint;
+          const TPoint *p0 = pt-2;
+          const TPoint *p1 = pt-1;
+cout << "look for edge at " << *p0 << *p1 << *pt << endl;
+          double d = atan2(p0->y - p1->y, p0->x - p1->x) - atan2(p1->y - pt->y, p1->x - pt->x);
+          if (d>radians || d<-radians) {
+cout << "edge at " << *p1 << endl;
+            if (p1-lineStart < 2) {
+cout << "line for " << (p1-lineStart) << " points" << endl;
+              type.push_back(TVectorPath::LINE);
+              points.push_back(*p1);
+              type.push_back(TVectorPath::LINE);
+              points.push_back(*pt);
+            } else {
+cout << "fitPathX for " << (p1-lineStart) << " points" << endl;
+              size_t oldSize = points.size();
+              points.pop_back();
+              fitPath(lineStart, p1-lineStart+1, tolerance, &points);
+              size_t delta = points.size() - oldSize;
+              for(size_t i=1; i<delta; i+=3)
+                type.push_back(TVectorPath::CURVE);
+              
+              points.push_back(*lastPoint);
+              type.push_back(TVectorPath::LINE);
+            }
+//            lineStart = p1;
+//cout << "new line start at " << *p1 << endl;
+//            goto again;
+          } else {
+cout << "fitPathY for " << (pt-lineStart+1) << " points" << endl;
+            size_t oldSize = points.size();
+            points.pop_back();
+            fitPath(lineStart, pt-lineStart+1, tolerance, &points);
+            size_t delta = points.size() - oldSize;
+            for(size_t i=1; i<delta; i+=3)
+              type.push_back(TVectorPath::CURVE);
+          }
+        }
+
+/*
+    size_t oldSize = points.size();
+    cout << "final fitPath for " << (pt-lineStart) << " points" << endl;
+    if (pt-lineStart < 2) {
+      type.push_back(TVectorPath::LINE);
+      points.push_back(*pt);
+    } else {
+      points.pop_back();
+      fitPath(lineStart, pt-lineStart, tolerance, &points);
+      size_t delta = points.size() - oldSize;
+      for(size_t i=1; i<delta; i+=3)
+        type.push_back(TVectorPath::CURVE);
+    }
+*/
+  }
 }
 
 TVectorStrokeAndFillOp::TVectorStrokeAndFillOp(const TRGB &s,const TRGB &f):

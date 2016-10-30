@@ -73,7 +73,7 @@ class TVectorPath
     void subdivide();
     
     // reduce()
-    void simplify(TCoord tolerance=2.5); // <- convert points to bézier, it doesn't simplify béziers?
+    void simplify(TCoord tolerance=2.5, TCoord radians=2.0*M_PI/360.0*15.0);
     // tangent
     // normal
     // curvature

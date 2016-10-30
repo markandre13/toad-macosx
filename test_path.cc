@@ -26,81 +26,110 @@
 
 using namespace toad;
 
-TPen *gpen = 0;
-
 namespace {
+
+TPoint a[5] = {
+/*
+  { 10, 10 },
+  { 10, 50 },
+  { 50, 50 },
+  { 60, 60 },
+  { 70, 70 },
+*/
+  { 10, 10 },
+  { 90, 30 },
+  { 90, 50 },
+  { 90, 70 },
+  { 170, 90 },
+};
 
 class TMyWindow:
   public TWindow
 {
+  size_t handle;
   public:
     TMyWindow(TWindow *parent, const string &title):
       TWindow(parent, title)
     {
+      handle = -1;
     }
     
     void paint() override;
+    void mouseEvent(const TMouseEvent&) override;
 };
+
+/*
+stuff which doesn't work for simplify (0.1)
+move (10,10)
+line (14.418,44.4805)
+line (27.0547,59.1875)
+line (24.0273,75.1953)
+line (22.9102,90.8008)
+*/
 
 void
 TMyWindow::paint()
 {
   TPen pen(this);
-  TVectorPath p;
-  gpen = &pen;
-
-#if 0
-  p.move(TPoint(120, 20));
-  p.line(TPoint(300, 50));
-  p.curve(TPoint(310,190), TPoint(10,190), TPoint(50, 30));
-//  p.line(TPoint(210, 180));
-  p.close();
-
-  p.move(TPoint(120, 40));
-  p.curve(TPoint(180,100), TPoint(180,190), TPoint(50, 190));
-  p.curve(TPoint(40,150), TPoint(40,100), TPoint(120, 40));
-
-  p.apply(pen);
-  pen.stroke();
+  pen.drawLines(a,5);
+  pen.setColor(0,0.5,1);
+  for(size_t i=0; i<5; ++i) {
+    pen.drawRectangle(a[i].x-2.5, a[i].y-2.5,5,5);
+  }
   
-  pen.setColor(0,0,1);
-  gpen = &pen;
-  p.subdivide();  
+  TVectorPath path;
+  path.move(a[0]);
+  for(size_t i=1; i<5; ++i) {
+    path.line(a[i]);
+  }
+  cout << "-----------------------------" << endl;
+  path.simplify(0.001);
 
-#endif
-  p.move(TPoint(10, 10));
-  p.curve(TPoint(310,10), TPoint(100,190), TPoint(10, 190));
-/*
+  for(auto p: path.points) {
+    pen.drawCircle(p.x-2.5, p.y-2.5,5,5);
+  }
+
+  cout << path << endl;
+
   pen.setColor(1,0.5,0);
-  p.apply(pen);
+  path.apply(pen);
   pen.stroke();
-*/
-  p.subdivide();
-/*
-  pen.setColor(TColor::FIGURE_SELECTION);
-  for(auto a: p.points) {
-    pen.drawRectangle(a.x-1.5, a.y-1.5,4,4);
-  }
-*/  
-  vector<TPoint> out;
-  fitPath(p.points.data(), p.points.size(), 2.5, &out);
-
-  pen.setColor(0,1,0);
-  for(auto a: out) {
-    pen.drawRectangle(a.x-2.5, a.y-2.5,6,6);
-  }
   
-  cout << "reduced " << p.points.size() << " to " << out.size() << endl;
-
-  pen.drawBezier(out.data(), out.size());
-
-/*  
-  pen.setColor(1,0,0);
-  pen.drawRectangle(p.bounds());
-  pen.setColor(0,0,1);
-  pen.drawRectangle(p.editBounds());
-*/
 }
+
+void
+TMyWindow::mouseEvent(const TMouseEvent &me)
+{
+  switch(me.type) {
+    case TMouseEvent::LDOWN: {
+      for(size_t i=0; i<5; ++i) {
+        if (a[i].x-2.5 <= me.pos.x && me.pos.x <= a[i].x+2.5 &&
+            a[i].y-2.5 <= me.pos.y && me.pos.y <= a[i].y+2.5 )
+        {
+          handle = i;
+        }
+      }
+    } break;
+    case TMouseEvent::MOVE: {
+//      double d = atan2(a[0].y-a[1].y, a[0].x-a[1].x) - atan2(a[1].y-a[2].y, a[1].x-a[2].x);
+//      if (d<-M_PI)
+//        d+=M_PI;
+//      cout << d << endl;
+      if (handle==-1)
+        break;
+      a[handle] = me.pos;
+      invalidateWindow();
+    } break;
+    case TMouseEvent::LUP: {
+      if (handle==-1)
+        break;
+      a[handle] = me.pos;
+      invalidateWindow();
+      handle=-1;
+    } break;
+  }
+}
+
 
 } // unnamed namespace
 

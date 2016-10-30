@@ -47,7 +47,8 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
 
-SRC_TEST=test/main.cc test/gtest-all.cc test/booleanop.cc test/lineintersection.cc
+SRC_TEST=test/main.cc test/gtest-all.cc test/booleanop.cc \
+         test/lineintersection.cc test/fitcurve.cc
 
 #fischland/fontdialog.cc
 
@@ -1524,6 +1525,15 @@ test/lineintersection.o: include/toad/cursor.hh include/toad/region.hh
 test/lineintersection.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test/lineintersection.o: include/toad/model.hh include/toad/connect.hh
 test/lineintersection.o: test/gtest.h
+test/fitcurve.o: include/toad/geometry.hh include/toad/types.hh
+test/fitcurve.o: include/toad/vector.hh include/toad/penbase.hh
+test/fitcurve.o: include/toad/color.hh include/toad/io/serializable.hh
+test/fitcurve.o: include/toad/io/atvparser.hh include/toad/font.hh
+test/fitcurve.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test/fitcurve.o: include/toad/window.hh include/toad/interactor.hh
+test/fitcurve.o: include/toad/cursor.hh include/toad/region.hh
+test/fitcurve.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+test/fitcurve.o: include/toad/model.hh include/toad/connect.hh test/gtest.h
 interactor.o: include/toad/interactor.hh include/toad/types.hh
 control.o: include/toad/control.hh include/toad/window.hh
 control.o: include/toad/interactor.hh include/toad/types.hh

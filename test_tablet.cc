@@ -184,7 +184,9 @@ cout << "down" << endl;
 cout << "up" << endl;
     [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
-//    path.simplify(0.001); doesn't give good results
+    path.simplify(4.0, 2.0*M_PI/360.0*15.0);
+    // simplify raw data
+    // simplify outline
     invalidateWindow();
   } else
   if (me.type==TMouseEvent::TABLET_POINT) {

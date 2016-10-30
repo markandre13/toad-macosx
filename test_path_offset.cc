@@ -336,8 +336,10 @@ drawMinMax(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, TCoord v, cons
 #endif
 }
 
-TCoord pressure[4] = { 0.8, 0.1, 1.5, 0.2 };
-TCoord rotation[4] = { 0, M_PI/2, M_PI, M_PI/2 };
+//TCoord pressure[4] = { 0.8, 0.1, 1.5, 0.2 };
+//TCoord rotation[4] = { 0, M_PI/2, M_PI, M_PI/2 };
+TCoord pressure[4] = {1,1,1,1};
+TCoord rotation[4] = {0,0,0,0};
 
 /**
  * \param pen
@@ -574,18 +576,28 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
   const TPoint d = normalize(rot90(bez2direction(p, u)));
   const TCoord A = atan2(d.y, d.x);
 
-  TCoord v0, x00, x10;
-  for(TCoord v=0.0; v<=1.0; v+=0.005) {
+  TCoord left0min, left1min, right0min, right1min, left0max, left1max, right0max, right1max;
+  bool gotleft=false, gotright=false;
   
-    TCoord pressureAtV;
-    TCoord rotationAtV;
-    TCoord u=1-v;
-    TCoord u2=u*u;
-    TCoord u3=u2*u;
-    TCoord v2=v*v;
-    TCoord v3=v2*v;
-    pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
-    rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
+  left0min=left1min=right0min=right1min=std::numeric_limits<TCoord>::max();
+  left0max=left1max=right0max=right1max=std::numeric_limits<TCoord>::min();
+
+  TCoord v0, x00, x10;
+//  for(TCoord v=0.0; v<=1.0; v+=0.005) {
+{  TCoord v=0.5;
+    TCoord pressureAtV, rotationAtV;
+    TPoint Pv;
+    {
+      TCoord u=1-v;
+      TCoord u2=u*u;
+      TCoord u3=u2*u;
+      TCoord v2=v*v;
+      TCoord v3=v2*v;
+    
+      pressureAtV = pressure[0]*u3+pressure[1]*v*u2*3+pressure[2]*v2*u*3+pressure[3]*v3;
+      rotationAtV = ::rotation[0]*u3+::rotation[1]*v*u2*3+::rotation[2]*v2*u*3+::rotation[3]*v3;
+      Pv = ::p[0]*u3+::p[1]*v*u2*3+::p[2]*v2*u*3+::p[3]*v3;
+    }
 
     TCoord h = s.height * pressureAtV;
     TCoord w = s.width * pressureAtV;
@@ -612,18 +624,41 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
     TCoord x0 = ( -b + sq ) / (2*a) + Q.x;
     TCoord x1 = ( -b - sq ) / (2*a) + Q.x;
 
-    if (x0*x1>0)
-      x0=x1=NAN;
+    // only intersections on both sides of the nib's center
+    if (x0*x1>0) {
+      x0=x1=FP_NAN;
+    }
 
-    TPoint Pv = bez2point(p, v);
-  
     TPoint P0 = Pu+d*x0;
     TPoint P1 = Pu+d*x1;
+
+    if (isnan(x0) || isnan(x1)) {
+      if (v<u)
+        gotleft=false;
+      if (v>u)
+        gotright=true;
+    } else {
+//cout << "u="<<u << ", v="<<v<<": "<< x0 << " " << x1 << endl;
+      if (!gotleft && v<u) {
+        gotleft=true;
+        left0max=max(left0max, x0);
+        left0min=min(left0min, x0);
+        left1max=max(left1max, x1);
+        left1min=min(left1min, x1);
+      }
+      if (!gotright && v>u) {
+        right0max=max(right0max, x0);
+        right0min=min(right0min, x0);
+        right1max=max(right1max, x1);
+        right1min=min(right1min, x1);
+      }
+    }
+
     pen.setColor(1,0,0);
 //    pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
 //    pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
     pen.drawLine(P0.x,P0.y,P1.x,P1.y);
-
+/*
     if (v!=0.0) {
       pen.setColor(0,0,1);
       pen.drawLine(v0*160+80,x00+100, v*160+80,x0+100);
@@ -631,9 +666,22 @@ drawMinMax3(TPen &pen, const TPoint *p, const TPoint *q, TCoord u, const TSize s
       pen.setColor(0,1,0);
       pen.drawLine(v0*160+80,x10+100, v*160+80,x1+100);
     }
+*/
     v0=v; x00=x0; x10=x1;
-    
+
   }
+
+  pen.setColor(0.5,0,0.5);
+
+  // now choose left0/right0 and left1/right1
+  TPoint P0 = Pu+d*max(max(left0max, left0max), max(right0max, right0max));
+  TPoint P1 = Pu+d*min(min(left0min, left0min), min(right0min, right0min));
+  pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
+  pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
+  P0 = Pu+d*max(max(left1max, left1max), max(right1max, right1max));
+  P1 = Pu+d*min(min(left1min, left1min), min(right1min, right1min));
+  pen.drawRectangle(P0.x-1, P0.y-1, 3,3);
+  pen.drawRectangle(P1.x-1, P1.y-1, 3,3);
 }
 
 
@@ -941,7 +989,9 @@ TMyWindow::paint()
       pr0 = pr;
     }
   }
-  drawMinMax3(pen, p, p0, u, s, pen_r);
+  
+  for(TCoord u=0.0; u<=1.0; u+=0.05)
+    drawMinMax3(pen, p, p0, u, s, pen_r);
 
   pen.setColor(0,0,0);
   pen.drawBezier(p, 4);

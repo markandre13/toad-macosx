@@ -1063,6 +1063,8 @@ drawBezierCurve(int n, const TPoint *curve, vector<TPoint> *pathOut)
 /*
  *  FitCubic :
  *  	Fit a Bezier curve to a (sub)set of digitized points
+ *      (The 'digitized' is important here: when the input is not smooth
+ *      enough, the algorithm will produce bad results.)
  *  \param d Array of digitized points
  *  \param first, last Indices of first and last pts in region
  *  \param tHat1, tHat2 Unit tangent vectors at endpoints
