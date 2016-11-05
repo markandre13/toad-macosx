@@ -62,6 +62,7 @@ struct TFreehandPoint:
 class TMyWindow:
   public TWindow
 {
+public:
     // information from the tablet
     vector<TFreehandPoint> handpath;
     
@@ -184,9 +185,10 @@ cout << "down" << endl;
 cout << "up" << endl;
     [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
-    path.simplify(4.0, 2.0*M_PI/360.0*15.0);
-    // simplify raw data
-    // simplify outline
+    path.simplify(4.0, 2.0*M_PI/360.0*30.0);
+    // quantify raw data
+    // fit curve raw data
+    // fit curve outline
     invalidateWindow();
   } else
   if (me.type==TMouseEvent::TABLET_POINT) {
@@ -604,7 +606,7 @@ replay(TEditModel *editmodel, TBoundary *clip)
         boolean(path, x, &path, INTERSECTION);
         boolean(nextstroke, x, &nextstroke, INTERSECTION);
       }
-booleanop_debug = true;
+//booleanop_debug = true;
       boolean(path, nextstroke, &nextpath, UNION);
 booleanop_debug = false;
     }
@@ -695,6 +697,7 @@ global_debug = true;
 //  editmodel->handpath = loadHandpath("backup-glitch010.txt"); // one at 1976, multiple others, all fixed
 //  editmodel->handpath = loadHandpath("backup-glitch011.txt"); // okay
 //  editmodel->handpath = loadHandpath("backup.txt");
+  editmodel->handpath = loadHandpath("fitcurve-segfault.txt");
   editmodel->pos.setRangeProperties(0, 0, 0, editmodel->handpath.size()-1);
   connect(editmodel->pos.sigChanged, [pane, editmodel] {
     replay(editmodel);
@@ -727,6 +730,16 @@ global_debug = true;
   toad::mainLoop();
 #else
   TMyWindow wnd(NULL, "test tablet");
+
+#if 0  
+  TEditModel m;
+  m.handpath = loadHandpath("fitcurve-segfault.txt");
+  m.pos = m.handpath.size()-1;
+  replay(&m);
+  wnd.path = m.path;
+  wnd.path.simplify(4.0, 2.0*M_PI/360.0*30.0);
+#endif  
+  
   toad::mainLoop();
 #endif
 }
