@@ -35,6 +35,38 @@
 
 #include "booleanop.hh"
 
+/*
+  o Schneiers fitCurve algorithm
+    o is not stable
+    o with floating point samples from a tablet instead rounded screen
+      coordinates from a mouse, it shows that jitter isn't smoothed
+      -> algorithms to reduce points
+        o Ramer–Douglas–Peucker algorithm
+          http://en.wikipedia.org/wiki/Ramer–Douglas–Peucker_algorithm
+        o Line generalisation by repeated elimination of the smallest area
+          Visvalingam, Maheswari; Whyatt, J. D. (James Duncan)
+          https://hydra.hull.ac.uk/resources/hull:8338
+    o other algorithms:
+      o "Method for fitting a parametric representation to a set of objects"
+        Sarah F. Frisken
+        US 20090027396 A1
+        (a patented algorithm? yo gotta be kiddin me!)
+      o Efficient Curve Fitting
+        Sarah F. Frisken
+        Tufts University
+        Journal of Graphics Tools, 13(2), pp. 37-37, 2008
+      o Data fitting by G1 rational cubic Bézier curves using harmony search
+        Najihah Mohamed a,*, Ahmad Abd Majid b, Abd Rahni Mt Piah
+        Dec 2014
+        Egyptian Informatics Journal
+      o SketchIron: Workflow for Vector-based Sketching
+        Timur Carpeev
+        (this one gives a nice overview)
+      o Optimal Spline Approximation via l0-Minimization
+        Christopher Brandt, Hans-Peter Seidel, Klaus Hildebrandt
+      
+*/
+
 // write test_tablet with a simulated g-pen which can rotate, and a nib which can split on pressure,
 // and disappears when leaving the proximity of the tablet, etc.
 
@@ -119,14 +151,36 @@ void
 TMyWindow::paint()
 {
   TPen pen(this);
+
   pen.setColor(0.7,0.7,0.7);
   path.apply(pen);
   pen.fill();
   pen.setColor(0,0,0);
   path.apply(pen);
-  pen.stroke();
+  pen.stroke();	// -> strokeAndFill
+  
+  // raw data (position)
+  pen.setColor(1,0.5,0);
+  for(auto p: handpath) {
+    pen.drawLine(p.x-1,p.y-1,p.x+2,p.y+2);
+    pen.drawLine(p.x-1,p.y+1,p.x+2,p.y-2);
+  }
+  
+  vector<TPoint> a, b;
+  for(auto p: handpath)
+    a.push_back(p);
 
+  if (!a.empty())
+    fitPath(a.data(), a.size(), 4.0, &b);
+    
+  pen.setColor(0,0,1);
+  pen.drawBezier(b);
+  
+//  fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
+    
+  
 #if 1
+  // draw caret
   if (proximity) {
     TCoord r = 50.0*pressure+4.0;
     pen.drawCircle(pos.x-r, pos.y-r, 2*r, 2*r);
@@ -174,7 +228,7 @@ TMyWindow::mouseEvent(const TMouseEvent &me)
 {
 static double lasttime;
   if (me.type==TMouseEvent::LDOWN) {
-cout << "down" << endl;
+//cout << "down" << endl;
     [NSEvent setMouseCoalescingEnabled: FALSE];
     lasttime = [me.nsevent timestamp];
     backup.open("backup.txt", ofstream::out | ofstream::trunc);
@@ -182,7 +236,7 @@ cout << "down" << endl;
     path.clear();
   } else
   if (me.type==TMouseEvent::LUP) {
-cout << "up" << endl;
+//cout << "up" << endl;
     [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
     path.simplify(4.0, 2.0*M_PI/360.0*30.0);
@@ -240,7 +294,13 @@ cout << uniqueID << " left proximity" << endl;
     invalidateWindow();
     return;
   }
+#if 0
   pos = me.pos;
+#else
+  // round position to reduce jitter
+  pos.x = round(me.pos.x);
+  pos.y = round(me.pos.y);
+#endif
   pressure = me.pressure();
   rotation = me.rotation();
   tilt = me.tilt();

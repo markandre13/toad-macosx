@@ -265,7 +265,7 @@ TVectorPath::subdivide()
 void
 TVectorPath::simplify(double tolerance, double radians)
 {
-cerr << "simplify("<<tolerance<<", "<<radians<<")"<<endl;
+//cerr << "simplify("<<tolerance<<", "<<radians<<")"<<endl;
   vector<TPoint> oldpoints;
   vector<EType> oldtype;
   oldpoints.swap(points);
@@ -277,7 +277,7 @@ cerr << "simplify("<<tolerance<<", "<<radians<<")"<<endl;
 
   for(auto p: oldtype) {
     if (p!=LINE && lineStart) {
-      cout << "end of line fitcurve" << endl;
+//      cout << "end of line fitcurve" << endl;
       size_t n = points.size();
       points.pop_back();
       fitPath(lineStart, pt-lineStart-1, tolerance, &points);
@@ -289,27 +289,27 @@ cerr << "simplify("<<tolerance<<", "<<radians<<")"<<endl;
 again:
     switch(p) {
       case MOVE:
-cout << "move " << *pt << endl;
+//cout << "move " << *pt << endl;
         type.push_back(TVectorPath::MOVE);
         points.push_back(*pt);
         lineStart = pt;
         ++pt;
         break;
       case LINE:
-cout << "line " << *pt << endl;
+//cout << "line " << *pt << endl;
         if (lineStart+1<pt && pt!=lastPoint) {
           const TPoint *p0 = pt-2;
           const TPoint *p1 = pt-1;
-cout << "look for edge at " << *p0 << *p1 << *pt << endl;
+//cout << "look for edge at " << *p0 << *p1 << *pt << endl;
           double d = atan2(p0->y - p1->y, p0->x - p1->x) - atan2(p1->y - pt->y, p1->x - pt->x);
           if (d>radians || d<-radians) {
-cout << "edge at " << *p1 << endl;
+//cout << "edge at " << *p1 << endl;
             if (p1-lineStart < 2) {
-cout << "line for " << (p1-lineStart) << " points" << endl;
+//cout << "line for " << (p1-lineStart) << " points" << endl;
               type.push_back(TVectorPath::LINE);
               points.push_back(*p1);
             } else {
-cout << "fitPath for " << (p1-lineStart) << " points" << endl;
+//cout << "fitPath for " << (p1-lineStart) << " points" << endl;
               size_t oldSize = points.size();
               points.pop_back();
               fitPath(lineStart, p1-lineStart+1, tolerance, &points);
@@ -318,18 +318,18 @@ cout << "fitPath for " << (p1-lineStart) << " points" << endl;
                 type.push_back(TVectorPath::CURVE);
             }
             lineStart = p1;
-cout << "new line start at " << *p1 << endl;
+//cout << "new line start at " << *p1 << endl;
             goto again;
           }
         }
         ++pt;
         break;
       case CURVE: // copy
-        cerr << "TVectorPath::simplify(double tolerance): CURVE not implemented yet" << endl;
+//        cerr << "TVectorPath::simplify(double tolerance): CURVE not implemented yet" << endl;
         pt+=3;
         break;
       case CLOSE:
-cout<<"close"<<endl;
+//cout<<"close"<<endl;
         lineStart = nullptr;
         type.push_back(TVectorPath::CLOSE);
         break;
@@ -338,25 +338,25 @@ cout<<"close"<<endl;
 
   if (lineStart) {
 
-cout << "final: lineStart=" << *lineStart <<", pt="<<*pt<<", lastPoint="<<*lastPoint<<endl;
+//cout << "final: lineStart=" << *lineStart <<", pt="<<*pt<<", lastPoint="<<*lastPoint<<endl;
 
 //        if (lineStart+1<pt && pt!=lastPoint) {
       {
         pt=lastPoint;
           const TPoint *p0 = pt-2;
           const TPoint *p1 = pt-1;
-cout << "look for edge at " << *p0 << *p1 << *pt << endl;
+//cout << "look for edge at " << *p0 << *p1 << *pt << endl;
           double d = atan2(p0->y - p1->y, p0->x - p1->x) - atan2(p1->y - pt->y, p1->x - pt->x);
           if (d>radians || d<-radians) {
-cout << "edge at " << *p1 << endl;
+//cout << "edge at " << *p1 << endl;
             if (p1-lineStart < 2) {
-cout << "line for " << (p1-lineStart) << " points" << endl;
+//cout << "line for " << (p1-lineStart) << " points" << endl;
               type.push_back(TVectorPath::LINE);
               points.push_back(*p1);
               type.push_back(TVectorPath::LINE);
               points.push_back(*pt);
             } else {
-cout << "fitPathX for " << (p1-lineStart) << " points" << endl;
+//cout << "fitPathX for " << (p1-lineStart) << " points" << endl;
               size_t oldSize = points.size();
               points.pop_back();
               fitPath(lineStart, p1-lineStart+1, tolerance, &points);
@@ -371,7 +371,7 @@ cout << "fitPathX for " << (p1-lineStart) << " points" << endl;
 //cout << "new line start at " << *p1 << endl;
 //            goto again;
           } else {
-cout << "fitPathY for " << (pt-lineStart+1) << " points" << endl;
+//cout << "fitPathY for " << (pt-lineStart+1) << " points" << endl;
             size_t oldSize = points.size();
             points.pop_back();
             fitPath(lineStart, pt-lineStart+1, tolerance, &points);
