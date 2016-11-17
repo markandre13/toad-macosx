@@ -77,6 +77,9 @@ void divideBezier(const TPoint *a, TPoint *p, TCoord u);
 TPoint bez2point(const TPoint *p, TCoord t);
 TPoint bez2direction(const TPoint *p, TCoord u);
 void fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
+inline void fitPath(const vector<TPoint> &in, TCoord tolerance, vector<TPoint> *out) {
+  fitPath(in.data(), in.size(), tolerance, out);
+}
 void convexHull(vector<TPoint> *points);
 
 /*

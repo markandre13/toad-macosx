@@ -41,8 +41,8 @@
     o with floating point samples from a tablet instead rounded screen
       coordinates from a mouse, it shows that jitter isn't smoothed
       -> algorithms to reduce points
-        o Ramer–Douglas–Peucker algorithm
-          http://en.wikipedia.org/wiki/Ramer–Douglas–Peucker_algorithm
+        o see https://en.wikipedia.org/wiki/Smoothing
+        o paper.js has a smoothing function which provides 4 different approaches
         o Line generalisation by repeated elimination of the smallest area
           Visvalingam, Maheswari; Whyatt, J. D. (James Duncan)
           https://hydra.hull.ac.uk/resources/hull:8338
@@ -83,6 +83,27 @@
 using namespace toad;
 
 namespace {
+
+void
+movingAverage(const vector<TPoint> &in, double epsilon, vector<TPoint> &out)
+{
+  for(size_t i=0; i<in.size(); ++i) {
+    TPoint p = in[i];
+    for(size_t j=i-1; j>0; --j) {
+      TCoord d = distance(in[i], in[j]);
+      if (d>epsilon)
+        break;
+      p = 0.5 * (p + in[j]);
+    }
+    for(size_t j=i+1; j<in.size(); ++j) {
+      TCoord d = distance(in[i], in[j]);
+      if (d>epsilon)
+        break;
+      p = 0.5 * (p + in[j]);
+    }
+    out.push_back(p);
+  }
+}
 
 struct TFreehandPoint:
   public TPoint
@@ -162,19 +183,35 @@ TMyWindow::paint()
   // raw data (position)
   pen.setColor(1,0.5,0);
   for(auto p: handpath) {
-    pen.drawLine(p.x-1,p.y-1,p.x+2,p.y+2);
-    pen.drawLine(p.x-1,p.y+1,p.x+2,p.y-2);
+    pen.drawLine(p.x-0.5,p.y-0.5,p.x+0.5,p.y+0.5);
+    pen.drawLine(p.x-0.5,p.y+0.5,p.x+0.5,p.y-0.5);
   }
   
-  vector<TPoint> a, b;
+  vector<TPoint> a, b, c;
   for(auto p: handpath)
     a.push_back(p);
 
+#if 1
+  if (!a.empty()) {
+    // ramerDouglasPeucker(a, 0.5, b);
+    movingAverage(a, 1.5, b);
+    pen.setColor(0.8,0,0);
+    for(auto p: b) {
+      pen.drawLine(p.x-0.5,p.y-0.5,p.x+0.5,p.y+0.5);
+      pen.drawLine(p.x-0.5,p.y+0.5,p.x+0.5,p.y-0.5);
+    }
+    pen.setColor(0,0.5,1);
+    fitPath(a, 4.0, &c);
+    pen.drawBezier(c);
+    c.clear();
+    fitPath(b, 4.0, &c);
+  }
+#else
   if (!a.empty())
-    fitPath(a.data(), a.size(), 4.0, &b);
-    
+    fitPath(a, 4.0, &c);
+#endif    
   pen.setColor(0,0,1);
-  pen.drawBezier(b);
+  pen.drawBezier(c);
   
 //  fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
     
@@ -294,7 +331,7 @@ cout << uniqueID << " left proximity" << endl;
     invalidateWindow();
     return;
   }
-#if 0
+#if 1
   pos = me.pos;
 #else
   // round position to reduce jitter
