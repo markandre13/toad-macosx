@@ -512,6 +512,20 @@ TWindow::destroyParentless()
   printf("%s\n", __FUNCTION__);
 }
 */
+/*
+- (void)orderWindow:(NSWindowOrderingMode)place relativeTo:(NSInteger)otherWin
+{
+  [super orderWindow: place relativeTo: otherWin];
+  cout << "orderWindow: ";
+  switch(place) {
+    case NSWindowOut  : cout << "NSWindowOut"; break;
+    case NSWindowAbove: cout << "NSWindowAbove"; break;
+    case NSWindowBelow: cout << "NSWindowBelow"; break;
+    default: cout << "?";
+  }
+  cout << endl;
+}
+*/
 @end
 
 /*

@@ -33,7 +33,10 @@
 #include <toad/scrollpane.hh>
 #include <toad/floatmodel.hh>
 
+#include <toad/simpletimer.hh>
+
 #include "booleanop.hh"
+
 
 /*
   o Schneiers fitCurve algorithm
@@ -84,10 +87,15 @@ using namespace toad;
 
 namespace {
 
+/**
+ * out[i] := average of all points within radius epsilon of point in[i]
+ */
 void
 movingAverage(const vector<TPoint> &in, double epsilon, vector<TPoint> &out)
 {
   for(size_t i=0; i<in.size(); ++i) {
+
+    // average
     TPoint p = in[i];
     for(size_t j=i-1; j>0; --j) {
       TCoord d = distance(in[i], in[j]);
@@ -101,6 +109,14 @@ movingAverage(const vector<TPoint> &in, double epsilon, vector<TPoint> &out)
         break;
       p = 0.5 * (p + in[j]);
     }
+
+    // reduce
+    if (!out.empty()) {
+      TPoint d = out.back() - p;
+      if (isZero(d.x) && isZero(d.y))
+        continue;
+    }
+    
     out.push_back(p);
   }
 }
@@ -110,6 +126,67 @@ struct TFreehandPoint:
 {
   TFreehandPoint(TCoord x, TCoord y, TCoord r, TCoord p):TPoint(x,y), rotation(r), pressure(p){}
   TCoord rotation, pressure;
+};
+
+class TMyWindow2:
+  public TWindow
+{
+    struct TSnapshot:
+      public TSimpleTimer
+    {
+      TWindow *window;
+      TSnapshot(TWindow *wnd): window(wnd) {}
+      void tick() override {
+        if (!window->nswindow)
+          return;
+      
+        CGImageRef image = CGWindowListCreateImage(
+	  CGRectNull,
+	  kCGWindowListOptionIncludingWindow,
+	  (CGWindowID)[window->nswindow windowNumber],
+          kCGWindowImageBoundsIgnoreFraming);
+        
+        if (CGImageGetHeight(image) <= 1) {
+          CFRelease(image);
+          return;
+        }
+          
+        NSString *path = [NSString stringWithUTF8String: "screen.png"];
+
+        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath: path];
+        CGImageDestinationRef destination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, NULL);
+        if (!destination) {
+          NSLog(@"Failed to create CGImageDestination for %@", path);
+          exit(1);
+        }
+
+        CGImageDestinationAddImage(destination, image, nil);
+
+        if (!CGImageDestinationFinalize(destination)) {
+          NSLog(@"Failed to write image to %@", path);
+          CFRelease(destination);
+          exit(1);
+        }
+
+        CFRelease(destination);
+        [path release];
+        CFRelease(image);
+        
+        exit(0);
+      }
+    } snap;
+  public:
+    TMyWindow2(TWindow *parent, const string &title):
+      TWindow(parent, title), snap(this)
+    {
+      snap.startTimer(0, 1000);
+    }
+    
+    void paint() override
+    {
+      TPen pen(this);
+      pen.drawLine(10,10.5, 20, 10.5);
+    }
 };
 
 class TMyWindow:
@@ -173,6 +250,7 @@ TMyWindow::paint()
 {
   TPen pen(this);
 
+  // draw union in gray
   pen.setColor(0.7,0.7,0.7);
   path.apply(pen);
   pen.fill();
@@ -180,7 +258,7 @@ TMyWindow::paint()
   path.apply(pen);
   pen.stroke();	// -> strokeAndFill
   
-  // raw data (position)
+  // plot raw data in orange
   pen.setColor(1,0.5,0);
   for(auto p: handpath) {
     pen.drawLine(p.x-0.5,p.y-0.5,p.x+0.5,p.y+0.5);
@@ -191,27 +269,33 @@ TMyWindow::paint()
   for(auto p: handpath)
     a.push_back(p);
 
-#if 1
   if (!a.empty()) {
-    // ramerDouglasPeucker(a, 0.5, b);
+
+    // reduce noise of tablet input
     movingAverage(a, 1.5, b);
+    
+#if 0
+    // plot denoised data in red
     pen.setColor(0.8,0,0);
     for(auto p: b) {
       pen.drawLine(p.x-0.5,p.y-0.5,p.x+0.5,p.y+0.5);
       pen.drawLine(p.x-0.5,p.y+0.5,p.x+0.5,p.y-0.5);
     }
-    pen.setColor(0,0.5,1);
+
+    // draw fitted raw data in light blue
     fitPath(a, 4.0, &c);
+    pen.setColor(0,0.5,1);
     pen.drawBezier(c);
+#endif
+
+    // draw fitted denoised data in regular blue
     c.clear();
     fitPath(b, 4.0, &c);
+    pen.setColor(0,0,1);
+    pen.drawBezier(c);
+
+    
   }
-#else
-  if (!a.empty())
-    fitPath(a, 4.0, &c);
-#endif    
-  pen.setColor(0,0,1);
-  pen.drawBezier(c);
   
 //  fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
     
@@ -826,7 +910,7 @@ global_debug = true;
 
   toad::mainLoop();
 #else
-  TMyWindow wnd(NULL, "test tablet");
+  TMyWindow2 wnd(NULL, "test tablet");
 
 #if 0  
   TEditModel m;
