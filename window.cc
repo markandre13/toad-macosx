@@ -1544,16 +1544,20 @@ TWindow::getUpdateRegion() const
 }
 
 void
-TWindow::scrollRectangle(const TRectangle &r, TCoord x, TCoord y, bool bClrBG)
+TWindow::scrollRectangle(const TRectangle &r, TCoord x, TCoord y, bool redraw)
 {
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //  invalidateWindow();
-  CGRect cgr = CGRectMake(r.x, r.y, r.w, r.h);
   
-  [nsview scrollRect: cgr by: NSMakeSize(x, y)];
+  // [nsview scrollRect: R by: T] copies R by T
+  // this function scrolls the area within R by T.
+  
+  [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(x), r.h-fabs(y)) by: NSMakeSize(x, y)];
   // note: his overlaps with the destination of the scroll
   //       toad's x11 implementation took more care of this
-  [nsview setNeedsDisplayInRect: cgr];
+//  [nsview setNeedsDisplayInRect: cgr];
+  if (redraw)
+    [nsview setNeedsDisplay: true];
 }
 
 /**
