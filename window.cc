@@ -1341,7 +1341,7 @@ TWindow::doModalLoop()
     NSEvent *event =
         [NSApp
             nextEventMatchingMask:NSAnyEventMask
-            untilDate:[NSDate distantFuture]
+            untilDate: toad::nonBlockingMainLoopKludge ? nil : [NSDate distantFuture]
             inMode:NSDefaultRunLoopMode
             dequeue:YES];
     NSWindow *wnd = [event window];
@@ -1551,15 +1551,23 @@ TWindow::getUpdateRegion() const
 void
 TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
 {
-  [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(dx), r.h-fabs(dy)) by: NSMakeSize(dx, dy)];
+//cout << "TWindow::scrollRectangle: " << dx << ", " << dy << endl;
+  if (dx>0)
+    [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(dx), r.h-fabs(dy)) by: NSMakeSize(dx, dy)];
+  if (dx<0)
+    [nsview scrollRect: CGRectMake(r.x-dx, r.y, r.w+dx, r.h) by: NSMakeSize(dx, dy)];
   
   if (!redraw)
     return;
   // note: his overlaps with the destination of the scroll
   //       toad's x11 implementation took more care of this
-  [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, dx, r.h)];
-//  [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, r.w, r.h)];
-//  [nsview setNeedsDisplay: true];
+  if (dx>0)
+    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, dx, r.h)];
+  if (dx<0) {
+    //[nsview setNeedsDisplayInRect: CGRectMake(r.x+r.w-dx, r.y, dx, r.h)];
+    [nsview setNeedsDisplayInRect: CGRectMake(r.x+r.w+dx, r.y, -dx, r.h)];
+    // [nsview setNeedsDisplay: true];
+  }
 }
 
 /**
