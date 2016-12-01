@@ -53,7 +53,11 @@ TPen::initWindow(TWindow *w)
 {
   init();
   window = w;
+
   ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  if (!ctx) {
+    cerr << "TPen(TWindow*) created outside TWindow::paint()" << endl;
+  }
 //  CGContextSetAllowsAntialiasing(ctx, FALSE);
   windowmatrix = CGContextGetCTM(ctx);
   setColor(0,0,0);

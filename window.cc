@@ -466,7 +466,7 @@ TWindow::destroyParentless()
 - (void)dealloc {
   TOAD_DBG_ENTER
   if (twindow) {
-    cout << "dealloc toadWindow " << twindow->getTitle() << endl;
+    // cout << "dealloc toadWindow " << twindow->getTitle() << endl;
     delete twindow;
   }
   [super dealloc];
@@ -664,15 +664,16 @@ static TRegion *updateRegion = 0;
     TOAD_DBG_LEAVE
     return;
   }
-
+  
   if (!twindow->flagNoBackground) {
     CGContextRef ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
     CGContextSetRGBFillColor(ctx, twindow->_bg.r, twindow->_bg.g, twindow->_bg.b, 1);
     CGContextAddRect(ctx, NSRectToCGRect(rect));
     CGContextDrawPath(ctx, kCGPathFill);
   }
-  if (twindow->layout)
+  if (twindow->layout) {
     twindow->layout->paint();
+  }
   twindow->paint();
   TOAD_DBG_LEAVE
 }
@@ -1190,7 +1191,8 @@ TWindow::~TWindow()
       }
     }
     if (quitApplication) {
-      [NSApp terminate: nil];
+      // [NSApp terminate: nil];
+      toad::running = false;
     }
   }
 
@@ -1543,21 +1545,21 @@ TWindow::getUpdateRegion() const
   return &r;
 }
 
+/**
+ * scroll area within rectangle r by (dx, dy)
+ */
 void
-TWindow::scrollRectangle(const TRectangle &r, TCoord x, TCoord y, bool redraw)
+TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-//  invalidateWindow();
+  [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(dx), r.h-fabs(dy)) by: NSMakeSize(dx, dy)];
   
-  // [nsview scrollRect: R by: T] copies R by T
-  // this function scrolls the area within R by T.
-  
-  [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(x), r.h-fabs(y)) by: NSMakeSize(x, y)];
+  if (!redraw)
+    return;
   // note: his overlaps with the destination of the scroll
   //       toad's x11 implementation took more care of this
-//  [nsview setNeedsDisplayInRect: cgr];
-  if (redraw)
-    [nsview setNeedsDisplay: true];
+  [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, dx, r.h)];
+//  [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, r.w, r.h)];
+//  [nsview setNeedsDisplay: true];
 }
 
 /**

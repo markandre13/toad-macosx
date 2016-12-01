@@ -1,3 +1,5 @@
+.PHONY: all run depend test gdb
+
 EXEC=fischland.app/Contents/MacOS/fischland
 
 all: $(EXEC)
@@ -47,8 +49,9 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
 
-SRC_TEST=test/main.cc test/gtest-all.cc test/booleanop.cc \
-         test/lineintersection.cc test/fitcurve.cc
+SRC_TEST=test/main.cc test/gtest-all.cc \
+         test/display.cc \
+         test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
 
 #fischland/fontdialog.cc
 
@@ -68,11 +71,14 @@ $(EXEC): $(OBJS)
 TEST_SRC=$(SRC_TEST) $(SRC_SHARED) $(SRC_COCOA)
 TEST_OBJ=$(TEST_SRC:.cc=.o)
 
-toadtest: $(TEST_OBJ)
+test.app/Contents/MacOS/test: $(TEST_OBJ)
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
-	$(TEST_OBJ) -o toadtest
+	$(TEST_OBJ) -o test.app/Contents/MacOS/test
+
+test: test.app/Contents/MacOS/test
+	./test.app/Contents/MacOS/test
 
 clean:
 	rm -f $(OBJS) $(EXEC) .gdb_history

@@ -6,6 +6,8 @@
 #include "fischland/fontdialog.hh"
 
 bool toad::layouteditor = false;
+bool toad::running = false;
+bool toad::nonBlockingMainLoopKludge = false;
 
 using namespace toad;
 
@@ -92,7 +94,6 @@ static NSAutoreleasePool *pool = 0;
 static int global_argc = 0;
 static char **global_argv = 0;
 
-
 void 
 toad::initialize(int argc, char *argv[])
 {
@@ -133,6 +134,11 @@ toad::initialize(int argc, char *argv[])
 bool
 toad::mainLoop()
 {
+  if (!pool) {
+    cerr << "toad::mainLoop(): ERROR: missing call to toad::initialize()" << endl;
+    return false;
+  }
+
   // this replaces NSApplicationMain(global_argc,  (const char **) global_argv);
 
 // sometimes we got the busy caret after the application was drawn
@@ -151,7 +157,8 @@ toad::mainLoop()
   [app finishLaunching];
 //cerr << __FILE__ << ":" << __LINE__ << endl;
  
-  do {
+  toad::running = true;
+  while(toad::running) {
     [pool release];
     pool = [[NSAutoreleasePool alloc] init];
  
@@ -159,7 +166,7 @@ toad::mainLoop()
     NSEvent *event =
       [app
          nextEventMatchingMask:NSAnyEventMask
-         untilDate:[NSDate distantFuture]
+         untilDate: toad::nonBlockingMainLoopKludge ? nil : [NSDate distantFuture]
          inMode:NSDefaultRunLoopMode
          dequeue:YES];
 //cerr << __FILE__ << ":" << __LINE__ << endl;
@@ -169,9 +176,10 @@ toad::mainLoop()
     [app updateWindows];
 //cerr << __FILE__ << ":" << __LINE__ << endl;
     executeMessages();
-  } while(true);
+  }
 //cerr << __FILE__ << ":" << __LINE__ << endl;
   [pool release];
+//cerr << "leave toad::mainLoop()" << endl;
 }
 
 void

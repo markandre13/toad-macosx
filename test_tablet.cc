@@ -128,67 +128,6 @@ struct TFreehandPoint:
   TCoord rotation, pressure;
 };
 
-class TMyWindow2:
-  public TWindow
-{
-    struct TSnapshot:
-      public TSimpleTimer
-    {
-      TWindow *window;
-      TSnapshot(TWindow *wnd): window(wnd) {}
-      void tick() override {
-        if (!window->nswindow)
-          return;
-      
-        CGImageRef image = CGWindowListCreateImage(
-	  CGRectNull,
-	  kCGWindowListOptionIncludingWindow,
-	  (CGWindowID)[window->nswindow windowNumber],
-          kCGWindowImageBoundsIgnoreFraming);
-        
-        if (CGImageGetHeight(image) <= 1) {
-          CFRelease(image);
-          return;
-        }
-          
-        NSString *path = [NSString stringWithUTF8String: "screen.png"];
-
-        CFURLRef url = (__bridge CFURLRef)[NSURL fileURLWithPath: path];
-        CGImageDestinationRef destination = CGImageDestinationCreateWithURL(url, kUTTypePNG, 1, NULL);
-        if (!destination) {
-          NSLog(@"Failed to create CGImageDestination for %@", path);
-          exit(1);
-        }
-
-        CGImageDestinationAddImage(destination, image, nil);
-
-        if (!CGImageDestinationFinalize(destination)) {
-          NSLog(@"Failed to write image to %@", path);
-          CFRelease(destination);
-          exit(1);
-        }
-
-        CFRelease(destination);
-        [path release];
-        CFRelease(image);
-        
-        exit(0);
-      }
-    } snap;
-  public:
-    TMyWindow2(TWindow *parent, const string &title):
-      TWindow(parent, title), snap(this)
-    {
-      snap.startTimer(0, 1000);
-    }
-    
-    void paint() override
-    {
-      TPen pen(this);
-      pen.drawLine(10,10.5, 20, 10.5);
-    }
-};
-
 class TMyWindow:
   public TWindow
 {
@@ -910,7 +849,7 @@ global_debug = true;
 
   toad::mainLoop();
 #else
-  TMyWindow2 wnd(NULL, "test tablet");
+  TMyWindow wnd(NULL, "test tablet");
 
 #if 0  
   TEditModel m;

@@ -35,4 +35,6 @@
 
 namespace toad {
   extern bool layouteditor;
+  extern bool running;
+  extern bool nonBlockingMainLoopKludge;
 } // namespace toad
