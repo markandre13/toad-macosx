@@ -1551,23 +1551,29 @@ TWindow::getUpdateRegion() const
 void
 TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
 {
-//cout << "TWindow::scrollRectangle: " << dx << ", " << dy << endl;
-  if (dx>0)
-    [nsview scrollRect: CGRectMake(r.x, r.y, r.w-fabs(dx), r.h-fabs(dy)) by: NSMakeSize(dx, dy)];
-  if (dx<0)
-    [nsview scrollRect: CGRectMake(r.x-dx, r.y, r.w+dx, r.h) by: NSMakeSize(dx, dy)];
-  
+  if (dx>=0) {
+    if (dy>=0)
+      [nsview scrollRect: CGRectMake(r.x, r.y, r.w-dx, r.h-dy) by: NSMakeSize(dx, dy)];
+    else
+      [nsview scrollRect: CGRectMake(r.x, r.y-dy, r.w-dx, r.h+dy) by: NSMakeSize(dx, dy)];
+  } else {
+    if (dy>=0)
+      [nsview scrollRect: CGRectMake(r.x-dx, r.y, r.w+dx, r.h-dy) by: NSMakeSize(dx, dy)];
+    else
+      [nsview scrollRect: CGRectMake(r.x-dx, r.y-dy, r.w+dx, r.h+dy) by: NSMakeSize(dx, dy)];
+  }
+
   if (!redraw)
     return;
-  // note: his overlaps with the destination of the scroll
-  //       toad's x11 implementation took more care of this
+
   if (dx>0)
     [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, dx, r.h)];
-  if (dx<0) {
-    //[nsview setNeedsDisplayInRect: CGRectMake(r.x+r.w-dx, r.y, dx, r.h)];
+  if (dx<0)
     [nsview setNeedsDisplayInRect: CGRectMake(r.x+r.w+dx, r.y, -dx, r.h)];
-    // [nsview setNeedsDisplay: true];
-  }
+  if (dy>0)
+    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, r.w, dy)];
+  if (dy<0)
+    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y+r.h+dy, r.w, -dy)];
 }
 
 /**

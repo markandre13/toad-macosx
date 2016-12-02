@@ -219,3 +219,19 @@ TEST_F(Display, ScrollRectangleDown) {
 TEST_F(Display, ScrollRectangleUp) {
   scrollRectangleTest(0, -2);
 }
+
+TEST_F(Display, ScrollRectangleRightDown) {
+  scrollRectangleTest(2, 2);
+}
+
+TEST_F(Display, ScrollRectangleRightUp) {
+  scrollRectangleTest(2, -2);
+}
+
+TEST_F(Display, ScrollRectangleLeftDown) {
+  scrollRectangleTest(-2, 2);
+}
+
+TEST_F(Display, ScrollRectangleLeftUp) {
+  scrollRectangleTest(-2, -2);
+}
