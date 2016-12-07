@@ -1562,7 +1562,9 @@ TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
     else
       [nsview scrollRect: CGRectMake(r.x-dx, r.y-dy, r.w+dx, r.h+dy) by: NSMakeSize(dx, dy)];
   }
-
+  
+  [nsview translateRectsNeedingDisplayInRect: CGRectMake(r.x, r.y, r.w, r.h) by: NSMakeSize(dx, dy)];
+  
   if (!redraw)
     return;
 
