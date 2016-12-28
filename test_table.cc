@@ -8,6 +8,8 @@
 
 using namespace toad;
 
+namespace {
+
 class TTableModel:
   public TModel
 {
@@ -151,6 +153,8 @@ TMainWindow::TMainWindow(TWindow *parent, const string &title):
 
   loadLayout("test-table-layout.atv");
 }
+
+} // namespace
 
 int
 test_table()
