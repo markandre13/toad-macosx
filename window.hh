@@ -123,6 +123,7 @@ class TMouseEvent
     TMouseEvent(const TMouseEvent &me, TPoint p) {
       nsevent = me.nsevent;
       pos = p;
+      type = me.type;
       _modifier = me._modifier;
       dblClick = me.dblClick;
       window = me.window;
