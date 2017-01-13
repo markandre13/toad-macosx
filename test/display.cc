@@ -95,6 +95,20 @@ saveImage(CGImageRef image, const string &filename)
 //  [nsFilename release];
 }
 
+static inline NSUInteger
+distance(NSUInteger c0, NSUInteger c1)
+{
+  return c0<c1 ? c1-c0 : c0-c1;
+} 
+
+static inline bool
+compareColor(const NSUInteger *c0, const NSUInteger *c1)
+{
+  return distance(c0[0], c1[0])<5 &&
+         distance(c0[1], c1[1])<5 &&
+         distance(c0[2], c1[2])<5;
+}
+
 static void
 compareImageFile(const string &file0, const string &file1)
 {
@@ -114,10 +128,7 @@ compareImageFile(const string &file0, const string &file1)
       NSUInteger data0[4], data1[4];
       [bmp0.img getPixel: data0 atX: x y: y];
       [bmp1.img getPixel: data1 atX: x y: y];
-      if (data0[0]!=data1[0] ||
-          data0[1]!=data1[1] ||
-          data0[2]!=data1[2])
-      {
+      if (!compareColor(data0, data1)) {
         FAIL() << "pixel mismatch between " << file0 << " and " << file1 << " at " << x << ", " << y << ".";
       }
     }
