@@ -38,7 +38,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   \
 	   bop12/booleanop.cc bop12/polygon.cc bop12/utilities.cc
 	
-SRC_COCOA=window.cc pen.cc
+SRC_COCOA=window.cc mouseevent.cc pen.cc
 
 SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
@@ -63,6 +63,7 @@ CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-inte
 OBJS    = $(SRC:.cc=.o)
 
 $(EXEC): $(OBJS)
+	mkdir -p fischland.app/Contents/MacOS
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
@@ -72,6 +73,7 @@ TEST_SRC=$(SRC_TEST) $(SRC_SHARED) $(SRC_COCOA)
 TEST_OBJ=$(TEST_SRC:.cc=.o)
 
 test.app/Contents/MacOS/test: $(TEST_OBJ)
+	mkdir -p test.app/Contents/MacOS
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
@@ -1067,7 +1069,8 @@ test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
 test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
 test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
-test_tablet.o: include/toad/floatmodel.hh booleanop.hh
+test_tablet.o: include/toad/floatmodel.hh include/toad/simpletimer.hh
+test_tablet.o: booleanop.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -1142,7 +1145,15 @@ window.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 window.o: include/toad/connect.hh include/toad/layout.hh
 window.o: include/toad/eventfilter.hh include/toad/focusmanager.hh
 window.o: include/toad/io/urlstream.hh include/toad/command.hh
-window.o: include/toad/stacktrace.hh
+window.o: include/toad/stacktrace.hh cocoa/toadview.impl
+mouseevent.o: include/toad/core.hh include/toad/window.hh
+mouseevent.o: include/toad/interactor.hh include/toad/types.hh
+mouseevent.o: include/toad/cursor.hh include/toad/color.hh
+mouseevent.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+mouseevent.o: include/toad/region.hh include/toad/pen.hh
+mouseevent.o: include/toad/penbase.hh include/toad/font.hh
+mouseevent.o: include/toad/pointer.hh include/toad/matrix2d.hh
+mouseevent.o: include/toad/bitmap.hh include/toad/connect.hh
 pen.o: include/toad/core.hh include/toad/window.hh include/toad/interactor.hh
 pen.o: include/toad/types.hh include/toad/cursor.hh include/toad/color.hh
 pen.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -1510,6 +1521,16 @@ fischland/fischeditor.o: include/toad/treemodel.hh include/toad/table.hh
 fischland/fischeditor.o: include/toad/dragndrop.hh
 test/main.o: test/gtest.h
 test/gtest-all.o: test/gtest.h
+test/display.o: include/toad/core.hh include/toad/window.hh
+test/display.o: include/toad/interactor.hh include/toad/types.hh
+test/display.o: include/toad/cursor.hh include/toad/color.hh
+test/display.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+test/display.o: include/toad/region.hh include/toad/pen.hh
+test/display.o: include/toad/penbase.hh include/toad/font.hh
+test/display.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test/display.o: include/toad/bitmap.hh include/toad/connect.hh
+test/display.o: include/toad/simpletimer.hh include/toad/scrollpane.hh
+test/display.o: test/gtest.h
 test/booleanop.o: include/toad/geometry.hh include/toad/types.hh
 test/booleanop.o: include/toad/vector.hh include/toad/penbase.hh
 test/booleanop.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2502,7 +2523,8 @@ test_tablet.o: include/toad/scrollbar.hh include/toad/integermodel.hh
 test_tablet.o: include/toad/numbermodel.hh include/toad/fatradiobutton.hh
 test_tablet.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 test_tablet.o: include/toad/labelowner.hh include/toad/scrollpane.hh
-test_tablet.o: include/toad/floatmodel.hh booleanop.hh
+test_tablet.o: include/toad/floatmodel.hh include/toad/simpletimer.hh
+test_tablet.o: booleanop.hh
 test_path_bool.o: include/toad/window.hh include/toad/interactor.hh
 test_path_bool.o: include/toad/types.hh include/toad/cursor.hh
 test_path_bool.o: include/toad/color.hh include/toad/io/serializable.hh
@@ -2577,7 +2599,15 @@ window.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 window.o: include/toad/connect.hh include/toad/layout.hh
 window.o: include/toad/eventfilter.hh include/toad/focusmanager.hh
 window.o: include/toad/io/urlstream.hh include/toad/command.hh
-window.o: include/toad/stacktrace.hh
+window.o: include/toad/stacktrace.hh cocoa/toadview.impl
+mouseevent.o: include/toad/core.hh include/toad/window.hh
+mouseevent.o: include/toad/interactor.hh include/toad/types.hh
+mouseevent.o: include/toad/cursor.hh include/toad/color.hh
+mouseevent.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+mouseevent.o: include/toad/region.hh include/toad/pen.hh
+mouseevent.o: include/toad/penbase.hh include/toad/font.hh
+mouseevent.o: include/toad/pointer.hh include/toad/matrix2d.hh
+mouseevent.o: include/toad/bitmap.hh include/toad/connect.hh
 pen.o: include/toad/core.hh include/toad/window.hh include/toad/interactor.hh
 pen.o: include/toad/types.hh include/toad/cursor.hh include/toad/color.hh
 pen.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh

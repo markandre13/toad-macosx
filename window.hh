@@ -118,6 +118,8 @@ class TLayout;
 class TMouseEvent
 {
   public:
+    static void _doMouse(TWindow *twindow, TMouseEvent &me);
+  
     NSEvent *nsevent;
     TMouseEvent(NSEvent *ne, TWindow *window);
     TMouseEvent(const TMouseEvent &me, TPoint p) {
@@ -174,6 +176,8 @@ class TKeyEvent {
     NSEvent *nsevent;
     TWindow *window;
     
+    // non-public
+    static string _nonDeadKeyString;
     unsigned _modifier;
     bool _has_modifier:1;
 
@@ -210,6 +214,11 @@ class TWindow:
     bool _inside:1; // helper to emulate mouseEnter, mouseLeave on Cocoa
     bool _mapped:1;
     bool _allMouseMoveEvents:1;
+
+    static TWindow* lastMouse;
+    static TWindow* grabPopupWindow;
+    static TRegion* updateRegion;
+    
     void _down(TMouseEvent::EType type, NSEvent *theEvent);
     void _up(TMouseEvent::EType type, NSEvent *theEvent);
     static void _windowWillMove(NSNotification *theNotification);

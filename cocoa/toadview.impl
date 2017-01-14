@@ -1,0 +1,331 @@
+/*
+ * To properly handle dead keys (ie. [alt]+[n], [ ] -> '~') our NSView has
+ * to implement the NSTextInputClient protocol.
+ *
+ * Here implement all methods for this protocol but they actually do nothing.
+ * Just having them available and calling [self interpretKeyEvents] will
+ * take care that the event's methods will deliver the requested dead keys.
+ */
+- (BOOL) hasMarkedText { return FALSE; }
+- (NSRange)markedRange { return {NSNotFound, 0}; }
+- (NSRange)selectedRange { return {NSNotFound, 0}; }
+- (void)setMarkedText: (id)str selectedRange:(NSRange)selected replacementRange:(NSRange)replacement {}
+- (void)unmarkText {}
+- (NSArray*) validAttributesForMarkedText { return [NSArray array]; }
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return nil; }
+- (void)insertText: str replacementRange:(NSRange) replacement { TKeyEvent::_nonDeadKeyString =  [str UTF8String]; }
+- (NSUInteger)characterIndexForPoint:(NSPoint)aPoint { return NSNotFound; }
+- (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange { return NSMakeRect(0,0,0,0); }
+- (void)doCommandBySelector:(SEL)aSelector {}
+
+/*
+- (id)initWithFrame:(NSRect)frame {
+  printf("initWithFrame\n");
+  self = [super initWithFrame:frame];
+  if (self) {
+    // [[self window] setAcceptsMouseMovedEvents:YES];
+    printf("  add tracking rectangle (0,0,%f,%f)\n", frame.size.width, frame.size.height);
+
+    trackAll = [self addTrackingRect: NSMakeRect(0, 0, frame.size.width, frame.size.height)
+               owner: self
+               userData: NULL
+                assumeInside: NO];
+//    [self setPostsBoundsChangedNotifications: YES];
+//    [self setPostsFrameChangedNotifications: YES];
+  }
+  return self;
+}
+*/
+- (void)dealloc {
+  if (twindow) {
+    cout << "dealloc toadView " << twindow->getTitle() << endl;
+  }
+  // [super dealloc]; nope, we are (hopefully) compiled with ARC
+}
+
+- (void)setWindow: (TWindow*)aWindow {
+  twindow = aWindow;
+}
+/*
+- (void) initTrackAll:(NSRect)frame {
+  trackAll = [self addTrackingRect: frame
+              owner: self
+              userData: NULL
+              assumeInside: NO];
+  // [self translateOriginToPoint: NSMakePoint(-0.5, -0.5)];
+  // [self setBoundsOrigin: NSMakePoint(-0.5, -0.5)];
+}
+*/
+// TRUE: (0,0) is in the upper-left-corner
+- (BOOL)isFlipped {
+  return TRUE;
+}
+- (BOOL)isOpaque {
+  return TRUE;
+}
+/*
+- (void) resizeSubviewsWithOldSize:(NSSize)oldBoundsSize
+{
+  printf("%s\n", __FUNCTION__);
+}
+*/
+- (void) setFrameSize:(NSSize)newSize
+{
+  TOAD_DBG_ENTER
+//  printf("%s: (%f,%f)\n", __FUNCTION__, newSize.width, newSize.height);
+  [super setFrameSize:newSize];
+/*
+  [self removeTrackingRect: trackAll];
+  trackAll = [self addTrackingRect: NSMakeRect(0, 0, newSize.width, newSize.height)
+              owner: self
+              userData: NULL
+              assumeInside: NO];
+*/
+  twindow->w = newSize.width;
+  twindow->h = newSize.height;
+  twindow->doResize();
+  TOAD_DBG_LEAVE
+}
+
+- (void) drawRect:(NSRect)rect
+{
+  TOAD_DBG_ENTER
+  if (TWindow::updateRegion) {
+    TWindow::updateRegion = NULL;
+  }
+/*
+  if ([self inLiveResize]) {
+    drawQuick()...
+    return;
+  }
+*/
+/*
+  // rect is the union of all clipping rects, which can be retrieved with this:
+  const NSRect *rects;
+  int count;
+  [self getRectsBeingDrawn:&rects count:&count];
+*/
+//printf("print draw rect (%f,%f,%f,%f)\n",rect.origin.x,rect.origin.y,
+//                                         rect.size.width,rect.size.height);
+  if (!twindow) {
+    TOAD_DBG_LEAVE
+    return;
+  }
+  
+  if (!twindow->flagNoBackground) {
+    CGContextRef ctx = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    CGContextSetRGBFillColor(ctx, twindow->_bg.r, twindow->_bg.g, twindow->_bg.b, 1);
+    CGContextAddRect(ctx, NSRectToCGRect(rect));
+    CGContextDrawPath(ctx, kCGPathFill);
+  }
+  if (twindow->layout) {
+    twindow->layout->paint();
+  }
+  twindow->paint();
+  TOAD_DBG_LEAVE
+}
+
+// We always return YES here to simulate FocusFollowsMouse behaviour.
+- (BOOL)acceptsFirstMouse:(NSEvent *)theEvent
+{
+  return YES;
+}
+
+/*
+ * NSView: 
+ *   acceptsFirstResponder
+ *     return YES when we can handle key events and action messages
+ *   becomeFirstResponder
+ *   needsPanelToBecomeKey
+ *   becomesKeyOnlyIfNeeded(NSPanel)
+ */
+
+/**
+ * return YES when we can handle key events and action messages
+ */
+- (BOOL)acceptsFirstResponder
+{
+//  printf("accept focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+  return YES;
+}
+
+- (BOOL)becomeFirstResponder
+{
+//  printf("became focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+  return YES;
+}
+
+- (BOOL)resignFirstResponder
+{
+//  printf("lost focus: %s %s\n", __FUNCTION__, twindow->getTitle().c_str());
+  return YES;
+}
+ 
+- (void) keyDown:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  // to handle dead keys correctly, we'll call interpretKeyEvents which
+  // causes self.insertText to place the result without dead keys in
+  // TKeyEvent::_nonDeadKeyString.
+  TKeyEvent::_nonDeadKeyString.clear();
+  [self interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
+
+  TKeyEvent ke(theEvent);
+  ke.type = TKeyEvent::DOWN;
+  TFocusManager::handleEvent(ke);
+  TOAD_DBG_LEAVE
+}
+
+- (void) keyUp:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TKeyEvent ke(theEvent);
+  ke.type = TKeyEvent::UP;
+  TFocusManager::handleEvent(ke);
+  TOAD_DBG_LEAVE
+}
+
+- (void)tabletPoint:(NSEvent *)theEvent
+{
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::TABLET_POINT;
+  twindow->mouseEvent(me);
+}
+
+- (void)tabletProximity:(NSEvent *)theEvent
+{
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::TABLET_PROXIMITY;
+  twindow->mouseEvent(me);
+}
+
+- (void) mouseEntered:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::ENTER;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) mouseExited:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::LEAVE;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) mouseDown:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier |= MK_LBUTTON;
+  twindow->_down(TMouseEvent::LDOWN, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+- (void) rightMouseDown:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier |= MK_RBUTTON;
+  twindow->_down(TMouseEvent::RDOWN, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+- (void) otherMouseDown:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier |= MK_MBUTTON;
+  twindow->_down(TMouseEvent::MDOWN, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+void
+TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
+{
+  TMouseEvent me(theEvent, this);
+  me.type = type;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
+  TMouseEvent::_doMouse(this, me);
+}
+
+- (void) mouseUp:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier &= ~MK_LBUTTON;
+  twindow->_up(TMouseEvent::LUP, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+- (void) rightMouseUp:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier &= ~MK_RBUTTON;
+  twindow->_up(TMouseEvent::RUP, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+- (void) otherMouseUp:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent::_modifier &= ~MK_MBUTTON;
+  twindow->_up(TMouseEvent::MUP, theEvent);
+  TOAD_DBG_LEAVE
+}
+
+void
+TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
+{
+  TMouseEvent me(theEvent, this);
+  me.type = type;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
+  TMouseEvent::_doMouse(this, me);
+}
+
+- (void) mouseDragged:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) rightMouseDragged:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) otherMouseDragged:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) mouseMoved:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  TMouseEvent me(theEvent, twindow);
+  me.type = TMouseEvent::MOVE;
+  TMouseEvent::_doMouse(twindow, me);
+  TOAD_DBG_LEAVE
+}
+
+- (void) scrollWheel:(NSEvent*)theEvent
+{
+  TOAD_DBG_ENTER
+  if ([theEvent deltaY] > 0.0) {
+    twindow->_up(TMouseEvent::ROLL_UP, theEvent);
+  } else {
+    twindow->_down(TMouseEvent::ROLL_DOWN, theEvent);
+  }
+  TOAD_DBG_LEAVE
+}
