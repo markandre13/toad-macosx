@@ -241,15 +241,6 @@
   TOAD_DBG_LEAVE
 }
 
-void
-TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
-{
-  TMouseEvent me(theEvent, this);
-  me.type = type;
-  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
-  TMouseEvent::_doMouse(this, me);
-}
-
 - (void) mouseUp:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
@@ -272,15 +263,6 @@ TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
   TMouseEvent::_modifier &= ~MK_MBUTTON;
   twindow->_up(TMouseEvent::MUP, theEvent);
   TOAD_DBG_LEAVE
-}
-
-void
-TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
-{
-  TMouseEvent me(theEvent, this);
-  me.type = type;
-  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
-  TMouseEvent::_doMouse(this, me);
 }
 
 - (void) mouseDragged:(NSEvent*)theEvent

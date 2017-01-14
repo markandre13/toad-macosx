@@ -246,7 +246,7 @@ class TWindow:
     TLayout *layout;
     TCursor *cursor;
 
-    toadView *nsview;
+    NSView *nsview;
     toadWindow *nswindow;
   // public:
     TWindow(TWindow *parent, const string &title);
@@ -261,6 +261,7 @@ class TWindow:
     static TWindow* getParentless(unsigned);
 
     virtual void closeRequest();
+    virtual void createCocoaView();
     void createWindow();
     void destroyWindow();
     void doModalLoop();

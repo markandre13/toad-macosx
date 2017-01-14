@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerfull C++ GUI Toolkit for X-Windows
- * Copyright (C) 1996-2003 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-AndrÃ© Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -27,20 +27,17 @@
 
 #include <toad/window.hh>
 
-@class NSOpenGLContext;
-
 namespace toad {
 
 class TGLWindow:
   public TWindow
 {
-    NSOpenGLContext *glctx;
   public:
     TGLWindow(TWindow*,const string &);
 
   private:
     void paint() override;
-    void resize() override;
+    void createCocoaView() override;
 
   protected:
     virtual void glPaint();

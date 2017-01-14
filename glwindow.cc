@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerfull C++ GUI Toolkit for X-Windows
- * Copyright (C) 2016 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2016-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -22,86 +22,64 @@
 // UNDER CONSTRUCTION
 
 #include <toad/glwindow.hh>
+#include <toad/core.hh>
+#include <toad/layout.hh>
+#include <toad/focusmanager.hh>
 
 #import <Cocoa/Cocoa.h>
 
-using namespace toad;
-
-@interface toadView : NSView <NSTextInputClient>
+@interface toadGLView : NSOpenGLView <NSTextInputClient>
 {
   @public
-    TWindow *twindow;
-}   
+    toad::TWindow *twindow;
+}
 @end
-      
+
+using namespace toad;
+
+@implementation toadGLView : NSOpenGLView
+#include "cocoa/toadview.impl"
+@end
+
 
 TGLWindow::TGLWindow(TWindow *p,const string &t)
   :TWindow(p,t)
 {
-  glctx = nil;
-  flagNoBackground = true;
 }
 
 void
-TGLWindow::resize()
+TGLWindow::createCocoaView()
 {
-  if (!glctx)
+  NSOpenGLPixelFormatAttribute attrs[] = {
+    // NSOpenGLPFADoubleBuffer,
+    NSOpenGLPFADepthSize, 32,
+    0
+  };
+
+  NSOpenGLPixelFormat* pixFmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+  if(pixFmt == nil) {
+    cerr << "TGLWindow::paint(): failed to create NSOpenGLPixelFormat" << endl;
     return;
+  }
 
-// [glctx dealloc];
-  glctx = 0;
-
-//  [glctx setView: nsview];
+  toadGLView *gl = [[toadGLView alloc]
+    initWithFrame: NSMakeRect(x,y,w,h)
+    pixelFormat: pixFmt
+  ];
+  gl->twindow = this;
+  nsview = gl;
 }
 
 void
 TGLWindow::paint()
 {
-//cerr << "------------------------------------" << endl;
-  if (!glctx) {
-
-    NSOpenGLPixelFormatAttribute attrs[] = {
-    //    NSOpenGLPFADoubleBuffer,
-      NSOpenGLPFADepthSize, 32,
-      0
-    };
-             
-    NSOpenGLPixelFormat* pixFmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-    if(pixFmt == nil) {
-      cerr << "TGLWindow::paint(): failed to create NSOpenGLPixelFormat" << endl;
-      return;
-    }
-
-    glctx = [[NSOpenGLContext alloc] initWithFormat: pixFmt shareContext: nil];
-    if (!glctx) {
-      cerr << "TGLWindow::paint(): failed to create NSOpenGLContext" << endl;
-      return;
-    }
-
-    // [pixFmt dealloc];
-    
-    // [nsview setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
-    
-    [glctx setView: nsview];
-  } else {
-    [glctx retain];
-  }
-  
-//cerr << "glctx = " << glctx << endl;
-  
-  [glctx makeCurrentContext];
-
+  glViewport(0,0,w,h);
   glPaint();
   glFlush();
-  
-//  [[nsview openGLContext] flushBuffer];
-  
-//  [glctx clearCurrentContext];
 }
 
 void TGLWindow::glPaint()
 {
-cout << "glPaint" << endl;
   glClearColor( 0.0, 0.0, 0.5, 0.0 );
   glClear(GL_COLOR_BUFFER_BIT);
   glColor3f(1.0f, 0.85f, 0.35f);

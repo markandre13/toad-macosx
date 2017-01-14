@@ -390,6 +390,26 @@ void TWindow::mouseRDown(const TMouseEvent &){}
 void TWindow::mouseLUp(const TMouseEvent &){}
 void TWindow::mouseMUp(const TMouseEvent &){}
 void TWindow::mouseRUp(const TMouseEvent &){}
+
+void
+TWindow::_down(TMouseEvent::EType type, NSEvent *theEvent)
+{
+  TMouseEvent me(theEvent, this);
+  me.type = type;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
+  TMouseEvent::_doMouse(this, me);
+}
+
+void
+TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
+{
+  TMouseEvent me(theEvent, this);
+  me.type = type;
+  me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
+  TMouseEvent::_doMouse(this, me);
+}
+
+
                                                                                                                                                                                                  
 unsigned
 TWindow::getParentlessCount()
@@ -640,6 +660,14 @@ TWindow::~TWindow()
 }
 
 void
+TWindow::createCocoaView()
+{
+  toadView *view = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
+  view->twindow = this;
+  nsview = view;
+}
+
+void
 TWindow::createWindow()
 {
   // if we already have a window, return
@@ -652,8 +680,8 @@ TWindow::createWindow()
 
 //cout << "TWindow::createWindow()" << endl;
 
-  nsview = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
-  nsview->twindow = this;
+  createCocoaView();
+
   if (getParent() && !flagShell && !flagPopup) {
     [getParent()->nsview addSubview: nsview];
   } else {
@@ -738,7 +766,7 @@ TWindow::destroyWindow()
   [nsview setWindow: nil];
   // [nsview setHidden: true];
   [nsview removeFromSuperview];
-  nsview->twindow = NULL;
+  //[nsview setToadWindow: nil];
   nsview = nil;
   
   if (!nswindow)
