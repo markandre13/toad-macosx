@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -63,9 +63,7 @@ TWindow::getParent() const
 
 
 
-void TWindow::paint()
-{
-}
+void TWindow::paint() {}
 
 void
 TWindow::doResize()
@@ -84,6 +82,7 @@ TWindow::doResize()
 }
 
 void TWindow::resize() {}
+
 void
 TWindow::keyEvent(const TKeyEvent &ke)
 {
@@ -1547,6 +1546,9 @@ TWindow::getUpdateRegion() const
 
 /**
  * scroll area within rectangle r by (dx, dy)
+ *
+ * for the 'redraw' option to work, the window must not be overlapped by
+ * another window to work properly
  */
 void
 TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
