@@ -21,10 +21,34 @@
 // preparing to get TTextArea to handle a subset of HTML
 
 /**
- * TPreparedDocument
- *   TPreparedLine
- *     TTextFragment
- *   TMarker
+ * TPreparedDocument		all prepared lines
+ *   TPreparedLine		all text fragment in a single line
+ *     TTextFragment		a text fragment with a single style to be rendered
+ *       TTextAttribute		font, color, etc.
+ *   TMarker			markers for cursors, selections, ...
+ * TTag
+ * TTextEditor2
+ *
+ * utility functions to move the text index 'cx'
+ * void taginc(const string &text, size_t *cx, TTag *tag=0)
+ * void tagdec(const string &text, size_t *cx)
+ * void entityinc(const string &text, size_t *cx)
+ * void entitydec(const string &text, size_t *cx)
+ * void xmlinc(const string &text, size_t *cx)
+ * void xmldec(const string &text, size_t *offset)
+ *
+ * returns the string in TTextFragment with enties begin replaced:
+ * void fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr, size_t *length)
+ *
+ * initialize TPreparedDocument from XML text
+ * void prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
+ *
+ * void renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos)
+ *
+ * void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, size_t len)
+ * size_t lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x)
+ * size_t positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
+ * void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos)
  */
 
 #include <toad/window.hh>
@@ -149,7 +173,7 @@ TPreparedLine::~TPreparedLine()
 }
 
 // marker for cursors, selections, ...
-// apple pages selection
+// apple pages selection is rendered as follows:
 // o blue selection background
 // o selection disables other background
 // o selection is line height (inclusive leading)
@@ -280,10 +304,12 @@ ostream& operator<<(ostream &s, const TTag& tag) {
 }
 
 /**
+ * move 'cx' onto the next character the user sees within 'text'
+ *
  *
  * accept misformed tags but don't add misformed attributes to 'tag'
  */
-inline void
+static void
 taginc(const string &text, size_t *cx, TTag *tag=0)
 {
   if (tag)
@@ -468,7 +494,7 @@ taginc(const string &text, size_t *cx, TTag *tag=0)
   }
 }
 
-inline void
+static void
 tagdec(const string &text, size_t *cx)
 {
   int state=1;
@@ -608,6 +634,13 @@ fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr
   *length = fragment->length;
 }
 
+/**
+ * initialize TPreparedDocument from XML text
+ *
+ * @param text		XML input
+ * @param xpos		unused
+ * @param document	output
+ */
 void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
@@ -986,6 +1019,8 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   
   if (!move) {
     text.insert(xpos[CURSOR], str);
+    xmlinc(text, &xpos[CURSOR]);
+    updateMarker(text, &document, xpos);
     updatePrepared(text, &document, xpos[CURSOR], strlen(str));
     invalidateWindow();
     return;
@@ -1164,10 +1199,13 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
 }
 
 /*
+  handling style changes
+
   the algorithm:
     brute force for now
     assumption:
       o input has been 'normalized' (been generated with this software)
+        (normalized means tags don't contain themselves (ie. no '<b><b>bold</b></b>')
       o calculating the width of a rendered string is expensive because of all
         the glyph and kerning operations.
       o parsing just the xml isn't (as long as it is just a few pages)
@@ -1210,7 +1248,7 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
       hello <b>this is really</b> awesome.
     OUTSIDE
       hello <b>this is really</b> awesome.
-  
+
   then there's also tag with attributes, for font selection
     hello <font family="sans-serif">this is</font> really awesome.
                                       ^  ^
@@ -1220,7 +1258,13 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
 */
 
 /**
- * if there is an area in text not covered by tag between bgn and end, return true
+ * helper function for tagtoggle
+ *
+ * @param text		text which would be modified
+ * @param tag		style (ie. 'b' for bold) to be toggled within the selection
+ * @param bgn		begin of the selection
+ * @param end		end of the selection
+ * @return              true when selection is not yet covered by tag
  */
 bool
 isadd(const string &text, const string &tag, size_t bgn, size_t end)
@@ -1282,146 +1326,13 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
   return false;
 }
 
-
-#ifndef OLD_TOAD
-int 
-test_text()
+string      
+tagtoggle(const string &text, size_t *xpos, const string &tag)
 {
-  if (isadd("<b>abc</b>defg", "b", 0,  4)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^   <
-  if (isadd("a<b>bcd</b>efg", "b", 0,  5)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^    <
-  if (isadd("<b>abc</b>defg", "b", 0,  6)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^     <
-  if (isadd("<b>abc</b>defg", "b", 0,  9)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^        <
-  if (isadd("<b>abc</b>defg", "b", 0, 10)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^         <
-  if (isadd("<b>abc</b>defg", "b", 0, 11)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //         ^          <
-  if (!isadd("abcdefg", "b", 4,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //              ^ <
-  if (!isadd("abcdefg", "b", 5,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //               ^<
-  if (isadd("ab<b>cde</b>fg", "b", 2,7)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //           ^   <
-  if (isadd("ab<b>cde</b>fg", "b", 2,9)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //           ^     <
-  if (isadd("ab<b>cde</b>fg", "b", 2,10)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //           ^      <
-  if (isadd("ab<b>cde</b>fg", "b", 2,12)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //           ^         <
-  if (!isadd("ab<b>cde</b>fg", "b", 2,13)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //            ^          <
-  if (!isadd("ab<b>cde</b>fg", "b", 2,14)) { cout << "isadd: " << __LINE__ << endl; return 1; }
-  //            ^           <
-  cout << "checked isadd... Ok" << endl;
-
-  struct test {
-    const char *in;
-    size_t bgn, end;
-    const char *out;
-  };
-
-  static test test[] = {
-    // touch at head
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      // ^    <
-         0,   5,
-        "<b>Hello</b> <b>this totally</b> really awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      // ^     <
-         0,    6,
-        "<b>Hello </b><b>this totally</b> really awesome." // IMPROVE
-    },
-#if 0
-    // ignore: end of selection is inside a tag
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      // ^       <
-         0,      8,
-        "<b>Hello this totally</b> really awesome."
-    },
-#endif
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      // ^        <
-         0,       9,
-        "<b>Hello this totally</b> really awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      // ^         <
-         0,        10,
-        "<b>Hello this totally</b> really awesome."
-    },
-    // touch at tail
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      //                    ^<
-                            19,20,
-        "Hello <b>this total</b>l<b>y</b> really awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      //                    ^     <
-                            19,   25,
-        "Hello <b>this total</b>ly really awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      //                     ^    <
-                            20,   25,
-        "Hello <b>this totall</b>y really awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      //                      ^    <
-                              21,  26,
-        "Hello <b>this totally </b>really awesome."
-    },
-    
-    // ...
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally</b> really awesome.",
-      //               ^                 <
-                       14,               32,
-        "Hello <b>this totally really</b> awesome."
-    },
-    { // 0         1         2         3         4
-      // 0123456789012345678901234567890123456789012
-        "Hello <b>this totally really</b> awesome.",
-      //               ^      <
-                       14,    21,
-        "Hello <b>this </b>totally<b> really</b> awesome."
-    }
-  };
-
-for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
-cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
-  string text = test[idx].in;
-  
   size_t x0=0, x1=0;
   size_t eol = text.size();
   int c;
 
-  size_t xpos[3];
-  xpos[SELECTION_BGN]=test[idx].bgn;
-  xpos[SELECTION_END]=test[idx].end;
-  string tag="b";
   int inside=0;
   size_t inside_bgn;
   
@@ -1550,14 +1461,162 @@ cout << __LINE__ << endl;
       x0=x1;
     }
   }
-  cout << out << endl;
-  if (out!=test[idx].out) {
-    cout << test[idx].out << endl;
-    cout << "failed" << endl;
-    exit(1);
-  }
-  cout << "Ok" << endl;
+  return out;
 }
+
+#ifndef OLD_TOAD
+int 
+test_text()
+{
+  // test isadd
+
+  if (isadd("<b>abc</b>defg", "b", 0,  4)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^   <
+  if (isadd("a<b>bcd</b>efg", "b", 0,  5)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^    <
+  if (isadd("<b>abc</b>defg", "b", 0,  6)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^     <
+  if (isadd("<b>abc</b>defg", "b", 0,  9)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^        <
+  if (isadd("<b>abc</b>defg", "b", 0, 10)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^         <
+  if (isadd("<b>abc</b>defg", "b", 0, 11)!=true ) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //         ^          <
+  if (!isadd("abcdefg", "b", 4,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //              ^ <
+  if (!isadd("abcdefg", "b", 5,6)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //               ^<
+  if (isadd("ab<b>cde</b>fg", "b", 2,7)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^   <
+  if (isadd("ab<b>cde</b>fg", "b", 2,9)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^     <
+  if (isadd("ab<b>cde</b>fg", "b", 2,10)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^      <
+  if (isadd("ab<b>cde</b>fg", "b", 2,12)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //           ^         <
+  if (!isadd("ab<b>cde</b>fg", "b", 2,13)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //            ^          <
+  if (!isadd("ab<b>cde</b>fg", "b", 2,14)) { cout << "isadd: " << __LINE__ << endl; return 1; }
+  //            ^           <
+  cout << "checked isadd... Ok" << endl;
+
+  //
+  // test addtag
+  //
+
+  struct test {
+    const char *in;	// input
+    size_t bgn, end;	// selection
+    const char *out;	// input after adding <b> to selection
+  };
+
+  static test test[] = {
+    // touch at head
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^    <
+         0,   5,
+        "<b>Hello</b> <b>this totally</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^     <
+         0,    6,
+        "<b>Hello </b><b>this totally</b> really awesome." // IMPROVE
+    },
+#if 0
+    // ignore: end of selection is inside a tag
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^       <
+         0,      8,
+        "<b>Hello this totally</b> really awesome."
+    },
+#endif
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^        <
+         0,       9,
+        "<b>Hello this totally</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      // ^         <
+         0,        10,
+        "<b>Hello this totally</b> really awesome."
+    },
+    // touch at tail
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                    ^<
+                            19,20,
+        "Hello <b>this total</b>l<b>y</b> really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                    ^     <
+                            19,   25,
+        "Hello <b>this total</b>ly really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                     ^    <
+                            20,   25,
+        "Hello <b>this totall</b>y really awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //                      ^    <
+                              21,  26,
+        "Hello <b>this totally </b>really awesome."
+    },
+    
+    // ...
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally</b> really awesome.",
+      //               ^                 <
+                       14,               32,
+        "Hello <b>this totally really</b> awesome."
+    },
+    { // 0         1         2         3         4
+      // 0123456789012345678901234567890123456789012
+        "Hello <b>this totally really</b> awesome.",
+      //               ^      <
+                       14,    21,
+        "Hello <b>this </b>totally<b> really</b> awesome."
+    }
+  };
+
+  for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
+    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
+    string text = test[idx].in;
+  
+    size_t xpos[3];
+    xpos[SELECTION_BGN]=test[idx].bgn;
+    xpos[SELECTION_END]=test[idx].end;
+
+    string out = tagtoggle(test[idx].in, xpos, "b");
+
+    cout << out << endl;
+    if (out!=test[idx].out) {
+      cout << test[idx].out << endl;
+      cout << "failed" << endl;
+      exit(1);
+    }
+    cout << "Ok" << endl;
+  }
+  cout << "checked addtag... Ok" << endl;
+
 
 // return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
