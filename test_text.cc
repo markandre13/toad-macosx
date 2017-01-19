@@ -960,6 +960,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   string str = ke.str();
   unsigned modifier = ke.modifier();
 #endif
+
   // return on deadkeys
   if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
     return;
@@ -1012,6 +1013,11 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
         move = true;
       }
+    } break;
+    case TK_DELETE: {
+      // text.erase(0,1);
+    } break;
+    case TK_BACKSPACE: {
     } break;
     default:
       updown = false;
@@ -1326,6 +1332,56 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
   return false;
 }
 
+struct TTagRange {
+  TTagRange(size_t b): bgn(b) {}
+  size_t bgn, end;
+};
+
+/**
+ * 'true' when tagName will close between cx and se within text
+ *
+ * @param text
+ * @param cx		current position in text
+ * @param sb            begin of selection
+ * @param se		end of selection
+ * @param tagName
+ */
+void
+tagrange(const string &text, vector<TTagRange> *result)
+{
+  vector<size_t> stack;
+
+  size_t cx=0;
+  while(cx<text.size()) {
+    size_t x = cx;
+    if (text[cx]=='&') {
+      entityinc(text, &cx);
+    } else
+    if (text[cx]=='<') {
+      TTag tag;
+      taginc(text, &cx, &tag);
+      if (tag.open) {
+        stack.push_back(result->size());
+        (*result).push_back(TTagRange(x));
+//cout << x << ": <" << tag.name << ">" << endl;
+      }
+      if (tag.close) {
+        (*result)[stack.back()].end = x;
+        stack.pop_back();
+//cout << x << ": </" << tag.name << ">" << endl;
+      }
+    } else {
+//cout << cx << ": " << text[cx] << endl;
+      utf8inc(text, &cx);
+    }
+  }
+
+  for(auto &a: *result) {
+    cout << a.bgn << " - " << a.end << endl;
+  }
+
+}
+
 string      
 tagtoggle(const string &text, size_t *xpos, const string &tag)
 {
@@ -1333,11 +1389,15 @@ tagtoggle(const string &text, size_t *xpos, const string &tag)
   size_t eol = text.size();
   int c;
 
-  int inside=0;
+  int inside=0; 	// how deep we are inside the tag to be added
+  int nesting=0;	// how deep we are inside the text tag hierachy
   size_t inside_bgn;
   
   // add says what we want to do
   bool add = isadd(text, tag, xpos[SELECTION_BGN], xpos[SELECTION_END]);
+  
+  vector<TTagRange> tagrange;
+  ::tagrange(text, &tagrange);
   
   string out;
   
@@ -1346,7 +1406,6 @@ tagtoggle(const string &text, size_t *xpos, const string &tag)
     // text & entity loop
     while(x1<eol) {
       c = text[x1];
-      
       
       if (xpos[SELECTION_BGN]==x1) {
         if (add) {
@@ -1367,6 +1426,7 @@ cout << __LINE__ << endl;
           }
         }
       }
+
       if (xpos[SELECTION_END]==x1) {
         if (add) {
           --inside;
@@ -1387,10 +1447,10 @@ cout << __LINE__ << endl;
         }
       }
 
-      if (c=='<')
+      if (c=='<') // leave for tag loop
         break;
 
-      cout << x1 << " :" << (char)c << " inside=" << inside << endl;
+      cout << x1 << " :" << (char)c << " inside=" << inside << ", nesting=" << nesting << endl;
       if (c=='&') {
         size_t x2=x1;
         entityinc(text, &x2);
@@ -1407,10 +1467,80 @@ cout << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
 
     // tag
     if (c=='<') {
-//      bool inside_sel = xpos[SELECTION_BGN] <= x0 && x0<xpos[SELECTION_END];
+      bool inside_sel = xpos[SELECTION_BGN] <= x0 && x0<xpos[SELECTION_END];
       taginc(text, &x1);
       string tag0 = text.substr(x0,x1-x0);
       cout << x0 << " :" << tag0 << endl;
+      
+      if (tag0[1]=='/') {
+        --nesting;
+      } else {
+        ++nesting;
+      }
+      
+      bool onoff = false;
+
+      if (add && inside_sel) {
+        if (tag0[1]!='/' &&
+            tag0.compare(1, tag.size(), tag)!=0 )
+        {
+          for(auto &a: tagrange) {
+            if (a.bgn==x0) {
+              if (a.end>xpos[SELECTION_END]) {
+                cout << "add: tag end "<<a.end<<" is behind selection end "<<xpos[SELECTION_END]<< endl;
+                onoff = true;
+              }
+            }
+          }
+        }
+        if (tag0[1]=='/' &&
+            tag0.compare(2, tag.size(), tag)!=0 )
+        {
+          for(auto &a: tagrange) {
+            if (a.end==x0) {
+              if (a.bgn<xpos[SELECTION_BGN]) {
+                cout << "add: tag bgn "<<a.end<<" is before selection bgn "<<xpos[SELECTION_BGN]<< endl;
+                onoff = true;
+              }
+            }
+          }
+        }
+      }
+
+      if (!add && !inside_sel) {
+        if (tag0[1]!='/' &&
+            tag0.compare(1, tag.size(), tag)!=0 )
+        {
+cout << "look for " << tag0 << " at " << x0 << endl;
+          for(auto &a: tagrange) {
+            if (a.bgn==x0) {
+cout << "  tag has range " << a.bgn << " to " << a.end << endl;
+              if (a.end>xpos[SELECTION_BGN]) {
+                cout << "del: tag end "<<a.end<<" is after selection bgn "<<xpos[SELECTION_BGN]<< endl; // FIXME: text
+                onoff = true;
+              }
+            }
+          }
+        }
+        if (tag0[1]=='/' &&
+            tag0.compare(2, tag.size(), tag)!=0 ) // FIXME: the compares don't check for the tag names length!!!
+        {
+cout << "look for " << tag0 << " at " << x0 << endl;
+          for(auto &a: tagrange) {
+            if (a.end==x0) {
+cout << "  tag has range " << a.bgn << " to " << a.end << endl;
+              if (a.bgn<xpos[SELECTION_END]) {
+                cout << "del: tag bgn "<<a.end<<" is after selection end "<<xpos[SELECTION_END]<< endl; // FIXME: text
+                onoff = true;
+              }
+            }
+          }
+        }
+      }
+      
+      if (onoff) {
+        out+="</"+tag+">";
+      }
       
 //      if (!inside_sel) {
         // outside selection
@@ -1432,8 +1562,15 @@ cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
           }
           ++inside;
         } else {
-cout << __LINE__ << endl;
-          out += tag0;
+//          if (!inside || willclose(text, x1, xpos[SELECTION_END], tag)) {
+            out += tag0;
+/*
+          } else {
+            out += "</"+tag+">";
+            out += tag0;
+            out += "<"+tag+">";
+          }
+*/
         }
 /*
       } else
@@ -1458,16 +1595,58 @@ cout << __LINE__ << endl;
         ++inside;
       }
 */
+      if (onoff) {
+        out+="<"+tag+">";
+      }
+
       x0=x1;
-    }
+    } // end of tag
   }
   return out;
 }
 
 #ifndef OLD_TOAD
+
 int 
 test_text()
 {
+/*
+  vector<TTagRange> ranges;
+  tagrange("buh <p>Hello you <i>this <u>is</u> totally really</i> awesome.</p>", &ranges);
+return 0;
+*/
+/*
+  // test willclose
+  struct test {
+    const char *in;
+    size_t bgn, end;
+  };
+  
+  static test test[] = {
+    { // 0         1         2         3         4         5         6         8
+      // 01234567890123456789012345678901234567890123456789012345678901234567890
+        "<p>Hello you <i>this <u>is</u> totally really</i> awesome.</p>",		// +1
+      // 0 1          1 2     2 3  3  2               2  1         1  0
+      //          ^                              <
+                  0,                             31,
+    }
+  };
+  
+  for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
+    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
+    string text = test[idx].in;
+  
+    size_t xpos[3];
+    size_t sb = test[idx].bgn;
+    size_t se = test[idx].end;
+    
+    for(size_t i=0; i<
+  }
+  
+
+return 0;
+*/
+#if 1
   // test isadd
 
   if (isadd("<b>abc</b>defg", "b", 0,  4)!=false) { cout << "isadd: " << __LINE__ << endl; return 1; }
@@ -1511,6 +1690,7 @@ test_text()
   };
 
   static test test[] = {
+
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -1594,7 +1774,67 @@ test_text()
       //               ^      <
                        14,    21,
         "Hello <b>this </b>totally<b> really</b> awesome."
-    }
+    },
+
+    // interlace
+
+// FIXME: needs more tests, also: how does it behave when we throw <b> into the mix?
+
+    // enter tag
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this totally really</i> awesome.",			// +1
+      // ^            <
+         0,           13,
+        "<b>Hello </b><i><b>this</b> totally really</i> awesome."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this <u>is totally</u> really</i> awesome.",		// +2
+      // ^                  <
+         0,                 19,
+        "<b>Hello </b><i><b>this </b><u><b>is</b> totally</u> really</i> awesome."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this <u>is</u> totally really</i> awesome.",		// +1
+      // ^                              <
+         0,                             31,
+        "<b>Hello </b><i><b>this <u>is</u> totally</b> really</i> awesome."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "<b>Hello <i>this is <u>not totally</u> really</i> awesome.</b>",
+      //                  ^         <
+                          17,       27,
+        "<b>Hello </b><i><b>this </b>is <u>not <b>totally</b></u><b> really</b></i><b> awesome.</b>"
+        
+        // when we're going to switch a tag off deeper, we need to toggle till it's off
+    },
+
+    // leave tag
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this is totally really</i> awesome.",
+      //                          ^                 <
+                                  25,               43,
+        "Hello <i>this is totally <b>really</b></i><b> awesome</b>."	// -1
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this <u>is totally</u> really</i> awesome.",		// -2
+      //                     ^                             <
+                             20,                           50,
+        "Hello <i>this <u>is <b>totally</b></u><b> really</b></i><b> awesome</b>."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "Hello <i>this is <u>totally</u> really</i> awesome.",		// -1
+      //               ^                                   <
+                       14,                                 50,
+        "Hello <i>this <b>is <u>totally</u> really</b></i><b> awesome</b>."
+    },
+
   };
 
   for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
@@ -1607,9 +1847,10 @@ test_text()
 
     string out = tagtoggle(test[idx].in, xpos, "b");
 
-    cout << out << endl;
+    cout << "in  : " << text << endl;
+    cout << "want: " << test[idx].out << endl;
+    cout << "got : " << out  << endl;
     if (out!=test[idx].out) {
-      cout << test[idx].out << endl;
       cout << "failed" << endl;
       exit(1);
     }
@@ -1618,10 +1859,11 @@ test_text()
   cout << "checked addtag... Ok" << endl;
 
 
-// return 0;
+ return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
+#endif
 }
 #else
 int
