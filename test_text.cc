@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 2015 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2015-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -737,7 +737,8 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         line->descent = 0;
         x=0;
       }
-      line->fragments.push_back(new TTextFragment(fragment));
+      if (!line->fragments.empty() && line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps
+        line->fragments.push_back(new TTextFragment(fragment));
       fragment = line->fragments.back();
       if (tag.name=="br") {
       } else
@@ -943,6 +944,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is not what we want to hear from Santa.";
 text="This was a bold move.";
+text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
@@ -2002,8 +2004,53 @@ return 0;
   }
   cout << "checked tagtoggle... Ok" << endl;
 
+  string text;
+  vector<size_t> xpos;
+  TPreparedDocument document;
+  //    0         1         2         3         4         5
+  //    012345678901234567890123456789012345678901234567890
+  text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
+  // 0, 6
+  // 9, 5, italics
+  // 24, 2, bold, italics
+  // 30, 2 bold
+  // 36, 6
+  
+  struct ftest {
+    size_t offset, length;
+    bool bold, italics;
+  };
+  struct t {
+    const char *in;
+    vector<ftest> frags;
+  };
+  
+  t tt[] = {
+    { .in = "This w<i>as a </i><b><i>bo</i>ld</b> move.",
+      .frags = {
+        { .offset=0, .length=6 },
+        { .offset=9, .length=5, .italics=true },
+        { .offset=24, .length=2, .italics=true, .bold=true },
+        { .offset=30, .length=2, .bold=true },
+        { .offset=36, .length=6 },
+      }
+    },
+    { .in = "This was a <b>bold</b> move." }
+  };
+  
+  xpos.assign(3, 0);
+  prepareHTMLText(text, xpos, &document);
+  
+  for(auto &line: document.lines) {
+    cout << "line:" << endl;
+    for(auto &fragment: line->fragments) {
+      cout << "  fragment: " << fragment->offset << ", " << fragment->length
+           << (fragment->attr.bold?", bold":"")
+           << (fragment->attr.italic?", italics":"") << endl;
+    }
+  }
 
-//return 0;
+return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
