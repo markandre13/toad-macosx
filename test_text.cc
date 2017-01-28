@@ -215,6 +215,8 @@ TPreparedDocument::clear()
 {
   for(auto p: lines)
     delete p;
+  lines.clear();
+  marker.clear();
 }
 
 TPreparedLine*
@@ -660,6 +662,7 @@ fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr
 void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
+  document->clear();
   if (text.empty())
     return;
 //cout << "------------------------------------------------------" << endl;
@@ -939,10 +942,8 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
   text = "Fröhliche.<b>Weihnachten</b>.&times;&times;&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is not what we want to hear from Santa.";
-  xpos.resize(3);
-  xpos[CURSOR] = 0;
-  xpos[SELECTION_BGN] = 0;
-  xpos[SELECTION_END] = 0;
+text="This was a bold move.";
+  xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
 }
@@ -963,6 +964,8 @@ TTextEditor2::paint()
   pen.translate(0,72);
   renderPrepared(pen, text.data(), &document, xpos);
 }
+
+string tagtoggle(const string &text, vector<size_t> &xpos, const string &tag);
 
 #ifndef OLD_TOAD
 void
@@ -985,6 +988,25 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   size_t oldcursor = xpos[CURSOR];
   size_t sb = xpos[SELECTION_BGN];
   size_t se = xpos[SELECTION_END];
+  
+  if (modifier & MK_CONTROL) {
+    switch(key) {
+      case 11:
+        text = tagtoggle(text, xpos, "b");
+        prepareHTMLText(text, xpos, &document);
+        invalidateWindow();
+        break;
+      case 34:
+        text = tagtoggle(text, xpos, "i");
+        prepareHTMLText(text, xpos, &document);
+        invalidateWindow();
+        break;
+      default:
+        cout << "control '" << key << "'\n";
+    }
+    return;
+  }
+  
   if (modifier & MK_SHIFT) {
     if (sb==se) {
       // start a new selection
@@ -1484,7 +1506,7 @@ cout << "TAIL PASSED AT END" << endl;
 }
 
 string      
-tagtoggle(const string &text, size_t *xpos, const string &tag)
+tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
 {
   size_t x0=0, x1=0;
   size_t eol = text.size();
@@ -1944,7 +1966,8 @@ return 0;
     cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
     string text = test[idx].in;
   
-    size_t xpos[3];
+    vector<size_t> xpos;
+    xpos.assign(3,0);
     xpos[SELECTION_BGN]=test[idx].bgn;
     xpos[SELECTION_END]=test[idx].end;
 
@@ -1962,7 +1985,7 @@ return 0;
   cout << "checked tagtoggle... Ok" << endl;
 
 
- return 0;
+// return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
