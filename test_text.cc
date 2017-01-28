@@ -285,21 +285,37 @@ struct TTag
   map<string, string> attribute;
   bool open:1;
   bool close:1;
+  string str() const;
 };
 
-ostream& operator<<(ostream &s, const TTag& tag) {
-  s<<'<';
-  if (!tag.open && tag.close)
-    s<<'/';
-  s<<tag.name;
-  for(auto p: tag.attribute)
+string TTag::str() const
+{
+  string s("<");
+  if (!open && close)
+    s+='/';
+  s+=name;
+  for(auto p: attribute)
     if (p.second.find('"')==string::npos)
-      s<<" "<<p.first<<"=\""<<p.second<<"\"";
+      s+=" "+p.first+"=\""+p.second+"\"";
     else
-      s<<" "<<p.first<<"='"<<p.second<<"'";
-  if (tag.open && tag.close)
-    s<<'/';
-  s<<'>';
+      s+=" "+p.first+"='"+p.second+"'";
+  if (open && close)
+    s+='/';
+  s+='>';
+  return s;
+}
+
+ostream& operator<<(ostream &s, const TTag& tag) {
+  s<<tag.str();
+  return s;
+}
+
+string operator+(const string &s, const TTag &tag) {
+  return s+tag.str();
+}
+
+string& operator+=(string &s, const TTag &tag) {
+  s+=tag.str();
   return s;
 }
 
@@ -1302,16 +1318,16 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
     }
     x0=x1;
     if (c=='<') {
-      taginc(text, &x1);
-      string tag0 = text.substr(x0,x1-x0);
+      TTag tag0;
+      taginc(text, &x1, &tag0);
 //      cout << x0 << " tag: " << tag0;
-      if (tag0[1]=='/') {
-        if (tag0.compare(2, tag.size(), tag)==0) {
+      if (tag0.close) {
+        if (tag0.name==tag) {
 //          cout << " close";
           inside = false;
         }
       } else {
-        if (tag0.compare(1, tag.size(), tag)==0) {
+        if (tag0.name==tag) {
 //          cout << " open";
           inside = true;
 //      cout << endl;
@@ -1564,16 +1580,14 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
     // tag
     if (c=='<') {
       bool inside_sel = sb<=x0 && x0<se;
-      taginc(text, &x1);
-      string tag0 = text.substr(x0,x1-x0);
+      TTag tag0;
+      taginc(text, &x1, &tag0);
       cout << x0 << " :" << tag0 << endl;
       
       bool onoff = false;
 //if (inside<2) {
       if (add && inside_sel) {
-        if (tag0[1]!='/' &&
-            tag0.compare(1, tag.size(), tag)!=0 )
-        {
+        if (tag0.open && tag0.name!=tag) {
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
               if (a.end>se) {
@@ -1583,9 +1597,7 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
             }
           }
         }
-        if (tag0[1]=='/' &&
-            tag0.compare(2, tag.size(), tag)!=0 )
-        {
+        if (tag0.close && tag0.name!=tag) {
           for(auto &a: tagrange) {
             if (a.end==x0) {
               if (a.bgn<sb) {
@@ -1598,9 +1610,7 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
       }
 
       if (!add && !inside_sel) {
-        if (tag0[1]!='/' &&
-            tag0.compare(1, tag.size(), tag)!=0 )
-        {
+        if (tag0.open && tag0.name!=tag) {
 cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
@@ -1612,9 +1622,7 @@ cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< e
             }
           }
         }
-        if (tag0[1]=='/' &&
-            tag0.compare(2, tag.size(), tag)!=0 ) // FIXME: the compares don't check for the tag names length!!!
-        {
+        if (tag0.close && tag0.name!=tag) {
 cout << __LINE__ << "look for " << tag0 << " at " << x0 << endl;
           for(auto &a: tagrange) {
             if (a.end==x0) {
@@ -1636,9 +1644,7 @@ cout << __LINE__ << ": add </" << tag << ">" << endl;
       
 //      if (!inside_sel) {
         // outside selection
-        if (tag0[1]=='/' &&
-            tag0.compare(2, tag.size(), tag)==0)
-        {
+        if (tag0.close && tag0.name==tag) {
           --inside;
 cout << __LINE__ << ": --inside, inside=" << (inside) << endl;
           if (!inside) {
@@ -1649,9 +1655,7 @@ cout << __LINE__ << ": don't add " << tag0 << " at " << x0 << endl;
 //            --inside;
           }
         } else
-        if (tag0[1]!='/' &&
-            tag0.compare(1, tag.size(), tag)==0)
-        {
+        if (tag0.open && tag0.name==tag) {
 cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
           if (!inside) {
 cout << __LINE__ << ": add " << tag0 << endl;
