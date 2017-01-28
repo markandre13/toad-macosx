@@ -11,7 +11,7 @@ bool toad::nonBlockingMainLoopKludge = false;
 
 using namespace toad;
 
-@interface ToadDelegate : NSObject <NSFileManagerDelegate>
+@interface ToadDelegate: NSObject <NSApplicationDelegate>
 {
 }
 - (void) createWindow;
