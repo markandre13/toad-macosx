@@ -1568,7 +1568,20 @@ cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;
 cout << __LINE__ << ": --inside, inside=" << inside << endl;
           }
         } else {
+
           if (!inside) {
+          
+            if (c=='<') {
+              TTag tag1;
+              size_t tmp=x1;
+              taginc(text, &tmp, &tag1);
+              if (tag1.close && tag1.name==tag) {
+cout << __LINE__ << ": tag to be removed ended at end of selection, don't reopen it and skip close" << endl;
+                x1 = tmp;
+                continue;
+              }
+            }
+
 cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
             out += "<"+tag+">";
           } else {
@@ -1702,7 +1715,7 @@ cout << __LINE__ << ": add <" << tag << ">" << endl;
   }
 
   // still inside? don't
-  if (inside)
+  if (inside==1)
     out+="</"+tag+">";
 
   return out;
@@ -1793,7 +1806,6 @@ return 0;
   };
 
   static test test[] = {
-#if 1
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -1920,7 +1932,6 @@ return 0;
          0,                                                                                        90,
         "<b>Hello <i>this is <u>not totally</u> really</i> awesome.</b>"
     },
-#endif
     { // 0         1         2         3         4         5         6         7         8         9
       // 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
         "<b>Hello </b><i><b>this </b>is <u>not <b>totally</b></u><b> really</b></i><b> awesome.</b>",
@@ -1929,7 +1940,6 @@ return 0;
         "<b>Hello <i>this is <u>not totally</u> really</i> awesome.</b>"
     },
 
-#if 1
     // leave tag
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
@@ -1959,7 +1969,15 @@ return 0;
                                 23,            38,
         "<b>Hello </b><i><b>this </b><u><b>is </b>not</u> totally<b> really</b></i><b> awesome.</b>"
     },
-#endif
+
+    // drop tag
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "This was a <b>bold</b> move.",
+      //            ^      <
+                    11,    18,
+        "This was a bold move."
+    },
   };
 
   for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
@@ -1985,7 +2003,7 @@ return 0;
   cout << "checked tagtoggle... Ok" << endl;
 
 
-// return 0;
+//return 0;
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
