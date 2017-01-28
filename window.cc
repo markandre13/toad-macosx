@@ -92,7 +92,7 @@ TWindow::keyEvent(const TKeyEvent &ke)
 {
   switch(ke.type) {
     case TKeyEvent::DOWN:
-printf("key down in %s (%u)\n", getTitle().c_str(), (unsigned)ke.getKey());
+//printf("key down in %s (%u)\n", getTitle().c_str(), (unsigned)ke.getKey());
       keyDown(ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
       break;
     case TKeyEvent::UP:
