@@ -1007,9 +1007,7 @@ tagrange(const string &text, vector<TTagRange> *result)
     }
   }
 
-  for(auto &a: *result) {
-    cout << a.bgn << " - " << a.end << endl;
-  }
+//for(auto &a: *result) cout << a.bgn << " - " << a.end << endl;
 
 }
 
@@ -1020,7 +1018,7 @@ expandselection(const string &text, size_t *sb, size_t *se, const string &name, 
 {
 if (!isadd)
   return;
-cout << "----------- expand selection ---------------" << endl;
+//cout << "----------- expand selection ---------------" << endl;
   size_t cx=0, inside_since;
   enum {
     HEAD_OUTSIDE,
@@ -1035,17 +1033,17 @@ cout << "----------- expand selection ---------------" << endl;
   
   while(cx<text.size()) {
     if (cx==*sb) {
-cout << "BGN SELECTION" << endl;
+//cout << "BGN SELECTION" << endl;
       if (head!=HEAD_OUTSIDE) {
-cout << "  NOT HEAD_OUTSIDE, SET SB TO " << inside_since << endl;
+//cout << "  NOT HEAD_OUTSIDE, SET SB TO " << inside_since << endl;
         *sb = inside_since;
       } else {
-cout << "  HEAD_OUTSIDE" << endl;
+//cout << "  HEAD_OUTSIDE" << endl;
       }
     }
     if (cx==*se) {
-cout << "END SELECTION AT " << cx << endl;
-cout << "TAIL_JUST_PASSED" << endl;
+//cout << "END SELECTION AT " << cx << endl;
+//cout << "TAIL_JUST_PASSED" << endl;
       tail = TAIL_JUST_PASSED;
     }
     size_t x = cx;
@@ -1053,9 +1051,9 @@ cout << "TAIL_JUST_PASSED" << endl;
       TTag tag;
       taginc(text, &cx, &tag);
       if (tag.open) {
-cout << x << ": <" << tag.name << ">" << endl;
+//cout << x << ": <" << tag.name << ">" << endl;
         if (tag.name == name) {
-cout << "  HEAD_INSIDE" << endl;
+//cout << "  HEAD_INSIDE" << endl;
           if (head==HEAD_OUTSIDE) {
             inside_since = x;
           }
@@ -1063,19 +1061,19 @@ cout << "  HEAD_INSIDE" << endl;
         }
       }
       if (tag.close) {
-cout << x << ": </" << tag.name << ">" << endl;
+//cout << x << ": </" << tag.name << ">" << endl;
         if (tag.name == name) {
-cout << "  HEAD_OUTSIDE_UNUSED" << endl;
+//cout << "  HEAD_OUTSIDE_UNUSED" << endl;
           head = HEAD_OUTSIDE_UNUSED;
         }
       }
     } else {
       if (head==HEAD_OUTSIDE_UNUSED) {
-cout << "  HEAD_OUTSIDE" << endl;
+//cout << "  HEAD_OUTSIDE" << endl;
         head=HEAD_OUTSIDE;
       }
       if (head==HEAD_OUTSIDE && tail==TAIL_JUST_PASSED) {
-cout << "TAIL PASSED AT " << x << endl;
+//cout << "TAIL PASSED AT " << x << endl;
         *se = x;
         tail = TAIL_PASSED;
       }
@@ -1083,17 +1081,17 @@ cout << "TAIL PASSED AT " << x << endl;
       if (text[cx]=='&') {
         entityinc(text, &cx);
       } else {
-cout << cx << ": " << text[cx] << endl;
+//cout << cx << ": " << text[cx] << endl;
         utf8inc(text, &cx);
       }
     }
   }
   if (tail==TAIL_JUST_PASSED) {
-cout << "TAIL PASSED AT END" << endl;
+//cout << "TAIL PASSED AT END" << endl;
     *se = cx;
   }
   
-  cout << "new selection: " << *sb << " - " << *se << endl;
+//  cout << "new selection: " << *sb << " - " << *se << endl;
 
 //exit(0);
 }
@@ -1101,7 +1099,7 @@ cout << "TAIL PASSED AT END" << endl;
 string      
 tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
 {
-  size_t x0=0, x1=0;
+  size_t x0=0, x1=0; // FIXME: do i still need two variables here?
   size_t eol = text.size();
   int c;
 
@@ -1112,7 +1110,7 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   
   // find out whether we are about to add or remove tag
   bool add = isadd(text, tag, sb, se);
-cout << "isadd: " << add << endl;
+//cout << "isadd: " << add << endl;
 
   // the algoritm following later is good at removing the onoff related tags
   // when the selection encloses the largest possible area to be within tag.
@@ -1134,19 +1132,19 @@ cout << "isadd: " << add << endl;
       if (sb==x1) {
         if (add) {
           if (!inside) {
-cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
+//cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
             out += "<"+tag+">";
           } else {
-cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
+//cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
           }
           ++inside;
         } else {
           --inside;
           if (!inside) {
-cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << (inside) << endl;
+//cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << (inside) << endl;
             out += "</"+tag+">";
           } else {
-cout << __LINE__ << endl;
+//cout << __LINE__ << endl;
           }
         }
       }
@@ -1155,10 +1153,10 @@ cout << __LINE__ << endl;
         if (add) {
           --inside;
           if (!inside) {
-cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;
+//cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;
             out += "</"+tag+">";
           } else {
-cout << __LINE__ << ": --inside, inside=" << inside << endl;
+//cout << __LINE__ << ": --inside, inside=" << inside << endl;
           }
         } else {
 
@@ -1169,16 +1167,16 @@ cout << __LINE__ << ": --inside, inside=" << inside << endl;
               size_t tmp=x1;
               taginc(text, &tmp, &tag1);
               if (tag1.close && tag1.name==tag) {
-cout << __LINE__ << ": tag to be removed ended at end of selection, don't reopen it and skip close" << endl;
+//cout << __LINE__ << ": tag to be removed ended at end of selection, don't reopen it and skip close" << endl;
                 x1 = tmp;
                 continue;
               }
             }
 
-cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
+//cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
             out += "<"+tag+">";
           } else {
-cout << __LINE__ << endl;
+//cout << __LINE__ << endl;
           }
           ++inside;
         }
@@ -1187,13 +1185,13 @@ cout << __LINE__ << endl;
       if (c=='<') // leave for tag loop
         break;
 
-      cout << x1 << " :" << (char)c << " inside=" << inside << endl;
+//cout << x1 << " :" << (char)c << " inside=" << inside << endl;
 
       if (c=='&') {
         // copy entity
         size_t x2=x1;
         entityinc(text, &x2);
-cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
+//cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
         out+=text.substr(x1,x2-x1);
         x1=x2;
       } else {
@@ -1210,16 +1208,15 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
       bool inside_sel = sb<=x0 && x0<se;
       TTag tag0;
       taginc(text, &x1, &tag0);
-      cout << x0 << " :" << tag0 << endl;
+//cout << x0 << " :" << tag0 << endl;
       
       bool onoff = false;
-//if (inside<2) {
       if (add && inside_sel) {
         if (tag0.open && tag0.name!=tag) {
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
               if (a.end>se) {
-                cout << "add: tag end "<<a.end<<" is behind selection end "<<se<< endl;
+//cout << "add: tag end "<<a.end<<" is behind selection end "<<se<< endl;
                 onoff = true;
               }
             }
@@ -1229,7 +1226,7 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
           for(auto &a: tagrange) {
             if (a.end==x0) {
               if (a.bgn<sb) {
-                cout << "add: tag bgn "<<a.end<<" is before selection bgn "<<sb<< endl;
+//cout << "add: tag bgn "<<a.end<<" is before selection bgn "<<sb<< endl;
                 onoff = true;
               }
             }
@@ -1239,24 +1236,24 @@ cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
 
       if (!add && !inside_sel) {
         if (tag0.open && tag0.name!=tag) {
-cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;
+//cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
-cout << __LINE__ << ":  tag has range " << a.bgn << " to " << a.end << endl;
+//cout << __LINE__ << ":  tag has range " << a.bgn << " to " << a.end << endl;
               if (a.end>sb) {
-cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< endl; // FIXME: text
+//cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< endl; // FIXME: text
                 onoff = true;
               }
             }
           }
         }
         if (tag0.close && tag0.name!=tag) {
-cout << __LINE__ << "look for " << tag0 << " at " << x0 << endl;
+//cout << __LINE__ << "look for " << tag0 << " at " << x0 << endl;
           for(auto &a: tagrange) {
             if (a.end==x0) {
-cout << "  tag has range " << a.bgn << " to " << a.end << endl;
+//cout << "  tag has range " << a.bgn << " to " << a.end << endl;
               if (a.bgn<se) {
-                cout << "del: tag bgn "<<a.end<<" is after selection end "<<se<< endl; // FIXME: text
+//cout << "del: tag bgn "<<a.end<<" is after selection end "<<se<< endl; // FIXME: text
                 onoff = true;
               }
             }
@@ -1266,7 +1263,7 @@ cout << "  tag has range " << a.bgn << " to " << a.end << endl;
 //}
       
       if (onoff) {
-cout << __LINE__ << ": add </" << tag << ">" << endl;
+//cout << __LINE__ << ": add </" << tag << ">" << endl;
         out+="</"+tag+">";
       }
       
@@ -1274,32 +1271,32 @@ cout << __LINE__ << ": add </" << tag << ">" << endl;
         // outside selection
         if (tag0.close && tag0.name==tag) {
           --inside;
-cout << __LINE__ << ": --inside, inside=" << (inside) << endl;
+//cout << __LINE__ << ": --inside, inside=" << (inside) << endl;
           if (!inside) {
-cout << __LINE__ << ": add " << tag0 << endl;
+//cout << __LINE__ << ": add " << tag0 << endl;
             out += tag0;
           } else {
-cout << __LINE__ << ": don't add " << tag0 << " at " << x0 << endl;
+//cout << __LINE__ << ": don't add " << tag0 << " at " << x0 << endl;
 //            --inside;
           }
         } else
         if (tag0.open && tag0.name==tag) {
-cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
+//cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
           if (!inside) {
-cout << __LINE__ << ": add " << tag0 << endl;
+//cout << __LINE__ << ": add " << tag0 << endl;
             out += tag0;
           } else {
 //            ++inside;
-cout << __LINE__ << ": don't add " << tag0 << endl;
+//cout << __LINE__ << ": don't add " << tag0 << endl;
           }
           ++inside;
         } else {
-cout << __LINE__ << ": copy tag " << tag0 << endl;
+//cout << __LINE__ << ": copy tag " << tag0 << endl;
             out += tag0;
         }
 
       if (onoff) {
-cout << __LINE__ << ": add <" << tag << ">" << endl;
+//cout << __LINE__ << ": add <" << tag << ">" << endl;
         out+="<"+tag+">";
       }
 

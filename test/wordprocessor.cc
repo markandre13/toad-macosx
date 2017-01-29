@@ -222,7 +222,7 @@ TEST(WordProcessor, tagtoggle)
   };
 
   for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
-    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
+//    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
     string text = test[idx].in;
   
     vector<size_t> xpos;
