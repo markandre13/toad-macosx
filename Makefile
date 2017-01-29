@@ -51,6 +51,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 
 SRC_TEST=test/main.cc test/gtest-all.cc \
          test/display.cc \
+         test/wordprocessor.cc \
          test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
 
 #fischland/fontdialog.cc
@@ -90,7 +91,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test
+	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.prepareHTMLText"
+#	./test.app/Contents/MacOS/test
 
 clean:
 	rm -f $(OBJS) $(EXEC) .gdb_history

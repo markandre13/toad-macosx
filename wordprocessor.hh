@@ -61,6 +61,7 @@ namespace toad {
           italic=false;
           face="times";
           size=12;
+          return;
         }
         face = a->face;
         size = a->size;

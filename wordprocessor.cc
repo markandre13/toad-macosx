@@ -524,7 +524,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         line->descent = 0;
         x=0;
       }
-      if (!line->fragments.empty() && line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps
+      if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps
         line->fragments.push_back(new TTextFragment(fragment));
       fragment = line->fragments.back();
       if (tag.name=="br") {
