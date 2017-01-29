@@ -214,7 +214,7 @@ TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   }
   if (!figure || ke.type != TKeyEvent::DOWN)
     return;
-  if (ke.getKey() == TK_ESCAPE) {
+  if (ke.key == TK_ESCAPE) {
     fe->deleteFigure(figure);
     fe->state = TFigureEditor::STATE_NONE;
     fe->getWindow()->ungrabMouse();
@@ -222,7 +222,7 @@ TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
     return;
   }
 
-  unsigned r = figure->keyDown(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+  unsigned r = figure->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier); // FIXME: const_cast, pass ke instead
 
   if (r & TFigure::DELETE) {
 //        cout << "  delete figure" << endl;

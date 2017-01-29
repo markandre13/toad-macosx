@@ -161,26 +161,34 @@
   return YES;
 }
  
-- (void) keyDown:(NSEvent*)theEvent
+- (void) keyDown:(NSEvent*)nsevent
 {
   TOAD_DBG_ENTER
   // to handle dead keys correctly, we'll call interpretKeyEvents which
   // causes self.insertText to place the result without dead keys in
   // TKeyEvent::_nonDeadKeyString.
   TKeyEvent::_nonDeadKeyString.clear();
-  [self interpretKeyEvents:[NSArray arrayWithObject:theEvent]];
+  [self interpretKeyEvents:[NSArray arrayWithObject:nsevent]];
 
-  TKeyEvent ke(theEvent);
-  ke.type = TKeyEvent::DOWN;
+  TKeyEvent ke(
+    TKeyEvent::DOWN,
+    [nsevent keyCode],
+    TKeyEvent::_nonDeadKeyString,
+    [nsevent modifierFlags]
+  );
   TFocusManager::handleEvent(ke);
   TOAD_DBG_LEAVE
 }
 
-- (void) keyUp:(NSEvent*)theEvent
+- (void) keyUp:(NSEvent*)nsevent
 {
   TOAD_DBG_ENTER
-  TKeyEvent ke(theEvent);
-  ke.type = TKeyEvent::UP;
+  TKeyEvent ke(
+    TKeyEvent::UP,
+    [nsevent keyCode],
+    TKeyEvent::_nonDeadKeyString,
+    [nsevent modifierFlags]
+  );
   TFocusManager::handleEvent(ke);
   TOAD_DBG_LEAVE
 }

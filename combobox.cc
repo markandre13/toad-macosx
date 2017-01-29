@@ -35,11 +35,11 @@ class TComboBox::TComboButton:
     };
 
   protected:
-    void paint();
-    void mouseLDown(const TMouseEvent &);
-    void mouseLUp(const TMouseEvent &);
-    void mouseEnter(const TMouseEvent &);
-    void mouseLeave(const TMouseEvent &);
+    void paint() override;
+    void mouseLDown(const TMouseEvent &) override;
+    void mouseLUp(const TMouseEvent &) override;
+    void mouseEnter(const TMouseEvent &) override;
+    void mouseLeave(const TMouseEvent &) override;
 };   
 
 TComboBox::TComboBox(TWindow * parent, const string &title):
@@ -167,14 +167,14 @@ TComboBox::mouseEvent(const TMouseEvent &me)
       setFocus();
       break;
     case TMouseEvent::ROLL_UP:
-      table->keyDown(TK_UP, const_cast<char*>(""), 0);
-      table->keyUp(TK_UP, const_cast<char*>(""), 0);
+      table->keyDown(TKeyEvent(TKeyEvent::DOWN, TK_UP, "", 0));
+      table->keyUp(TKeyEvent(TKeyEvent::UP, TK_UP, "", 0));
       invalidateWindow();
       sigSelection();
       break;
     case TMouseEvent::ROLL_DOWN:
-      table->keyDown(TK_DOWN, const_cast<char*>(""), 0);
-      table->keyUp(TK_DOWN, const_cast<char*>(""), 0);
+      table->keyDown(TKeyEvent(TKeyEvent::DOWN, TK_DOWN, "", 0));
+      table->keyUp(TKeyEvent(TKeyEvent::UP, TK_DOWN, "", 0));
       invalidateWindow();
       sigSelection();
       break;
@@ -182,7 +182,7 @@ TComboBox::mouseEvent(const TMouseEvent &me)
 }
 
 void
-TComboBox::keyDown(TKey key, char *string, unsigned modifier)
+TComboBox::keyDown(const TKeyEvent &ke)
 {
   // in case the combobox is open and the table popup window
   // is mapped (visible), delegate all keyboard events to the
@@ -191,25 +191,25 @@ TComboBox::keyDown(TKey key, char *string, unsigned modifier)
     // but not the SHIFT keys, as table interprets 'em as
     // select.. which I don't think is a good idea in respect
     // to the backward focus traversal using shift+tab keys...
-    if (key==TK_SHIFT_L || key==TK_SHIFT_R)
+    if (ke.key==TK_SHIFT_L || ke.key==TK_SHIFT_R)
       return;
-    if (key==TK_ESCAPE) {
+    if (ke.key==TK_ESCAPE) {
       btn->setDown(false);
       return;
     }
-    table->keyDown(key, string, modifier);
+    table->keyDown(ke);
     return;
   }
 
-  switch(key) {
+  switch(ke.key) {
     case TK_PAGEDOWN:
     case TK_SPACE:
       btn->setDown(true);
       break;
     case TK_DOWN:
     case TK_UP:
-      table->keyDown(key, string, modifier);
-      table->keyDown(TK_RETURN, string, modifier);
+      table->keyDown(ke);
+      table->keyDown(TKeyEvent(TKeyEvent::DOWN, TK_RETURN, "", ke.modifier));
       // table->selectAtCursor();
       invalidateWindow();
       break;
@@ -219,7 +219,6 @@ TComboBox::keyDown(TKey key, char *string, unsigned modifier)
 void
 TComboBox::closeRequest()
 {
-cout << "TComboBox::closeRequest" << endl;
   btn->setDown(false);
 }
 

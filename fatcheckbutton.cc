@@ -69,11 +69,10 @@ TFatCheckButton::valueChanged()
 }
 
 void
-TFatCheckButton::keyDown(TKey key, char* str, unsigned modifier)
+TFatCheckButton::keyDown(const TKeyEvent &event)
 {
-  if (!modifier && (key==TK_RETURN || *str==' ')) {
-    TMouseEvent m(0,0);
-    mouseLDown(m);
+  if (!event.modifier && (event.key==TK_RETURN || event.string==" ")) {
+    mouseLDown(TMouseEvent(nullptr, nullptr)); // FIXME: ugly
   }
 }
 

@@ -52,7 +52,7 @@ class TSpringLayout:
 
   private:
     void arrange(int x, int y, int w, int h);
-    void arrange();
+    void arrange() override;
     int nBorderOverlap;
     bool bKeepOwnBorder;
     bool running;

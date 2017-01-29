@@ -51,6 +51,7 @@ static TTextMap tooltipmap;
 
 TWindow* TWindow::lastMouse = nullptr;
 TWindow* TWindow::grabPopupWindow = nullptr;
+string TKeyEvent::_nonDeadKeyString;
 
 TWindow*
 TWindow::getParent() const
@@ -64,8 +65,6 @@ TWindow::getParent() const
   }
   return w;
 }
-
-
 
 void TWindow::paint() {}
 
@@ -92,18 +91,16 @@ TWindow::keyEvent(const TKeyEvent &ke)
 {
   switch(ke.type) {
     case TKeyEvent::DOWN:
-//printf("key down in %s (%u)\n", getTitle().c_str(), (unsigned)ke.getKey());
-      keyDown(ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+      keyDown(ke);
       break;
     case TKeyEvent::UP:
-//printf("key up in %s\n", getTitle().c_str());
-      keyUp(ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+      keyUp(ke);
       break;
   }
 }  
    
-void TWindow::keyDown(TKey,char*,unsigned){}
-void TWindow::keyUp(TKey,char*,unsigned){}  
+void TWindow::keyDown(const TKeyEvent &ke){}
+void TWindow::keyUp(const TKeyEvent &ke){}  
 
 bool
 TWindow::isRealized() const
@@ -691,19 +688,19 @@ TWindow::createWindow()
     unsigned int styleMask = 0;
 
     if (flagPopup) {
-      styleMask = NSBorderlessWindowMask;
+      styleMask = NSWindowStyleMaskBorderless;
     } else
     if (flagParentlessAssistant) {
-      styleMask = NSTitledWindowMask; 
+      styleMask = NSWindowStyleMaskTitled; 
 /*
                 | NSResizableWindowMask
                 ;
 */
     } else {
-      styleMask = NSTitledWindowMask 
-                | NSMiniaturizableWindowMask
-                | NSClosableWindowMask
-                | NSResizableWindowMask;
+      styleMask = NSWindowStyleMaskTitled
+                | NSWindowStyleMaskMiniaturizable
+                | NSWindowStyleMaskClosable
+                | NSWindowStyleMaskResizable;
     }
     [nswindow initWithContentRect: NSMakeRect(x, y, w, h)
          styleMask: styleMask
@@ -806,7 +803,7 @@ TWindow::doModalLoop()
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSEvent *event =
         [NSApp
-            nextEventMatchingMask:NSAnyEventMask
+            nextEventMatchingMask:NSEventMaskAny
             untilDate: toad::nonBlockingMainLoopKludge ? nil : [NSDate distantFuture]
             inMode:NSDefaultRunLoopMode
             dequeue:YES];
@@ -1088,38 +1085,6 @@ TWindow::getOrigin(TCoord *x, TCoord *y) const
 {
   *x = origin.x;
   *y = origin.y;
-}
-
-string TKeyEvent::_nonDeadKeyString;
-
-const char*
-TKeyEvent::getString() const
-{
-  return _nonDeadKeyString.c_str();
-}
-
-TKey 
-TKeyEvent::getKey() const
-{
-  return [nsevent keyCode];
-}
-
-unsigned 
-TKeyEvent::modifier() const
-{
-  if (!_has_modifier) {
-    TKeyEvent *t = const_cast<TKeyEvent*>(this);
-    t->_modifier = [nsevent modifierFlags];
-    t->_has_modifier = true;
-  }
-  return _modifier;
-}
-
-void
-TKeyEvent::setModifier(unsigned m)
-{
-  _modifier = m;
-  _has_modifier = true;
 }
 
 void

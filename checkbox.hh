@@ -59,9 +59,9 @@ class TCheckBox:
     
   private:
     void valueChanged();
-    void keyDown(TKey,char*,unsigned);
-    void mouseLDown(const TMouseEvent &);
-    void paint();
+    void keyDown(const TKeyEvent &) override;
+    void mouseLDown(const TMouseEvent &) override;
+    void paint() override;
 
     void _init(TBoolModel *);
 };

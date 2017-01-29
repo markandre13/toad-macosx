@@ -111,8 +111,8 @@ void fitCurve(const TPolygon &in, TPolygon *out, int smoothness);
 void
 TPencilTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 {
-  if (ke.getKey() != TK_CONTROL_L &&
-      ke.getKey() != TK_CONTROL_R)
+  if (ke.key != TK_CONTROL_L &&
+      ke.key != TK_CONTROL_R)
     return;
   if (ke.type != TKeyEvent::UP)
     fe->getWindow()->setCursor(fischland::cursor[4]);

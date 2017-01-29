@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2015 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -222,8 +222,8 @@ class TColoredFigure:
   public:
     TSerializableRGB line_color;
     TSerializableRGB fill_color;
-    virtual void setAttributes(const TFigureAttributes*);
-    virtual void getAttributes(TFigureAttributes*) const;
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
 
     void setLineColor(const TRGB &color) {
       line_color = color;
@@ -258,7 +258,7 @@ class TFRectangle:
       p2.x = x+w;
       p2.y = y+h;
     }
-    TVectorGraphic* getPath() const;
+    TVectorGraphic* getPath() const override;
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
 
@@ -334,9 +334,9 @@ class TFLine:
     unsigned arrowwidth;
 
     TFLine();
-    void setAttributes(const TFigureAttributes*);
-    void getAttributes(TFigureAttributes*) const;
-    void paint(TPenBase &, EPaintType);
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
+    void paint(TPenBase &, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
 
     static void drawArrow(TPenBase &pen,
@@ -345,9 +345,9 @@ class TFLine:
                           TCoord w, TCoord h,
                           EArrowType type);
     
-    virtual void insertPointNear(TCoord, TCoord);
+    virtual void insertPointNear(TCoord, TCoord) override;
   protected:
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
     SERIALIZABLE_INTERFACE(toad::, TFLine);
 };
 
@@ -410,12 +410,12 @@ class TFCircle:
     TFCircle(){}
     TFCircle(TCoord x, TCoord y, TCoord w, TCoord h):
       TFRectangle(x,y,w,h) {}
-    void paint(TPenBase &, EPaintType);
+    void paint(TPenBase &, EPaintType) override;
     
     TCoord distance(const TPoint &pos) override;
     
-    TCloneable* clone() const { return new TFCircle(*this); }
-    const char * getClassName() const { return "toad::TFCircle"; } 
+    TCloneable* clone() const override { return new TFCircle(*this); }
+    const char * getClassName() const override { return "toad::TFCircle"; } 
 };
 
 /**
@@ -445,28 +445,28 @@ class TFText:
       this->fontname = fontname;
     }
 
-    void setAttributes(const TFigureAttributes*);
-    void getAttributes(TFigureAttributes*) const;
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
 
-    void paint(TPenBase &, EPaintType);
+    void paint(TPenBase &, EPaintType) override;
 
     TCoord distance(const TPoint &pos) override;
-    bool getHandle(unsigned n, TPoint *p);
+    bool getHandle(unsigned n, TPoint *p) override;
 
-    bool startInPlace();
-    void startCreate();
-    unsigned stop(TFigureEditor*);
+    bool startInPlace() override;
+    void startCreate() override;
+    unsigned stop(TFigureEditor*) override;
 
-    unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
-    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
+    unsigned keyDown(TFigureEditor*, TKey, char*, unsigned) override;
+    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
+    unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
+    unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
 
-    TCloneable* clone() const { return new TFText(*this); }
+    TCloneable* clone() const override { return new TFText(*this); }
 
-    const char * getClassName() const { return "toad::TFText"; } 
-    void store(TOutObjectStream&) const;
-    bool restore(TInObjectStream&);
+    const char * getClassName() const override { return "toad::TFText"; } 
+    void store(TOutObjectStream&) const override;
+    bool restore(TInObjectStream&) override;
     
   protected:
     string text;
@@ -488,21 +488,21 @@ class TFFrame:
       this->text = text;
       setShape(x,y,w,h);
     };
-    void paint(TPenBase &, EPaintType);
+    void paint(TPenBase &, EPaintType) override;
 
     TRectangle bounds() const override;
     TCoord distance(const TPoint &pos) override;
-    unsigned stop(TFigureEditor*);
-    unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
-    bool getHandle(unsigned n, TPoint *p);
-    unsigned mouseLDown(TFigureEditor *e, TMouseEvent &);
-    unsigned mouseMove(TFigureEditor *e, TMouseEvent &);
-    unsigned mouseLUp(TFigureEditor *e, TMouseEvent &);
+    unsigned stop(TFigureEditor*) override;
+    unsigned keyDown(TFigureEditor*, TKey, char*, unsigned) override;
+    bool getHandle(unsigned n, TPoint *p) override;
+    unsigned mouseLDown(TFigureEditor *e, TMouseEvent &) override;
+    unsigned mouseMove(TFigureEditor *e, TMouseEvent &) override;
+    unsigned mouseLUp(TFigureEditor *e, TMouseEvent &) override;
     
-    TCloneable* clone() const { return new TFFrame(*this); }
-    const char * getClassName() const { return "toad::TFFrame"; } 
+    TCloneable* clone() const override { return new TFFrame(*this); }
+    const char * getClassName() const override { return "toad::TFFrame"; } 
 
-    void calcSize();
+    void calcSize() override;
 };
 
 /**
@@ -515,15 +515,15 @@ class TFWindow:
   public:
     TFWindow();
 
-    void paint(TPenBase&, EPaintType);
+    void paint(TPenBase&, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
-    void translate(TCoord dx, TCoord dy);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
+    void translate(TCoord dx, TCoord dy) override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     
-    TCloneable* clone() const { return new TFWindow(*this); }
-    const char * getClassName() const { return "toad::TFWindow"; }
-    void store(TOutObjectStream&) const;
-    bool restore(TInObjectStream&);
+    TCloneable* clone() const override { return new TFWindow(*this); }
+    const char * getClassName() const override { return "toad::TFWindow"; }
+    void store(TOutObjectStream&) const override;
+    bool restore(TInObjectStream&) override;
     
     string title;
     string label;

@@ -241,7 +241,7 @@ class TMenuBar::TMyKeyFilter:
     protected:
       TMenuBar *menubar;
       bool keyEvent(TKeyEvent &ke) {
-        unsigned m = ke.modifier();
+        unsigned m = ke.modifier;
         unsigned orig = m;
         unsigned modifier = 0;
         if (m & MK_CONTROL)
@@ -251,10 +251,10 @@ class TMenuBar::TMyKeyFilter:
         if ((m & MK_ALT) || (m & MK_ALTGR))
           modifier|=MK_ALT;
         m &= ~(MK_SHIFT|MK_CONTROL|MK_ALT|MK_ALTGR);
-        ke.setModifier(m);
-        string str = ke.getString();
-        bool result = iterate(&menubar->root, str, ke.getKey(), modifier);
-        ke.setModifier(orig);
+        ke.modifier = m;
+        string str = ke.string;
+        bool result = iterate(&menubar->root, str, ke.key, modifier);
+        ke.modifier=orig;
         return result;
       }
 };

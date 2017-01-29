@@ -26,7 +26,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/transform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
-	   vector.cc geometry.cc \
+	   vector.cc geometry.cc wordprocessor.cc \
 	   stacktrace.cc \
 	   \
 	   test_table.cc test_scroll.cc test_dialog.cc test_timer.cc \
@@ -58,26 +58,36 @@ SRC_TEST=test/main.cc test/gtest-all.cc \
 SRC=$(SRC_SHARED) $(SRC_COCOA) $(SRC_FISH)
 CXX=g++ -ObjC++ -std=gnu++1z
 #CXX=clang --language=objective-c++ --std=c++14
-CXXFLAGS=-g -O0 -frtti -Wall -Wno-switch -Wno-unused-variable -Wno-unneeded-internal-declaration -Wno-inconsistent-missing-override
+CXXFLAGS=-g -O0 \
+	 -frtti \
+	 -Wall \
+	 -Winconsistent-missing-override \
+	 -Werror=inconsistent-missing-override \
+	 -Werror=overloaded-virtual \
+	 -Wno-switch \
+	 -Wno-unused-variable \
+	 -Wno-unneeded-internal-declaration
 
 OBJS    = $(SRC:.cc=.o)
 
 $(EXEC): $(OBJS)
-	mkdir -p fischland.app/Contents/MacOS
+	@mkdir -p fischland.app/Contents/MacOS
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
 	$(OBJS) -o $(EXEC)
+	@echo Ok
 
 TEST_SRC=$(SRC_TEST) $(SRC_SHARED) $(SRC_COCOA)
 TEST_OBJ=$(TEST_SRC:.cc=.o)
 
 test.app/Contents/MacOS/test: $(TEST_OBJ)
-	mkdir -p test.app/Contents/MacOS
+	@mkdir -p test.app/Contents/MacOS
 	$(CXX) \
 	-framework CoreFoundation \
 	-framework AppKit \
 	$(TEST_OBJ) -o test.app/Contents/MacOS/test
+	@echo Ok
 
 test: test.app/Contents/MacOS/test
 	./test.app/Contents/MacOS/test
@@ -920,6 +930,12 @@ geometry.o: include/toad/window.hh include/toad/interactor.hh
 geometry.o: include/toad/cursor.hh include/toad/region.hh
 geometry.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 geometry.o: include/toad/model.hh include/toad/connect.hh
+wordprocessor.o: include/toad/utf8.hh include/toad/wordprocessor.hh
+wordprocessor.o: include/toad/types.hh include/toad/color.hh
+wordprocessor.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+wordprocessor.o: include/toad/font.hh include/toad/pointer.hh
+wordprocessor.o: include/toad/pen.hh include/toad/penbase.hh
+wordprocessor.o: include/toad/matrix2d.hh
 stacktrace.o: include/toad/stacktrace.hh
 test_table.o: include/toad/table.hh include/toad/pen.hh
 test_table.o: include/toad/penbase.hh include/toad/color.hh
@@ -1043,12 +1059,13 @@ test_curve.o: include/toad/pen.hh include/toad/penbase.hh
 test_curve.o: include/toad/font.hh include/toad/pointer.hh
 test_curve.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 test_curve.o: include/toad/connect.hh
-test_text.o: include/toad/window.hh include/toad/interactor.hh
-test_text.o: include/toad/types.hh include/toad/cursor.hh
+test_text.o: include/toad/wordprocessor.hh include/toad/types.hh
 test_text.o: include/toad/color.hh include/toad/io/serializable.hh
-test_text.o: include/toad/io/atvparser.hh include/toad/region.hh
-test_text.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
-test_text.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_text.o: include/toad/io/atvparser.hh include/toad/font.hh
+test_text.o: include/toad/pointer.hh include/toad/pen.hh
+test_text.o: include/toad/penbase.hh include/toad/matrix2d.hh
+test_text.o: include/toad/window.hh include/toad/interactor.hh
+test_text.o: include/toad/cursor.hh include/toad/region.hh
 test_text.o: include/toad/utf8.hh
 test_tablet.o: include/toad/window.hh include/toad/interactor.hh
 test_tablet.o: include/toad/types.hh include/toad/cursor.hh
@@ -1145,15 +1162,14 @@ window.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 window.o: include/toad/connect.hh include/toad/layout.hh
 window.o: include/toad/eventfilter.hh include/toad/focusmanager.hh
 window.o: include/toad/io/urlstream.hh include/toad/command.hh
-window.o: include/toad/stacktrace.hh cocoa/toadview.impl
-mouseevent.o: include/toad/core.hh include/toad/window.hh
-mouseevent.o: include/toad/interactor.hh include/toad/types.hh
-mouseevent.o: include/toad/cursor.hh include/toad/color.hh
-mouseevent.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-mouseevent.o: include/toad/region.hh include/toad/pen.hh
-mouseevent.o: include/toad/penbase.hh include/toad/font.hh
-mouseevent.o: include/toad/pointer.hh include/toad/matrix2d.hh
-mouseevent.o: include/toad/bitmap.hh include/toad/connect.hh
+window.o: include/toad/stacktrace.hh cocoa/toadwindow.h cocoa/toadview.h
+window.o: cocoa/toadview.impl
+mouseevent.o: include/toad/window.hh include/toad/interactor.hh
+mouseevent.o: include/toad/types.hh include/toad/cursor.hh
+mouseevent.o: include/toad/color.hh include/toad/io/serializable.hh
+mouseevent.o: include/toad/io/atvparser.hh include/toad/region.hh
+mouseevent.o: include/toad/layout.hh include/toad/eventfilter.hh
+mouseevent.o: cocoa/toadwindow.h cocoa/toadview.h
 pen.o: include/toad/core.hh include/toad/window.hh include/toad/interactor.hh
 pen.o: include/toad/types.hh include/toad/cursor.hh include/toad/color.hh
 pen.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -2374,6 +2390,12 @@ geometry.o: include/toad/window.hh include/toad/interactor.hh
 geometry.o: include/toad/cursor.hh include/toad/region.hh
 geometry.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 geometry.o: include/toad/model.hh include/toad/connect.hh
+wordprocessor.o: include/toad/utf8.hh include/toad/wordprocessor.hh
+wordprocessor.o: include/toad/types.hh include/toad/color.hh
+wordprocessor.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+wordprocessor.o: include/toad/font.hh include/toad/pointer.hh
+wordprocessor.o: include/toad/pen.hh include/toad/penbase.hh
+wordprocessor.o: include/toad/matrix2d.hh
 stacktrace.o: include/toad/stacktrace.hh
 test_table.o: include/toad/table.hh include/toad/pen.hh
 test_table.o: include/toad/penbase.hh include/toad/color.hh
@@ -2497,12 +2519,13 @@ test_curve.o: include/toad/pen.hh include/toad/penbase.hh
 test_curve.o: include/toad/font.hh include/toad/pointer.hh
 test_curve.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 test_curve.o: include/toad/connect.hh
-test_text.o: include/toad/window.hh include/toad/interactor.hh
-test_text.o: include/toad/types.hh include/toad/cursor.hh
+test_text.o: include/toad/wordprocessor.hh include/toad/types.hh
 test_text.o: include/toad/color.hh include/toad/io/serializable.hh
-test_text.o: include/toad/io/atvparser.hh include/toad/region.hh
-test_text.o: include/toad/pen.hh include/toad/penbase.hh include/toad/font.hh
-test_text.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test_text.o: include/toad/io/atvparser.hh include/toad/font.hh
+test_text.o: include/toad/pointer.hh include/toad/pen.hh
+test_text.o: include/toad/penbase.hh include/toad/matrix2d.hh
+test_text.o: include/toad/window.hh include/toad/interactor.hh
+test_text.o: include/toad/cursor.hh include/toad/region.hh
 test_text.o: include/toad/utf8.hh
 test_tablet.o: include/toad/window.hh include/toad/interactor.hh
 test_tablet.o: include/toad/types.hh include/toad/cursor.hh
@@ -2599,15 +2622,14 @@ window.o: include/toad/matrix2d.hh include/toad/bitmap.hh
 window.o: include/toad/connect.hh include/toad/layout.hh
 window.o: include/toad/eventfilter.hh include/toad/focusmanager.hh
 window.o: include/toad/io/urlstream.hh include/toad/command.hh
-window.o: include/toad/stacktrace.hh cocoa/toadview.impl
-mouseevent.o: include/toad/core.hh include/toad/window.hh
-mouseevent.o: include/toad/interactor.hh include/toad/types.hh
-mouseevent.o: include/toad/cursor.hh include/toad/color.hh
-mouseevent.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-mouseevent.o: include/toad/region.hh include/toad/pen.hh
-mouseevent.o: include/toad/penbase.hh include/toad/font.hh
-mouseevent.o: include/toad/pointer.hh include/toad/matrix2d.hh
-mouseevent.o: include/toad/bitmap.hh include/toad/connect.hh
+window.o: include/toad/stacktrace.hh cocoa/toadwindow.h cocoa/toadview.h
+window.o: cocoa/toadview.impl
+mouseevent.o: include/toad/window.hh include/toad/interactor.hh
+mouseevent.o: include/toad/types.hh include/toad/cursor.hh
+mouseevent.o: include/toad/color.hh include/toad/io/serializable.hh
+mouseevent.o: include/toad/io/atvparser.hh include/toad/region.hh
+mouseevent.o: include/toad/layout.hh include/toad/eventfilter.hh
+mouseevent.o: cocoa/toadwindow.h cocoa/toadview.h
 pen.o: include/toad/core.hh include/toad/window.hh include/toad/interactor.hh
 pen.o: include/toad/types.hh include/toad/cursor.hh include/toad/color.hh
 pen.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh

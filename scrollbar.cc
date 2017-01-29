@@ -321,10 +321,9 @@ TScrollBar::modelChanged()
 }
 
 void
-TScrollBar::keyDown(TKey key,char*,unsigned)
+TScrollBar::keyDown(const TKeyEvent &ke)
 {
-//  setFocus();
-  switch(key) {
+  switch(ke.key) {
     case TK_UP:
       if (bVertical)
         decrement();

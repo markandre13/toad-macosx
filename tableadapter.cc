@@ -374,8 +374,8 @@ cout << "TTableAdapter::handleStringHelper \"" << *s << "\"" << endl;
 //cout << "keyDown" << endl;
         if (edit!=this) {
 //cout << "not edit" << endl;
-          if (te.key->getKey()==TK_RETURN ||
-              te.key->getKey()==TK_KP_RETURN) 
+          if (te.key->key==TK_RETURN ||
+              te.key->key==TK_KP_RETURN) 
           {
 //            cout << "begin to edit string" << endl;
             if (edit!=0) {
@@ -389,8 +389,7 @@ cout << "TTableAdapter::handleStringHelper \"" << *s << "\"" << endl;
             te.flag = true;
           }
         } else {
-          TKey key = te.key->getKey();
-          switch(key) {
+          switch(te.key->key) {
             case TK_KP_RETURN:
             case TK_RETURN:
 //              cout << "end to edit string" << endl;
@@ -445,11 +444,8 @@ cout << "TTableAdapter::handleStringHelper \"" << *s << "\"" << endl;
             default:
               if (!te.key)
                 break;
-              str = te.key->getString();
-              if ( (unsigned char)str[0]>=32 ||
-                   (str[0]!=0 && str[1]!=0) )
-              {
-                s->insert(cx, str);
+              if (utf8printable(te.key->string)) {
+                s->insert(cx, te.key->string);
                 utf8inc(*s, &cx);
               }
               break;

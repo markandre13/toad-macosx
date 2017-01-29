@@ -24,8 +24,6 @@
  * TOAD's implementation of callbacks to member functions.
  */
 
-using namespace std;
-
 #ifndef TEST_CONNECT
 
 #include <cstddef>
@@ -34,6 +32,8 @@ using namespace std;
 // debug only:
 #include <iostream>
 #include <assert.h>
+
+using namespace std;
 
 #else
 

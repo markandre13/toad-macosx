@@ -1801,21 +1801,21 @@ TTable::keyEvent(const TKeyEvent &ke)
 }
 
 void
-TTable::keyDown(TKey key, char *string, unsigned modifier)
+TTable::keyDown(const TKeyEvent &ke)
 {
 //cout << "keyDown: enter: sx="<<sx<<", sy="<<sy<<endl;
-  switch(key) {
+  switch(ke.key) {
     case TK_DOWN: {
       int newcy = cy+1;
       while(newcy<rows && row_info[newcy].size==0)
         ++newcy;
-      _moveCursor(cx, newcy, modifier);
+      _moveCursor(cx, newcy, ke.modifier);
     } break;
     case TK_UP: {
       int newcy = cy;
       while(newcy>0 && row_info[--newcy].size==0)
         ;
-      _moveCursor(cx, newcy, modifier);
+      _moveCursor(cx, newcy, ke.modifier);
     } break;
     case TK_PAGEUP:
       pageUp();
@@ -1827,13 +1827,13 @@ TTable::keyDown(TKey key, char *string, unsigned modifier)
       int newcx = cx+1;
       while(newcx<cols && col_info[newcx].size==0)
         ++newcx;
-      _moveCursor(newcx, cy, modifier);
+      _moveCursor(newcx, cy, ke.modifier);
     } break;
     case TK_LEFT: {
       int newcx = cx;
       while(newcx>0 && col_info[--newcx].size==0)
         ;
-      _moveCursor(newcx, cy, modifier);
+      _moveCursor(newcx, cy, ke.modifier);
     } break;
     case TK_RETURN:
       selectAtCursor();
@@ -1844,10 +1844,10 @@ TTable::keyDown(TKey key, char *string, unsigned modifier)
       _setSXSY(cx, cy);
       if (selection) {
 //        cout << "SPACE: toggle selection" << endl;
-        if (!(modifier&MK_CONTROL)) {
+        if (!(ke.modifier&MK_CONTROL)) {
           bool flag = selection->isSelected(sx, sy);
           selection->clear();
-          if (!(modifier&MK_SHIFT) ) {
+          if (!(ke.modifier&MK_SHIFT) ) {
             if (!flag)
               selection->select(sx, sy);
           } else {
@@ -1890,9 +1890,9 @@ TTable::_setSXSY(size_t x, size_t y)
 }
 
 void
-TTable::keyUp(TKey key, char *string, unsigned modifier)
+TTable::keyUp(const TKeyEvent &ke)
 {
-  switch(key) {
+  switch(ke.key) {
     case TK_SHIFT:
 //      cout << "SHIFT up" << endl;
       if (selection && selecting) {

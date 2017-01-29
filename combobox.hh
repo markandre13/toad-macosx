@@ -77,12 +77,12 @@ class TComboBox:
     void doubleClickAtCursor() { table->doubleClickAtCursor(); }
 
   protected:
-    void resize();
-    void paint();
-    void closeRequest();
-    void focus(bool);
-    void mouseEvent(const TMouseEvent&);
-    void keyDown(TKey, char*, unsigned);
+    void resize() override;
+    void paint() override;
+    void closeRequest() override;
+    void focus(bool) override;
+    void mouseEvent(const TMouseEvent&) override;
+    void keyDown(const TKeyEvent &) override;
     void button();
     void selected();
 

@@ -42,7 +42,7 @@ class TMenuLayout:
     TMenuLayout();
     TMenuLayout(const TMenuLayout&);
     ~TMenuLayout();
-    void arrange();
+    void arrange() override;
     void actionsChanged();
     
     TMenuEntryList entries;

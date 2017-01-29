@@ -39,7 +39,7 @@ class TFPath:
     void translate(TCoord dx, TCoord dy) override;
     bool getHandle(unsigned handle, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
-    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y) override;
     unsigned mouseRDown(TFigureEditor*, TMouseEvent &) override;
     
     void addPoint(const TPoint &p) { polygon.addPoint(p); }
@@ -58,8 +58,8 @@ class TFPath:
     TPolygon polygon;
     vector<byte> corner;
     
-    void setAttributes(const TFigureAttributes*);
-    void getAttributes(TFigureAttributes*) const;
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
 
     TFLine::EArrowMode arrowmode;
     TFLine::EArrowType arrowtype;

@@ -54,7 +54,7 @@ TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   TFigure *figure = *tmpsel.begin();
   switch(ke.type) {
     case TKeyEvent::DOWN:
-      unsigned r = figure->keyDown(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+      unsigned r = figure->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
       if (r & TFigure::STOP) {
         fe->state = TFigureEditor::STATE_NONE;
         fe->invalidateWindow();

@@ -183,7 +183,7 @@ TTextArea::~TTextArea()
 }
 
 void
-TTextArea::keyDown(TKey key, char* str, unsigned modifier)
+TTextArea::keyDown(const TKeyEvent &ke)
 {
   if (!isEnabled())
     return;
@@ -194,8 +194,8 @@ DBM(cout << "ENTER keyDown '" << str << "'" << endl;
     cout << "  _bol, _pos, _eol: " << _bol << ", " << _pos << ", " << _eol << endl;)
 
   // MacOS alike keybindings
-  if (modifier & MK_CONTROL) {
-    switch(key) {
+  if (ke.modifier & MK_CONTROL) {
+    switch(ke.key) {
       case 'x':
       case 'X':
       case TK_DELETE:
@@ -243,8 +243,8 @@ DBM(cout << "ENTER keyDown '" << str << "'" << endl;
     }
   }
   
-  if (modifier & MK_SHIFT) {
-    switch(key) {
+  if (ke.modifier & MK_SHIFT) {
+    switch(ke.key) {
       case TK_INSERT:
         switch(preferences->mode) {
           case TPreferences::NORMAL:
@@ -276,36 +276,36 @@ DBM(cout << "ENTER keyDown '" << str << "'" << endl;
     }
   }
 
-  switch(key) {
+  switch(ke.key) {
     case TK_LEFT:
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_left();
       break;
     case TK_RIGHT:
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_right();
       break;
     case TK_UP:
       model->filter(TTextModel::CHARACTER_CURSOR_UP);
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_up();
       break;
     case TK_DOWN:
       model->filter(TTextModel::CHARACTER_CURSOR_DOWN);
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_down();
       break;
     case TK_HOME:
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_home();
       break;
     case TK_END:
-      if (!(modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
+      if (!(ke.modifier&MK_SHIFT) && preferences->mode==TPreferences::NORMAL)
         _selection_clear();
       _cursor_end();
       break;
@@ -373,18 +373,17 @@ DBM(cout << "ENTER keyDown '" << str << "'" << endl;
       }
       break;
     default:
-      if ( (unsigned char)str[0]>=32 || 
-           (str[0]!=0 && str[1]!=0) ) 
+      if (utf8printable(ke.string))
       {
 //cout << "insert " << strlen(str) << endl;
 //cout << (unsigned char)str[0] << endl;
-        _insert(str);
+        _insert(ke.string);
       }
 //      else
 //        printf("unhandled character '%s'\n", str);
   }
 
-  switch(key) {
+  switch(ke.key) {
     case TK_LEFT:
     case TK_RIGHT:
     case TK_UP:
@@ -394,7 +393,7 @@ DBM(cout << "ENTER keyDown '" << str << "'" << endl;
     case TK_RETURN:
     case TK_PAGEDOWN:
     case TK_PAGEUP:
-      if (modifier & MK_SHIFT)
+      if (ke.modifier & MK_SHIFT)
         _eos = _pos;
       break;
   }

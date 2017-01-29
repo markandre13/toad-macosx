@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for X-Windows
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -525,19 +525,19 @@ class TTable:
       return col_header_renderer;
     }
 
-    void paint();
-    void resize();
-    void focus(bool);
+    void paint() override;
+    void resize() override;
+    void focus(bool) override;
 
-    void mouseEvent(const TMouseEvent &me);
-    void keyEvent(const TKeyEvent &ke);
+    void mouseEvent(const TMouseEvent &me) override;
+    void keyEvent(const TKeyEvent &ke) override;
     
-    void mouseLDown(const TMouseEvent &);
-    void mouseMove(const TMouseEvent &);
-    void mouseLUp(const TMouseEvent &);
+    void mouseLDown(const TMouseEvent &) override;
+    void mouseMove(const TMouseEvent &) override;
+    void mouseLUp(const TMouseEvent &) override;
 
-    void keyDown(TKey key, char *string, unsigned modifier);
-    void keyUp(TKey key, char *string, unsigned modifier);
+    void keyDown(const TKeyEvent &) override;
+    void keyUp(const TKeyEvent &) override;
     
     void setCursor(size_t col, size_t row);
     size_t getCursorCol() const { return cx; }
@@ -599,8 +599,8 @@ class TTable:
     static const int CENTER_BOTH=3;
     void center(int how);
 
-    void adjustPane();
-    void scrolled(TCoord dx, TCoord dy);
+    void adjustPane() override;
+    void scrolled(TCoord dx, TCoord dy) override;
     
     // void modelChanged();
     void _handleInsertRow();

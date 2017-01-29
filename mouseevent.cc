@@ -95,8 +95,8 @@ float
 TMouseEvent::pressure() const
 {
   float result = 0.0;
-  if ([nsevent type] != NSScrollWheel &&
-      [nsevent type] != NSTabletProximity)
+  if ([nsevent type] != NSEventTypeScrollWheel &&
+      [nsevent type] != NSEventTypeTabletProximity)
     result = [nsevent pressure];
   return result;
 }
@@ -105,10 +105,10 @@ float
 TMouseEvent::tangentialPressure() const
 {
   float result = 0.0;
-  if ([nsevent type] != NSScrollWheel &&
-      [nsevent type] != NSTabletProximity &&
-      ([nsevent type] == NSTabletPoint ||
-       [nsevent subtype]==NSTabletPointEventSubtype))
+  if ([nsevent type] != NSEventTypeScrollWheel &&
+      [nsevent type] != NSEventTypeTabletProximity &&
+      ([nsevent type] == NSEventTypeTabletPoint ||
+       [nsevent subtype]==NSEventSubtypeTabletPoint))
     result = [nsevent tangentialPressure];
   return result;
 }
@@ -117,10 +117,10 @@ float
 TMouseEvent::rotation() const
 {
   float result = 0.0;
-  if ([nsevent type] != NSScrollWheel &&
-      [nsevent type] != NSTabletProximity &&
-      ([nsevent type] == NSTabletPoint ||
-       [nsevent subtype]==NSTabletPointEventSubtype))
+  if ([nsevent type] != NSEventTypeScrollWheel &&
+      [nsevent type] != NSEventTypeTabletProximity &&
+      ([nsevent type] == NSEventTypeTabletPoint ||
+       [nsevent subtype]==NSEventSubtypeTabletPoint))
     result = [nsevent rotation];
   return result;
 }
@@ -129,10 +129,10 @@ TPoint
 TMouseEvent::tilt() const
 {
   TPoint result;
-  if ([nsevent type] != NSScrollWheel &&
-      [nsevent type] != NSTabletProximity &&
-      ([nsevent type] == NSTabletPoint ||
-       [nsevent subtype]==NSTabletPointEventSubtype))
+  if ([nsevent type] != NSEventTypeScrollWheel &&
+      [nsevent type] != NSEventTypeTabletProximity &&
+      ([nsevent type] == NSEventTypeTabletPoint ||
+       [nsevent subtype]==NSEventSubtypeTabletPoint))
   {
     NSPoint p = [nsevent tilt];
     result.set(p.x, p.y);

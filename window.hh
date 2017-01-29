@@ -37,10 +37,10 @@ using namespace std;
 
 // see /Developer/SDKs/MacOSX10.3.9.sdk/Developer/Headers/CFMCarbon/Events.h
 
-#define MK_SHIFT     NSShiftKeyMask
-#define MK_COMMAND   NSCommandKeyMask
-#define MK_CONTROL   NSControlKeyMask
-#define MK_ALT       NSAlternateKeyMask
+#define MK_SHIFT     NSEventModifierFlagShift
+#define MK_COMMAND   NSEventModifierFlagCommand
+#define MK_CONTROL   NSEventModifierFlagControl
+#define MK_ALT       NSEventModifierFlagOption
 
 #define MK_ALTGR   (1<<24)
 #define MK_LBUTTON (1<<25)
@@ -164,27 +164,24 @@ class TMouseEvent
 
 class TKeyEvent {
   public:
-    TKeyEvent(NSEvent *ns) {
-      nsevent = ns;
-      _modifier = 0;
-      _has_modifier = false;
+    enum EType { DOWN, UP };
+
+    TKeyEvent(EType type, TKey key, const std::string &string, unsigned modifier) {
+      window = nullptr;
+      this->type = type;
+      this->key  = key;
+      this->string = string;
+      this->modifier = modifier;
     }
-    enum EType {
-      DOWN, UP
-    } type;
 
-    NSEvent *nsevent;
     TWindow *window;
-    
-    // non-public
-    static string _nonDeadKeyString;
-    unsigned _modifier;
-    bool _has_modifier:1;
+    EType type;
+    TKey key;
+    std::string string;
+    unsigned modifier;
 
-    const char* getString() const;
-    TKey getKey() const;
-    unsigned modifier() const;
-    void setModifier(unsigned);
+    // non-public
+    static std::string _nonDeadKeyString;
 };
 
 class TWindowEvent {
@@ -241,7 +238,7 @@ class TWindow:
     bool _bOwnsFocus:1;
     bool _bToolTipAvailable:1;
 
-    int _b; // border
+    int _b; // border: FIXME: remove!!!
     TRGB _bg;
     TLayout *layout;
     TCursor *cursor;
@@ -270,12 +267,8 @@ class TWindow:
     bool isMapped() const;
     void raiseWindow();
 
-    void keyEvent(const TKeyEvent&);
-    virtual void keyDown(TKey key, char *string, unsigned modifier);
-    virtual void keyUp(TKey key, char *string, unsigned modifier);
-
-    bool isRealized() const;
-    bool setFocus();
+    bool isRealized() const override;
+    bool setFocus() override;
     void _setFocus(bool);
     void _setFocusHelper(TInteractor *parent, bool b);
 
@@ -284,7 +277,22 @@ class TWindow:
     void grabMouse(bool allmove=true, TWindow *confine=0, TCursor::EType type=TCursor::DEFAULT);
     void grabPopupMouse(bool allmove=true, TCursor::EType type=TCursor::DEFAULT);
     static void ungrabMouse();
+
+    virtual void mouseEvent(const TMouseEvent &) override;
+    virtual void mouseMove(const TMouseEvent &);
+    virtual void mouseEnter(const TMouseEvent &);
+    virtual void mouseLeave(const TMouseEvent &);
+    virtual void mouseLDown(const TMouseEvent &);
+    virtual void mouseMDown(const TMouseEvent &);
+    virtual void mouseRDown(const TMouseEvent &);
+    virtual void mouseLUp(const TMouseEvent &);
+    virtual void mouseMUp(const TMouseEvent &);
+    virtual void mouseRUp(const TMouseEvent &);  
     
+    void keyEvent(const TKeyEvent&) override;
+    virtual void keyDown(const TKeyEvent&);
+    virtual void keyUp(const TKeyEvent&);
+
     void getRootPos(int*,int*);
     enum EWindowPlacement {
       PLACE_SCREEN_CENTER,
@@ -297,17 +305,7 @@ class TWindow:
       PLACE_TOOLTIP
     };
     void placeWindow(EWindowPlacement how, TWindow *parent=NULL, TCoord dx=0.0, TCoord dy=0.0);
-    void windowEvent(const TWindowEvent &we);
-    virtual void mouseEvent(const TMouseEvent &);
-    virtual void mouseMove(const TMouseEvent &);
-    virtual void mouseEnter(const TMouseEvent &);
-    virtual void mouseLeave(const TMouseEvent &);
-    virtual void mouseLDown(const TMouseEvent &);
-    virtual void mouseMDown(const TMouseEvent &);
-    virtual void mouseRDown(const TMouseEvent &);
-    virtual void mouseLUp(const TMouseEvent &);
-    virtual void mouseMUp(const TMouseEvent &);
-    virtual void mouseRUp(const TMouseEvent &);  
+    void windowEvent(const TWindowEvent &we) override;
 
     enum EChildNotify {
       TCHILD_TITLE, TCHILD_POSITION, TCHILD_RESIZE, TCHILD_ADD,
@@ -322,13 +320,13 @@ class TWindow:
     virtual void paint();
     void doResize();
     virtual void resize();
-    virtual void setPosition(TCoord x, TCoord y);
-    virtual void setSize(TCoord w, TCoord h);
-    virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h);
+    virtual void setPosition(TCoord x, TCoord y) override;
+    virtual void setSize(TCoord w, TCoord h) override;
+    virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h) override;
     void setShape(const TRectangle &r) {
       setShape(r.x, r.y, r.w, r.h);
     }
-    virtual void getShape(TRectangle *r) const {
+    virtual void getShape(TRectangle *r) const override {
       *r = *this;
     }
     void invalidateWindow(bool clearbg=true);

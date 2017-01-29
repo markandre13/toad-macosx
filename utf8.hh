@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2005 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -71,6 +71,12 @@ utf8charsize(const string &text, size_t pos)
 }
 
 string utf8fromwchar(wchar_t c);
+
+inline bool
+utf8printable(const string &text)
+{
+  return (text.size()==1 && text[0]>=32) || text.size()>1;
+}
 
 } // namespace toad
 

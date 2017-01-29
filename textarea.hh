@@ -118,7 +118,7 @@ class TTextArea:
     }
     ~TTextArea();
 
-    void keyDown(TKey, char*, unsigned);
+    void keyDown(const TKeyEvent &);
     void mouseLDown(const TMouseEvent &);
     void mouseMove(const TMouseEvent &);
     void mouseLUp(const TMouseEvent &);

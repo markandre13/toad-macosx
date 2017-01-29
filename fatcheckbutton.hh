@@ -48,9 +48,9 @@ class TFatCheckButton:
     
   protected:
     void valueChanged();
-    void mouseLDown(const TMouseEvent &);
-    void keyDown(TKey, char*, unsigned);
-    void paint();
+    void mouseLDown(const TMouseEvent &) override;
+    void keyDown(const TKeyEvent &) override;
+    void paint() override;
     void _init(TBoolModel*);
 };
 

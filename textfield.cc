@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2006 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,12 +27,12 @@ TTextField::mouseEvent(const TMouseEvent &me)
 {
   switch(me.type) {
     case TMouseEvent::ROLL_UP:
-      keyDown(TK_UP, const_cast<char*>(""), 0);
-      keyUp(TK_UP, const_cast<char*>(""), 0);
+      keyEvent(TKeyEvent(TKeyEvent::DOWN, TK_UP, "", 0));
+      keyEvent(TKeyEvent(TKeyEvent::UP, TK_UP, "", 0));
       break;
     case TMouseEvent::ROLL_DOWN:
-      keyDown(TK_DOWN, const_cast<char*>(""), 0);
-      keyUp(TK_DOWN, const_cast<char*>(""), 0);
+      keyEvent(TKeyEvent(TKeyEvent::DOWN, TK_DOWN, "", 0));
+      keyEvent(TKeyEvent(TKeyEvent::UP, TK_DOWN, "", 0));
       break;
     default:
       super::mouseEvent(me);

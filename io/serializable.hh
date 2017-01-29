@@ -182,11 +182,11 @@ TResource::restore(TInObjectStream &in)
  */
 #define SERIALIZABLE_INTERFACE(PREFIX, CLASS) \
   public:\
-    TCloneable* clone() const { return new CLASS(*this); }\
-    const char * getClassName() const { return #PREFIX #CLASS ;} \
+    TCloneable* clone() const override { return new CLASS(*this); }\
+    const char * getClassName() const override { return #PREFIX #CLASS ;} \
   protected:\
-    void store(TOutObjectStream&) const;\
-    bool restore(TInObjectStream&);
+    void store(TOutObjectStream&) const override;\
+    bool restore(TInObjectStream&) override;
 
 /**
  * A variant of SERIALIZABLE_INTERFACE but with public store and
@@ -195,16 +195,16 @@ TResource::restore(TInObjectStream &in)
  */
 #define SERIALIZABLE_INTERFACE_PUBLIC(PREFIX, CLASS) \
   public:\
-    TCloneable* clone() const { return new CLASS(*this); }\
-    const char * getClassName() const { return #PREFIX #CLASS ;} \
-    void store(TOutObjectStream&) const;\
-    bool restore(TInObjectStream&);
+    TCloneable* clone() const override { return new CLASS(*this); }\
+    const char * getClassName() const override { return #PREFIX #CLASS ;} \
+    void store(TOutObjectStream&) const override;\
+    bool restore(TInObjectStream&) override;
 
 class TATVNullInterpreter:
   public TATVInterpreter
 {
   public:
-    bool interpret(TATVParser&);
+    bool interpret(TATVParser&) override;
 };
 
 extern TATVNullInterpreter null;

@@ -49,7 +49,7 @@ class TButtonBase:
     void mouseLUp(const TMouseEvent &);
     void mouseEnter(const TMouseEvent &);
     void mouseLeave(const TMouseEvent &);
-    void keyDown(TKey,char*,unsigned);
+    void keyDown(const TKeyEvent&);
 
   protected:
     TBitmap *bitmap;

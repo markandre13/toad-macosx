@@ -128,9 +128,9 @@ TCheckBox::mouseLDown(const TMouseEvent &)
 }
 
 void
-TCheckBox::keyDown(TKey key, char* str, unsigned modifier)
+TCheckBox::keyDown(const TKeyEvent &ke)
 {
-  if (!modifier && (key==TK_RETURN || *str==' ')) {
+  if (!ke.modifier && (ke.key==TK_RETURN || ke.string==" ")) {
     if (model)
       model->toggleValue();
     setFocus();

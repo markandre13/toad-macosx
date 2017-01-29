@@ -72,18 +72,18 @@ class TScrollBar:
     void pageUp();
     void pageDown();
 
-    void mouseEvent(const TMouseEvent&);
+    void mouseEvent(const TMouseEvent&) override;
 
   protected:
-    void resize();
-    void paint();
-    void focus(bool);
+    void resize() override;
+    void paint() override;
+    void focus(bool) override;
     void modelChanged();
 
-    void mouseLDown(const TMouseEvent &);
-    void mouseLUp(const TMouseEvent &);
-    void mouseMove(const TMouseEvent &);
-    void keyDown(TKey,char*,unsigned);
+    void mouseLDown(const TMouseEvent &) override;
+    void mouseLUp(const TMouseEvent &) override;
+    void mouseMove(const TMouseEvent &) override;
+    void keyDown(const TKeyEvent &) override;
 
     void _drawSlider(TPen &pen, TRectangle &r);
     void _drawArea(TPen&);

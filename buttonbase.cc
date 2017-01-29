@@ -219,12 +219,12 @@ TButtonBase::mouseLUp(const TMouseEvent &)
 }
 
 void
-TButtonBase::keyDown(TKey key, char* str, unsigned modifier)
+TButtonBase::keyDown(const TKeyEvent& ke)
 {
   if (!isEnabled() || !sigClicked.isConnected())
     return;
 
-  if (!bDown && modifier==0 && (key==TK_RETURN || *str==' ')) {
+  if (!bDown && ke.modifier==0 && (ke.key==TK_RETURN || ke.string==" ")) {
     sigArm();
     sigDisarm();
     sigClicked();

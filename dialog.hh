@@ -36,8 +36,8 @@ class TDialogLayout:
   public:
     TDialogLayout();
     ~TDialogLayout();
-    void arrange();
-    void paint();
+    void arrange() override;
+    void paint() override;
   
     TCoord height;
     TCoord width;
@@ -45,7 +45,7 @@ class TDialogLayout:
     bool sizeSet;
     PFigureModel gadgets;
 
-    TLayoutEditor * createEditor(TWindow *inWindow, TWindow *forWindow);
+    TLayoutEditor * createEditor(TWindow *inWindow, TWindow *forWindow) override;
     TLayoutEditDialog * editor;
 
     SERIALIZABLE_INTERFACE(toad::, TDialogLayout)
@@ -63,7 +63,7 @@ class TDialog:
     
     void adjust();
     void destroy();
-    void paint();
+    void paint() override;
     void childNotify(TWindow*, EChildNotify);
 
   protected:

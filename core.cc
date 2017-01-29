@@ -165,7 +165,7 @@ toad::mainLoop()
 //cerr << __FILE__ << ":" << __LINE__ << endl;
     NSEvent *event =
       [app
-         nextEventMatchingMask:NSAnyEventMask
+         nextEventMatchingMask:NSEventMaskAny
          untilDate: toad::nonBlockingMainLoopKludge ? nil : [NSDate distantFuture]
          inMode:NSDefaultRunLoopMode
          dequeue:YES];
@@ -180,6 +180,7 @@ toad::mainLoop()
 //cerr << __FILE__ << ":" << __LINE__ << endl;
   [pool release];
 //cerr << "leave toad::mainLoop()" << endl;
+  return true;
 }
 
 void

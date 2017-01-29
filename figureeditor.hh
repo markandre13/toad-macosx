@@ -367,7 +367,7 @@ class TFigureEditor:
     void paintDecoration(TPen &pen);
     virtual void print(TPenBase &pen, TFigureModel *model, bool withSelection=false, bool justSelection=false);
     
-    void resize();
+    void resize() override;
     void mouseEvent(const TMouseEvent&) override;
     void keyEvent(const TKeyEvent&) override;
 
@@ -395,9 +395,9 @@ class TFigureEditor:
     TCoord x1,x2, y1,y2;
     bool update_scrollbars; // checked during paint
     void updateScrollbars();
-    void scrolled(TCoord dx, TCoord dy);
+    void scrolled(TCoord dx, TCoord dy) override;
     
-    void adjustPane();
+    void adjustPane() override;
 
     void stopOperation();   // stop the current operation
 };

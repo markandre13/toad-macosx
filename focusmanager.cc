@@ -631,7 +631,7 @@ printf("keyDown for %08x\n", current_domain->focus_window);
 #endif
 
 new_key_eventhack=true;
-TKey key = keyevent.getKey();
+TKey key = keyevent.key;
 
   if (key==TK_F12) {
     cout << "DEBUG: Window & Keyboard Focus Tree" << endl;
@@ -645,7 +645,7 @@ TKey key = keyevent.getKey();
   // focus traversal
   //-------------------------------------------------
   TWindow *wnd = NULL;
-unsigned m = keyevent.modifier();
+unsigned m = keyevent.modifier;
   if ((key==TK_TAB && !(m & MK_SHIFT)) || 
       key==TK_F8) {
     wnd = Walk( current_domain->focus_window
