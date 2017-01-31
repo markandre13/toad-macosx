@@ -7,6 +7,8 @@ using toad::utf8dec;
 using toad::utf8charsize;
 using toad::TPoint;
 
+#define DBG(CMD) CMD
+
 namespace toad::wordprocessor {
 
 void
@@ -524,7 +526,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         line->descent = 0;
         x=0;
       }
-      if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps
+      if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
         line->fragments.push_back(new TTextFragment(fragment));
       fragment = line->fragments.back();
       if (tag.name=="br") {
@@ -1014,11 +1016,9 @@ tagrange(const string &text, vector<TTagRange> *result)
 // FIXME: write tests for this one
 // FIXME: implement isadd==false
 void
-expandselection(const string &text, size_t *sb, size_t *se, const string &name, bool isadd)
+expandselection(const string &text, size_t *sb, size_t *se, const string &name)
 {
-if (!isadd)
-  return;
-//cout << "----------- expand selection ---------------" << endl;
+  DBG(cout << "----------- expand selection ---------------" << endl;)
   size_t cx=0, inside_since;
   enum {
     HEAD_OUTSIDE,
@@ -1033,17 +1033,17 @@ if (!isadd)
   
   while(cx<text.size()) {
     if (cx==*sb) {
-//cout << "BGN SELECTION" << endl;
+      DBG(cout << "BGN SELECTION" << endl;)
       if (head!=HEAD_OUTSIDE) {
-//cout << "  NOT HEAD_OUTSIDE, SET SB TO " << inside_since << endl;
+        DBG(cout << "  NOT HEAD_OUTSIDE, SET SB TO " << inside_since << endl;)
         *sb = inside_since;
       } else {
-//cout << "  HEAD_OUTSIDE" << endl;
+        DBG(cout << "  HEAD_OUTSIDE" << endl;)
       }
     }
     if (cx==*se) {
-//cout << "END SELECTION AT " << cx << endl;
-//cout << "TAIL_JUST_PASSED" << endl;
+      DBG(cout << "END SELECTION AT " << cx << endl;)
+      DBG(cout << "TAIL_JUST_PASSED" << endl;)
       tail = TAIL_JUST_PASSED;
     }
     size_t x = cx;
@@ -1051,9 +1051,9 @@ if (!isadd)
       TTag tag;
       taginc(text, &cx, &tag);
       if (tag.open) {
-//cout << x << ": <" << tag.name << ">" << endl;
+        DBG(cout << x << ": <" << tag.name << ">" << endl;)
         if (tag.name == name) {
-//cout << "  HEAD_INSIDE" << endl;
+          DBG(cout << "  HEAD_INSIDE" << endl;)
           if (head==HEAD_OUTSIDE) {
             inside_since = x;
           }
@@ -1061,19 +1061,19 @@ if (!isadd)
         }
       }
       if (tag.close) {
-//cout << x << ": </" << tag.name << ">" << endl;
+        DBG(cout << x << ": </" << tag.name << ">" << endl;)
         if (tag.name == name) {
-//cout << "  HEAD_OUTSIDE_UNUSED" << endl;
+          DBG(cout << "  HEAD_OUTSIDE_UNUSED" << endl;)
           head = HEAD_OUTSIDE_UNUSED;
         }
       }
     } else {
       if (head==HEAD_OUTSIDE_UNUSED) {
-//cout << "  HEAD_OUTSIDE" << endl;
+        DBG(cout << "  HEAD_OUTSIDE" << endl;)
         head=HEAD_OUTSIDE;
       }
       if (head==HEAD_OUTSIDE && tail==TAIL_JUST_PASSED) {
-//cout << "TAIL PASSED AT " << x << endl;
+        DBG(cout << "TAIL PASSED AT " << x << endl;)
         *se = x;
         tail = TAIL_PASSED;
       }
@@ -1081,19 +1081,17 @@ if (!isadd)
       if (text[cx]=='&') {
         entityinc(text, &cx);
       } else {
-//cout << cx << ": " << text[cx] << endl;
+        DBG(cout << cx << ": " << text[cx] << endl;)
         utf8inc(text, &cx);
       }
     }
   }
   if (tail==TAIL_JUST_PASSED) {
-//cout << "TAIL PASSED AT END" << endl;
+    DBG(cout << "TAIL PASSED AT END" << endl;)
     *se = cx;
   }
   
-//  cout << "new selection: " << *sb << " - " << *se << endl;
-
-//exit(0);
+  DBG(cout << "new selection: " << *sb << " - " << *se << endl;)
 }
 
 string      
@@ -1110,12 +1108,13 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   
   // find out whether we are about to add or remove tag
   bool add = isadd(text, tag, sb, se);
-//cout << "isadd: " << add << endl;
+  DBG(cout << "isadd: " << add << endl;)
 
   // the algoritm following later is good at removing the onoff related tags
   // when the selection encloses the largest possible area to be within tag.
   // so the following function expands sb and se
-  expandselection(text, &sb, &se, tag, add);
+  if (add)
+    expandselection(text, &sb, &se, tag);
   
   // to handle the onoff related tags we need to know where start tags and
   // their respective end tags are
@@ -1123,28 +1122,37 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   toad::wordprocessor::tagrange(text, &tagrange);
   
   string out;
+  vector<size_t> pos;
+  pos.assign(xpos.size(), 0);
+
   
   while(x0<eol) {
     x1=x0;
     // text & entity loop
     while(x1<eol) {
+
+for(size_t i=0; i<xpos.size(); ++i) {
+  if (xpos[i]==x1) {
+    cout << __LINE__ << ": change at " << i << " from " << xpos[i] << " to " << out.size() << endl;
+    pos[i]=out.size();
+  }
+}
+
       c = text[x1];
       if (sb==x1) {
         if (add) {
           if (!inside) {
-//cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
+            DBG(cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;)
             out += "<"+tag+">";
           } else {
-//cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
+            DBG(cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;)
           }
           ++inside;
         } else {
           --inside;
           if (!inside) {
-//cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << (inside) << endl;
+            DBG(cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << (inside) << endl;)
             out += "</"+tag+">";
-          } else {
-//cout << __LINE__ << endl;
           }
         }
       }
@@ -1153,11 +1161,17 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
         if (add) {
           --inside;
           if (!inside) {
-//cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;
+            DBG(cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;)
             out += "</"+tag+">";
-          } else {
-//cout << __LINE__ << ": --inside, inside=" << inside << endl;
           }
+
+for(size_t i=0; i<xpos.size(); ++i) {
+  if (xpos[i]==x1) {
+    cout << __LINE__ << ": change at " << i << " from " << xpos[i] << " to " << out.size() << endl;
+    pos[i]=out.size();
+  }
+}
+
         } else {
 
           if (!inside) {
@@ -1167,16 +1181,14 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
               size_t tmp=x1;
               taginc(text, &tmp, &tag1);
               if (tag1.close && tag1.name==tag) {
-//cout << __LINE__ << ": tag to be removed ended at end of selection, don't reopen it and skip close" << endl;
+                DBG(cout << __LINE__ << ": tag to be removed ended at end of selection, don't reopen it and skip close" << endl;)
                 x1 = tmp;
                 continue;
               }
             }
 
-//cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;
+            DBG(cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;)
             out += "<"+tag+">";
-          } else {
-//cout << __LINE__ << endl;
           }
           ++inside;
         }
@@ -1185,13 +1197,13 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
       if (c=='<') // leave for tag loop
         break;
 
-//cout << x1 << " :" << (char)c << " inside=" << inside << endl;
+      DBG(cout << x1 << " :" << (char)c << " inside=" << inside << endl;)
 
       if (c=='&') {
         // copy entity
         size_t x2=x1;
         entityinc(text, &x2);
-//cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;
+        DBG(cout << __LINE__ << ": " << x1 << "entity: " << text.substr(x1,x2-x1) << endl;)
         out+=text.substr(x1,x2-x1);
         x1=x2;
       } else {
@@ -1208,7 +1220,7 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
       bool inside_sel = sb<=x0 && x0<se;
       TTag tag0;
       taginc(text, &x1, &tag0);
-//cout << x0 << " :" << tag0 << endl;
+      DBG(cout << x0 << " :" << tag0 << endl;)
       
       bool onoff = false;
       if (add && inside_sel) {
@@ -1216,7 +1228,7 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
               if (a.end>se) {
-//cout << "add: tag end "<<a.end<<" is behind selection end "<<se<< endl;
+                DBG(cout << "add: tag end "<<a.end<<" is behind selection end "<<se<< endl;)
                 onoff = true;
               }
             }
@@ -1226,7 +1238,7 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
           for(auto &a: tagrange) {
             if (a.end==x0) {
               if (a.bgn<sb) {
-//cout << "add: tag bgn "<<a.end<<" is before selection bgn "<<sb<< endl;
+                DBG(cout << "add: tag bgn "<<a.end<<" is before selection bgn "<<sb<< endl;)
                 onoff = true;
               }
             }
@@ -1236,67 +1248,59 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
 
       if (!add && !inside_sel) {
         if (tag0.open && tag0.name!=tag) {
-//cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;
+          DBG(cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;)
           for(auto &a: tagrange) {
             if (a.bgn==x0) {
-//cout << __LINE__ << ":  tag has range " << a.bgn << " to " << a.end << endl;
+              DBG(cout << __LINE__ << ":  tag has range " << a.bgn << " to " << a.end << endl;)
               if (a.end>sb) {
-//cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< endl; // FIXME: text
+                DBG(cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< endl;) // FIXME: text
                 onoff = true;
               }
             }
           }
         }
         if (tag0.close && tag0.name!=tag) {
-//cout << __LINE__ << "look for " << tag0 << " at " << x0 << endl;
+          DBG(cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;)
           for(auto &a: tagrange) {
             if (a.end==x0) {
-//cout << "  tag has range " << a.bgn << " to " << a.end << endl;
+              DBG(cout << "  tag has range " << a.bgn << " to " << a.end << endl;)
               if (a.bgn<se) {
-//cout << "del: tag bgn "<<a.end<<" is after selection end "<<se<< endl; // FIXME: text
+                DBG(cout << "del: tag bgn "<<a.end<<" is after selection end "<<se<< endl;) // FIXME: text
                 onoff = true;
               }
             }
           }
         }
       }
-//}
       
-      if (onoff) {
-//cout << __LINE__ << ": add </" << tag << ">" << endl;
+      if (onoff && inside) {
+        DBG(cout << __LINE__ << ": add </" << tag << ">" << endl;)
         out+="</"+tag+">";
       }
       
-//      if (!inside_sel) {
-        // outside selection
-        if (tag0.close && tag0.name==tag) {
-          --inside;
-//cout << __LINE__ << ": --inside, inside=" << (inside) << endl;
-          if (!inside) {
-//cout << __LINE__ << ": add " << tag0 << endl;
-            out += tag0;
-          } else {
-//cout << __LINE__ << ": don't add " << tag0 << " at " << x0 << endl;
-//            --inside;
-          }
-        } else
-        if (tag0.open && tag0.name==tag) {
-//cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;
-          if (!inside) {
-//cout << __LINE__ << ": add " << tag0 << endl;
-            out += tag0;
-          } else {
-//            ++inside;
-//cout << __LINE__ << ": don't add " << tag0 << endl;
-          }
-          ++inside;
-        } else {
-//cout << __LINE__ << ": copy tag " << tag0 << endl;
-            out += tag0;
+      // outside selection
+      if (tag0.close && tag0.name==tag) {
+        --inside;
+        DBG(cout << __LINE__ << ": --inside, inside=" << (inside) << endl;)
+        if (!inside) {
+          DBG(cout << __LINE__ << ": add " << tag0 << endl;)
+          out += tag0;
         }
+      } else
+      if (tag0.open && tag0.name==tag) {
+        if (!inside) {
+          DBG(cout << __LINE__ << ": add " << tag0 << endl;)
+          out += tag0;
+        }
+        ++inside;
+        DBG(cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;)
+      } else {
+        DBG(cout << __LINE__ << ": copy tag " << tag0 << endl;)
+        out += tag0;
+      }
 
-      if (onoff) {
-//cout << __LINE__ << ": add <" << tag << ">" << endl;
+      if (onoff && inside) {
+        DBG(cout << __LINE__ << ": add <" << tag << ">" << endl;)
         out+="<"+tag+">";
       }
 
@@ -1307,6 +1311,17 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   // still inside? don't
   if (inside==1)
     out+="</"+tag+">";
+
+for(size_t i=0; i<xpos.size(); ++i) {
+  if (xpos[i]==text.size()) {
+    cout << __LINE__ << ": change at " << i << " from " << xpos[i] << " to " << out.size() << endl;
+    pos[i]=out.size();
+  }
+}
+
+  for(size_t i=0; i<xpos.size(); ++i) {
+    xpos[i]=pos[i];
+  }
 
   return out;
 }

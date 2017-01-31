@@ -210,6 +210,22 @@ TEST(WordProcessor, tagtoggle)
                                 23,            38,
         "<b>Hello </b><i><b>this </b><u><b>is </b>not</u> totally<b> really</b></i><b> awesome.</b>"
     },
+    
+    // add tag
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "This is a bold move.",
+      //           ^   <
+                   10, 14,
+        "This is a <b>bold</b> move."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "This <i>is</i> a bold move.",
+      //                  ^   <
+                          17, 21,
+        "This <i>is</i> a <b>bold</b> move."
+    },
 
     // drop tag
     { // 0         1         2         3         4         5
@@ -219,10 +235,17 @@ TEST(WordProcessor, tagtoggle)
                     11,    18,
         "This was a bold move."
     },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "This <i>was</i> a <b>bold</b> move.",
+      //                   ^      <
+                           18,    25,
+        "This <i>was</i> a bold move."
+    },
   };
 
   for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
-//    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
+    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
     string text = test[idx].in;
   
     vector<size_t> xpos;
@@ -231,13 +254,7 @@ TEST(WordProcessor, tagtoggle)
     xpos[SELECTION_END]=test[idx].end;
 
     string out = tagtoggle(test[idx].in, xpos, "b");
-    
-    if (out != test[idx].out) {
-      cout << "in  : " << text << endl;
-      cout << "want: " << test[idx].out << endl;
-      cout << "got : " << out  << endl;
-    }
-    ASSERT_EQ(out, test[idx].out);
+    ASSERT_EQ(test[idx].out, out);
   }
 }
 
@@ -263,13 +280,23 @@ TEST(WordProcessor, prepareHTMLText)
     },
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
+    { .in = "Let <b>me<br/>this</b> to you.",
+      .frags = {
+        { .offset= 0, .length=4 },
+        { .offset= 7, .length=2, .bold=true, .eol=true },
+        { .offset=14, .length=4, .bold=true },
+        { .offset=22, .length=8 }
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
     { .in = "This w<i>as a </i><b><i>bo</i>ld</b> move.",
       .frags = {
         { .offset=0, .length=6 },
         { .offset=9, .length=5, .italics=true },
         { .offset=24, .length=2, .italics=true, .bold=true },
         { .offset=30, .length=2, .bold=true },
-        { .offset=36, .length=6, .eol=true },
+        { .offset=36, .length=6 },
       }
     },
   };
@@ -280,7 +307,10 @@ TEST(WordProcessor, prepareHTMLText)
   
     xpos.assign(3, 0);
     prepareHTMLText(t.in, xpos, &document);
-/*
+
+    cout << "----------------------------------------------------------------------" << endl
+         << t.in << endl;
+     
     for(auto &line: document.lines) {
       cout << "line:" << endl;
       for(auto &fragment: line->fragments) {
@@ -289,7 +319,8 @@ TEST(WordProcessor, prepareHTMLText)
              << (fragment->attr.italic?", italics":"") << endl;
       }
     }
-*/    
+
+// FIXME: do check if either data set is too small/too big
     auto line = document.lines.begin();
     if (line==document.lines.end()) {
 cout << "FIXME: need to check for empty test test" << endl;
