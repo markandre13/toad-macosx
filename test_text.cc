@@ -260,6 +260,9 @@ test_text()
     const char *in;
     size_t b, e, c, r;
   };
+
+  // test that tag toggle updates the cursor positions as required
+
   test test[] = {
 
     // insert
