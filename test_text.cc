@@ -200,9 +200,9 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   
   if (!move) {
     text.insert(xpos[CURSOR], str);
+    updatePrepared(text, &document, xpos[CURSOR], str.size());
     xmlinc(text, &xpos[CURSOR]);
     updateMarker(text, &document, xpos);
-    updatePrepared(text, &document, xpos[CURSOR], str.size());
     invalidateWindow();
     return;
   }
