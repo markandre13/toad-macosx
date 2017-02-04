@@ -1122,15 +1122,17 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   toad::wordprocessor::tagrange(text, &tagrange);
   
   string out;
-  vector<size_t> pos;
-  pos.assign(xpos.size(), 0);
+  vector<size_t> pos(xpos);
+//  pos.assign(xpos.size(), 0);
   
   while(x0<eol) {
 
 for(size_t i=0; i<xpos.size(); ++i) {
   if (xpos[i]==x0) {
-    cout << __LINE__ << ": change at " << i << " from " << xpos[i] << " to " << out.size() << endl;
-    pos[i]=out.size();
+    if (pos[i]!=out.size()) {
+      cout << __LINE__ << ": change xpos[" << i << "] from " << xpos[i] << " to " << out.size() << endl;
+      pos[i]=out.size();
+    }
   }
 }
 
@@ -1160,14 +1162,16 @@ for(size_t i=0; i<xpos.size(); ++i) {
           DBG(cout << __LINE__ << ": +</"<<tag<<">, --inside, inside=" << inside << endl;)
           out += "</"+tag+">";
         }
-
+/*
 for(size_t i=0; i<xpos.size(); ++i) {
   if (xpos[i]==x0) {
-    cout << __LINE__ << ": change at " << i << " from " << xpos[i] << " to " << out.size() << endl;
-    pos[i]=out.size();
+    if (pos[i]!=out.size()) {
+      cout << __LINE__ << ": change xpos[" << i << "] from " << xpos[i] << " to " << out.size() << endl;
+      pos[i]=out.size();
+    }
   }
 }
-
+*/
       } else {
 
         if (!inside) {

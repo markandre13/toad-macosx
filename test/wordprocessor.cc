@@ -44,9 +44,12 @@ TEST(WordProcessor, tagtoggle)
     const char *in;	// input
     size_t bgn, end;	// selection
     const char *out;	// input after adding <b> to selection
+    string marker_in;
+    string marker_out;
   };
 
-  static test test[] = {
+  static vector<test> test = {
+#if 0
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -210,15 +213,18 @@ TEST(WordProcessor, tagtoggle)
                                 23,            38,
         "<b>Hello </b><i><b>this </b><u><b>is </b>not</u> totally<b> really</b></i><b> awesome.</b>"
     },
-    
+#endif    
     // add tag
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
         "This is a bold move.",
       //           ^   <
                    10, 14,
-        "This is a <b>bold</b> move."
+        "This is a <b>bold</b> move.",
+        "abcdefghijklmnopqrst",
+        "abcdefghijk   lmno    pqrst",
     },
+#if 0
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
         "This <i>is</i> a bold move.",
@@ -242,19 +248,54 @@ TEST(WordProcessor, tagtoggle)
                            18,    25,
         "This <i>was</i> a bold move."
     },
+#endif
   };
 
-  for(size_t idx=0; idx<(sizeof(test)/sizeof(struct test)); ++idx) {
-    cout << "----------------------------------- " << test[idx].bgn << ", " << test[idx].end << endl;
-    string text = test[idx].in;
-  
-    vector<size_t> xpos;
-    xpos.assign(3,0);
-    xpos[SELECTION_BGN]=test[idx].bgn;
-    xpos[SELECTION_END]=test[idx].end;
+  for(auto &t: test) {
+    cout << "----------------------------------- " << t.bgn << ", " << t.end << endl;
 
-    string out = tagtoggle(test[idx].in, xpos, "b");
-    ASSERT_EQ(test[idx].out, out);
+    vector<size_t> xpos;
+    xpos.assign(3, 0);
+    xpos[SELECTION_BGN]=t.bgn;
+    xpos[SELECTION_END]=t.end;
+    
+    map<char, size_t> sl;
+    map<size_t, char> c;
+cout << "marker in :";
+    for(size_t i=0; i<t.marker_in.size(); ++i) {
+      if (t.marker_in[i]!=' ') {
+cout << " " << i;
+        c[xpos.size()] = t.marker_in[i];
+        sl[t.marker_in[i]] = xpos.size();
+        xpos.push_back(i);
+      }
+    }
+cout << endl;
+
+    string out = tagtoggle(t.in, xpos, "b");
+    ASSERT_EQ(t.out, out);
+    
+    string s;
+cout << "marker out:";
+    for(size_t i=3; i<xpos.size(); ++i) {
+cout << " " << xpos[i];
+      while(s.size()<=xpos[i])
+        s+=' ';
+//cout << "["<<xpos[i]<<"] = '" << c[i] << "'\n";
+      s[xpos[i]] = c[i];
+//cout << "'" << s << "'\n";
+    }
+cout << endl;
+    ASSERT_EQ(s, t.marker_out);
+    
+/*
+    for(size_t i=0; i<t.marker_out.size(); ++i) {
+      if (t.marker_in[i]!=' ') {
+        ASSERT_EQ(i, xpos[sl[t.marker_in[i]]]);
+      }
+    }
+*/   
+    
   }
 }
 
