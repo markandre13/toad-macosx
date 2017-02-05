@@ -347,16 +347,23 @@ entitydec(const string &text, size_t *cx)
 void
 xmlinc(const string &text, size_t *cx)
 {
-  if (text[*cx]=='&') {
-    entityinc(text, cx);
-  } else
-  if (text[*cx]=='<') {
-    TTag tag;
-    taginc(text, cx, &tag);
-    if (tag.name!="br")
-      utf8inc(text, cx);
-  } else {
-    utf8inc(text, cx);
+//  cout << "--------------- '" << text << "', " << *cx << endl;
+  TTag tag;
+  while(true) {
+    switch(text[*cx]) {
+      case '<':
+        taginc(text, cx, &tag);
+        // self-closing tags are treated like characters,
+        if (tag.open && tag.close)
+          return;
+        break;
+      case '&':
+        entityinc(text, cx);
+        return;
+      default:
+        utf8inc(text, cx);
+        return;
+    }
   }
 }
 

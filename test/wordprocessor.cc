@@ -6,6 +6,60 @@
 using namespace toad;
 using namespace toad::wordprocessor;
 
+TEST(WordProcessor, xmlinc)
+{
+  size_t x;
+  //            0         1         2         3
+  //            0123456789012345678901234567890
+  x= 5; xmlinc("Move forward folks.", &x);
+  ASSERT_EQ(6, x);
+  
+  // entity
+  x= 4; xmlinc("Move &times; folks.", &x);
+  ASSERT_EQ(5, x);
+
+  x= 5; xmlinc("Move &times; folks.", &x);
+  ASSERT_EQ(12, x);
+
+  // self-closing tag
+  x= 4; xmlinc("Move <br/> folks.", &x);
+  ASSERT_EQ(5, x);
+
+  x= 5; xmlinc("Move <br/> folks.", &x);
+  ASSERT_EQ(10, x);
+
+  // opening tag
+  x= 4; xmlinc("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(5, x);
+
+  x= 5; xmlinc("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(9, x);
+
+  // closing tag
+  x=14; xmlinc("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(15, x);
+
+  x=15; xmlinc("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(20, x);
+  
+  // nested opening tags
+  x= 5; xmlinc("Move <i><u>forward</u></i> folks.", &x);
+  ASSERT_EQ(12, x);
+
+  x= 5; xmlinc("Move <i><u><b>forward</b></u></i> folks.", &x);
+  ASSERT_EQ(15, x);
+  
+  // combinations
+  x= 5; xmlinc("Move <br/><i>forward</i> folks.", &x);
+  ASSERT_EQ(10, x);
+  
+  x= 5; xmlinc("Move <i><br/></i> folks.", &x);
+  ASSERT_EQ(13, x);
+  
+  x= 5; xmlinc("Move &times;<i>to</i> it.", &x);
+  ASSERT_EQ(12, x);
+}
+
 TEST(WordProcessor, isadd)
 {
   ASSERT_EQ(isadd("<b>abc</b>defg", "b", 0,  4), false);
@@ -49,7 +103,6 @@ TEST(WordProcessor, tagtoggle)
   };
 
   static vector<test> test = {
-#if 0
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -213,7 +266,6 @@ TEST(WordProcessor, tagtoggle)
                                 23,            38,
         "<b>Hello </b><i><b>this </b><u><b>is </b>not</u> totally<b> really</b></i><b> awesome.</b>"
     },
-#endif    
     // add tag
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
@@ -224,13 +276,24 @@ TEST(WordProcessor, tagtoggle)
         "abcdefghijklmnopqrst",
         "abcdefghijk   lmno    pqrst",
     },
-#if 0
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
         "This <i>is</i> a bold move.",
       //                  ^   <
                           17, 21,
-        "This <i>is</i> a <b>bold</b> move."
+        "This <i>is</i> a <b>bold</b> move.",
+        "abcdef   gh    ijklmnopqrst",
+        "abcdef   gh    ijk   lmno    pqrst",
+        
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "This is<br/>a bold move.",
+      //               ^   <
+                       14, 18,
+        "This is<br/>a <b>bold</b> move.",
+        "abcdefgh    ijklmnopqrst",
+        "abcdefgh    ijk   lmno    pqrst",
     },
 
     // drop tag
@@ -248,7 +311,6 @@ TEST(WordProcessor, tagtoggle)
                            18,    25,
         "This <i>was</i> a bold move."
     },
-#endif
   };
 
   for(auto &t: test) {

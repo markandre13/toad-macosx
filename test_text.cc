@@ -88,8 +88,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
          "Is not what we want to hear from Santa.";
 text="This was a bold move.";
 text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
-text="This is a <b>bold</b> move.";
-
+text="This is a <i><b>bold</b></i> move.";
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
@@ -161,6 +160,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       move = true;
       if (xpos[CURSOR]<text.size())
         xmlinc(text, &xpos[CURSOR]);
+      cout << "after right at '" << text[xpos[CURSOR]] << "'" << endl;
       break;
     case TK_LEFT:
       move = true;
@@ -258,162 +258,6 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
 int 
 test_text()
 {
-  struct test {
-    const char *in;
-    size_t b, e, c, r;
-  };
-
-  // test that tag toggle updates the cursor positions as required
-
-  test test[] = {
-
-    // insert
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    // _
-       0,
-    //"This <i>is</i> a <b>bold</b> move."
-    // _
-       0
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                 _
-                       16,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                 _
-                       16
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                  _
-                        17,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                  _
-                        17
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                   _
-                         18,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                      _
-                            21
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                     _
-                           20,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                        _
-                              23
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                      _
-                            21,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                             _
-                                   28
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                       _
-                             22,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                              _
-                                    29
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                           _
-                                 26,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                                  _
-                                        33
-    },
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a bold move.",
-    //                  ^   <
-                        17, 21,
-    //                            _
-                                  27,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                                   _
-                                         34
-    },
-
-    // remove
-    {
-    // 0         1         2         3         4
-    // 01234567890123456789012345678901234567890
-      "This <i>is</i> a <b>bold</b> move.",
-    //                  ^      <
-                        17,    24,
-    //                                _
-                                      31,
-    //"This <i>is</i> a <b>bold</b> move."
-    //                                _
-                                      24
-    },
-    
-    // fill gaps
-    // overlap
-    // ...
-  };
-
-  for(auto &t: test) {
-    vector<size_t> xpos;
-    xpos.assign(3, 0);
-    xpos[CURSOR]        = t.c;
-    xpos[SELECTION_BGN] = t.b;
-    xpos[SELECTION_END] = t.e;
-    string out = tagtoggle(t.in, xpos, "b");
-    if (xpos[CURSOR] != t.r) {
-      cout << "0         1         2         3         4" << endl;
-      cout << "01234567890123456789012345678901234567890" << endl;
-      cout << t.in << endl;
-      cout << out << endl;
-      cout << "ERROR: got " << xpos[CURSOR] << ", expected " << t.r << endl;
-//      exit(1);
-    }
-  }
-//  return 0;
-  
   TTextEditor2 wnd(NULL, "TextEditor II");
   toad::mainLoop();
   return 0;
