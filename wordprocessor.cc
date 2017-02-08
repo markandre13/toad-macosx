@@ -90,7 +90,7 @@ TPreparedDocument::lineAfter(TPreparedLine *line) const
 // weird and libreoffice has this the other way arround
 //
 // also:
-// libreoffic: <sup> & <sub>
+// libreoffice: <sup> & <sub>
 //   raise/lower 33% (of what?)
 //   relative font size 58%
 string TTag::str() const
@@ -124,7 +124,7 @@ taginc(const string &text, size_t *cx, TTag *tag)
   string attribute, value;
   int state=1;
   ++(*cx);
-  while(state) {
+  while(*cx<text.size() && state) {
     int c = text[*cx];
     switch(state) {
       case 1: // <...
@@ -305,7 +305,7 @@ void
 tagdec(const string &text, size_t *cx)
 {
   int state=1;
-  while(state) {
+  while(*cx>0 && state) {
     utf8dec(text, cx);
     switch(state) {
       case 1:
@@ -330,7 +330,7 @@ tagdec(const string &text, size_t *cx)
 void
 entityinc(const string &text, size_t *cx)
 {
-  while(text[*cx]!=';') {
+  while(*cx < text.size() && text[*cx]!=';') {
     utf8inc(text, cx);
   }
   utf8inc(text, cx);
@@ -339,7 +339,7 @@ entityinc(const string &text, size_t *cx)
 void
 entitydec(const string &text, size_t *cx)
 {
-  while(text[*cx]!='&') {
+  while(*cx > 0 && text[*cx]!='&') {
     utf8dec(text, cx);
   }
 }
@@ -370,38 +370,41 @@ xmlinc(const string &text, size_t *cx)
 void 
 xmldec(const string &text, size_t *offset)
 {
-//cout << "---------- xmldec at " << *offset << " '" << text[*offset] << "'" << endl;
+//cerr << "---------- xmldec at " << *offset << " '" << text[*offset] << "'" << endl;
   if (*offset==0)
     return;
+
+  // one character back
   utf8dec(text, offset);
+  if (*offset==0)
+    return;
   if (text[*offset]==';') {
     entitydec(text, offset);
+  } else
+  if (text[*offset]=='>') {
+    tagdec(text, offset);
   }
-  if (*offset>0) {
-//WAIT A SEC!!! WE COULD ALSO USE THE TPREPAREDDOCUMENT STRUCTURE FOR
-//THE CURSOR MOVEMENT. XMLDEC & XMLINC CAN BE RESTRICTED TO UPDATE (MOVE)
-//TPREPAREDDOCUMENT
-    size_t o2 = *offset;
-//cout << "  o2="<<o2<< " '" << text[o2] << "'" << endl;
-    if (text[o2]!='>')
-      utf8dec(text, &o2);
-//cout << "  o2="<<o2<< " '" << text[o2] << "'" << endl;
-    if (text[o2]=='>') {
-      size_t o1=o2;
-//cout << "  o1="<<o1<< " '" << text[o1] << "'" << endl;
-      tagdec(text, &o1);
-//cout << "  o1="<<o1<< " '" << text[o1] << "'" << endl;
-      size_t o0 = o1;
-      TTag tag;
-      taginc(text, &o0, &tag);
-//      cout << "BACK: " << tag << ", offset=" << *offset << ", o2=" << o2 << ", o1=" << o1 << endl;
-      if (*offset!=o2 && tag.name=="br") {
-//        *offset = o2;
-      } else {
-        // move before tag
-        *offset = o1;
-      }
+
+  // another character back and if it's also a character (or entity or open-close tag), return
+  while(*offset>0) {
+    size_t offset0 = *offset;
+    utf8dec(text, &offset0);
+    if (text[offset0]==';') {
+      return;
+    } else
+    if (text[offset0]!='>') {
+      return;
     }
+
+    tagdec(text, &offset0);
+    size_t offset1 = offset0;
+    TTag tag;
+    taginc(text, &offset1, &tag);
+    if (tag.open && tag.close) {
+      return;
+    }
+
+    *offset = offset0;
   }
 }
 

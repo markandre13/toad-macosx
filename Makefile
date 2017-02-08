@@ -91,8 +91,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-#	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
-	./test.app/Contents/MacOS/test
+	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
+#	./test.app/Contents/MacOS/test
 
 clean:
 	rm -f $(OBJS) $(EXEC) .gdb_history

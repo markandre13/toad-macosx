@@ -60,6 +60,60 @@ TEST(WordProcessor, xmlinc)
   ASSERT_EQ(12, x);
 }
 
+TEST(WordProcessor, xmldec)
+{
+  size_t x;
+  //            0         1         2         3
+  //            0123456789012345678901234567890
+  x= 6; xmldec("Move forward folks.", &x);
+  ASSERT_EQ(5, x);
+  
+  // entity
+  x=13; xmldec("Move &times; folks.", &x);
+  ASSERT_EQ(12, x);
+
+  x=12; xmldec("Move &times; folks.", &x);
+  ASSERT_EQ(5, x);
+
+  // self-closing tag
+  x=11; xmldec("Move <br/> folks.", &x);
+  ASSERT_EQ(10, x);
+
+  x=10; xmldec("Move <br/> folks.", &x);
+  ASSERT_EQ(5, x);
+
+  // opening tag
+  x=10; xmldec("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(9, x);
+
+  x= 9; xmldec("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(5, x);
+
+  // closing tag
+  x=21; xmldec("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(20, x);
+
+  x=20; xmldec("Move <i>forward</i> folks.", &x);
+  ASSERT_EQ(15, x);
+
+  // nested opening tags
+  x=12; xmldec("Move <i><u>forward</u></i> folks.", &x);
+  ASSERT_EQ(5, x);
+
+  x=15; xmldec("Move <i><u><b>forward</b></u></i> folks.", &x);
+  ASSERT_EQ(5, x);
+  
+  // combinations
+  x=10; xmldec("Move <br/><i>forward</i> folks.", &x);
+  ASSERT_EQ(5, x);
+  
+  x=13; xmldec("Move <i><br/></i> folks.", &x);
+  ASSERT_EQ(5, x);
+  
+  x=12; xmldec("Move &times;<i>to</i> it.", &x);
+  ASSERT_EQ(5, x);
+}
+
 TEST(WordProcessor, isadd)
 {
   ASSERT_EQ(isadd("<b>abc</b>defg", "b", 0,  4), false);
