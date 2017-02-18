@@ -1544,6 +1544,15 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
       ay1=r.y;
       ax2=r.x+r.w-1;
       ay2=r.y+r.h-1;
+
+      if (ax1<x1)
+        x1=ax1;  
+      if (ax2>x2)
+        x2=ax2;  
+      if (ay1<y1)
+        y1=ay1;  
+      if (ay2>y2)
+        y2=ay2;  
     }
   }
   
