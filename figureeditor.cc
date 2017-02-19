@@ -18,6 +18,17 @@
  * MA  02111-1307,  USA
  */
 
+/*
+  some call paths:
+  
+  TFigureEditor::addFigure(f)
+  TFigureEditor::model->add(f)
+  TFigureModel::add(f)
+  TFigureModel::type=ADD, TFigureModel::figures=f, TFigureModel::sigChanged
+  TFigureModel::modelChanged(model)
+  TWindow::updateScrollBars()
+*/
+
 #include <toad/figureeditor.hh>
 #include <toad/figure.hh>
 #include <toad/figuretool.hh>
@@ -276,7 +287,6 @@ TFigureEditor::init(TFigureModel *m)
   window = 0;
   model = 0;
   x1=y1=x2=y2=0;
-  update_scrollbars = false;
   if (!m)
     m=new TFigureModel();
   setAttributes(new TFigureAttributes);
@@ -484,11 +494,6 @@ TFigureEditor::paint()
   if (!window) {
     cout << __PRETTY_FUNCTION__ << ": no window" << endl;
     return;
-  }
-  if (update_scrollbars) {
-    // cout << "paint: update_scrollbars" << endl;
-    updateScrollbars();
-    update_scrollbars = false;
   }
   TPen pen(window);
   if (!model) {
@@ -811,6 +816,7 @@ TFigureEditor::setFont(const string &fontname)
 void
 TFigureEditor::modelChanged()
 {
+  bool update_scrollbars = false;
   modified = true;
   quickready = false; // force a view update when quick mode is enabled
   if (tool) {
@@ -856,6 +862,10 @@ TFigureEditor::modelChanged()
       #warning "not removing figure (group) from selection"
       invalidateWindow(visible); // OPTIMIZE ME
       break;
+  }
+  
+  if (update_scrollbars) {
+    updateScrollbars();
   }
 }
 

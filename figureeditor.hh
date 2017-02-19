@@ -393,7 +393,6 @@ class TFigureEditor:
     
     bool use_scrollbars;
     TCoord x1,x2, y1,y2;
-    bool update_scrollbars; // checked during paint
     void updateScrollbars();
     void scrolled(TCoord dx, TCoord dy) override;
     

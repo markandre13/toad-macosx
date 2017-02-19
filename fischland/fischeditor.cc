@@ -30,12 +30,6 @@ TFischEditor::paint()
     return;
   }
 
-  if (update_scrollbars) {
-    // cout << "paint: update_scrollbars" << endl;
-    updateScrollbars();
-    update_scrollbars = false;
-  }
-
   if (!editmodel || editmodel->modelpath.empty() ) {
     TPen pen(window);
     pen.setColor(TColor::DIALOG);
