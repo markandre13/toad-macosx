@@ -173,17 +173,17 @@ TScrollPane::doLayout()
 
   if (pane.w > visible.w || pane.x < 0) {
     need_hscroll = true;  
-    visible.h -= TScrollBar::getFixedSize()-1;
+    visible.h -= TScrollBar::getFixedSize();
   }
    
   if (pane.h > visible.h || pane.y < 0) {
     need_vscroll = true;  
-    visible.w -= TScrollBar::getFixedSize()-1;
+    visible.w -= TScrollBar::getFixedSize();
   }
    
   if (!need_hscroll && pane.w > visible.w) {
     need_hscroll = true;
-    visible.h -= TScrollBar::getFixedSize()-1;
+    visible.h -= TScrollBar::getFixedSize();
   }
 /*  
 cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
@@ -201,15 +201,15 @@ cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
     vscroll->flagNoFocus=true;
     vscroll->setShape(
       visible.x+visible.w,
-      visible.y -1,
+      visible.y,
       TScrollBar::getFixedSize(),
-      visible.h +2);
+      visible.h);
     vscroll->setExtent(visible.h);
     vscroll->setMinimum(pane.y);
     if (pane.y+pane.h < visible.y+visible.h)
-      vscroll->setMaximum(visible.y+visible.h-1);
+      vscroll->setMaximum(visible.y+visible.h);
     else    
-      vscroll->setMaximum(pane.y+pane.h-1);
+      vscroll->setMaximum(pane.y+pane.h);
     vscroll->setMapped(true);  
     vscroll->setUnitIncrement(uiy);
   } else {
@@ -227,16 +227,16 @@ cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
     }
     hscroll->flagNoFocus=true;
     hscroll->setShape(
-      visible.x -1,
+      visible.x,
       visible.y+visible.h,
-      visible.w+2,
+      visible.w,
       TScrollBar::getFixedSize());
     hscroll->setExtent(visible.w);
     hscroll->setMinimum(pane.x);
     if (pane.x+pane.w < visible.x+visible.w)
-      hscroll->setMaximum(visible.x+visible.w-1);
+      hscroll->setMaximum(visible.x+visible.w);
     else    
-      hscroll->setMaximum(pane.x+pane.w-1);
+      hscroll->setMaximum(pane.x+pane.w);
     hscroll->setMapped(true);  
     hscroll->setUnitIncrement(uix);
   } else {
