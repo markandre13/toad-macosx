@@ -60,6 +60,7 @@ TPen::initWindow(TWindow *w)
   }
 //  CGContextSetAllowsAntialiasing(ctx, FALSE);
   windowmatrix = CGContextGetCTM(ctx);
+  translate(w->origin.x, w->origin.y);
   setColor(0,0,0);
   setAlpha(1);
 }
@@ -757,7 +758,7 @@ void
 TPen::drawPoint(TCoord x, TCoord y)
 {
   TCoord x0, y0, x1, y1, sx, sy;
-    
+
   TMatrix2D m(CGAffineTransformInvert(CGContextGetCTM(ctx)));
   m.map(0, 0, &x0, &y0);
   m.map(1, 1, &x1, &y1);

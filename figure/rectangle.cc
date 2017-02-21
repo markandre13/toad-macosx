@@ -43,6 +43,7 @@ TFRectangle::paint(TPenBase &pen, EPaintType)
     pen.setLineColor(line_color);
     pen.setLineStyle(line_style);
     pen.setLineWidth(line_width);
+cout << "TFRectangle: draw rectangle between " << p1 << " and " << p2 << endl;
     pen.drawRectangle(p1,p2);
   }
   pen.pop();

@@ -49,8 +49,8 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
 
-SRC_TEST=test/main.cc test/gtest-all.cc \
-         test/display.cc \
+SRC_TEST=test/main.cc test/util.cc test/gtest-all.cc \
+         test/display.cc test/figureeditor.cc \
          test/wordprocessor.cc \
          test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
 
@@ -91,7 +91,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
+	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
 #	./test.app/Contents/MacOS/test
 
 clean:
@@ -1538,17 +1539,48 @@ fischland/fischeditor.o: include/toad/treeadapter.hh
 fischland/fischeditor.o: include/toad/treemodel.hh include/toad/table.hh
 fischland/fischeditor.o: include/toad/dragndrop.hh
 test/main.o: test/gtest.h
+test/util.o: test/util.hh include/toad/window.hh include/toad/interactor.hh
+test/util.o: include/toad/types.hh include/toad/cursor.hh
+test/util.o: include/toad/color.hh include/toad/io/serializable.hh
+test/util.o: include/toad/io/atvparser.hh include/toad/region.hh test/gtest.h
+test/util.o: include/toad/core.hh include/toad/pen.hh include/toad/penbase.hh
+test/util.o: include/toad/font.hh include/toad/pointer.hh
+test/util.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+test/util.o: include/toad/connect.hh
 test/gtest-all.o: test/gtest.h
-test/display.o: include/toad/core.hh include/toad/window.hh
+test/display.o: test/util.hh include/toad/window.hh
 test/display.o: include/toad/interactor.hh include/toad/types.hh
 test/display.o: include/toad/cursor.hh include/toad/color.hh
 test/display.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-test/display.o: include/toad/region.hh include/toad/pen.hh
-test/display.o: include/toad/penbase.hh include/toad/font.hh
-test/display.o: include/toad/pointer.hh include/toad/matrix2d.hh
-test/display.o: include/toad/bitmap.hh include/toad/connect.hh
-test/display.o: include/toad/simpletimer.hh include/toad/scrollpane.hh
-test/display.o: test/gtest.h
+test/display.o: include/toad/region.hh test/gtest.h include/toad/core.hh
+test/display.o: include/toad/pen.hh include/toad/penbase.hh
+test/display.o: include/toad/font.hh include/toad/pointer.hh
+test/display.o: include/toad/matrix2d.hh include/toad/bitmap.hh
+test/display.o: include/toad/connect.hh include/toad/simpletimer.hh
+test/display.o: include/toad/scrollpane.hh
+test/figureeditor.o: test/util.hh include/toad/window.hh
+test/figureeditor.o: include/toad/interactor.hh include/toad/types.hh
+test/figureeditor.o: include/toad/cursor.hh include/toad/color.hh
+test/figureeditor.o: include/toad/io/serializable.hh
+test/figureeditor.o: include/toad/io/atvparser.hh include/toad/region.hh
+test/figureeditor.o: test/gtest.h include/toad/core.hh include/toad/pen.hh
+test/figureeditor.o: include/toad/penbase.hh include/toad/font.hh
+test/figureeditor.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test/figureeditor.o: include/toad/bitmap.hh include/toad/connect.hh
+test/figureeditor.o: include/toad/simpletimer.hh include/toad/scrollpane.hh
+test/figureeditor.o: include/toad/figureeditor.hh include/toad/figure.hh
+test/figureeditor.o: include/toad/figuremodel.hh include/toad/model.hh
+test/figureeditor.o: include/toad/undo.hh include/toad/boolmodel.hh
+test/figureeditor.o: include/toad/textmodel.hh include/toad/integermodel.hh
+test/figureeditor.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+test/figureeditor.o: include/toad/figure/createtool.hh
+test/figureeditor.o: include/toad/figuretool.hh
+test/wordprocessor.o: include/toad/wordprocessor.hh include/toad/types.hh
+test/wordprocessor.o: include/toad/color.hh include/toad/io/serializable.hh
+test/wordprocessor.o: include/toad/io/atvparser.hh include/toad/font.hh
+test/wordprocessor.o: include/toad/pointer.hh include/toad/pen.hh
+test/wordprocessor.o: include/toad/penbase.hh include/toad/matrix2d.hh
+test/wordprocessor.o: include/toad/utf8.hh test/gtest.h
 test/booleanop.o: include/toad/geometry.hh include/toad/types.hh
 test/booleanop.o: include/toad/vector.hh include/toad/penbase.hh
 test/booleanop.o: include/toad/color.hh include/toad/io/serializable.hh

@@ -505,7 +505,7 @@ TFigureEditor::paint()
   pen.setColor(window->getBackground());
   TCoord x, y;
   window->getOrigin(&x, &y);
-  pen.fillRectanglePC(-x,-y,window->getWidth(),window->getHeight());
+  pen.fillRectangle(-x,-y,window->getWidth(),window->getHeight());
 
   if (mat) {
     pen.multiply(mat);
@@ -541,15 +541,19 @@ TFigureEditor::paintGrid(TPenBase &pen)
   TCoord g = preferences->gridsize;
 
   TRegion region(*window->getUpdateRegion());
-  region &= visible;
 
+  region &= TRectangle(visible.x-origin.x, visible.y-origin.y, visible.w, visible.h);
   TRectangle r;
   region.getBoundary(&r);
+
   x1=r.x;
   y1=r.y;
   x2=r.x+r.w+1;
   y2=r.y+r.h+1;
+  
+//  cout << "paintGrid between x = " << x1 << " ... " << x2 << ", y = " << y1 << " ... " << y2 << ", boundary=" << r << endl;
 
+#if 0
   const TMatrix2D *mat = pen.getMatrix();
   if (mat) {
 /*
@@ -582,6 +586,7 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
       }
     }
   }
+#endif
 
   // justify to grid
   x1 -= fmod(x1, g);
@@ -590,6 +595,7 @@ cout << "TFigureEditor::paintGrid: matrix" << endl
   for(auto y=y1; y<=y2; y+=g) {
     for(auto x=x1; x<=x2; x+=g) {
       pen.drawPoint(x, y);
+//cout << "drawGrid: draw point at " << x << ", " << y << endl;
     }
   }
 }  
@@ -699,12 +705,14 @@ TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection, boo
       p != model->end();
       ++p)
   {
+/*
     TRectangle r;
     getFigureShape(*p, &r, pen.getMatrix());
     if (!r.intersects(cb)) {
+cout << "  shape " << r << " doesn't intersect with clipbox" << endl;
       continue;
     }
-
+*/
     TFigure::EPaintType pt = TFigure::NORMAL;
     unsigned pushs = 0;
     if (gadget==*p) {

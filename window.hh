@@ -206,8 +206,9 @@ class TWindow:
   public TInteractor, public TRectangle
 {
     // FIXME?: the origin is nice for scrolling but fails for rotation... can we live with that?
-    TPoint origin;
   public:
+    //! origin of the window's coordinate system, defaults to (0,0), the upper, left corner
+    TPoint origin;
     bool _inside:1; // helper to emulate mouseEnter, mouseLeave on Cocoa
     bool _mapped:1;
     bool _allMouseMoveEvents:1;

@@ -997,18 +997,14 @@ TWindow::getUpdateRegion() const
   const NSRect *rects;
   NSInteger count;
   [nsview getRectsBeingDrawn:&rects count:&count];
-  for(int i=0; i<count; ++i)
+  for(int i=0; i<count; ++i) {
     r|=TRectangle(rects[i].origin.x - origin.x,
-                  rects[i].origin.y - origin.y,//                  h - (rects[i].size.height - rects[i].origin.y) - origin.y,
+                  rects[i].origin.y - origin.y,
                   rects[i].size.width,
                   rects[i].size.height);
+  }
   updateRegion = &r;
-
-//  TRectangle e;
-//  r.getBoundary(&e);
-// cout << getTitle() << ": update region extend " << e.x << ", " << e.y << ", " << e.w << ", " << e.h << endl;
-
-  return &r;
+  return updateRegion;
 }
 
 /**

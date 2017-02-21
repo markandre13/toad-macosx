@@ -329,14 +329,15 @@ TRegion::getExtent() const
 void
 TRegion::getBoundary(TRectangle *r) const
 {
+#if 1
   *r = TRectangle(extent_);
-#if 0
+#else
   r->x = rectangles_[0];
   r->y = rectangles_[2];
   r->w = rectangles_[3] - rectangles_[2];
   r->h = rectangles_[1] - rectangles_[0];
 
-  for(size_t i=1; i<nRectangles_) {
+  for(size_t i=1; i<nRectangles_; ++i) {
     size_t j = i<<2;
     if (rectangles_[j] < r->x) {
       r->w += r->x - rectangles_[j];
