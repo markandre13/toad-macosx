@@ -40,14 +40,12 @@ using namespace toad;
  */
 
 #define DEFAULT_FIXED_SIZE 15
-#define DEFAULT_FIXED_BORDER 1
 
 // Constructor
 //---------------------------------------------------------------------------
 TScrollBar::TScrollBar(TWindow *parent, const string &title, TIntegerModel *model)
   :TControl(parent,title)
 {
-  _b = DEFAULT_FIXED_BORDER;
   flagNoBackground = true;
   if (!model)
     model = new TIntegerModel();
@@ -80,7 +78,7 @@ TScrollBar::setModel(TIntegerModel *m)
 int
 TScrollBar::getFixedSize()
 {
-  return DEFAULT_FIXED_SIZE+DEFAULT_FIXED_BORDER*2;
+  return DEFAULT_FIXED_SIZE;
 }
 
 void

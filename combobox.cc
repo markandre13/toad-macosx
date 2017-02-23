@@ -31,7 +31,6 @@ class TComboBox::TComboButton:
     TComboButton(TWindow *parent, const string &title)
       :TButtonBase(parent,title)
     {
-      setBorder(false);
     };
 
   protected:
@@ -46,7 +45,6 @@ TComboBox::TComboBox(TWindow * parent, const string &title):
   super(parent, title)
 {
   setSize(320, 20);
-  setBorder(false);
 
   btn = new TComboButton(this,"combobox.combobutton");
   connect(btn->sigArm, this, &TComboBox::button);

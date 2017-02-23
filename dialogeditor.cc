@@ -115,8 +115,8 @@ TDialogEditor::TFilter::mouseEvent(TMouseEvent &me)
     TEventFilter *mf = parent->layouteditor->getFilter();
     if (mf) {
       while(me.window && me.window!=parent->editwindow) {
-        me.pos.x += me.window->getXPos() + me.window->getBorder();
-        me.pos.y += me.window->getYPos() + me.window->getBorder();
+        me.pos.x += me.window->getXPos();
+        me.pos.y += me.window->getYPos();
         me.window = me.window->getParent();
       }
       if (me.window) {

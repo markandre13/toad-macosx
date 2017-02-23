@@ -239,7 +239,6 @@ class TWindow:
     bool _bOwnsFocus:1;
     bool _bToolTipAvailable:1;
 
-    int _b; // border: FIXME: remove!!!
     TRGB _bg;
     TLayout *layout;
     TCursor *cursor;
@@ -358,8 +357,6 @@ class TWindow:
       _bg.set(r, g, b);
     }
     const TRGB& getBackground() const { return _bg; }
-    void setBorder(unsigned b){ _b=b?1:0; }
-    unsigned getBorder() const {return _b;}   
     TCoord getXPos() const override { return x; }
     TCoord getYPos() const override { return y; }
     TCoord getWidth() const override { return w; }

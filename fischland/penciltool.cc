@@ -49,7 +49,6 @@ TWindow*
 TPencilTool::createEditor(TWindow *inWindow)
 {
   TWindow *w = new TWindow(inWindow, "Pencil Tool");
-  w->setBorder(0);
   w->setBackground(TColor::DIALOG);
   w->setSize(320,350);
   

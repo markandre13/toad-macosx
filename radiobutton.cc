@@ -38,7 +38,6 @@ TRadioButton::TRadioButton(TWindow *parent,
   :super(parent, title, state)
 {
   setBackground(TColor::DIALOG);
-  setBorder(false);
 }
            
 void

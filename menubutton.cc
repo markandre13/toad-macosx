@@ -53,7 +53,6 @@ TMenuButton::TMenuButton(TMenuHelper *p, TMenuHelper::TNode *n):
 {
   assert(master!=NULL);
 //cout << "MENUBUTTON: CREATE  " << this << endl;
-  setBorder(0);
 //  bNoBackground = true;
   setBackground(TColor::MENU);
   _down = false;

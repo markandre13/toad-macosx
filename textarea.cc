@@ -152,7 +152,6 @@ TTextArea::init()
   
   flagDoubleBuffer = true;
   flagTabKey = true;
-  setBorder(0);
   vscroll = hscroll = 0;
   
   setPreferences(new TPreferences());
@@ -1544,7 +1543,7 @@ DBM(cout << __FILE__ << ':' << __LINE__ << ": _eol=" << _eol << endl;)
   
   int width = getWidth() - 5;
   if (vscroll)
-    width -= vscroll->getWidth() + vscroll->getBorder()*2;
+    width -= vscroll->getWidth();
 
 //cerr << "_tx = " << _tx << ", _tx+width = " << (_tx+width) << ", tx = " << tx << endl;
   

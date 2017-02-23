@@ -25,7 +25,6 @@ using namespace toad;
 TGauge::TGauge(TWindow *parent, const string &title, TIntegerModel *model):
   TControl(parent, title)
 {
-  setBorder(0);
   setBackground(0,0,0);
   setCursor(TCursor::VERTICAL);
 

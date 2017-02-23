@@ -39,7 +39,6 @@ TColorSelector::TColorSelector(TWindow *parent,
   h = getHeight();
   border = min(h,w2) / 4 + 1;
 
-  setBorder(0);
   setBackground(TColor::DIALOG);
   filled = false; 
   linecolor.set(0,0,0);

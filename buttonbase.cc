@@ -36,7 +36,6 @@ TButtonBase::TButtonBase(TWindow *parent, const string &title)
   bitmap = NULL;
   bDown=false;
   bInside=false;
-  setBorder(false);
   setBackground(TColor::BTNFACE);
   setSize(100, getDefaultFont().getHeight() + 8);
 //  setSize(100, 22);
