@@ -496,6 +496,7 @@ TFigureEditor::paint()
     return;
   }
   TPen pen(window);
+  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
   if (!model) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
@@ -503,18 +504,18 @@ TFigureEditor::paint()
   }
 
   pen.setColor(window->getBackground());
-  TPoint origin = window->getOrigin();
-  pen.fillRectangle(-origin.x,-origin.y,window->getWidth(),window->getHeight());
+  pen.fillRectangle(0, 0,window->getWidth(),window->getHeight());
 
   if (mat) {
     pen.multiply(mat);
   }
 
   paintGrid(pen);
+
   print(pen, model, true);
   paintSelection(pen);
-  
   paintDecoration(pen);
+
 }
 
 /**
@@ -540,15 +541,15 @@ TFigureEditor::paintGrid(TPenBase &pen)
   TCoord g = preferences->gridsize;
 
   TRegion region(*window->getUpdateRegion());
-  TPoint origin = window->getOrigin();
-  region &= TRectangle(visible.x-origin.x, visible.y-origin.y, visible.w, visible.h);
+  region &= TRectangle(visible.x, visible.y, visible.w, visible.h);
   TRectangle r;
   region.getBoundary(&r);
 
-  x1=r.x;
-  y1=r.y;
-  x2=r.x+r.w+1;
-  y2=r.y+r.h+1;
+  TPoint origin = window->getOrigin();
+  x1=r.x-origin.x;
+  y1=r.y-origin.y;
+  x2=r.x+r.w-origin.x;
+  y2=r.y+r.h-origin.y;
   
 //  cout << "paintGrid between x = " << x1 << " ... " << x2 << ", y = " << y1 << " ... " << y2 << ", boundary=" << r << endl;
 

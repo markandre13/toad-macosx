@@ -9,9 +9,6 @@
 #include <toad/window.hh>
 #include <toad/pen.hh>
 #include <toad/simpletimer.hh>
-
-#include <toad/scrollpane.hh>
-
 #include <toad/figureeditor.hh>
 
 
@@ -30,36 +27,55 @@ class FigureEditor:
     }
 };
 
-/*
+class TTest:
+  public TFigureEditor, public TSimpleTimer
+{
+  public:
+    using TFigureEditor::TFigureEditor;
+  protected:
+    void tick() override;
+};
+
+void
+TTest::tick()
+{
+  CGImageRef image = grabImage(this);
+  if (!image)
+    return;
+  saveImage(image, "test/"+getTitle()+".tmp.png");
+  CFRelease(image);
+  stopTimer();
+  compareImageFile("test/"+getTitle()+".tmp.png", "test/"+getTitle()+".png");
+  destroyWindow();
+}
+
 TEST_F(FigureEditor, Rectangle) {
-  TFigureEditor wnd(NULL, testname());
+  TTest wnd(NULL, testname());
   wnd.addFigure(new TFRectangle(8.5, 16.5, 32, 40));
+  wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
-*/
 
-/*
 TEST_F(FigureEditor, Origin) {
-  TFigureEditor wnd(NULL, testname());
-  wnd.origin.x = -4;
-  wnd.origin.y = -12;
+  TTest wnd(NULL, testname());
+  wnd.setOrigin(TPoint(-4, -12));
   wnd.addFigure(new TFRectangle(8.5, 16.5, 32, 40));
+  wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
-*/
 
-/*
 TEST_F(FigureEditor, Translate) {
-  TFigureEditor wnd(NULL, testname());
-  wnd.translate(-4, -12);
+  TTest wnd(NULL, testname());
+  wnd.setOrigin(TPoint(-4, -12));
   wnd.addFigure(new TFRectangle(8.5, 16.5, 32, 40));
+  wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
-*/
 
 TEST_F(FigureEditor, Scale) {
-  TFigureEditor wnd(NULL, testname());
+  TTest wnd(NULL, testname());
   wnd.scale(2.0, 2.0);
   wnd.addFigure(new TFRectangle(4.5, 8.5, 8, 4));
+  wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
