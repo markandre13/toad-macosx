@@ -956,6 +956,17 @@ TWindow::setShape(TCoord x, TCoord y, TCoord w, TCoord h)
 }
 
 void
+TWindow::setOrigin(const TPoint&)
+{
+}
+
+TPoint
+TWindow::getOrigin() const
+{
+  return TPoint(0, 0);
+}
+
+void
 TWindow::invalidateWindow(bool)
 {
   if (nsview) {
@@ -998,8 +1009,8 @@ TWindow::getUpdateRegion() const
   NSInteger count;
   [nsview getRectsBeingDrawn:&rects count:&count];
   for(int i=0; i<count; ++i) {
-    r|=TRectangle(rects[i].origin.x - origin.x,
-                  rects[i].origin.y - origin.y,
+    r|=TRectangle(rects[i].origin.x,
+                  rects[i].origin.y,
                   rects[i].size.width,
                   rects[i].size.height);
   }
@@ -1043,6 +1054,7 @@ TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
     [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y+r.h+dy, r.w, -dy)];
 }
 
+#if 0
 /**
  * Set the origin for all drawing operations and scroll the windows content
  * to the new position.
@@ -1051,7 +1063,6 @@ void
 TWindow::scrollTo(TCoord nx, TCoord ny)
 {
   cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
-  
   
   TCoord dx = nx - origin.x;
   TCoord dy = ny - origin.y;
@@ -1062,26 +1073,7 @@ TWindow::scrollTo(TCoord nx, TCoord ny)
   //       toad's x11 implementation took more care of this
   [nsview setNeedsDisplayInRect: cgr];
 }
-
-void
-TWindow::setOrigin(TCoord x,TCoord y)
-{
-  origin.x = x;
-  origin.y = y;
-}
-void
-TWindow::getOrigin(int *x, int *y) const
-{
-  *x = origin.x;
-  *y = origin.y;
-}
-
-void
-TWindow::getOrigin(TCoord *x, TCoord *y) const
-{
-  *x = origin.x;
-  *y = origin.y;
-}
+#endif
 
 void
 TWindow::setToolTip(const string &text)

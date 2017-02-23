@@ -60,7 +60,6 @@ TPen::initWindow(TWindow *w)
   }
 //  CGContextSetAllowsAntialiasing(ctx, FALSE);
   windowmatrix = CGContextGetCTM(ctx);
-  translate(w->origin.x, w->origin.y);
   setColor(0,0,0);
   setAlpha(1);
 }
@@ -351,7 +350,7 @@ TPen::setClipRect(const TRectangle &r)
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //cout << "setClipRect(" << r.x << ", " << r.y << ", " << r.w << ", " << r.h << ")" << endl;
   if (window)
-    CGContextClipToRect(ctx, CGRectMake(r.x-window->getOriginX(), r.y-window->getOriginY(), r.w, r.h));
+    CGContextClipToRect(ctx, CGRectMake(r.x, r.y, r.w, r.h));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];

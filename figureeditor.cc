@@ -503,9 +503,8 @@ TFigureEditor::paint()
   }
 
   pen.setColor(window->getBackground());
-  TCoord x, y;
-  window->getOrigin(&x, &y);
-  pen.fillRectangle(-x,-y,window->getWidth(),window->getHeight());
+  TPoint origin = window->getOrigin();
+  pen.fillRectangle(-origin.x,-origin.y,window->getWidth(),window->getHeight());
 
   if (mat) {
     pen.multiply(mat);
@@ -541,7 +540,7 @@ TFigureEditor::paintGrid(TPenBase &pen)
   TCoord g = preferences->gridsize;
 
   TRegion region(*window->getUpdateRegion());
-
+  TPoint origin = window->getOrigin();
   region &= TRectangle(visible.x-origin.x, visible.y-origin.y, visible.w, visible.h);
   TRectangle r;
   region.getBoundary(&r);
@@ -653,12 +652,14 @@ TFigureEditor::paintDecoration(TPen &scr)
     paintCorner(scr);
   // else ... not implemented yet
   
+  TPoint origin = window->getOrigin();
+  
   if (row_header_renderer) {
     scr.push();
     scr.identity();
     scr.setClipRect(TRectangle(0, visible.y, visible.x, visible.h));
-    scr.translate(0, visible.y+window->getOriginY());
-    row_header_renderer->render(scr, -window->getOriginY(), visible.h, mat);
+    scr.translate(0, visible.y+origin.y);
+    row_header_renderer->render(scr, -origin.y, visible.h, mat);
     scr.pop();
   }
 
@@ -666,8 +667,8 @@ TFigureEditor::paintDecoration(TPen &scr)
     scr.push();
     scr.identity();
     scr.setClipRect(TRectangle(visible.x, 0, visible.w, visible.y));
-    scr.translate(visible.x+window->getOriginX(), 0);
-    col_header_renderer->render(scr, -window->getOriginX(), visible.w, mat);
+    scr.translate(visible.x+origin.x, 0);
+    col_header_renderer->render(scr, -origin.x, visible.w, mat);
     scr.pop();
   }
 }
@@ -1358,8 +1359,9 @@ TFigureEditor::invalidateFigure(TFigure* figure)
 //figure->getShape(&r);
 //cout << figure->getClassName() << ": invalidate shape " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
   getFigureEditShape(figure, &r, mat);
-  r.x+=window->getOriginX() + visible.x;
-  r.y+=window->getOriginY() + visible.y;
+  TPoint origin = window->getOrigin();
+  r.x+=origin.x + visible.x;
+  r.y+=origin.y + visible.y;
   if (r.x < visible.x ) {
     TCoord d = visible.x - r.x;
     r.x += d;
@@ -1606,5 +1608,5 @@ TFigureEditor::scrolled(TCoord dx, TCoord dy)
   TCoord x, y;
   getPanePos(&x, &y);
   // window->scrollTo(-x, -y);
-  window->setOrigin(-x, -y);
+  window->setOrigin(TPoint(-x, -y));
 }

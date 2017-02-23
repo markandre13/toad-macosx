@@ -375,15 +375,16 @@ TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
       return;
     }
   }
+  TPoint origin = fe->getWindow()->getOrigin();
   fe->getWindow()->invalidateWindow(
-    rx0 + fe->getWindow()->getOriginX(),
-    ry0 + fe->getWindow()->getOriginY(),
+    rx0 + origin.x,
+    ry0 + origin.y,
     rx1-rx0+3,ry1-ry0+2);
   rx1 = me.pos.x;
   ry1 = me.pos.y;
   fe->getWindow()->invalidateWindow(
-    rx0 + fe->getWindow()->getOriginX(),
-    ry0 + fe->getWindow()->getOriginY(),
+    rx0 + origin.x,
+    ry0 + origin.y,
     rx1-rx0+3,ry1-ry0+2);
   tmpsel.clear();
   auto p = fe->getModel()->begin();
@@ -406,9 +407,10 @@ TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::invalidateBounding(TFigureEditor *fe)
 {
+  TPoint origin = fe->getWindow()->getOrigin();
   fe->getWindow()->invalidateWindow(
-    x0-4 + fe->getWindow()->getOriginX() + fe->getVisible().x,
-    y0-4 + fe->getWindow()->getOriginY() + fe->getVisible().y,
+    x0-4 + origin.x + fe->getVisible().x,
+    y0-4 + origin.y + fe->getVisible().y,
     x1-x0+10,y1-y0+10);
 #if 0
   cout << "invalidate bounding ("

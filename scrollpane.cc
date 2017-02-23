@@ -72,6 +72,45 @@ TScrollPane::resetScrollPane()
     hscroll->setValue(0);
 }
 
+#if 1
+void
+TScrollPane::setOrigin(const TPoint &p)
+{
+  paneOrigin = p;
+}
+
+TPoint
+TScrollPane::getOrigin() const
+{
+  return paneOrigin;
+}
+#else
+void
+TScrollPane::setOrigin(const TPoint &p)
+{
+  if (vscroll)
+    vscroll->setRangeProperties(
+      p.y,
+      visible.h,
+      p.y<0 ? p.y : 0,
+      p.y>visible.h ? p.y : visible.h, true);
+  if (hscroll)
+    hscroll->setRangeProperties(
+      p.x,
+      visible.w,
+      p.x<0 ? p.x : 0,
+      p.x>visible.w ? p.x : visible.w, true);
+}
+
+TPoint
+TScrollPane::getOrigin() const
+{
+  return TPoint(
+    hscroll ? hscroll->getValue() : 0,
+    vscroll ? vscroll->getValue() : 0);
+}
+#endif
+
 /**
  * The method being invoked by the scrollbars
  */
@@ -132,7 +171,7 @@ TScrollPane::scrolled(TCoord dx, TCoord dy)
 {
   TCoord x, y;
   getPanePos(&x, &y);
-  setOrigin(-x, -y);
+  setOrigin(TPoint(-x, -y));
 }
 
 // avoid calling resize() when no window exists

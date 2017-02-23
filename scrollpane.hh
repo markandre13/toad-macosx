@@ -31,10 +31,16 @@ class TScrollBar;
 class TScrollPane:
   public TWindow
 {
+    TPoint paneOrigin;
   public:
     TScrollPane(TWindow *p, const string &t);
     const TRectangle& getVisible() const { return visible; }
     void mouseEvent(const TMouseEvent &me);
+
+    void scrollTo(TCoord x, TCoord y);
+
+    virtual void setOrigin(const TPoint&);
+    virtual TPoint getOrigin() const;
     
   protected:
     //! the visible part of the pane (better: pane?)

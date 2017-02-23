@@ -72,6 +72,7 @@ return;
   pen->setColor(window->getBackground());
   pen->fillRectangle(visible);
 
+  TPoint origin = window->getOrigin();
 #if 0
   // this translate by the position of the window itself
   // dunno why, but under Cocoa this is wrong and it also should be
@@ -80,8 +81,8 @@ return;
                  window->getOriginY()+visible.y-r.y);
 #else
   // this fails when we start to scroll
-  pen->translate(window->getOriginX()+visible.x,
-                 window->getOriginY()+visible.y);
+  pen->translate(origin.x+visible.x,
+                 origin.y+visible.y);
 #endif
 
 //pen->setColor(1,0.5,0);

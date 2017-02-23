@@ -205,10 +205,7 @@ class TWindowEvent {
 class TWindow:
   public TInteractor, public TRectangle
 {
-    // FIXME?: the origin is nice for scrolling but fails for rotation... can we live with that?
   public:
-    //! origin of the window's coordinate system, defaults to (0,0), the upper, left corner
-    TPoint origin;
     bool _inside:1; // helper to emulate mouseEnter, mouseLeave on Cocoa
     bool _mapped:1;
     bool _allMouseMoveEvents:1;
@@ -329,6 +326,10 @@ class TWindow:
     virtual void getShape(TRectangle *r) const override {
       *r = *this;
     }
+    
+    virtual void setOrigin(const TPoint&);
+    virtual TPoint getOrigin() const;
+    
     void invalidateWindow(bool clearbg=true);
     void invalidateWindow(TCoord x, TCoord y, TCoord w, TCoord h, bool clearbg=true);
     void invalidateWindow(const TRectangle&, bool clearbg=true);
@@ -337,14 +338,6 @@ class TWindow:
     
     void scrollWindow(TCoord x, TCoord y, bool bClrBG=true);
     void scrollRectangle(const TRectangle &rect, TCoord x, TCoord y, bool bClrBG=true);
-    void scrollTo(TCoord x, TCoord y);
-    void setOrigin(TCoord x, TCoord y);
-    void getOrigin(int *x, int *y) const;
-    void getOrigin(TCoord *x, TCoord *y) const;
-    TCoord getOriginX() const { return origin.x; }
-    TCoord getOriginY() const { return origin.y; }
-    TPoint getOrigin() const { return origin; }
-    
     void setTitle(const string &title) override;
     void setBackground(TColor::EColor c) {
       const TRGB *a = TColor::lookup(c);
