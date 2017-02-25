@@ -79,3 +79,42 @@ TEST_F(FigureEditor, Scale) {
   wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
+
+#if 0
+class TTest2:
+  public TFigureEditor, public TSimpleTimer
+{
+    unsigned state;
+  public:
+    using TFigureEditor::TFigureEditor;
+  protected:
+    void tick() override;
+};
+
+void
+TTest2::tick()
+{
+  switch(state) {
+    case 0: {
+      } break;
+    case 1: {
+      CGImageRef image = grabImage(this);
+      if (!image)
+        return;
+      saveImage(image, "test/"+getTitle()+".tmp.png");
+      CFRelease(image);
+      stopTimer();
+      compareImageFile("test/"+getTitle()+".tmp.png", "test/"+getTitle()+".png");
+//      destroyWindow();
+    } break;
+  }
+}
+
+
+TEST_F(FigureEditor, Scroll) {
+  TTest2 wnd(NULL, testname());
+  wnd.addFigure(new TFRectangle(-64.5, -64.5, 320+128, 200+128));
+  wnd.startTimer(0, 1000);
+  wnd.doModalLoop();
+}
+#endif

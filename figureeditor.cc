@@ -496,7 +496,6 @@ TFigureEditor::paint()
     return;
   }
   TPen pen(window);
-  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
   if (!model) {
     pen.setColor(TColor::DIALOG);
     pen.fillRectangle(0,0,window->getWidth(), window->getHeight());
@@ -505,6 +504,8 @@ TFigureEditor::paint()
 
   pen.setColor(window->getBackground());
   pen.fillRectangle(0, 0,window->getWidth(),window->getHeight());
+
+  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
 
   if (mat) {
     pen.multiply(mat);
@@ -515,7 +516,6 @@ TFigureEditor::paint()
   print(pen, model, true);
   paintSelection(pen);
   paintDecoration(pen);
-
 }
 
 /**
