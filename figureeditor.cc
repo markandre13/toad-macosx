@@ -495,6 +495,7 @@ TFigureEditor::paint()
     cout << __PRETTY_FUNCTION__ << ": no window" << endl;
     return;
   }
+
   TPen pen(window);
   if (!model) {
     pen.setColor(TColor::DIALOG);
@@ -528,7 +529,7 @@ TFigureEditor::paintGrid(TPenBase &pen)
 {
   if (!preferences ||
       !preferences->drawgrid ||
-      !preferences->gridsize)
+      preferences->gridsize <= 0.0)
   {
     return;
   }
@@ -710,6 +711,22 @@ TFigureEditor::print(TPenBase &pen, TFigureModel *model, bool withSelection, boo
   TRectangle cb, r;
   cb.set(0,0,getWidth(),getHeight());
   pen.getClipBox(&cb);
+
+/*
+  if (mat) {
+    TMatrix2D m(*mat);
+    m.invert();
+    TPoint p0 = m.map(TPoint(cb.x, cb.y));
+    TPoint p1 = m.map(TPoint(cb.x+cb.w, cb.y+cb.h));
+    cb.x = p0.x;
+    cb.y = p0.y;
+    cb.w = p1.x - p0.x;
+    cb.h = p1.y - p0.y;
+    origin = m.map(origin);
+  }
+cout << "TFigureEditor::print(): clipbox="<<cb<<endl;
+*/
+
   for(TFigureModel::iterator p = model->begin();
       p != model->end();
       ++p)
