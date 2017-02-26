@@ -505,13 +505,13 @@ TFigureEditor::paint()
   pen.setColor(window->getBackground());
   pen.fillRectangle(0, 0,window->getWidth(),window->getHeight());
 
-  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
-
   if (mat) {
     pen.multiply(mat);
   }
 
   paintGrid(pen);
+
+  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
 
   print(pen, model, true);
   paintSelection(pen);
@@ -537,63 +537,68 @@ TFigureEditor::paintGrid(TPenBase &pen)
     background_color.g > 0.5 ? background_color.g-0.5 : background_color.g+0.5,
     background_color.b > 0.5 ? background_color.b-0.5 : background_color.b+0.5
   );
-  TCoord x1, x2, y1, y2;
-  TCoord g = preferences->gridsize;
-
-  TRegion region(*window->getUpdateRegion());
-  region &= TRectangle(visible.x, visible.y, visible.w, visible.h);
-  TRectangle r;
-  region.getBoundary(&r);
 
   TPoint origin = window->getOrigin();
-  x1=r.x-origin.x;
-  y1=r.y-origin.y;
-  x2=r.x+r.w-origin.x;
-  y2=r.y+r.h-origin.y;
-  
-//  cout << "paintGrid between x = " << x1 << " ... " << x2 << ", y = " << y1 << " ... " << y2 << ", boundary=" << r << endl;
 
-#if 0
-  const TMatrix2D *mat = pen.getMatrix();
+  TRegion region(*window->getUpdateRegion());
+  TRectangle r;
+//  region.getBoundary(&r);
+//cout << "paintGrid: update region's boundary: " << r << endl;
+//cout << "paintGrid: visible                 : " << visible << endl;
+  region &= TRectangle(visible.x, visible.y, visible.w, visible.h);
+  region.getBoundary(&r);
+//cout << "paintGrid: intersection            : " << r << endl;
+//cout << "paintGrid: origin                  : " << origin << endl;
+
+  TCoord gridsize = preferences->gridsize;
   if (mat) {
-/*
-cout << "TFigureEditor::paintGrid: matrix" << endl
-     << "  " << mat->a << ", " << mat->b << endl
-     << "  " << mat->c << ", " << mat->d << endl
-     << "  " << mat->tx << ", " << mat->ty << endl;
-*/
-    TCoord gx0, gx, gy0, gy;
-    TMatrix2D m(*mat);   
-    m.map(0, 0, &gx0, &gy0);
-    m.map(preferences->gridsize, preferences->gridsize, &gx, &gy);
-    gx-=gx0;
-    gy-=gy0;
-//cout << "gx,gy=" << gx << "," << gy << endl;
+    TMatrix2D m(*mat);
     m.invert();
-    if (gx<=2 || gy<=2) {
-      // don't draw grid, it's too small
-      return;
-    } else {
-      TMatrix2D m(*mat);
-      m.invert();
-      m.map(x1, y1, &x1, &y1);
-      m.map(x2, y2, &x2, &y2);
-      if (x1>x2) {
-        TCoord a = x1; x1 = x2; x2 = a;
-      }
-      if (y1>y2) {
-        TCoord a = y1; y1 = y2; y2 = a;
-      }
-    }
+    TPoint p0 = m.map(TPoint(r.x, r.y));
+    TPoint p1 = m.map(TPoint(r.x+r.w, r.y+r.h));
+    r.x = p0.x;
+    r.y = p0.y;
+    r.w = p1.x - p0.x;
+    r.h = p1.y - p0.y;
+    origin = m.map(origin);
   }
-#endif
 
-  // justify to grid
-  x1 -= fmod(x1, g);
-  y1 -= fmod(y1, g);
+  TCoord x0, x1, y0, y1;
 
-  for(auto y=y1; y<=y2; y+=g) {
-    for(auto x=x1; x<=x2; x+=g) {
+  double f;
+  // Y
+  // origin correction
+  f = fmod(origin.y, gridsize);
+  if (f<0)
+    f+=gridsize;
+
+  // area jump FIXME: replace loop
+  while(f-gridsize-r.y>=0)
+    f -= gridsize;
+  while(f-gridsize-r.y<-gridsize)
+    f += gridsize;
+  y0 = f;
+
+  // X
+  // origin correction
+  f = fmod(origin.x, gridsize);
+  if (f<0)
+    f+=gridsize;
+
+  // area jump // FIXME: replace loop
+  while(f-gridsize-r.x>=0)
+    f -= gridsize;
+  while(f-gridsize-r.x<-gridsize)
+    f += gridsize;
+  x0 = f;
+  
+  x1 = x0 + r.w;
+  y1 = y0 + r.h;
+  
+//  cout << "paintGrid between x = " << x0 << " ... " << x1 << ", y = " << y0 << " ... " << y1 << ", boundary=" << r << endl;
+
+  for(auto y=y0; y<=y1; y+=gridsize) {
+    for(auto x=x0; x<=x1; x+=gridsize) {
       pen.drawPoint(x, y);
 //cout << "drawGrid: draw point at " << x << ", " << y << endl;
     }

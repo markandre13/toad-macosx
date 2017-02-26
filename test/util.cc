@@ -140,6 +140,7 @@ compareImageFile(const string &file0, const string &file1)
         colormap[c0] = c1;
       } else
       if (ptr->second != c1) {
+#if 0
         cout << "---------- file: " << file0 << endl;
         for(size_t y=0; y<20; ++y) {
           for(size_t x=0; x<20; ++x) {
@@ -158,6 +159,7 @@ compareImageFile(const string &file0, const string &file1)
           }
           cout << endl;
         }
+#endif
         FAIL() << "pixel mismatch between " << file0 << " and " << file1 << " at " << x << ", " << y
                << c0 << "->" << c1 << ", expected " << ptr->second << endl;
       }

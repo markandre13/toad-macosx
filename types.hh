@@ -46,6 +46,9 @@ struct TPoint:
   TPoint(const TPoint &p) {x=p.x; y=p.y;}
   TPoint(TCoord inX, TCoord inY) { x=inX; y=inY; }
   void set(TCoord a, TCoord b) { x=a;y=b; }
+  TPoint operator-() {
+    return TPoint(-x, -y);
+  }
   const TPoint& operator+=(const TPoint &a) {
     x += a.x;
     y += a.y;
@@ -56,8 +59,15 @@ struct TPoint:
     y -= a.y;
     return *this;
   }
-  TPoint operator-() {
-    return TPoint(-x, -y);
+  const TPoint& operator*=(TCoord f) {
+    x *= f;
+    y *= f;
+    return *this;
+  }
+  const TPoint& operator/=(TCoord f) {
+    x /= f;
+    y /= f;
+    return *this;
   }
 };
 
