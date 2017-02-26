@@ -70,64 +70,65 @@ class TPen:
 
     void pagebreak();
 
-    void setFont(const string&);
+    void setFont(const string&) override;
 
-    void identity();
-    void translate(TCoord dx, TCoord dy);
-    void scale(TCoord dx, TCoord dy);
-    void rotate(TCoord radiants);
-    void push();
-    void pop();
-    void multiply(const TMatrix2D*);
-    void setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty);
+    void identity() override;
+    using TPenBase::translate;
+    void translate(const TPoint &vector) override;
+    void scale(TCoord dx, TCoord dy) override;
+    void rotate(TCoord radiants) override;
+    void push() override;
+    void pop() override;
+    void multiply(const TMatrix2D*) override;
+    void setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty) override;
     void setMatrix(const TMatrix2D&);
-    const TMatrix2D* getMatrix() const;
+    const TMatrix2D* getMatrix() const override;
 
     void setClipRect(const TRectangle&);
-    void getClipBox(TRectangle*) const;
+    void getClipBox(TRectangle*) const override;
 
-    void setMode(EMode);
-    void setLineWidth(TCoord);
-    void setLineStyle(ELineStyle);
+    void setMode(EMode) override;
+    void setLineWidth(TCoord) override;
+    void setLineStyle(ELineStyle) override;
     
-    void move(TCoord x, TCoord y);
-    void line(TCoord x, TCoord y);
-    void move(const TPoint*);
-    void line(const TPoint*);
-    void curve(const TPoint*);
-    void close();
-    void stroke();
-    void fill();
+    void move(TCoord x, TCoord y) override;
+    void line(TCoord x, TCoord y) override;
+    void move(const TPoint*) override;
+    void line(const TPoint*) override;
+    void curve(const TPoint*) override;
+    void close() override;
+    void stroke() override;
+    void fill() override;
 
-    void vsetColor(TCoord r, TCoord g, TCoord b);
-    void vsetLineColor(TCoord r, TCoord g, TCoord b);
-    void vsetFillColor(TCoord r, TCoord g, TCoord b);
-    void setAlpha(TCoord a);
-    TCoord getAlpha() const;
-    void vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h);
-    void vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h);
-    void vdrawCircle(TCoord x,TCoord y,TCoord w,TCoord h);
-    void vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h);
-    void vdrawArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2);
-    void vfillArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2);
-    void vdrawBitmap(TCoord x, TCoord y, const TBitmap&);
-    void vdrawString(TCoord x, TCoord y, const char *str, int len, bool transparent);
+    void vsetColor(TCoord r, TCoord g, TCoord b) override;
+    void vsetLineColor(TCoord r, TCoord g, TCoord b) override;
+    void vsetFillColor(TCoord r, TCoord g, TCoord b) override;
+    void setAlpha(TCoord a) override;
+    TCoord getAlpha() const override;
+    void vdrawRectangle(TCoord x, TCoord y, TCoord w, TCoord h) override;
+    void vfillRectangle(TCoord x, TCoord y, TCoord w, TCoord h) override;
+    void vdrawCircle(TCoord x,TCoord y,TCoord w,TCoord h) override;
+    void vfillCircle(TCoord x,TCoord y,TCoord w,TCoord h) override;
+    void vdrawArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2) override;
+    void vfillArc(TCoord x, TCoord y, TCoord w, TCoord h, TCoord r1, TCoord r2) override;
+    void vdrawBitmap(TCoord x, TCoord y, const TBitmap&) override;
+    void vdrawString(TCoord x, TCoord y, const char *str, int len, bool transparent) override;
 
-    void drawPoint(TCoord x, TCoord y);
-    void drawLines(const TPoint *points, size_t n); 
-    void drawLines(const TPolygon&);
+    void drawPoint(TCoord x, TCoord y) override;
+    void drawLines(const TPoint *points, size_t n) override;
+    void drawLines(const TPolygon&) override;
 
-    void drawPolygon(const TPoint *points, size_t n);
-    void drawPolygon(const TPolygon &p);
-    void fillPolygon(const TPoint *points, size_t n); 
-    void fillPolygon(const TPolygon &p);
+    void drawPolygon(const TPoint *points, size_t n) override;
+    void drawPolygon(const TPolygon &p) override;
+    void fillPolygon(const TPoint *points, size_t n) override; 
+    void fillPolygon(const TPolygon &p) override;
 
-    void drawBezier(const TPoint *points, size_t n);
+    void drawBezier(const TPoint *points, size_t n) override;
     inline void drawBezier(const vector<TPoint> v) { drawBezier(v.data(), v.size()); }
     void drawCurve(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2, TCoord x3, TCoord y3);
-    void drawBezier(const TPolygon &p);
-    void fillBezier(const TPoint *points, size_t n);
-    void fillBezier(const TPolygon &p);
+    void drawBezier(const TPolygon &p) override;
+    void fillBezier(const TPoint *points, size_t n) override;
+    void fillBezier(const TPolygon &p) override;
 };
 
 }

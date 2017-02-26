@@ -263,7 +263,10 @@ class TFigureEditor:
     void identity();
     void rotate(double);
     void rotateAt(double x, double y, double radiants);
-    void translate(TCoord, TCoord);
+    void translate(const TPoint &vector);
+    void translate(TCoord x, TCoord y) {
+      translate(TPoint(x, y));
+    }
     void scale(TCoord sx, TCoord sy);
     void shear(double, double);
     void multiply(const TMatrix2D*);

@@ -66,6 +66,9 @@ class TMatrix2D:
     void rotate(TCoord radiant);
     void rotateAt(TCoord x, TCoord y, TCoord radiant);
     void translate(TCoord dx, TCoord dy);
+    void translate(const TPoint &vector) {
+      translate(vector.x, vector.y);
+    }
 
     void scale(TCoord, TCoord);
     void shear(TCoord, TCoord);

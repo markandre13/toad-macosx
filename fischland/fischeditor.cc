@@ -37,86 +37,39 @@ TFischEditor::paint()
     return;
   }
 
-//  TPen scr(window);
-//  scr.identity();  
-  TRectangle r;
-r = *window; //  scr.getClipBox(&r);
-//cerr << "got screen clip box " << r << endl;
-//  TBitmap bmp(r.w, r.h);
-  TPen *pen = 0;
-#ifdef HAVE_LIBCAIRO  
-  if (useCairo) {
-    pen = new TCairo(&bmp);
-  } else
-#endif
-//  pen = new TPen(&bmp);
-//#error "creating this pen causes the shift of all origins..."
+  TPen pen(window);
 
-#if 0
-{
-TPen *pen = new TPen(window);
-pen->translate(1, 1);
-pen->setColor(1,0,0);
-pen->drawRectangle(0,0,10,10);
-delete pen;
-return;
-}
-#endif
+  paintDecoration(pen); // method in TFigureEditor
 
-  pen = new TPen(window);
+//  pen->identity();
 
-  paintDecoration(*pen); // method in TFigureEditor
-
-  pen->identity();
-
-  pen->setColor(window->getBackground());
-  pen->fillRectangle(visible);
+  pen.setColor(window->getBackground());
+  pen.fillRectangle(visible);
 
   TPoint origin = window->getOrigin();
-#if 0
-  // this translate by the position of the window itself
-  // dunno why, but under Cocoa this is wrong and it also should be
-  // under X11
-  pen->translate(window->getOriginX()+visible.x-r.x,
-                 window->getOriginY()+visible.y-r.y);
-#else
-  // this fails when we start to scroll
-  pen->translate(origin.x+visible.x,
-                 origin.y+visible.y);
-#endif
-
-//pen->setColor(1,0.5,0);
-//pen->fillRectangle(100,100,200,100);
-
+  
+  pen.push();
   if (mat)
-    pen->multiply(mat);
+    pen.multiply(mat);
+//  pen.translate(visible.x, visible.y);
+  paintGrid(pen);
+  pen.pop();
 
-//pen->setColor(1,0,0);
-//TCoord f=96.0;
-//pen->fillRectangle(100*f,100*f,200*f,100*f);
+  pen.setClipRect(visible);
 
-//TRectangle r0;
-//pen->getClipBox(&r0);
-//cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
-  paintGrid(*pen);
-//pen->getClipBox(&r0);
-//cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
+  pen.translate(origin.x+visible.x,
+                origin.y+visible.y);
+  if (mat)
+    pen.multiply(mat);
 
   [[NSGraphicsContext currentContext] setShouldAntialias: true];
 
   unsigned total = 0, painted = 0, skipped = 0;
 
   // paint all active layers
-  for(auto p: editmodel->modelpath)
-    print(*pen, p, true);
+  for(auto &p: editmodel->modelpath)
+    print(pen, p, true);
 
-//pen->getClipBox(&r0);
-//cerr << "got bitmap clipbox " << r0 << " at line " << __LINE__ << endl;
-//cerr << "painted " << painted << " out of " << total << " in " << r << endl;
-  pen->setLineWidth(0);
-  paintSelection(*pen);
-
-//  scr.drawBitmap(r.x,r.y, &bmp);   
-//  paintDecoration(scr);
-  delete pen;
+  pen.setLineWidth(0);
+  paintSelection(pen);
 }

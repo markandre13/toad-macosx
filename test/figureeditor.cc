@@ -423,7 +423,8 @@ TTest2::tick()
 TEST_F(FigureEditor, Scroll) {
   TTest2 wnd(NULL, testname());
   wnd.scale(2,2);
-  wnd.addFigure(new TFRectangle(-64.5, -64.5, 320+128, 200+128));
+//  wnd.addFigure(new TFRectangle(-64.5, -64.5, 320+128, 200+128));
+  wnd.addFigure(new TFRectangle(4.5, 4.5, 312, 192));
   wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }

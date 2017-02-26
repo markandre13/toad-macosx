@@ -380,11 +380,11 @@ void TFigureEditor::rotateAt(double x, double y, double radiants)
 
 /**
  */
-void TFigureEditor::translate(TCoord x, TCoord y)
+void TFigureEditor::translate(const TPoint &vector)
 {
   if (!mat)
     mat = new TMatrix2D();
-  mat->translate(x, y);
+  mat->translate(vector);
   updateScrollbars();
   quickready = false;
   invalidateWindow();
@@ -505,13 +505,15 @@ TFigureEditor::paint()
   pen.setColor(window->getBackground());
   pen.fillRectangle(0, 0,window->getWidth(),window->getHeight());
 
-  if (mat) {
+  pen.push();
+  if (mat)
     pen.multiply(mat);
-  }
-
   paintGrid(pen);
+  pen.pop();
 
-  pen.translate(getOrigin().x, getOrigin().y); // FIXME: reduce overhead
+  pen.translate(getOrigin());
+  if (mat)
+    pen.multiply(mat);
 
   print(pen, model, true);
   paintSelection(pen);

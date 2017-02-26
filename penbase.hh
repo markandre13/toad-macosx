@@ -73,7 +73,10 @@ class TPenBase
     virtual void fill() = 0;
 
     virtual void identity() = 0;
-    virtual void translate(TCoord dx, TCoord dy) = 0;
+    virtual void translate(const TPoint &vector) = 0;
+    inline void translate(TCoord x, TCoord y) {
+      translate(TPoint(x, y));
+    }
     virtual void scale(TCoord dx, TCoord dy) = 0;
     virtual void rotate(TCoord radiants) = 0;
     virtual void push() = 0;

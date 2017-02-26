@@ -221,7 +221,6 @@ TPen::~TPen()
   }
 }
 
-
 void
 TPen::identity()
 {
@@ -238,9 +237,9 @@ TPen::identity()
 }
 
 void
-TPen::translate(TCoord dx, TCoord dy)
+TPen::translate(const TPoint &vector)
 {
-  CGContextTranslateCTM(ctx, dx, dy);
+  CGContextTranslateCTM(ctx, vector.x, vector.y);
 }
 
 void
