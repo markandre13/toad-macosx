@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2014 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,7 @@
 #include "penciltool.hh"
 #include "directselectiontool.hh"
 #include "rotatetool.hh"
+#include "connecttool.hh"
 #include "colorpicker.hh"
 #include "colorpalette.hh"
 #include "fischland.hh"
@@ -414,26 +415,33 @@ serialize.registerObject(new TFPath());
       case 2:
 */
       case 5:
+        wnd = rb = new TFatRadioButton(this, "connect", state);
+        wnd->setToolTip("Connect");
+        rb->loadBitmap(RESOURCE("tool_connect.png"));
+        CONNECT(rb->sigClicked, me, setTool, TConnectTool::getTool());
+        break;
+/*
         wnd = rb = new TFatRadioButton(this, "floodfill", state);
         wnd->setToolTip("Flood Fill");
         rb->loadBitmap(RESOURCE("tool_floodfill.png"));
         CONNECT(rb->sigClicked, me, setTool, TFillTool::getTool());
         break;
+*/
       case 6:
         wnd = rb = new TFatRadioButton(this, "text", state);
-        wnd->setToolTip("create text");
+        wnd->setToolTip("Text");
         rb->loadBitmap(RESOURCE("tool_text.png"));
         CONNECT(rb->sigClicked, me, setTool, &ftext);
         break;
       case 7:
         wnd = rb = new TFatRadioButton(this, "circle", state);
-        wnd->setToolTip("create ellipse");
+        wnd->setToolTip("Ellipse");
         rb->loadBitmap(RESOURCE("tool_circ.png"));
         CONNECT(rb->sigClicked, me, setTool, &fcirc);
         break;
       case 8:
         wnd = rb = new TFatRadioButton(this, "rectangle", state);
-        wnd->setToolTip("create rectangle");
+        wnd->setToolTip("Rectangle");
         rb->loadBitmap(RESOURCE("tool_rect.png"));
         CONNECT(rb->sigClicked, me, setTool, &frect);
         break;
@@ -442,12 +450,12 @@ serialize.registerObject(new TFPath());
         y+=5;
         wnd = rb = new TFatRadioButton(this, "rotate", state);
 //        CONNECT(rb->sigClicked, me, setTool, TRotateTool::getTool());
-        wnd->setToolTip("rotate");
+        wnd->setToolTip("Rotate");
         rb->loadBitmap(RESOURCE("tool_rotate.png"));
         break;
       case 10:
         wnd = rb = new TFatRadioButton(this, "free transform", state);
-        wnd->setToolTip("free transform");
+        wnd->setToolTip("Free Transform");
         break;
         
       case 13:

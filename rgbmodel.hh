@@ -33,7 +33,10 @@ class TRGBModel:
   public:
     TRGBModel();
     TRGBModel(const TRGBModel &rgb) { _init(); *this = rgb; }
-    TRGBModel& operator=(const TRGBModel &rgb) { *this = rgb; return *this; }
+    TRGBModel& operator=(const TRGBModel &rgb) {
+      set(rgb.r, rgb.g, rgb.b);
+      return *this;
+    }
     TRGBModel& operator=(const TRGB &rgb) { 
       set(rgb.r, rgb.g, rgb.b);
       return *this; 
