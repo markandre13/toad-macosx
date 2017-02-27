@@ -31,6 +31,7 @@ using namespace toad;
 class TConnectTool:
   public TFigureTool
 {
+    TFigure *firstFigure, *overFigure;
   public:
     TConnectTool();
     static TConnectTool* getTool();

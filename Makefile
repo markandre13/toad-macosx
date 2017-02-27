@@ -44,7 +44,8 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
 	 fischland/toolbox.cc fischland/colorpicker.cc \
 	 fischland/selectiontool.cc fischland/directselectiontool.cc \
-	 fischland/rotatetool.cc fischland/connecttool.cc \
+	 fischland/rotatetool.cc \
+	 fischland/connecttool.cc fischland/connectfigure.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
@@ -1460,11 +1461,18 @@ fischland/connecttool.o: include/toad/scrollpane.hh
 fischland/connecttool.o: include/toad/floatmodel.hh
 fischland/connecttool.o: include/toad/figure/createtool.hh
 fischland/connecttool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/connecttool.o: include/toad/pen.hh fischland/fischland.hh
-fischland/connecttool.o: include/toad/undomanager.hh include/toad/action.hh
-fischland/connecttool.o: include/toad/textfield.hh include/toad/textarea.hh
-fischland/connecttool.o: include/toad/control.hh include/toad/scrollbar.hh
-fischland/connecttool.o: include/toad/checkbox.hh include/toad/labelowner.hh
+fischland/connecttool.o: include/toad/pen.hh fischland/connectfigure.hh
+fischland/connecttool.o: fischland/fischland.hh
+fischland/connectfigure.o: fischland/connectfigure.hh include/toad/figure.hh
+fischland/connectfigure.o: include/toad/penbase.hh include/toad/color.hh
+fischland/connectfigure.o: include/toad/types.hh
+fischland/connectfigure.o: include/toad/io/serializable.hh
+fischland/connectfigure.o: include/toad/io/atvparser.hh include/toad/font.hh
+fischland/connectfigure.o: include/toad/pointer.hh include/toad/matrix2d.hh
+fischland/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
+fischland/connectfigure.o: include/toad/cursor.hh include/toad/region.hh
+fischland/connectfigure.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+fischland/connectfigure.o: include/toad/model.hh include/toad/connect.hh
 fischland/pentool.o: fischland/pentool.hh fischland/fpath.hh
 fischland/pentool.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/pentool.o: include/toad/color.hh include/toad/types.hh

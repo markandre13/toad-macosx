@@ -19,31 +19,69 @@
  */
 
 #include "connecttool.hh"
+#include "connectfigure.hh"
 #include "fischland.hh"
-
-#include <toad/undomanager.hh>
-
-#include <toad/textfield.hh>
-#include <toad/checkbox.hh>
-
-#include <sys/time.h>
-
-TConnectTool::TConnectTool()
-{
-}
 
 TConnectTool*
 TConnectTool::getTool()
 {
-  static TConnectTool* tool = 0;
+  static TConnectTool* tool = nullptr;
   if (!tool)
     tool = new TConnectTool();
   return tool;
 }
 
+TConnectTool::TConnectTool()
+{
+  firstFigure = overFigure = nullptr;
+}
+
+void 
+TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
+{
+  TPoint p;
+  TFigure *figure;
+
+  // find figure under mouse
+  fe->mouse2sheet(me.pos, &p);
+  figure = fe->findFigureAt(p);
+  if (figure) {
+    cout << "found figure" << endl;
+  }
+
+  switch(me.type) {
+    case TMouseEvent::MOVE:
+      if (figure==overFigure)
+        break;
+      overFigure = figure;
+      fe->invalidateWindow(); // FIXME: invalidates too much
+      break;
+    case TMouseEvent::LDOWN:
+      if (!firstFigure) {
+        firstFigure = overFigure;
+      } else {
+        if (figure) {
+          fe->addFigure(new TFConnection(firstFigure, figure));
+        }
+        firstFigure = nullptr;
+      }
+      break;
+  }
+}
+
 bool
 TConnectTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
+  if (overFigure) {
+    pen.push();
+    overFigure->paintSelection(pen);
+    pen.pop();
+  }
+  if (firstFigure && overFigure != firstFigure) {
+    pen.push();
+    firstFigure->paintSelection(pen);
+    pen.pop();
+  }
 }
 
 void
@@ -53,11 +91,5 @@ TConnectTool::stop(TFigureEditor *fe)
 
 void
 TConnectTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
-{
-}
- 
-
-void 
-TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 }
