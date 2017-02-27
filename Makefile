@@ -53,6 +53,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 SRC_TEST=test/main.cc test/util.cc test/gtest-all.cc \
          test/display.cc test/figureeditor.cc \
          test/wordprocessor.cc \
+         test/serializable.cc \
          test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
 
 #fischland/fontdialog.cc
@@ -93,7 +94,7 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 
 test: test.app/Contents/MacOS/test
 #	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
-	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
+	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.*"
 #	./test.app/Contents/MacOS/test
 
 clean:
