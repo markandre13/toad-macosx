@@ -75,14 +75,14 @@ TEST(Serializeable, References) {
 
   // prepare
   nullstream null;
-  TOutObjectStream ns(&null);
-  ns.setPass(0);
-  ns.store(&a0);
-  ns.store(&a1);
+  TOutObjectStream os(&null);
+  os.setPass(0);
+  os.store(&a0); // we could TOutObjectStream detect root objects and store them during a 1st pass for an automatic 2nd pass
+  os.store(&a1);
 
   // write
   ostringstream out;
-  TOutObjectStream os(&out);
+  os.setOStream(&out);
   os.setPass(1);
   os.store(&a0);
   os.store(&a1);

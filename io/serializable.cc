@@ -82,8 +82,9 @@ storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *
   switch(out.Pass) {
     case 0: {
       map<const TSerializable*, unsigned>::const_iterator p = out.IdMap.find(obj);
-      if (p==out.IdMap.end())
+      if (p==out.IdMap.end()) {
         out.IdMap[obj] = ++out.Id;
+      }
     } break;
     case 1: {
       out.indent();
@@ -110,9 +111,6 @@ TInObjectStream::resolve()
     }
   }
 }
-
-
-
 
 TObjectStore&
 atv::getDefaultStore()
