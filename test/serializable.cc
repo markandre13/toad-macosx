@@ -36,90 +36,24 @@ class nullstream: public std::ostream
     nullbuffer buffer;
 };
 
-unsigned outPass = 0;
-unsigned outId = 0;
-map<const TSerializable*, unsigned> outIdMap;
-
-void
-storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
-{
-  switch(outPass) {
-    case 0: {
-      map<const TSerializable*, unsigned>::const_iterator p = outIdMap.find(obj);
-      if (p==outIdMap.end())
-        outIdMap[obj] = ++outId;
-    } break;
-    case 1: {
-      out.indent();
-      if (obj) {
-        out << attribute << " = " << outIdMap[obj];
-      } else {
-        out << attribute << " = " << "null";
-      }
-    } break;
-  }
-}
-
 void A::store(TOutObjectStream &out) const
 {
-  if (outPass==1) {
-    map<const TSerializable*, unsigned>::const_iterator p = outIdMap.find(this);
-    if (p!=outIdMap.end()) {
-      out.indent();
-      out << "id = " << p->second;
-    }
-  }
+  super::store(out);
   ::store(out, "name",     name);
   ::store(out, "x",        x);
   ::store(out, "y",        y);
   ::storePointer(out, "relation", relation);
 }
 
-// list of ids and their objects
-map<unsigned, const TSerializable*> inIdMap;
-
-// list of ids and pointer toward their objects
-map<unsigned, vector<TSerializable**>> inRefMap;
-
-template <class T> bool
-restorePointer(TInObjectStream &in, const char *attribute, T **ptr)
-{
-  unsigned id;
-  if (!::restore(in, attribute, &id))
-    return false;
-  inRefMap[id].push_back(reinterpret_cast<TSerializable**>(ptr));
-  return true;
-}
-
-void
-resolveRef()
-{
-  for(auto &p: inRefMap) {
-    for(auto &q: p.second) {
-      if (p.first) {
-        *q = const_cast<TSerializable*>(inIdMap[p.first]);
-      } else {
-        *q = nullptr;
-      }
-    }
-  }
-}
-
 bool
 A::restore(TInObjectStream &in)
 {
-  unsigned id;
-  if (::restore(in, "id", &id)) {
-    inIdMap[id] = this;
-    return true;
-  }
-  
   if (
+    super::restore(in) ||
     ::restore(in, "name",     &name) ||
     ::restore(in, "x",        &x) ||
     ::restore(in, "y",        &y) ||
-    ::restorePointer(in, "relation", &relation) ||
-    super::restore(in)
+    ::restorePointer(in, "relation", &relation)
   ) return true;
   ATV_FAILED(in)
   return false;
@@ -140,16 +74,16 @@ TEST(Serializeable, References) {
   toad::getDefaultStore().registerObject(new A());
 
   // prepare
-  outPass = 0;
   nullstream null;
   TOutObjectStream ns(&null);
+  ns.setPass(0);
   ns.store(&a0);
   ns.store(&a1);
 
   // write
-  outPass = 1;
   ostringstream out;
   TOutObjectStream os(&out);
+  os.setPass(1);
   os.store(&a0);
   os.store(&a1);
   
@@ -171,7 +105,7 @@ TEST(Serializeable, References) {
       }
     }
   }
-  resolveRef();
+  is.resolve();
   
   c[0]->print();
   cout << endl;

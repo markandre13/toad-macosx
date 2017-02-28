@@ -1,6 +1,6 @@
 /*
  * Attribute-Type-Value Object Language Parser
- * Copyright (C) 2001-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 2001-2017 by Mark-André Hopf <mhopf@mark13.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,52 @@
 #include <ostream>
 #endif
 #include <map>
+#include <vector>
 #include <string>
 #include <cstring>
 
 namespace atv {
 
+class TOutObjectStream;
+class TInObjectStream;
 class TSerializable;
+
+}
+
+void storePointer(atv::TOutObjectStream &out, const char *attribute, const atv::TSerializable *obj);
+template <class T> bool restorePointer(atv::TInObjectStream &in, const char *attribute, T **ptr);
+
+namespace atv {
+
+class TCloneable
+{
+  public:
+    virtual TCloneable* clone() const = 0;
+};
+
+class TSerializable:
+  public TCloneable, public TATVInterpreter
+{
+//  private:
+  public:
+    bool interpret(TATVParser &p);
+  public:
+    virtual const char * getClassName() const = 0;
+    virtual void store(TOutObjectStream&) const;
+    virtual bool restore(TInObjectStream&);
+};
+
 
 class TOutObjectStream:
   public std::ostream
 {
+  friend void TSerializable::store(TOutObjectStream &out) const;
+  friend void ::storePointer(atv::TOutObjectStream &out, const char *attribute, const atv::TSerializable *obj);
   public:
-    TOutObjectStream(): std::ostream(NULL) { depth=0; line=0; }
+    void setPass(unsigned p) { Pass = p; }
+    TOutObjectStream(): std::ostream(NULL) { depth=0; line=0; Pass=0; Id=0; }
     TOutObjectStream(std::ostream* out): std::ostream(NULL) { 
-      depth=0; line=0; 
+      depth=0; line=0; Pass=0; Id=0;
       setOStream(out);
     }
     void setOStream(std::ostream *stream);
@@ -81,6 +113,10 @@ class TOutObjectStream:
     unsigned depth;
     unsigned line;
     unsigned gline;
+
+    unsigned Pass;
+    unsigned Id;
+    std::map<const TSerializable*, unsigned> IdMap;
 };
 
 class TObjectStore
@@ -105,6 +141,9 @@ TObjectStore& getDefaultStore();
 class TInObjectStream:
   public TATVParser, public TATVInterpreter
 {
+    template <class T> friend bool ::restorePointer(atv::TInObjectStream &in, const char *attribute, T **ptr);
+    friend bool TSerializable::restore(TInObjectStream &in);
+    
     TObjectStore *store;
   public:
     TInObjectStream(std::istream *stream = NULL, TObjectStore *store=NULL);
@@ -121,24 +160,13 @@ class TInObjectStream:
       }
       return NULL;
     }
-};
+    void resolve();
+  protected:
+    // list of ids and their objects
+    std::map<unsigned, const TSerializable*> IdMap;
 
-class TCloneable
-{
-  public:
-    virtual TCloneable* clone() const = 0;
-};
-
-class TSerializable:
-  public TCloneable, public TATVInterpreter
-{
-//  private:
-  public:
-    bool interpret(TATVParser &p) { return restore(static_cast<TInObjectStream&>(p)); }
-  public:
-    virtual const char * getClassName() const = 0;
-    virtual void store(TOutObjectStream&) const;
-    virtual bool restore(TInObjectStream&);
+    // list of ids and pointer toward their objects
+    std::map<unsigned, std::vector<TSerializable**>> RefMap;
 };
 
 /**
@@ -314,6 +342,16 @@ bool restore(atv::TInObjectStream &in, const char *attribute, T value) {
   if (in.attribute != attribute)
     return false;
   return restore(in, value);
+}
+
+template <class T> bool
+restorePointer(atv::TInObjectStream &in, const char *attribute, T **ptr)
+{
+  unsigned id;
+  if (!restore(in, attribute, &id))
+    return false;
+  in.RefMap[id].push_back(reinterpret_cast<atv::TSerializable**>(ptr));
+  return true;
 }
 
 template <class T>

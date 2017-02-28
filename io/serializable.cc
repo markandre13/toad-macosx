@@ -38,6 +38,12 @@ using namespace atv;
 
 static TObjectStore defaultstore;
 
+bool
+TSerializable::interpret(TATVParser &p)
+{
+  return restore(static_cast<TInObjectStream&>(p));
+}
+
 /**
  * the default restore method for all serializable objects.
  *
@@ -47,15 +53,66 @@ static TObjectStore defaultstore;
 bool
 TSerializable::restore(TInObjectStream &in)
 {
+  unsigned id;
+  if (::restore(in, "id", &id)) {
+    in.IdMap[id] = this;
+    return true;
+  }
+
   if (in.what==ATV_START || in.what==ATV_FINISHED)
     return true;
   return false;
 }
 
 void
-TSerializable::store(TOutObjectStream&) const
+TSerializable::store(TOutObjectStream &out) const
 {
+  if (out.Pass==1) {
+    map<const TSerializable*, unsigned>::const_iterator p = out.IdMap.find(this);
+    if (p!=out.IdMap.end()) {
+      out.indent();
+      out << "id = " << p->second;
+    }
+  }
 }
+
+void
+storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
+{
+  switch(out.Pass) {
+    case 0: {
+      map<const TSerializable*, unsigned>::const_iterator p = out.IdMap.find(obj);
+      if (p==out.IdMap.end())
+        out.IdMap[obj] = ++out.Id;
+    } break;
+    case 1: {
+      out.indent();
+      if (obj) {
+        out << attribute << " = " << out.IdMap[obj];
+      } else {
+        out << attribute << " = " << "null";
+      }
+    } break;
+  }
+}
+
+
+void
+TInObjectStream::resolve()
+{
+  for(auto &p: RefMap) {
+    for(auto &q: p.second) {
+      if (p.first) {
+        *q = const_cast<TSerializable*>(IdMap[p.first]);
+      } else {
+        *q = nullptr;
+      }
+    }
+  }
+}
+
+
+
 
 TObjectStore&
 atv::getDefaultStore()
