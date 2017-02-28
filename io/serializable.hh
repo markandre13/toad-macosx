@@ -80,10 +80,10 @@ class TOutObjectStream:
   friend void TSerializable::store(TOutObjectStream &out) const;
   friend void ::storePointer(atv::TOutObjectStream &out, const char *attribute, const atv::TSerializable *obj);
   public:
-    void setPass(unsigned p) { Pass = p; }
-    TOutObjectStream(): std::ostream(NULL) { depth=0; line=0; Pass=0; Id=0; }
+    void setPass(unsigned p) { pass = p; }
+    TOutObjectStream(): std::ostream(NULL) { depth=0; line=0; pass=0; id=0; }
     TOutObjectStream(std::ostream* out): std::ostream(NULL) { 
-      depth=0; line=0; Pass=0; Id=0;
+      depth=0; line=0; pass=0; id=0;
       setOStream(out);
     }
     void setOStream(std::ostream *stream);
@@ -114,9 +114,10 @@ class TOutObjectStream:
     unsigned line;
     unsigned gline;
 
-    unsigned Pass;
-    unsigned Id;
-    std::map<const TSerializable*, unsigned> IdMap;
+    std::vector<const TSerializable> all;
+    unsigned pass;
+    unsigned id;
+    std::map<const TSerializable*, unsigned> idMap;
 };
 
 class TObjectStore
@@ -163,10 +164,10 @@ class TInObjectStream:
     void resolve();
   protected:
     // list of ids and their objects
-    std::map<unsigned, const TSerializable*> IdMap;
+    std::map<unsigned, const TSerializable*> idMap;
 
     // list of ids and pointer toward their objects
-    std::map<unsigned, std::vector<TSerializable**>> RefMap;
+    std::map<unsigned, std::vector<TSerializable**>> refMap;
 };
 
 /**
@@ -330,7 +331,6 @@ void store(atv::TOutObjectStream &out, const char * attribute, const T value) {
 
 template <class T>
 bool restore(atv::TInObjectStream &in, int pos, T value) {
-//  std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
   if (in.getPosition()!=pos)
     return false;
   return restore(in, value);
@@ -338,7 +338,6 @@ bool restore(atv::TInObjectStream &in, int pos, T value) {
 
 template <class T>
 bool restore(atv::TInObjectStream &in, const char *attribute, T value) {
-//  std::cerr << __FILE__ << ':' << __LINE__ << std::endl;
   if (in.attribute != attribute)
     return false;
   return restore(in, value);
@@ -350,7 +349,7 @@ restorePointer(atv::TInObjectStream &in, const char *attribute, T **ptr)
   unsigned id;
   if (!restore(in, attribute, &id))
     return false;
-  in.RefMap[id].push_back(reinterpret_cast<atv::TSerializable**>(ptr));
+  in.refMap[id].push_back(reinterpret_cast<atv::TSerializable**>(ptr));
   return true;
 }
 

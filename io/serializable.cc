@@ -55,7 +55,7 @@ TSerializable::restore(TInObjectStream &in)
 {
   unsigned id;
   if (::restore(in, "id", &id)) {
-    in.IdMap[id] = this;
+    in.idMap[id] = this;
     return true;
   }
 
@@ -67,9 +67,9 @@ TSerializable::restore(TInObjectStream &in)
 void
 TSerializable::store(TOutObjectStream &out) const
 {
-  if (out.Pass==1) {
-    map<const TSerializable*, unsigned>::const_iterator p = out.IdMap.find(this);
-    if (p!=out.IdMap.end()) {
+  if (out.pass==1) {
+    map<const TSerializable*, unsigned>::const_iterator p = out.idMap.find(this);
+    if (p!=out.idMap.end()) {
       out.indent();
       out << "id = " << p->second;
     }
@@ -79,17 +79,17 @@ TSerializable::store(TOutObjectStream &out) const
 void
 storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
 {
-  switch(out.Pass) {
+  switch(out.pass) {
     case 0: {
-      map<const TSerializable*, unsigned>::const_iterator p = out.IdMap.find(obj);
-      if (p==out.IdMap.end()) {
-        out.IdMap[obj] = ++out.Id;
+      map<const TSerializable*, unsigned>::const_iterator p = out.idMap.find(obj);
+      if (p==out.idMap.end()) {
+        out.idMap[obj] = ++out.id;
       }
     } break;
     case 1: {
       out.indent();
       if (obj) {
-        out << attribute << " = " << out.IdMap[obj];
+        out << attribute << " = " << out.idMap[obj];
       } else {
         out << attribute << " = " << "null";
       }
@@ -101,10 +101,10 @@ storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *
 void
 TInObjectStream::resolve()
 {
-  for(auto &p: RefMap) {
+  for(auto &p: refMap) {
     for(auto &q: p.second) {
       if (p.first) {
-        *q = const_cast<TSerializable*>(IdMap[p.first]);
+        *q = const_cast<TSerializable*>(idMap[p.first]);
       } else {
         *q = nullptr;
       }
