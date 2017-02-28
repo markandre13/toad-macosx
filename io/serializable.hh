@@ -317,7 +317,7 @@ bool restore(atv::TInObjectStream &in, const char *attribute, T value) {
 }
 
 template <class T>
-bool restorePtr(atv::TInObjectStream &in, T *value) {
+bool restoreObject(atv::TInObjectStream &in, T *value) {
   if (in.what != atv::ATV_GROUP) {
     return false;
   }
@@ -346,10 +346,10 @@ bool restorePtr(atv::TInObjectStream &in, T *value) {
 }
 
 template <class T>
-bool restorePtr(atv::TInObjectStream &in, const char *attribute, T *value) {
+bool restoreObject(atv::TInObjectStream &in, const char *attribute, T *value) {
   if (in.attribute != attribute)
     return false;
-  return restorePtr(in, value);
+  return restoreObject(in, value);
 }
 
 namespace toad {

@@ -41,7 +41,7 @@ unsigned outId = 0;
 map<const TSerializable*, unsigned> outIdMap;
 
 void
-storeRef(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
+storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
 {
   switch(outPass) {
     case 0: {
@@ -72,7 +72,7 @@ void A::store(TOutObjectStream &out) const
   ::store(out, "name",     name);
   ::store(out, "x",        x);
   ::store(out, "y",        y);
-  ::storeRef(out, "relation", relation);
+  ::storePointer(out, "relation", relation);
 }
 
 // list of ids and their objects
@@ -82,7 +82,7 @@ map<unsigned, const TSerializable*> inIdMap;
 map<unsigned, vector<TSerializable**>> inRefMap;
 
 template <class T> bool
-restoreRef(TInObjectStream &in, const char *attribute, T **ptr)
+restorePointer(TInObjectStream &in, const char *attribute, T **ptr)
 {
   unsigned id;
   if (!::restore(in, attribute, &id))
@@ -118,7 +118,7 @@ A::restore(TInObjectStream &in)
     ::restore(in, "name",     &name) ||
     ::restore(in, "x",        &x) ||
     ::restore(in, "y",        &y) ||
-    ::restoreRef(in, "relation", &relation) ||
+    ::restorePointer(in, "relation", &relation) ||
     super::restore(in)
   ) return true;
   ATV_FAILED(in)

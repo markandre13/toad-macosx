@@ -580,7 +580,7 @@ TDialogLayout::restore(TInObjectStream &in)
 {
   TFigureModel *m;
 #warning "kludge"
-  if (::restorePtr(in, &m)) {
+  if (::restoreObject(in, &m)) {
     gadgets = m;
     return true;
   }

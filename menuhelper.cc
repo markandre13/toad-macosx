@@ -892,7 +892,7 @@ TMenuEntry::restore(TInObjectStream &in)
 {
   type = TMenuHelper::TNode::NORMAL;
   TMenuEntry *entry;
-  if (::restorePtr(in, &entry)) {
+  if (::restoreObject(in, &entry)) {
     entries.push_back(entry);
     return true;
   }
@@ -1059,7 +1059,7 @@ bool
 TMenuLayout::restore(TInObjectStream &in)
 {
   TMenuEntry *entry;
-  if (::restorePtr(in, &entry)) {
+  if (::restoreObject(in, &entry)) {
     entries.push_back(entry);
     return true;
   }

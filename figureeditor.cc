@@ -325,7 +325,7 @@ TFigureEditor::restore(TInObjectStream &in)
   clearSelection();
   TSerializable *s;
 
-  // ::restorePtr(in, &s);
+  // ::restoreObject(in, &s);
   s = in.restore();
 
   TFigureModel *m = dynamic_cast<TFigureModel *>(s);

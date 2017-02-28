@@ -1474,6 +1474,7 @@ fischland/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
 fischland/connectfigure.o: include/toad/cursor.hh include/toad/region.hh
 fischland/connectfigure.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 fischland/connectfigure.o: include/toad/model.hh include/toad/connect.hh
+fischland/connectfigure.o: include/toad/vector.hh
 fischland/pentool.o: fischland/pentool.hh fischland/fpath.hh
 fischland/pentool.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/pentool.o: include/toad/color.hh include/toad/types.hh
@@ -1615,6 +1616,8 @@ test/wordprocessor.o: include/toad/io/atvparser.hh include/toad/font.hh
 test/wordprocessor.o: include/toad/pointer.hh include/toad/pen.hh
 test/wordprocessor.o: include/toad/penbase.hh include/toad/matrix2d.hh
 test/wordprocessor.o: include/toad/utf8.hh test/gtest.h
+test/serializable.o: include/toad/io/serializable.hh
+test/serializable.o: include/toad/io/atvparser.hh test/gtest.h
 test/booleanop.o: include/toad/geometry.hh include/toad/types.hh
 test/booleanop.o: include/toad/vector.hh include/toad/penbase.hh
 test/booleanop.o: include/toad/color.hh include/toad/io/serializable.hh
