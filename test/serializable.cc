@@ -22,20 +22,6 @@ struct A: public TSerializable {
   SERIALIZABLE_INTERFACE(, A);
 };
 
-class nullbuffer: public std::streambuf
-{
-  public:
-    int overflow(int c) { return c; }
-};
-
-class nullstream: public std::ostream
-{
-  public:
-    nullstream() : std::ostream(&buffer) {}
-  private:
-    nullbuffer buffer;
-};
-
 void A::store(TOutObjectStream &out) const
 {
   super::store(out);
@@ -73,27 +59,18 @@ TEST(Serializeable, References) {
   
   toad::getDefaultStore().registerObject(new A());
 
-  // prepare
-  nullstream null;
-  TOutObjectStream os(&null);
-  os.setPass(0);
-  os.store(&a0); // we could TOutObjectStream detect root objects and store them during a 1st pass for an automatic 2nd pass
-  os.store(&a1);
-
   // write
   ostringstream out;
-  os.setOStream(&out);
-  os.setPass(1);
+  TOutObjectStream os(&out);
   os.store(&a0);
   os.store(&a1);
+  os.close();
   
   cout << out.str() << endl;
 
   // read
   istringstream in(out.str());
   TInObjectStream is(&in);
-//  is.setVerbose(true);
-//  is.setDebug(true);
   
   vector<A*> c;
   TSerializable *s;
@@ -105,7 +82,7 @@ TEST(Serializeable, References) {
       }
     }
   }
-  is.resolve();
+  is.close();
   
   c[0]->print();
   cout << endl;

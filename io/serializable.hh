@@ -80,13 +80,11 @@ class TOutObjectStream:
   friend void TSerializable::store(TOutObjectStream &out) const;
   friend void ::storePointer(atv::TOutObjectStream &out, const char *attribute, const atv::TSerializable *obj);
   public:
-    void setPass(unsigned p) { pass = p; }
-    TOutObjectStream(): std::ostream(NULL) { depth=0; line=0; pass=0; id=0; }
-    TOutObjectStream(std::ostream* out): std::ostream(NULL) { 
-      depth=0; line=0; pass=0; id=0;
-      setOStream(out);
-    }
+    TOutObjectStream();
+    TOutObjectStream(std::ostream* out);
+    ~TOutObjectStream() { close(); }
     void setOStream(std::ostream *stream);
+
     void store(const TSerializable*);
     
     void indent();
@@ -108,14 +106,24 @@ class TOutObjectStream:
     void writeQuoted(const std::string &s) {
       writeQuoted(s.c_str(), s.size());
     }
+    void close();
 
-  protected:    
+  protected:
+    // information when printing errors
     unsigned depth;
     unsigned line;
     unsigned gline;
 
-    std::vector<const TSerializable> all;
+    // pass
     unsigned pass;
+    
+    std::ostream *out;
+
+    // to store root objects during the 1st pass for the 2nd pass
+    bool top;
+    std::vector<const TSerializable*> all;
+    
+    // to create required ids during the 1st pass
     unsigned id;
     std::map<const TSerializable*, unsigned> idMap;
 };
@@ -148,6 +156,8 @@ class TInObjectStream:
     TObjectStore *store;
   public:
     TInObjectStream(std::istream *stream = NULL, TObjectStore *store=NULL);
+    ~TInObjectStream() { close(); }
+    
     TSerializable* restore();
     
     bool interpret(TATVParser &p);
@@ -161,7 +171,8 @@ class TInObjectStream:
       }
       return NULL;
     }
-    void resolve();
+    void close();
+
   protected:
     // list of ids and their objects
     std::map<unsigned, const TSerializable*> idMap;

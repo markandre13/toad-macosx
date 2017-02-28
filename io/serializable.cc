@@ -99,7 +99,7 @@ storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *
 
 
 void
-TInObjectStream::resolve()
+TInObjectStream::close()
 {
   for(auto &p: refMap) {
     for(auto &q: p.second) {
@@ -110,6 +110,9 @@ TInObjectStream::resolve()
       }
     }
   }
+  
+  refMap.clear();
+  idMap.clear();
 }
 
 TObjectStore&
@@ -174,29 +177,79 @@ TObjectStore::clone(const string &type)
 // TOutObjectStream
 //---------------------------------------------------------------------------
 
+class nullbuffer: public std::streambuf
+{
+  public:
+    int overflow(int c) { return c; }
+};
+
+class nullstream: public std::ostream
+{
+  public:
+    nullstream() : std::ostream(&buffer) {}
+  private:
+    nullbuffer buffer;
+};
+
+static nullstream nullstream;
+
+TOutObjectStream::TOutObjectStream(): std::ostream(nullptr)
+{
+  depth=0; line=0; pass=0; id=0; top=false;
+}
+
+TOutObjectStream::TOutObjectStream(std::ostream* out): std::ostream(nullptr)
+{ 
+  depth=0; line=0; pass=0; id=0;
+  top=false;
+  this->out = out;
+  init(nullstream.rdbuf());
+}
+
 void
 TOutObjectStream::setOStream(std::ostream *out)
 {
-  out->imbue(locale("C"));
-  init(out->rdbuf()); // redirect our input to 'out'
+  this->out = out;
 }
 
 void
 TOutObjectStream::store(const TSerializable *s)
 {
+  bool clearTop = false;
+  if (pass==0 && !top) {
+    all.push_back(s);
+    top = true;
+    clearTop = true;
+  }
   indent();
   (*this) << s->getClassName() << ' ';
   startGroup();
   s->store(*this);
   endGroup();
+  if (clearTop)
+    top = false;
+}
+
+void
+TOutObjectStream::close()
+{
+  out->imbue(locale("C"));
+  init(out->rdbuf()); // redirect our input to 'out'
+  depth=0; line=0;
+  pass = 1;
+  for(auto &s: all) {
+    store(s);
+  }
+  
+  all.clear();
+  idMap.clear();
 }
 
 void
 TOutObjectStream::indent()
 {
-  // if (!newline)
-    (*this) << std::endl;
-    ++line;
+  (*this) << std::endl;
+  ++line;
   for(unsigned i=0; i<depth; ++i)
     (*this) << "  ";
 }
