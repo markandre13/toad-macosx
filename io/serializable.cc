@@ -79,6 +79,9 @@ TSerializable::store(TOutObjectStream &out) const
 void
 storePointer(TOutObjectStream &out, const char *attribute, const TSerializable *obj)
 {
+  if (strcmp(attribute, "id")==0)
+    throw std::invalid_argument("'id' is an reserved attribute");
+
   switch(out.pass) {
     case 0: {
       map<const TSerializable*, unsigned>::const_iterator p = out.idMap.find(obj);
@@ -224,7 +227,13 @@ TOutObjectStream::store(const TSerializable *s)
   indent();
   (*this) << s->getClassName() << ' ';
   startGroup();
-  s->store(*this);
+  try {
+    s->store(*this);
+  }
+  catch(const std::invalid_argument &e) {
+    all.clear();
+    throw e;
+  }
   endGroup();
   if (clearTop)
     top = false;

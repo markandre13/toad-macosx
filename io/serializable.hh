@@ -156,7 +156,7 @@ class TInObjectStream:
     TObjectStore *store;
   public:
     TInObjectStream(std::istream *stream = NULL, TObjectStore *store=NULL);
-    ~TInObjectStream() { close(); }
+    ~TInObjectStream() { close(); }
     
     TSerializable* restore();
     
@@ -304,9 +304,11 @@ void storeRaw(atv::TOutObjectStream &out, const char *value, unsigned n);
 bool restoreRaw(atv::TInObjectStream &in, char **value, unsigned *n);
 
 inline void
-storeRaw(atv::TOutObjectStream &out, const char * attr, const char *v, unsigned n) {
+storeRaw(atv::TOutObjectStream &out, const char * attribute, const char *v, unsigned n) {
   out.indent();
-  out << attr << " =";
+  if (strcmp(attribute, "id")==0)
+    throw std::invalid_argument("'id' is an reserved attribute");
+  out << attribute << " =";
   storeRaw(out, v, n);
 }
 
@@ -335,6 +337,8 @@ bool finished(atv::TInObjectStream &in);
 template <class T>
 void store(atv::TOutObjectStream &out, const char * attribute, const T value) {
   out.indent();
+  if (strcmp(attribute, "id")==0)
+    throw std::invalid_argument("'id' is an reserved attribute");
   out << attribute << " =";
   store(out, value);
 }
