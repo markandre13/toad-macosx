@@ -403,6 +403,7 @@ TStylePair sp[] = {
 void
 TFigure::store(TOutObjectStream &out) const
 {
+  TSerializable::store(out);
 }
 
 void

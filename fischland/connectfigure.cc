@@ -86,20 +86,16 @@ void
 TFConnection::store(TOutObjectStream &out) const
 {
   super::store(out);
-/*
-  ::store(out, "start", start->id());
-  ::store(out, "end", end->id());
-*/
+  ::storePointer(out, "start", start);
+  ::storePointer(out, "end", end);
 }
 
 bool
 TFConnection::restore(TInObjectStream &in)
 {
   if (
-/*
-    ::restore(in, "start", &startId) ||
-    ::restore(in, "end",   &endId) ||
-*/
+    ::restorePointer(in, "start", &start) ||
+    ::restorePointer(in, "end",   &end) ||
     super::restore(in)
   ) return true;
   ATV_FAILED(in)

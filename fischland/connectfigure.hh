@@ -29,9 +29,10 @@ class TFConnection:
   public TColoredFigure
 {
     typedef TColoredFigure super;
-    const TFigure *start, *end;
+    TFigure *start, *end;
   public:
-    TFConnection(const TFigure *inStart, const TFigure *inEnd): start(inStart), end(inEnd) {}
+    TFConnection(): start(nullptr), end(nullptr) {}
+    TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {}
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
 /*
