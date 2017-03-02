@@ -1481,9 +1481,10 @@ main(int argc, char **argv, char **envv)
   cursor[4] = new TCursor(bm[4], 0, 21);
   cursor[5] = new TCursor(bm[5], 0, 21);
 
-  new TToolBox(0, programname);
+  new TToolBox(0, "Tools");
 //  if (argc==1) {
-    new TMainWindow(0, programname);
+  TMainWindow *wnd =  new TMainWindow(0, programname);
+  wnd->load("a.fish");
 /*
   } else {
     for(int i=1; i<argc; ++i) {

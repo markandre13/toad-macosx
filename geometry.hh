@@ -68,7 +68,8 @@ class TIntersectionList:
 
 void intersectCurveCurve(TIntersectionList &ilist, const TPoint *curve0, const TPoint *curve1);
 void intersectCurveLine(TIntersectionList &ilist, const TPoint *curve, const TPoint *line);
-void intersectLineLine(TIntersectionList &ilist, const TPoint *line0, TPoint *line1);
+void intersectLineCurve(TIntersectionList &ilist, const TPoint *line, const TPoint *curve);
+void intersectLineLine(TIntersectionList &ilist, const TPoint *line0, const TPoint *line1);
 
 TRectangle curveBounds(const TPoint *curve);
 

@@ -118,6 +118,84 @@ TVectorPath::editBounds() const
 }
 
 void
+TVectorPath::intersectHelper(TIntersectionList &ilist, TVectorPath::EType type0, const TPoint *pt0, const TVectorPath &vp) const
+{
+  const TPoint *start = 0;
+  const TPoint *pt = vp.points.data();
+  for(auto &p: vp.type) {
+    switch(p) {
+      case MOVE:
+        start=pt;
+        ++pt;
+        break;
+      case LINE:
+        if (pt>vp.points.data()) {
+          if (type0==LINE)
+            intersectLineLine(ilist, pt0, pt);
+          else
+            intersectCurveLine(ilist, pt0, pt);
+        }
+        ++pt;
+        break;
+      case CURVE:
+        if (pt>vp.points.data()) {
+          if (type0==LINE)
+            intersectLineCurve(ilist, pt0, pt);
+          else
+            intersectCurveCurve(ilist, pt0, pt);
+        }
+        pt+=3;
+        break;
+      case CLOSE:
+        if (start && pt>vp.points.data()) {
+          TPoint cl[2];
+          cl[0]=*(pt0-1);
+          cl[1]=*start;
+          if (type0==LINE)
+            intersectLineLine(ilist, pt0, cl);
+          else
+            intersectCurveLine(ilist, pt0, cl);
+        }
+        break;
+    }
+  }
+}
+
+void
+TVectorPath::intersect(TIntersectionList &ilist, const TVectorPath &vp) const
+{
+  const TPoint *start = 0;
+  const TPoint *pt = points.data();
+  for(auto &p: type) {
+    switch(p) {
+      case MOVE:
+        start=pt;
+        ++pt;
+        break;
+      case LINE:
+        if (pt>points.data())
+          intersectHelper(ilist, p, pt-1, vp);
+        ++pt;
+        break;
+      case CURVE:
+        if (pt>points.data())
+          intersectHelper(ilist, p, pt-1, vp);
+        pt+=3;
+        break;
+      case CLOSE:
+        if (start && pt>points.data()) {
+          TPoint cl[2];
+          cl[0]=*(pt-1);
+          cl[1]=*start;
+          intersectHelper(ilist, LINE, cl, vp);
+        }
+        break;
+    }
+  }
+}
+
+
+void
 TVectorPath::subdivideCutter(EType t, const TPoint *pt, const TRectangle &bounds, bool linesToBezier)
 {
 //cout << "TVectorPath::subdivideCutter --------------------------------" << endl;

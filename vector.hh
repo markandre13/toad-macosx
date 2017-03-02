@@ -30,6 +30,8 @@
 
 namespace toad {
 
+class TIntersectionList;
+
 /**
  * \class TVectorPath
  * a variant of NSBezierPath or cairo_path_t
@@ -70,6 +72,9 @@ class TVectorPath
     TBoundary editBounds() const;
     
     void apply(TPenBase &pen) const;
+    
+    void intersectHelper(TIntersectionList &ilist, TVectorPath::EType type0, const TPoint *pt0, const TVectorPath &vp) const;
+    void intersect(TIntersectionList &ilist, const TVectorPath &vp) const;
     void subdivide();
     
     // reduce()

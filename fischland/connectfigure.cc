@@ -20,6 +20,7 @@
 
 #include "connectfigure.hh"
 #include <toad/vector.hh>
+#include <toad/geometry.hh>
 
 using namespace toad;
 
@@ -34,7 +35,7 @@ using namespace toad;
 TRectangle
 TFConnection::bounds() const
 {
-  return TRectangle(0,0,320,200);
+  return TRectangle(0,0,0,0);
   // return TRectangle(p1,p2);
 }
 
@@ -58,10 +59,51 @@ TFConnection::paint(TPenBase &pen, EPaintType)
   TPoint p0 = b0.center();
   TPoint p1 = b1.center();
   
-  pen.drawLine(p0, p1);
+  TVectorPath line;
+  line.move(p0);
+  line.line(p1);
+  
+  TIntersectionList il;
+  TCoord d;
+
+  for(auto &p: *f0)
+    p->path->intersect(il, line);
+//  cout << "found " << il.size() << " intersections" << endl;
+  
+  d=0.0;
+  for(auto &p: il) {
+    if (p.seg1.u>d) {
+      d = p.seg1.u;
+      p0 = p.seg1.pt;
+    }
+//    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
+  }
+  
+  il.clear();
+
+  for(auto &p: *f1)
+    p->path->intersect(il, line);
+  d=1.0;
+  for(auto &p: il) {
+    if (p.seg1.u<d) {
+      d = p.seg1.u;
+      p1 = p.seg1.pt;
+    }
+//    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
+  }
+
+
+/*
+  pen.setColor(1,0,0);
+  pen.drawLine(TPoint(0,0), il[0].seg1.pt);
+  pen.setColor(0,0,1);
+  pen.drawLine(TPoint(0,0), il[1].seg1.pt);
+*/
   
   delete f0;
   delete f1;
+
+  pen.drawLine(p0, p1);
   
   pen.pop();
 /*

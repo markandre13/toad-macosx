@@ -147,7 +147,7 @@ max3(TCoord a, TCoord b, TCoord c)
 }
 
 void
-intersectLineLine(TIntersectionList &ilist, const TPoint *lineA, TPoint *lineB)
+intersectLineLine(TIntersectionList &ilist, const TPoint *lineA, const TPoint *lineB)
 {
   TCoord ax = lineA[1].x - lineA[0].x;
   TCoord ay = lineA[1].y - lineA[0].y;
@@ -662,6 +662,15 @@ intersectCurveLine(TIntersectionList &ilist, const TPoint *vc, const TPoint *vl)
                 TVectorPath::LINE,  vl, tl, TPoint(vl[0].x + tl * ldx, vl[0].y + tl * ldy)); // FIXME
     }
   }
+}
+
+void
+intersectLineCurve(TIntersectionList &ilist, const TPoint *vl, const TPoint *vc)
+{
+  size_t i = ilist.size();
+  intersectCurveLine(ilist, vc, vl);
+  for(; i<ilist.size(); ++i)
+    swap(ilist[i].seg0, ilist[i].seg1);
 }
 
 /****************************************************************************
