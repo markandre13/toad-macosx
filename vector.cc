@@ -131,25 +131,25 @@ TVectorPath::intersectHelper(TIntersectionList &ilist, TVectorPath::EType type0,
       case LINE:
         if (pt>vp.points.data()) {
           if (type0==LINE)
-            intersectLineLine(ilist, pt0, pt);
+            intersectLineLine(ilist, pt0, pt-1);
           else
-            intersectCurveLine(ilist, pt0, pt);
+            intersectCurveLine(ilist, pt0, pt-1);
         }
         ++pt;
         break;
       case CURVE:
         if (pt>vp.points.data()) {
           if (type0==LINE)
-            intersectLineCurve(ilist, pt0, pt);
+            intersectLineCurve(ilist, pt0, pt-1);
           else
-            intersectCurveCurve(ilist, pt0, pt);
+            intersectCurveCurve(ilist, pt0, pt-1);
         }
         pt+=3;
         break;
       case CLOSE:
         if (start && pt>vp.points.data()) {
           TPoint cl[2];
-          cl[0]=*(pt0-1);
+          cl[0]=*(pt-1);
           cl[1]=*start;
           if (type0==LINE)
             intersectLineLine(ilist, pt0, cl);
