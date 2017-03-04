@@ -19,6 +19,7 @@
  */
 
 #include "connectfigure.hh"
+#include <toad/figureeditor.hh>
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 
@@ -35,8 +36,19 @@ using namespace toad;
 TRectangle
 TFConnection::bounds() const
 {
-  return TRectangle(0,0,0,0);
-  // return TRectangle(p1,p2);
+  TRectangle r0 = start->bounds();
+  TRectangle r1 = end->bounds();
+  
+  TPoint p0(min(r0.x, r1.x), min(r0.y, r1.y));
+  TPoint p1(max(r0.x+r0.w, r1.x+r1.w), max(r0.y+r0.h, r1.y+r1.h));
+  
+  return TRectangle(p0,p1);
+}
+
+TCoord
+TFConnection::distance(const TPoint &pos)
+{
+  return TFigure::OUT_OF_RANGE;
 }
 
 void 
@@ -135,6 +147,12 @@ TFConnection::store(TOutObjectStream &out) const
 bool
 TFConnection::restore(TInObjectStream &in)
 {
+  if (::finished(in)) {
+    cout << "TFConnection: finished " << this << ", start at " << &start << endl;
+    cout << "TFConnection: finished " << this << ", end at "   << &end   << endl;
+    TFigureEditor::restoreRelation(const_cast<const TFigure**>(&start), this);
+    TFigureEditor::restoreRelation(const_cast<const TFigure**>(&end  ), this);
+  }
   if (
     ::restorePointer(in, "start", &start) ||
     ::restorePointer(in, "end",   &end) ||

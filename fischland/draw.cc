@@ -1485,6 +1485,7 @@ main(int argc, char **argv, char **envv)
 //  if (argc==1) {
   TMainWindow *wnd =  new TMainWindow(0, programname);
   wnd->load("a.fish");
+  TFigureEditor::restoreRelations(); // FIXME: TFigureEditor should be able to register this in TInObjectStream
 /*
   } else {
     for(int i=1; i<argc; ++i) {

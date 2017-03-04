@@ -26,6 +26,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/transform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
+	   fischland/connecttool.cc fischland/connectfigure.cc \
 	   vector.cc geometry.cc wordprocessor.cc \
 	   stacktrace.cc \
 	   \
@@ -45,7 +46,6 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/toolbox.cc fischland/colorpicker.cc \
 	 fischland/selectiontool.cc fischland/directselectiontool.cc \
 	 fischland/rotatetool.cc \
-	 fischland/connecttool.cc fischland/connectfigure.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
@@ -94,7 +94,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 
 test: test.app/Contents/MacOS/test
 #	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
-	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.*"
+	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
 
 clean:
@@ -1206,10 +1207,10 @@ fischland/draw.o: fischland/colorpalette.hh include/toad/combobox.hh
 fischland/draw.o: include/toad/textfield.hh include/toad/textarea.hh
 fischland/draw.o: include/toad/control.hh include/toad/scrollbar.hh
 fischland/draw.o: include/toad/dnd/color.hh fischland/lineal.hh
-fischland/draw.o: fischland/config.h include/toad/menubar.hh
-fischland/draw.o: include/toad/menuhelper.hh include/toad/undomanager.hh
-fischland/draw.o: include/toad/action.hh include/toad/command.hh
-fischland/draw.o: include/toad/fatradiobutton.hh
+fischland/draw.o: fischland/config.h fischland/connectfigure.hh
+fischland/draw.o: include/toad/menubar.hh include/toad/menuhelper.hh
+fischland/draw.o: include/toad/undomanager.hh include/toad/action.hh
+fischland/draw.o: include/toad/command.hh include/toad/fatradiobutton.hh
 fischland/draw.o: include/toad/radiobuttonbase.hh include/toad/buttonbase.hh
 fischland/draw.o: include/toad/labelowner.hh include/toad/pushbutton.hh
 fischland/draw.o: include/toad/colorselector.hh include/toad/filedialog.hh
@@ -1474,7 +1475,17 @@ fischland/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
 fischland/connectfigure.o: include/toad/cursor.hh include/toad/region.hh
 fischland/connectfigure.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 fischland/connectfigure.o: include/toad/model.hh include/toad/connect.hh
-fischland/connectfigure.o: include/toad/vector.hh
+fischland/connectfigure.o: include/toad/figureeditor.hh
+fischland/connectfigure.o: include/toad/scrollpane.hh include/toad/undo.hh
+fischland/connectfigure.o: include/toad/boolmodel.hh
+fischland/connectfigure.o: include/toad/textmodel.hh
+fischland/connectfigure.o: include/toad/integermodel.hh
+fischland/connectfigure.o: include/toad/numbermodel.hh
+fischland/connectfigure.o: include/toad/floatmodel.hh
+fischland/connectfigure.o: include/toad/figure/createtool.hh
+fischland/connectfigure.o: include/toad/figuretool.hh include/toad/core.hh
+fischland/connectfigure.o: include/toad/pen.hh include/toad/vector.hh
+fischland/connectfigure.o: include/toad/geometry.hh
 fischland/pentool.o: fischland/pentool.hh fischland/fpath.hh
 fischland/pentool.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/pentool.o: include/toad/color.hh include/toad/types.hh

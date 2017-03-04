@@ -217,6 +217,35 @@ TFigureAttributes::applyAll()
   if (current) current->applyAll();
 }
 
+std::map<const TFigure*, std::vector<const TFigure*>> TFigureEditor::relatedTo;
+
+struct TRelationToBeRestored
+{
+  TRelationToBeRestored(const TFigure **inFrom, const TFigure *inTo): from(inFrom), to(inTo) {}
+  const TFigure **from;
+  const TFigure *to;
+};
+std::vector<TRelationToBeRestored> restoreRelations;
+
+void
+TFigureEditor::restoreRelation(const TFigure **from, const TFigure *to)
+{
+  ::restoreRelations.push_back(TRelationToBeRestored(from, to));
+  // FIXME: also the other way around to support deletions? and set instead of vector?
+}
+
+void
+TFigureEditor::restoreRelations()
+{
+  for(auto &p: ::restoreRelations) {
+    cout << "TFigurEditor::restoreRelations " << p.from << " -> " << *p.from << ", " << p.to << endl;
+    TFigureEditor::relatedTo[*p.from].push_back(p.to);
+  }
+  ::restoreRelations.clear();
+}
+
+
+
 /**
  * This constructer is to be used when TFigureEditor isn't used as a
  * window itself but handles events delegated to it from another window.
@@ -1376,29 +1405,45 @@ TPoint gridorigin(0.5, 0.5);
 }
 
 void
-TFigureEditor::invalidateFigure(TFigure* figure)
+TFigureEditor::invalidateFigure(const TFigure* figure)
 {
   if (!window)
     return;
   TRectangle r;
 //figure->getShape(&r);
 //cout << figure->getClassName() << ": invalidate shape " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
-  getFigureEditShape(figure, &r, mat);
   TPoint origin = window->getOrigin();
-  r.x+=origin.x + visible.x;
-  r.y+=origin.y + visible.y;
-  if (r.x < visible.x ) {
-    TCoord d = visible.x - r.x;
-    r.x += d;
-    r.w -= d;
+  
+  const TFigure **ptr = nullptr;
+  ssize_t n = 0;
+  auto relationList = relatedTo.find(figure);
+  if (relationList != relatedTo.end()) {
+    ptr = relationList->second.data();
+    n = relationList->second.size();
   }
-  if (r.y < visible.y ) {
-    TCoord d = visible.y - r.y;
-    r.y += d;
-    r.h -= d;
-  }
+
+  while(true) {
+    getFigureEditShape(figure, &r, mat);
+    r.x += origin.x + visible.x;
+    r.y += origin.y + visible.y;
+    if (r.x < visible.x ) {
+      TCoord d = visible.x - r.x;
+      r.x += d;
+      r.w -= d;
+    }
+    if (r.y < visible.y ) {
+      TCoord d = visible.y - r.y;
+      r.y += d;
+      r.h -= d;
+    }
 //cout << figure->getClassName() << ": invalidate window " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
-  invalidateWindow(r);
+    invalidateWindow(r);
+    if (n==0)
+      break;
+    --n;
+    figure = *ptr;
+    ++ptr;
+  }
 }
 
 /**
@@ -1419,21 +1464,21 @@ TFigureEditor::invalidateFigure(TFigure* figure)
  *   A matrix or NULL.
  */
 void
-TFigureEditor::getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
+TFigureEditor::getFigureShape(const TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
   *r = figure->bounds();
   _getFigureShape(figure, r, mat);
 }
 
 void
-TFigureEditor::getFigureEditShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
+TFigureEditor::getFigureEditShape(const TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
   *r = figure->editBounds();
   _getFigureShape(figure, r, mat);
 }
 
 void
-TFigureEditor::_getFigureShape(TFigure* figure, TRectangle *r, const TMatrix2D *mat)
+TFigureEditor::_getFigureShape(const TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
   if (mat) {
     TMatrix2D m;

@@ -127,8 +127,6 @@ ReservedAttributeId::restore(TInObjectStream &in)
   return false;
 }
 
-
-
 TEST(Serializeable, ReservedAttributeId)
 {
   ReservedAttributeId a;

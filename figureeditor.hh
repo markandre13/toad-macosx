@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,8 @@
  * MA  02111-1307,  USA
  */
 
-#ifndef _TOAD_FIGUREEDITOR
-#define _TOAD_FIGUREEDITOR 1
+#ifndef _TOAD_FIGUREEDITOR_HH
+#define _TOAD_FIGUREEDITOR_HH 1
 
 #include <toad/figure.hh>
 #include <toad/figuremodel.hh>
@@ -32,6 +32,9 @@
 #include <toad/floatmodel.hh>
 
 #include <toad/figure/createtool.hh>
+
+#include <map>
+#include <vector>
 
 namespace toad {
 
@@ -54,6 +57,7 @@ class TFigureAttributes:
     TFigureTool *tool;
     TFigureAttributes(const TFigureAttributes&) {};
   public:
+  
     TFigureAttributes();
     virtual ~TFigureAttributes();
 
@@ -190,6 +194,10 @@ class TFigureEditor:
     PFigureModel model;
     TFigureTool *tool;
   public:
+    static std::map<const TFigure*, std::vector<const TFigure*>> relatedTo;
+    static void restoreRelation(const TFigure **from, const TFigure *to);
+    static void restoreRelations();
+
     bool quick:1;     // active TFigureTool wants quick drawing method
     bool quickready:1;// TFigureEditor is prepared for quick drawing mode
     
@@ -295,10 +303,10 @@ class TFigureEditor:
       if (window)
         window->invalidateWindow(r, b);
     }
-    virtual void invalidateFigure(TFigure*);
-    void getFigureShape(TFigure*, TRectangle*, const TMatrix2D*);
-    void getFigureEditShape(TFigure*, TRectangle*, const TMatrix2D*);
-    void _getFigureShape(TFigure*, TRectangle*, const TMatrix2D*);
+    virtual void invalidateFigure(const TFigure*);
+    void getFigureShape(const TFigure*, TRectangle*, const TMatrix2D*);
+    void getFigureEditShape(const TFigure*, TRectangle*, const TMatrix2D*);
+    void _getFigureShape(const TFigure*, TRectangle*, const TMatrix2D*);
 
     void addFigure(TFigure*);   
     void deleteFigure(TFigure*);

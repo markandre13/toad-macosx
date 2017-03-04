@@ -11,6 +11,7 @@
 #include <toad/simpletimer.hh>
 #include <toad/figureeditor.hh>
 
+#include "../fischland/connectfigure.hh"
 
 using namespace toad;
 
@@ -46,10 +47,9 @@ TTest::tick()
   CFRelease(image);
   stopTimer();
   compareImageFile("test/"+getTitle()+".tmp.png", "test/"+getTitle()+".png");
-//  destroyWindow();
+  destroyWindow();
 }
 
-#if 0
 TEST_F(FigureEditor, Rectangle) {
   TTest wnd(NULL, testname());
   wnd.addFigure(new TFRectangle(8.5, 16.5, 32, 40));
@@ -80,7 +80,6 @@ TEST_F(FigureEditor, Scale) {
   wnd.startTimer(0, 1000);
   wnd.doModalLoop();
 }
-#endif
 
 //    0   4   8   12  16
 //  0 +   +   +   +   +
@@ -389,7 +388,7 @@ TEST_F(FigureEditor, gridRange) {
 }
 
 
-#if 1
+#if 0
 class TTest2:
   public TFigureEditor, public TSimpleTimer
 {
@@ -429,3 +428,59 @@ TEST_F(FigureEditor, Scroll) {
   wnd.doModalLoop();
 }
 #endif
+
+TEST_F(FigureEditor, RelatedFigures)
+{
+  toad::getDefaultStore().registerObject(new TFConnection());
+  istringstream in(R"(
+    toad::TFigureModel {
+      toad::TFRectangle {
+        id = 1
+        linecolor ={ 0 0 0 }
+        linewidth = 1
+        x = 160
+        y = 140
+        w = 91
+        h = 51
+      }
+      toad::TFCircle {
+        id = 2
+        linecolor ={ 0 0 0 }
+        linewidth = 1
+        x = 360.5
+        y = 356.5
+        w = 109
+        h = 101
+      }
+      toad::TFConnection {
+        linecolor ={ 0 0 0 }
+        linewidth = 1
+        start = 1
+        end = 2
+      }
+    }
+  }
+})");
+  TInObjectStream is(&in);
+//  in.setVerbose(true);
+//  in.setDebug(true);
+
+  TSerializable *s = is.restore();
+  ASSERT_TRUE(is);
+  ASSERT_NE(nullptr, s);
+
+  is.close();
+  TFigureEditor::restoreRelations();
+
+  TFigureModel *m = dynamic_cast<TFigureModel*>(s);
+  ASSERT_NE(nullptr, m);
+  
+//  ASSERT_EQ("toad::TFRectangle", m->at(0)->getClassName());
+  
+  for(auto &p0: TFigureEditor::relatedTo) {
+    cout << p0.first << endl; // ->getClassName() << endl;
+    for(auto &p1: p0.second) {
+      cout << "  " << p1 << endl;
+    }
+  }
+}
