@@ -26,23 +26,23 @@
 using namespace toad;
 
 class TFConnection:
-  public TColoredFigure
+  public TFLine
 {
-    typedef TColoredFigure super;
+    typedef TFLine super;
+    void updatePoints();
   public:
     TFigure *start, *end;
     TFConnection(): start(nullptr), end(nullptr) {}
     TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {}
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
-    TCoord distance(const TPoint &pos) override;
+    // TCoord distance(const TPoint &pos) override;
     bool editEvent(TFigureEditEvent &ee) override;
 
-/*
     void translate(TCoord dx, TCoord dy) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
-*/
+
     SERIALIZABLE_INTERFACE(toad::, TFConnection);
 };
 

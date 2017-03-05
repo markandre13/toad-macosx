@@ -73,20 +73,24 @@ TFConnection::bounds() const
   return TRectangle(p0,p1);
 }
 
+/*
 TCoord
 TFConnection::distance(const TPoint &pos)
 {
   return TFigure::OUT_OF_RANGE;
 }
+*/
+
+void
+TFConnection::paint(TPenBase &pen, EPaintType type)
+{
+  updatePoints();
+  super::paint(pen, type);
+}
 
 void 
-TFConnection::paint(TPenBase &pen, EPaintType)
+TFConnection::updatePoints()
 {
-  pen.push();
-  pen.setLineColor(line_color);
-  pen.setLineStyle(line_style);
-  pen.setLineWidth(line_width);
-  
   TVectorGraphic *f0 = start->getPath();
   TVectorGraphic *f1 = end->getPath();
   
@@ -98,7 +102,7 @@ TFConnection::paint(TPenBase &pen, EPaintType)
   
   TPoint p0 = b0.center();
   TPoint p1 = b1.center();
-  
+
   TVectorPath line;
   line.move(p0);
   line.line(p1);
@@ -131,37 +135,35 @@ TFConnection::paint(TPenBase &pen, EPaintType)
     }
 //    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
   }
-
-
-/*
-  pen.setColor(1,0,0);
-  pen.drawLine(TPoint(0,0), il[0].seg1.pt);
-  pen.setColor(0,0,1);
-  pen.drawLine(TPoint(0,0), il[1].seg1.pt);
-*/
   
+  if (polygon.empty())
+    polygon.push_back(p0);
+  else
+    polygon.front() = p0;
+
+  if (polygon.size()<2)
+    polygon.push_back(p1);
+  else
+    polygon.back()  = p1;
+
+cout << "updatePoints " << p0 << " " << p1 << endl;
+
   delete f0;
   delete f1;
+}
 
-  pen.drawLine(p0, p1);
-  
-  pen.pop();
-/*
-  pen.push();
-  pen.setAlpha(alpha);
-  if (filled) {
-    pen.setFillColor(fill_color);
-    pen.fillRectangle(p1,p2);
-  }
-  if (outline) {
-    pen.setLineColor(line_color);
-    pen.setLineStyle(line_style);
-    pen.setLineWidth(line_width);
-//cout << "TFRectangle: draw rectangle between " << p1 << " and " << p2 << endl;
-    pen.drawRectangle(p1,p2);
-  }
-  pen.pop();
-*/
+void
+TFConnection::translate(TCoord dx, TCoord dy) {
+}
+
+bool
+TFConnection::getHandle(unsigned n, TPoint *p) {
+  return false;
+}
+
+void
+TFConnection::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier)
+{
 }
 
 void

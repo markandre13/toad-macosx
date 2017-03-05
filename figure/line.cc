@@ -67,6 +67,7 @@ TFLine::drawArrow(TPenBase &pen,
                   TCoord w, TCoord h,
                   EArrowType type)
 {
+cout << "drawArrow at " << p1 << ", tail at " << p2 << ", size=("<<w<<", "<<h<<")"<<endl;
   TCoord d = atan2(p2.y - p1.y, 
                    p2.x - p1.x);
   

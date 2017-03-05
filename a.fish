@@ -21,23 +21,28 @@ fischland::TDocument {
         id = 1
         linecolor ={ 0 0 0 }
         linewidth = 1
-        x = 160
-        y = 140
-        w = 91
-        h = 51
+        x = 304
+        y = 124
+        w = 92
+        h = 52
       }
       toad::TFRectangle {
         id = 2
         linecolor ={ 0 0 0 }
         linewidth = 1
-        x = 232
-        y = 292
-        w = 91
-        h = 61
+        x = 109.996
+        y = 74.6602
+        w = 92
+        h = 62
       }
       toad::TFConnection {
         linecolor ={ 0 0 0 }
+        fillcolor ={ 255 0 0 }
         linewidth = 1
+        arrowmode = tail
+        arrowtype = filled-concave
+        arrowheight = 8
+        arrowwidth = 4
         start = 1
         end = 2
       }
@@ -45,22 +50,32 @@ fischland::TDocument {
         id = 3
         linecolor ={ 0 0 0 }
         linewidth = 1
-        x = 360.5
-        y = 356.5
-        w = 109
-        h = 101
+        x = 156.738
+        y = 232.617
+        w = 110
+        h = 102
       }
       toad::TFConnection {
         linecolor ={ 0 0 0 }
+        fillcolor ={ 255 255 255 }
         linewidth = 1
-        start = 3
-        end = 3
-      }
-      toad::TFConnection {
-        linecolor ={ 0 0 0 }
-        linewidth = 1
+        arrowmode = tail
+        arrowtype = filled
+        arrowheight = 8
+        arrowwidth = 4
         start = 3
         end = 1
+      }
+      toad::TFConnection {
+        linecolor ={ 0 0 0 }
+        fillcolor ={ 255 0 0 }
+        linewidth = 1
+        arrowmode = head
+        arrowtype = filled-concave
+        arrowheight = 8
+        arrowwidth = 4
+        start = 3
+        end = 2
       }
     }
   }
