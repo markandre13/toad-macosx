@@ -310,14 +310,9 @@ class TFPolygon:
     void addPoint(TCoord x, TCoord y) { polygon.addPoint(x,y); }
 };
 
-/**
- * \ingroup figure
- */
-class TFLine:
-  public TFPolygon
+class TFigureArrow
 {
   public:
-    typedef TFPolygon super;
     enum EArrowMode {
       NONE, HEAD, TAIL, BOTH
     } arrowmode;
@@ -335,17 +330,33 @@ class TFLine:
     unsigned arrowheight;
     unsigned arrowwidth;
 
-    TFLine();
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
-    void paint(TPenBase &, EPaintType) override;
-    TCoord distance(const TPoint &pos) override;
+    TFigureArrow();
+    void setAttributes(const TFigureAttributes*);
+    void getAttributes(TFigureAttributes*) const;
+    void store(TOutObjectStream &out) const;
+    bool restore(TInObjectStream &in);
 
     static void drawArrow(TPenBase &pen,
                           const TPoint &p0, const TPoint &p1, 
                           const TRGB &line, const TRGB &fill,
                           TCoord w, TCoord h,
                           EArrowType type);
+};
+
+/**
+ * \ingroup figure
+ */
+class TFLine:
+  public TFPolygon, public TFigureArrow
+{
+  public:
+    typedef TFPolygon super;
+
+    TFLine();
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
+    void paint(TPenBase &, EPaintType) override;
+    TCoord distance(const TPoint &pos) override;
     
     virtual void insertPointNear(TCoord, TCoord) override;
   protected:
