@@ -65,9 +65,12 @@ class TVectorPath
     void line(const TPoint &p) { type.push_back(LINE); points.push_back(p); }
     void line(TCoord x, TCoord y) { line(TPoint(x, y)); }
     void curve(const TPoint &p0, const TPoint &p1, const TPoint &p2) {
-      type.push_back(CURVE); points.push_back(p0);  points.push_back(p1);  points.push_back(p2);
+      type.push_back(CURVE); points.push_back(p0); points.push_back(p1); points.push_back(p2);
     }
-    void close(){  type.push_back(CLOSE); }
+    void curve(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2) {
+      type.push_back(CURVE); points.push_back(TPoint(x0,y0)); points.push_back(TPoint(x1,y1)); points.push_back(TPoint(x2,y2));
+    }
+    void close() { type.push_back(CLOSE); }
     TBoundary bounds() const;
     TBoundary editBounds() const;
     

@@ -415,6 +415,7 @@ class TFCircle:
     void paint(TPenBase &, EPaintType) override;
     
     TCoord distance(const TPoint &pos) override;
+    TVectorGraphic* getPath() const override;
     
     TCloneable* clone() const override { return new TFCircle(*this); }
     const char * getClassName() const override { return "toad::TFCircle"; } 
