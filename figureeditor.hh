@@ -33,7 +33,7 @@
 
 #include <toad/figure/createtool.hh>
 
-#include <map>
+#include <set>
 #include <vector>
 
 namespace toad {
@@ -194,7 +194,7 @@ class TFigureEditor:
     PFigureModel model;
     TFigureTool *tool;
   public:
-    static std::map<const TFigure*, std::vector<const TFigure*>> relatedTo;
+    static std::map<const TFigure*, std::set<const TFigure*>> relatedTo;
     static void restoreRelation(const TFigure **from, const TFigure *to);
     static void restoreRelations();
 

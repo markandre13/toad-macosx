@@ -429,6 +429,7 @@ TEST_F(FigureEditor, Scroll) {
 }
 #endif
 
+// FIXME: this should be moved into a figuremodel test
 TEST_F(FigureEditor, RelatedFigures)
 {
   toad::getDefaultStore().registerObject(new TFConnection());
@@ -475,12 +476,58 @@ TEST_F(FigureEditor, RelatedFigures)
   TFigureModel *m = dynamic_cast<TFigureModel*>(s);
   ASSERT_NE(nullptr, m);
   
-//  ASSERT_EQ("toad::TFRectangle", m->at(0)->getClassName());
+  // check that we've loaded everything correctly
+  ASSERT_EQ(3, m->size());
+  ASSERT_EQ("toad::TFRectangle", m->at(0)->getClassName());
+  ASSERT_EQ("toad::TFCircle", m->at(1)->getClassName());
+  ASSERT_EQ("toad::TFConnection", m->at(2)->getClassName());
+
+  ASSERT_EQ(m->at(0), dynamic_cast<TFConnection*>(m->at(2))->start);
+  ASSERT_EQ(m->at(1), dynamic_cast<TFConnection*>(m->at(2))->end);
   
+  // FIXME: should move relatedTo into TFigureModel because it is data which might not be edited
+  // FIXME: TFigureModel also has the notification logic in case figures get removed to that related
+  //        figures can update their pointers
+  ASSERT_EQ(2, TFigureEditor::relatedTo.size());
+
+  ASSERT_EQ(1, TFigureEditor::relatedTo[m->at(0)].size());
+  ASSERT_EQ(1, TFigureEditor::relatedTo[m->at(1)].size());
+  
+  ASSERT_EQ(2, TFigureEditor::relatedTo.size());
+  
+  ASSERT_NE(TFigureEditor::relatedTo[m->at(0)].end(),
+            TFigureEditor::relatedTo[m->at(0)].find(m->at(2)));
+  ASSERT_NE(TFigureEditor::relatedTo[m->at(1)].end(),
+            TFigureEditor::relatedTo[m->at(1)].find(m->at(2)));
+
+  // delete a referenced figure
+  m->erase(m->begin()); // FIXME: does this also delete the figure? shouldn't. how about eraseAndDelete()?
+  
+  ASSERT_EQ(2, m->size());
+  ASSERT_EQ("toad::TFCircle", m->at(0)->getClassName());
+  ASSERT_EQ("toad::TFConnection", m->at(1)->getClassName());
+  
+  ASSERT_EQ(1, TFigureEditor::relatedTo.size());
+  
+  ASSERT_EQ(nullptr,  dynamic_cast<TFConnection*>(m->at(1))->start);
+  ASSERT_EQ(m->at(0), dynamic_cast<TFConnection*>(m->at(1))->end);
+  
+  // delete a referencing figure
+cout << "---- delete a referencing figure ---" << endl;
+  m->erase(m->at(1));
+cout << "------------------------------------" << endl;
+  ASSERT_EQ(1, m->size());
+  ASSERT_EQ("toad::TFCircle", m->at(0)->getClassName());
+  
+  ASSERT_EQ(0, TFigureEditor::relatedTo.size());
+
+/*
   for(auto &p0: TFigureEditor::relatedTo) {
     cout << p0.first << endl; // ->getClassName() << endl;
     for(auto &p1: p0.second) {
       cout << "  " << p1 << endl;
     }
   }
+*/
+  
 }

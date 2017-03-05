@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -217,7 +217,13 @@ TFigureAttributes::applyAll()
   if (current) current->applyAll();
 }
 
-std::map<const TFigure*, std::vector<const TFigure*>> TFigureEditor::relatedTo;
+/*
+ *
+ * figure relation handling
+ *
+ */
+
+std::map<const TFigure*, std::set<const TFigure*>> TFigureEditor::relatedTo;
 
 struct TRelationToBeRestored
 {
@@ -239,7 +245,7 @@ TFigureEditor::restoreRelations()
 {
   for(auto &p: ::restoreRelations) {
     cout << "TFigurEditor::restoreRelations " << p.from << " -> " << *p.from << ", " << p.to << endl;
-    TFigureEditor::relatedTo[*p.from].push_back(p.to);
+    TFigureEditor::relatedTo[*p.from].insert(p.to);
   }
   ::restoreRelations.clear();
 }
@@ -1414,11 +1420,12 @@ TFigureEditor::invalidateFigure(const TFigure* figure)
 //cout << figure->getClassName() << ": invalidate shape " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
   TPoint origin = window->getOrigin();
   
-  const TFigure **ptr = nullptr;
+  std::set<const TFigure*>::const_iterator ptr;
+  
   ssize_t n = 0;
   auto relationList = relatedTo.find(figure);
   if (relationList != relatedTo.end()) {
-    ptr = relationList->second.data();
+    ptr = relationList->second.begin();
     n = relationList->second.size();
   }
 

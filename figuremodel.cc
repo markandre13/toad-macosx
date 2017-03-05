@@ -277,11 +277,22 @@ TFigureModel::erase(TFigure *figure)
   TFigureSet set;
   set.insert(figure);
   erase(set);
+}
 
-  TFigureEditEvent ee;
-  ee.model = this;
-  ee.type = TFigureEditEvent::REMOVED;
-  figure->editEvent(ee);
+void
+TFigureModel::erase(const iterator &p)
+{
+  TFigureSet set;
+  set.insert(*p);
+  erase(set);
+}
+
+void
+TFigureModel::erase(const iterator &p, const iterator &e)
+{
+  TFigureSet set;
+  set.insert(p, e);
+  erase(set);
 }
 
 /**
@@ -300,7 +311,20 @@ TFigureModel::erase(TFigureSet &set)
 
   TFigureEditEvent ee;
   ee.model = this;
-  ee.type = TFigureEditEvent::REMOVED;
+
+  ee.type = TFigureEditEvent::RELATION_REMOVED;
+  for(auto &figureToBeRemoved: set) {
+    auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
+    if (relation==TFigureEditor::relatedTo.end()) {
+      continue;
+    }
+    figures.clear();
+    figures.insert(figureToBeRemoved);
+    for(auto &p: relation->second) {
+      const_cast<TFigure*>(p)->editEvent(ee);
+    }
+    TFigureEditor::relatedTo.erase(relation); // FIXME: there might be no guarantee that the iterator isn't invalidated
+  }
 
   type = REMOVE;
   figures.clear();
@@ -309,6 +333,7 @@ TFigureModel::erase(TFigureSet &set)
   
   TUndoRemove *undo = new TUndoRemove(this);
 
+  ee.type = TFigureEditEvent::REMOVED;
   unsigned depth = 0;
   for(TStorage::iterator p=storage.begin();
       p!=storage.end();
@@ -772,22 +797,6 @@ TFigureModel::_undoGroup(TFGroup *group, TFigureAtDepthList &store)
   TUndoManager::registerUndo(this, undo);
 }
 
-
-void
-TFigureModel::erase(const iterator &p)
-{
-  type = MODIFIED;
-  sigChanged();
-  storage.erase(p);
-}
-
-void
-TFigureModel::erase(const iterator &p, const iterator &e)
-{
-  type = MODIFIED;
-  sigChanged();
-  storage.erase(p, e);
-}
 
 void
 TFigureModel::insert(const iterator &p, TFigure *g)

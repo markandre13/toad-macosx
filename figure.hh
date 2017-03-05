@@ -48,6 +48,8 @@ class TFigureEditEvent
       ADDED,
       //! figure was removed from model
       REMOVED,
+      
+      RELATION_REMOVED,
     
       GET_DISTANCE,
       GET_HANDLE,

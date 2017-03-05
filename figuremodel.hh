@@ -58,9 +58,11 @@ class TFigureModel:
     iterator end() { return storage.end(); }
     const_iterator begin() const { return storage.begin(); }
     const_iterator end() const { return storage.end(); }
+    TFigure* operator[](size_t idx) const { return storage[idx]; }
+    TFigure* at(size_t idx) const { return storage.at(idx); }
   
     /**
-     * Kind of modification that took place.
+     * Kind of modification that took place. FIXME: move to TFigureEditEvent?
      */
     enum { MODIFY,    // before modification (figures)
            MODIFIED,  // after modification (figures)
@@ -72,7 +74,7 @@ class TFigureModel:
            ROTATE,
            _UNDO_GROUP
     } type;
-    //! additional information for type attribute
+    //! additional information for type attribute FIXME: move to TFigureEditEvent?
     TFigureSet figures;
     //! additional information for type attribute
     TFigure *figure;
@@ -94,7 +96,6 @@ class TFigureModel:
     virtual void erase(TFigureSet&);
     size_t size() const { return storage.size(); }
     bool empty() const { return storage.empty(); }
-    
     
     void insert(TFigureAtDepthList &store);
 

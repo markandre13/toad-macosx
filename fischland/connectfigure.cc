@@ -25,13 +25,41 @@
 
 using namespace toad;
 
-/*
-  a 1st idea on how to handle figure id's for figure references:
-  
-  o we do not store the id's within TFigure
-  o before saving, TFigure::prepareIDs(TFigureIDs &ids) is invoked for all figures
-  o after loading, TFigure::resolveIDs(TFigureIDs &ids) is invoked for all figures
-*/
+bool
+TFConnection::editEvent(TFigureEditEvent &editEvent)
+{
+  // FIXME: add helper functions
+  switch(editEvent.type) {
+    case TFigureEditEvent::RELATION_REMOVED:
+      if (editEvent.model->figures.find(start) != editEvent.model->figures.end()) {
+        start = nullptr;
+      }
+      if (editEvent.model->figures.find(end) != editEvent.model->figures.end()) {
+        end = nullptr;
+      }
+      break;
+    case TFigureEditEvent::REMOVED: {
+      if (start) {
+        auto p = TFigureEditor::relatedTo.find(start);
+        if (p!=TFigureEditor::relatedTo.end()) {
+          p->second.erase(this);
+          if (p->second.empty())
+            TFigureEditor::relatedTo.erase(p);
+        }
+      }
+      if (end) {
+        auto p = TFigureEditor::relatedTo.find(end);
+        if (p!=TFigureEditor::relatedTo.end()) {
+          p->second.erase(this);
+          if (p->second.empty())
+            TFigureEditor::relatedTo.erase(p);
+        }
+      }
+    } break;
+    default:
+      ;
+  }
+}
 
 TRectangle
 TFConnection::bounds() const
