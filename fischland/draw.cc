@@ -603,6 +603,8 @@ TMainWindow::load(const string &filename)
                TMessageBox::ICON_STOP | TMessageBox::OK);
     return;
   }
+  in.close();
+  TFigureEditor::restoreRelations(); // FIXME: TFigureEditor should be able to register this in TInObjectStream
 
   TFigureModel *figuremodel;
   TCollection *collection;

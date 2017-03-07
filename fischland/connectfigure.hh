@@ -26,10 +26,12 @@
 using namespace toad;
 
 class TFConnection:
-  public TFLine
+  public TColoredFigure, TFigureArrow
 {
-    typedef TFLine super;
+    typedef TColoredFigure super;
     void updatePoints();
+    TPoint p[2];
+
   public:
     TFigure *start, *end;
     TFConnection(): start(nullptr), end(nullptr) {}
@@ -42,6 +44,9 @@ class TFConnection:
     void translate(TCoord dx, TCoord dy) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
+    
+    void setAttributes(const TFigureAttributes*) override;
+    void getAttributes(TFigureAttributes*) const override;
 
     SERIALIZABLE_INTERFACE(toad::, TFConnection);
 };

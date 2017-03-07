@@ -60,7 +60,7 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (!firstFigure) {
         firstFigure = overFigure;
       } else {
-        if (figure) {
+        if (figure && figure!=firstFigure) {
           fe->addFigure(new TFConnection(firstFigure, figure));
         }
         firstFigure = nullptr;

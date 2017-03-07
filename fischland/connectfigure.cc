@@ -64,6 +64,8 @@ TFConnection::editEvent(TFigureEditEvent &editEvent)
 TRectangle
 TFConnection::bounds() const
 {
+  assert(start);
+  assert(end);
   TRectangle r0 = start->bounds();
   TRectangle r1 = end->bounds();
   
@@ -85,7 +87,30 @@ void
 TFConnection::paint(TPenBase &pen, EPaintType type)
 {
   updatePoints();
-  super::paint(pen, type);
+  
+  pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
+  pen.setLineStyle(line_style);
+  pen.setLineWidth(line_width);
+  pen.setAlpha(alpha);
+          
+  pen.drawLine(p[0], p[1]);
+
+  if (arrowmode == NONE) {
+    pen.setAlpha(1);
+    return;
+  }
+  pen.setLineStyle(TPenBase::SOLID);
+
+  TCoord aw = arrowwidth * line_width;
+  TCoord ah = arrowheight * line_width;
+
+  if (arrowmode == HEAD || arrowmode == BOTH)
+    drawArrow(pen, p[1], p[0], line_color, fill_color, aw, ah, arrowtype);
+  if (arrowmode == TAIL || arrowmode == BOTH)
+    drawArrow(pen, p[0], p[1], line_color, fill_color, aw, ah, arrowtype);
+  pen.setAlpha(1);
+
+  
 }
 
 void 
@@ -135,16 +160,9 @@ TFConnection::updatePoints()
     }
 //    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
   }
-  
-  if (polygon.empty())
-    polygon.push_back(p0);
-  else
-    polygon.front() = p0;
 
-  if (polygon.size()<2)
-    polygon.push_back(p1);
-  else
-    polygon.back()  = p1;
+  p[0] = p0;
+  p[1] = p1;
 
 cout << "updatePoints " << p0 << " " << p1 << endl;
 
@@ -167,9 +185,22 @@ TFConnection::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modi
 }
 
 void
+TFConnection::setAttributes(const TFigureAttributes *attributes)
+{
+  TFigureArrow::setAttributes(attributes);
+}
+
+void
+TFConnection::getAttributes(TFigureAttributes *attributes) const
+{
+  TFigureArrow::getAttributes(attributes);
+}
+
+void
 TFConnection::store(TOutObjectStream &out) const
 {
   super::store(out);
+  TFigureArrow::store(out);
   ::storePointer(out, "start", start);
   ::storePointer(out, "end", end);
 }
@@ -184,6 +215,7 @@ TFConnection::restore(TInObjectStream &in)
     TFigureEditor::restoreRelation(const_cast<const TFigure**>(&end  ), this);
   }
   if (
+    TFigureArrow::restore(in) ||
     ::restorePointer(in, "start", &start) ||
     ::restorePointer(in, "end",   &end) ||
     super::restore(in)
