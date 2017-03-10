@@ -122,58 +122,66 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
 void 
 TFConnection::updatePoints()
 {
-  TVectorGraphic *f0 = start->getPath();
-  TVectorGraphic *f1 = end->getPath();
-  
-  TBoundary b0, b1;
-  for(auto &p: *f0)
-    b0.expand(p->path->bounds());
-  for(auto &p: *f1)
-    b1.expand(p->path->bounds());
-  
-  TPoint p0 = b0.center();
-  TPoint p1 = b1.center();
+  TVectorGraphic *f0, *f1;
+  TPoint p0, p1;
+
+  if (start) {
+    f0 = start->getPath();
+    TBoundary b;
+    for(auto &p: *f0)
+      b.expand(p->path->bounds());
+    p0 = b.center();
+  } else {
+    p0 = p[0];
+  }
+
+  if (end) {
+    f1 = end->getPath();
+    TBoundary b;
+    for(auto &p: *f1)
+      b.expand(p->path->bounds());
+    p1 = b.center();
+  } else {
+    p1 = p[1];
+  }
 
   TVectorPath line;
   line.move(p0);
   line.line(p1);
   
-  TIntersectionList il;
-  TCoord d;
-
-  for(auto &p: *f0)
-    p->path->intersect(il, line);
-//  cout << "found " << il.size() << " intersections" << endl;
-  
-  d=0.0;
-  for(auto &p: il) {
-    if (p.seg1.u>d) {
-      d = p.seg1.u;
-      p0 = p.seg1.pt;
+  if (start) {
+    TIntersectionList il;
+    for(auto &p: *f0)
+      p->path->intersect(il, line);
+    TCoord d=0.0;
+    for(auto &p: il) {
+      if (p.seg1.u>d) {
+        d = p.seg1.u;
+        p0 = p.seg1.pt;
+      }
     }
-//    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
   }
   
-  il.clear();
-
-  for(auto &p: *f1)
-    p->path->intersect(il, line);
-  d=1.0;
-  for(auto &p: il) {
-    if (p.seg1.u<d) {
-      d = p.seg1.u;
-      p1 = p.seg1.pt;
+  if (end) {
+    TIntersectionList il;
+    for(auto &p: *f1)
+      p->path->intersect(il, line);
+    TCoord d=1.0;
+    for(auto &p: il) {
+      if (p.seg1.u<d) {
+        d = p.seg1.u;
+        p1 = p.seg1.pt;
+      }
     }
-//    cout << "  " << p.seg1.u << " -> " << p.seg1.pt << endl;
   }
 
   p[0] = p0;
   p[1] = p1;
 
-cout << "updatePoints " << p0 << " " << p1 << endl;
-
-  delete f0;
-  delete f1;
+  if (start)
+    delete f0;
+  if (end)
+    delete f1;
 }
 
 void
