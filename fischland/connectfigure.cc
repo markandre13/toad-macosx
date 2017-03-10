@@ -88,7 +88,7 @@ TFConnection::bounds() const
 TCoord
 TFConnection::distance(const TPoint &pos)
 {
-  return TFigure::OUT_OF_RANGE;
+  return distance2Line(pos.x, pos.y, p[0].x,p[0].y, p[1].x,p[1].y);
 }
 
 void
@@ -115,8 +115,6 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
   if (arrowmode == TAIL || arrowmode == BOTH)
     drawArrow(pen, p[0], p[1], line_color, fill_color, aw, ah, arrowtype);
   pen.setAlpha(1);
-
-  
 }
 
 void 
