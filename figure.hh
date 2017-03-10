@@ -46,10 +46,14 @@ class TFigureEditEvent
     
       //! figure was added to model
       ADDED,
-      //! figure was removed from model
+      //! the figure is to be removed from the model
       REMOVED,
       
+      //! the figures listed in model->figures are to be removed from the model
       RELATION_REMOVED,
+      
+      //! the figures listed in model->figures have been modified
+      RELATION_MODIFIED,
     
       GET_DISTANCE,
       GET_HANDLE,

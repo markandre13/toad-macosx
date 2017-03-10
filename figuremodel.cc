@@ -435,21 +435,37 @@ TFigureModel::translate(const TFigureSet &set, TCoord dx, TCoord dy)
     return;
 
 //cout << "translate " << dx << ", " << dy << endl;
+
+  TFigureEditEvent ee;
+  ee.model = this;
+  ee.type = TFigureEditEvent::TRANSLATE;
+  ee.x = dx;
+  ee.y = dy;
+
   figures.clear();
   figures.insert(set.begin(), set.end());
-  type = MODIFY;
+
+  type = MODIFY; // FIXME: do we really need this?
   sigChanged();
+
   for(TFigureSet::iterator p = set.begin();
       p!=set.end();
       ++p)
   {
-    TFigureEditEvent ee;
-    ee.model = this;
-    ee.type = TFigureEditEvent::TRANSLATE;
-    ee.x = dx;
-    ee.y = dy;
     (*p)->editEvent(ee);
   }
+
+  ee.type = TFigureEditEvent::RELATION_MODIFIED;
+  for(auto &figureToBeRemoved: set) {
+    auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
+    if (relation==TFigureEditor::relatedTo.end()) {
+      continue;
+    }
+    for(auto &p: relation->second) {
+      const_cast<TFigure*>(p)->editEvent(ee);
+    }
+  }
+
   type = MODIFIED;
   sigChanged();
 

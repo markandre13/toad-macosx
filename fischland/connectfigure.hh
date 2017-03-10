@@ -38,7 +38,7 @@ class TFConnection:
     TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {}
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
-    // TCoord distance(const TPoint &pos) override;
+    TCoord distance(const TPoint &pos) override;
     bool editEvent(TFigureEditEvent &ee) override;
 
     void translate(TCoord dx, TCoord dy) override;

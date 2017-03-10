@@ -28,8 +28,11 @@ using namespace toad;
 bool
 TFConnection::editEvent(TFigureEditEvent &editEvent)
 {
-  // FIXME: add helper functions
+  // FIXME: add helper functions for RELATION_REMOVED and REMOVED
   switch(editEvent.type) {
+    case TFigureEditEvent::RELATION_MODIFIED:
+      updatePoints();
+      break;
     case TFigureEditEvent::RELATION_REMOVED:
       if (editEvent.model->figures.find(start) != editEvent.model->figures.end()) {
         start = nullptr;
@@ -64,10 +67,17 @@ TFConnection::editEvent(TFigureEditEvent &editEvent)
 TRectangle
 TFConnection::bounds() const
 {
-  assert(start);
-  assert(end);
-  TRectangle r0 = start->bounds();
-  TRectangle r1 = end->bounds();
+  TRectangle r0, r1;
+  if (start) {
+    r0 = start->bounds();
+  } else {
+    r0.set(p[0], p[0]);
+  }
+  if (end) {
+    r1 = end->bounds();
+  } else {
+    r1.set(p[1], p[1]);
+  }
   
   TPoint p0(min(r0.x, r1.x), min(r0.y, r1.y));
   TPoint p1(max(r0.x+r0.w, r1.x+r1.w), max(r0.y+r0.h, r1.y+r1.h));
@@ -75,19 +85,15 @@ TFConnection::bounds() const
   return TRectangle(p0,p1);
 }
 
-/*
 TCoord
 TFConnection::distance(const TPoint &pos)
 {
   return TFigure::OUT_OF_RANGE;
 }
-*/
 
 void
 TFConnection::paint(TPenBase &pen, EPaintType type)
 {
-  updatePoints();
-  
   pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
@@ -209,8 +215,6 @@ bool
 TFConnection::restore(TInObjectStream &in)
 {
   if (::finished(in)) {
-    cout << "TFConnection: finished " << this << ", start at " << &start << endl;
-    cout << "TFConnection: finished " << this << ", end at "   << &end   << endl;
     TFigureEditor::restoreRelation(const_cast<const TFigure**>(&start), this);
     TFigureEditor::restoreRelation(const_cast<const TFigure**>(&end  ), this);
   }

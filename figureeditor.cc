@@ -233,19 +233,33 @@ struct TRelationToBeRestored
 };
 std::vector<TRelationToBeRestored> restoreRelations;
 
+/**
+ * \param from the pointer containing the figure being pointed to
+ * \param to   the figure containing the figure containg the 'from' pointer
+ */
 void
 TFigureEditor::restoreRelation(const TFigure **from, const TFigure *to)
 {
   ::restoreRelations.push_back(TRelationToBeRestored(from, to));
-  // FIXME: also the other way around to support deletions? and set instead of vector?
 }
 
 void
 TFigureEditor::restoreRelations()
 {
+  std::set<const TFigure*> modified;
+
   for(auto &p: ::restoreRelations) {
     cout << "TFigurEditor::restoreRelations " << p.from << " -> " << *p.from << ", " << p.to << endl;
     TFigureEditor::relatedTo[*p.from].insert(p.to);
+    modified.insert(p.to);
+  }
+  
+  TFigureEditEvent ee;
+  ee.model = nullptr;
+  ee.type = TFigureEditEvent::RELATION_MODIFIED;
+  
+  for(auto &p: modified) {
+    const_cast<TFigure*>(p)->editEvent(ee);
   }
   ::restoreRelations.clear();
 }
