@@ -19,6 +19,7 @@
  */
 
 #include "selectiontool.hh"
+#include <toad/vector.hh>
 
 using namespace fischland;
 
@@ -481,8 +482,22 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.setColor(TColor::FIGURE_SELECTION);
     pen.setLineWidth(1);
     pen.setAlpha(1.0);
+    
+    // paint outline FIXME: scaling
+    pen.translate(-1,1);
+    for(auto &f: fe->selection) {
+      TVectorGraphic *graphic = f->getPath();
+      if (!graphic)
+        continue;
+      for(auto &painter: *graphic) {
+        painter->path->apply(pen);
+        pen.stroke();
+      }
+      delete graphic;
+    }
+    pen.translate(1,-1);
+    
     pen.drawRectangle(x0+1, y0+1, x1-x0-1, y1-y0-1);
-
     pen.setFillColor(1,1,1);
     TRectangle r;
     for(unsigned i=0; i<8; ++i) {

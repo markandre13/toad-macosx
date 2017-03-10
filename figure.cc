@@ -238,6 +238,7 @@ TColoredFigure::getAttributes(TFigureAttributes *preferences) const
 void
 TFigure::paintSelection(TPenBase &pen, int handle)
 {
+cout << getClassName() << "::paintSelection() called TFigure" << endl;
   pen.setLineColor(TColor::FIGURE_SELECTION);
   pen.setFillColor(TColor::WHITE);
 

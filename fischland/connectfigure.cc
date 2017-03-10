@@ -117,6 +117,21 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
   pen.setAlpha(1);
 }
 
+TVectorGraphic*
+TFConnection::getPath() const
+{
+  auto *path = new TVectorPath;
+  path->move(p[0]);
+  path->line(p[1]);
+  
+  auto *vg = new TVectorGraphic;
+  vg->push_back(new TVectorPainter(
+    new TVectorStrokeAndFillOp(line_color, fill_color),
+    path
+  ));
+  return vg;
+}
+
 void 
 TFConnection::updatePoints()
 {

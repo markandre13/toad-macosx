@@ -100,7 +100,7 @@ class TFigure:
     TFigure(const TFigure &);
     virtual ~TFigure();
     
-    virtual TVectorGraphic *getPath() const { return NULL; }
+    virtual TVectorGraphic *getPath() const { return nullptr; }
 
     virtual bool editEvent(TFigureEditEvent &ee);
     
