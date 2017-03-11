@@ -155,7 +155,6 @@ TFigureArrow::drawArrow(TPenBase &pen,
   p[3].x = p0.x + cos(d+r) * width;
   p[3].y = p0.y + sin(d+r) * width;
   
-  pen.setLineColor(line);
   switch(type) {
     case SIMPLE:
       pen.drawLine(p[0], p[1]);
@@ -163,40 +162,34 @@ TFigureArrow::drawArrow(TPenBase &pen,
       break;
     case EMPTY:
       p[2] = p0;
-      pen.setFillColor(fill);
       pen.fillPolygon(p, 4);
       break;
     case FILLED:
       p[2] = p0;
-      pen.setFillColor(line);
       pen.fillPolygon(p, 4);
       break;
     case EMPTY_CONCAVE:
       height -= height / 4;
       p[2].x = cos(d) * height + p1.x;
       p[2].y = sin(d) * height + p1.y;
-      pen.setFillColor(fill);
       pen.fillPolygon(p, 4);
       break;
     case FILLED_CONCAVE:
       height -= height / 4;
       p[2].x = cos(d) * height + p1.x;
       p[2].y = sin(d) * height + p1.y;
-      pen.setFillColor(line);
       pen.fillPolygon(p, 4);
       break;
     case EMPTY_CONVEX:
       height += height / 4;
       p[2].x = cos(d) * height + p1.x;
       p[2].y = sin(d) * height + p1.y;
-      pen.setFillColor(fill);
       pen.fillPolygon(p, 4);
       break;
     case FILLED_CONVEX:
       height += height / 4;
       p[2].x = cos(d) * height + p1.x;
       p[2].y = sin(d) * height + p1.y;
-      pen.setFillColor(line);
       pen.fillPolygon(p, 4);
       break;
   }
@@ -225,6 +218,7 @@ void
 TFLine::paint(TPenBase &pen, EPaintType)
 {
   pen.setLineColor(line_color);
+  pen.setFillColor(fill_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   pen.setAlpha(alpha);

@@ -47,14 +47,18 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 
   switch(me.type) {
     case TMouseEvent::LDOWN:
+      fe->clearSelection();
       fe->mouse2sheet(me.pos, &p);
       figure = fe->findFigureAt(p);
       if (figure) {
         fconnect = new TFConnection(figure, nullptr);
+        fe->getAttributes()->setAllReasons();
+        fconnect->setAttributes(fe->getAttributes());
         fconnect->p[1] = p;
         fconnect->updatePoints();
         firstFigure = figure;
         fe->invalidateWindow();
+        fe->getWindow()->grabMouse(true);
       }
       break;
     case TMouseEvent::MOVE:
@@ -81,6 +85,7 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (fconnect->end)
         TFigureEditor::relatedTo[fconnect->end  ].insert(fconnect);
       fconnect = nullptr;
+      fe->getWindow()->ungrabMouse();
       fe->invalidateWindow();
       break;
   }

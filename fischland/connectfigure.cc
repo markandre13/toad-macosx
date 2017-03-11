@@ -96,6 +96,7 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
 {
   if (type!=EDIT) {
     pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
+    pen.setFillColor(fill_color);
   }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
@@ -216,12 +217,14 @@ TFConnection::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modi
 void
 TFConnection::setAttributes(const TFigureAttributes *attributes)
 {
+  super::setAttributes(attributes);
   TFigureArrow::setAttributes(attributes);
 }
 
 void
 TFConnection::getAttributes(TFigureAttributes *attributes) const
 {
+  super::getAttributes(attributes);
   TFigureArrow::getAttributes(attributes);
 }
 
