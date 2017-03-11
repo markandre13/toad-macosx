@@ -22,6 +22,8 @@
 #include "connectfigure.hh"
 #include "fischland.hh"
 
+#include <toad/vector.hh>
+
 TConnectTool*
 TConnectTool::getTool()
 {
@@ -34,6 +36,7 @@ TConnectTool::getTool()
 TConnectTool::TConnectTool()
 {
   firstFigure = overFigure = nullptr;
+  fconnect = nullptr;
 }
 
 void 
@@ -42,46 +45,80 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   TPoint p;
   TFigure *figure;
 
-  // find figure under mouse
-  fe->mouse2sheet(me.pos, &p);
-  figure = fe->findFigureAt(p);
-  if (figure) {
-    cout << "found figure" << endl;
-  }
-
   switch(me.type) {
-    case TMouseEvent::MOVE:
-      if (figure==overFigure)
-        break;
-      overFigure = figure;
-      fe->invalidateWindow(); // FIXME: invalidates too much
-      break;
     case TMouseEvent::LDOWN:
-      if (!firstFigure) {
-        firstFigure = overFigure;
-      } else {
-        if (figure && figure!=firstFigure) {
-          fe->addFigure(new TFConnection(firstFigure, figure));
-        }
-        firstFigure = nullptr;
+      fe->mouse2sheet(me.pos, &p);
+      figure = fe->findFigureAt(p);
+      if (figure) {
+        fconnect = new TFConnection(figure, nullptr);
+        fconnect->p[1] = p;
+        fconnect->updatePoints();
+        firstFigure = figure;
+        fe->invalidateWindow();
       }
+      break;
+    case TMouseEvent::MOVE:
+      if (!firstFigure)
+        break;
+      fe->mouse2sheet(me.pos, &p);
+      overFigure = figure = fe->findFigureAt(p);
+      if (figure == firstFigure) {
+        fconnect->p[1] = p;
+      }
+      fconnect->end = figure;
+      if (!figure)
+        fconnect->p[1] = p;
+      fconnect->updatePoints();
+      fe->invalidateWindow();
+      break;
+    case TMouseEvent::LUP:
+      if (!firstFigure)
+        break;
+      firstFigure = overFigure = nullptr;
+      fe->addFigure(fconnect);
+      if (fconnect->start)
+        TFigureEditor::relatedTo[fconnect->start].insert(fconnect);
+      if (fconnect->end)
+        TFigureEditor::relatedTo[fconnect->end  ].insert(fconnect);
+      fconnect = nullptr;
+      fe->invalidateWindow();
       break;
   }
 }
 
+
 bool
 TConnectTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
-  if (overFigure) {
-    pen.push();
-    overFigure->paintSelection(pen);
-    pen.pop();
+  pen.push();
+  pen.setColor(TColor::FIGURE_SELECTION);
+  pen.setAlpha(1.0);
+  pen.setScreenLineWidth(1.0);
+
+  for(int i=0; i<2; ++i) {
+    const TFigure *figure;
+    switch(i) {
+      case 0: figure = firstFigure; break;
+      case 1: figure = overFigure; break;
+    }
+    if (!figure)
+      continue;
+
+    TVectorGraphic *graphic = figure->getPath();
+    if (graphic) {
+      for(auto &painter: *graphic) {
+        painter->path->apply(pen);
+        pen.stroke();
+      }
+      delete graphic;
+    }
   }
-  if (firstFigure && overFigure != firstFigure) {
-    pen.push();
-    firstFigure->paintSelection(pen);
-    pen.pop();
-  }
+
+  if (fconnect)
+    fconnect->paint(pen, TFigure::EDIT);
+
+  pen.pop();
+  return true;
 }
 
 void

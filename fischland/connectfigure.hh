@@ -29,10 +29,9 @@ class TFConnection:
   public TColoredFigure, TFigureArrow
 {
     typedef TColoredFigure super;
+  public:
     void updatePoints();
     TPoint p[2];
-
-  public:
     TFigure *start, *end;
     TFConnection(): start(nullptr), end(nullptr) {}
     TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {}

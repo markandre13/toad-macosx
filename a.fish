@@ -35,17 +35,6 @@ fischland::TDocument {
         w = 92
         h = 62
       }
-      toad::TFConnection {
-        linecolor ={ 0 0 0 }
-        fillcolor ={ 255 0 0 }
-        linewidth = 1
-        arrowmode = tail
-        arrowtype = filled-concave
-        arrowheight = 8
-        arrowwidth = 4
-        start = 1
-        end = 2
-      }
       toad::TFCircle {
         id = 3
         linecolor ={ 0 0 0 }
@@ -54,28 +43,6 @@ fischland::TDocument {
         y = 232.617
         w = 110
         h = 102
-      }
-      toad::TFConnection {
-        linecolor ={ 0 0 0 }
-        fillcolor ={ 255 255 255 }
-        linewidth = 1
-        arrowmode = tail
-        arrowtype = filled
-        arrowheight = 8
-        arrowwidth = 4
-        start = 3
-        end = 1
-      }
-      toad::TFConnection {
-        linecolor ={ 0 0 0 }
-        fillcolor ={ 255 0 0 }
-        linewidth = 1
-        arrowmode = head
-        arrowtype = filled-concave
-        arrowheight = 8
-        arrowwidth = 4
-        start = 3
-        end = 2
       }
     }
   }

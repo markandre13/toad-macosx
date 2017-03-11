@@ -28,9 +28,12 @@
 
 using namespace toad;
 
+class TFConnection;
+
 class TConnectTool:
   public TFigureTool
 {
+    TFConnection *fconnect;
     TFigure *firstFigure, *overFigure;
   public:
     TConnectTool();

@@ -94,7 +94,9 @@ TFConnection::distance(const TPoint &pos)
 void
 TFConnection::paint(TPenBase &pen, EPaintType type)
 {
-  pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
+  if (type!=EDIT) {
+    pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
+  }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   pen.setAlpha(alpha);

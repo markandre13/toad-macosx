@@ -89,6 +89,7 @@ class TPenBase
     
     virtual void setMode(EMode) = 0;
     virtual void setLineWidth(TCoord) = 0;
+    void setScreenLineWidth(TCoord);
     virtual void setLineStyle(ELineStyle) = 0;
     //virtual void setColorMode(TColor::EDitherMode) = 0;
     //virtual void setClipChildren(bool) = 0;

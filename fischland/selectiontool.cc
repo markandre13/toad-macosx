@@ -425,6 +425,21 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 #endif
 }
 
+void
+TPenBase::setScreenLineWidth(TCoord width)
+{
+  if (getMatrix()) {
+    setLineWidth(
+      1.0 /
+      distance(
+        getMatrix()->map(TPoint(0,0)),
+        getMatrix()->map(TPoint(1,0)))
+    );
+  } else {
+    setLineWidth(1);
+  }
+}
+
 bool
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
@@ -470,21 +485,10 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 
   if (!fe->selection.empty()) {
 //    cout << "draw bounding rectangle " << x0 << ", " << y0 << " to " << x1 << ", " << y1 << endl;
+    
     pen.setColor(TColor::FIGURE_SELECTION);
     pen.setAlpha(1.0);
-    
-    if (pen.getMatrix()) {
-      TPoint p1 = pen.getMatrix()->map(TPoint(0,0));
-      TPoint p0 = pen.getMatrix()->map(TPoint(1,0));
-      pen.setLineWidth(
-        1.0 /
-        distance(
-          pen.getMatrix()->map(TPoint(0,0)),
-          pen.getMatrix()->map(TPoint(1,0)))
-      );
-    } else {
-      pen.setLineWidth(1);
-    }
+    pen.setScreenLineWidth(1.0);
 
     // paint outline FIXME: scaling
     for(auto &f: fe->selection) {
