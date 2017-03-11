@@ -470,21 +470,23 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 
   if (!fe->selection.empty()) {
 //    cout << "draw bounding rectangle " << x0 << ", " << y0 << " to " << x1 << ", " << y1 << endl;
-    const TMatrix2D *m = 0;
-    if (pen.getMatrix()) {
-      m = pen.getMatrix();
-      double tx, ty;
-      m->map(0.0, 0.0, &tx, &ty);
-      pen.push();
-      pen.identity();
-      pen.translate(tx, ty);
-    }
     pen.setColor(TColor::FIGURE_SELECTION);
-    pen.setLineWidth(1);
     pen.setAlpha(1.0);
     
+    if (pen.getMatrix()) {
+      TPoint p1 = pen.getMatrix()->map(TPoint(0,0));
+      TPoint p0 = pen.getMatrix()->map(TPoint(1,0));
+      pen.setLineWidth(
+        1.0 /
+        distance(
+          pen.getMatrix()->map(TPoint(0,0)),
+          pen.getMatrix()->map(TPoint(1,0)))
+      );
+    } else {
+      pen.setLineWidth(1);
+    }
+
     // paint outline FIXME: scaling
-    pen.translate(-1,1);
     for(auto &f: fe->selection) {
       TVectorGraphic *graphic = f->getPath();
       if (!graphic)
@@ -495,8 +497,16 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       }
       delete graphic;
     }
-    pen.translate(1,-1);
-    
+
+    if (pen.getMatrix()) {
+      TCoord tx, ty;
+      pen.getMatrix()->map(0.0, 0.0, &tx, &ty);
+      pen.push();
+      pen.identity();
+      pen.translate(tx, ty);
+    }
+
+    pen.setLineWidth(1);
     pen.drawRectangle(x0+1, y0+1, x1-x0-1, y1-y0-1);
     pen.setFillColor(1,1,1);
     TRectangle r;
