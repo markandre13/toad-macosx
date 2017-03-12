@@ -515,4 +515,38 @@ cout << "FIXME: need to check for empty test test" << endl;
 
 TEST(WordProcessor, updatePrepared)
 {
+  string text;
+  //       0         1         2         3         4         5
+  //       012345678901234567890123456789012345678901234567890
+  text =  "This is a <i><b>bold</b></i> move.";
+
+  vector<size_t> xpos;
+  xpos.assign(3, 0);
+  
+  TPreparedDocument document;
+  prepareHTMLText(text, xpos, &document);
+  
+  for(auto &line: document.lines) {
+    cout << "line:" << endl;
+    for(auto &fragment: line->fragments) {
+      cout << "  fragment: " << fragment->offset << ", " << fragment->length
+           << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+           << (fragment->attr.bold?", bold":"")
+           << (fragment->attr.italic?", italics":"") << endl;
+    }
+  }
+  cout << endl;
+  
+  text.erase(2,1);
+  updatePrepared(text, &document, 2, -1);
+
+  for(auto &line: document.lines) {
+    cout << "line:" << endl;
+    for(auto &fragment: line->fragments) {
+      cout << "  fragment: " << fragment->offset << ", " << fragment->length
+           << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+           << (fragment->attr.bold?", bold":"")
+           << (fragment->attr.italic?", italics":"") << endl;
+    }
+  }
 }

@@ -191,24 +191,35 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         move = true;
       }
     } break;
+    case TK_BACKSPACE:
+      if (xpos[CURSOR]<=0)
+        return;
+      xmldec(text, &xpos[CURSOR]);
     case TK_DELETE: {
-      move = true;
-      text.erase(xpos[CURSOR], utf8charsize(text, xpos[CURSOR]));
-      updatePrepared(text, &document, xpos[CURSOR], -str.size());
-      updateMarker(text, &document, xpos);
+      size_t pos = xpos[CURSOR];
+      if (pos>=text.size())
+        return;
+//cout << "pos="<<pos<<", text="<<text.size()<<endl;
+      while (text[pos]=='<') {
+        taginc(text, &pos, nullptr);
+      }
+      if (pos>=text.size())
+        return;
+      ssize_t len = utf8charsize(text, pos);
+      text.erase(pos, len);
+      updatePrepared(text, &document, pos, -len);
+//      updateMarker(text, &document, xpos);
       invalidateWindow();
-cout << "delete" << endl;
       return;
-    } break;
-    case TK_BACKSPACE: {
-      move = true;
-cout << "backspace" << endl;
     } break;
     default:
       updown = false;
   }
   
   if (!move) {
+    if (xpos[CURSOR]>text.size())
+      xpos[CURSOR] = text.size();
+//cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
     text.insert(xpos[CURSOR], str);
     updatePrepared(text, &document, xpos[CURSOR], str.size());
     xmlinc(text, &xpos[CURSOR]);
