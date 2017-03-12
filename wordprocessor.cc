@@ -1343,24 +1343,32 @@ void
 textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
 {
   // FIXME: selection
-  // FIXME: entity
   // FIXME: self-closing tags
 
   size_t pos = xpos[CURSOR]; // FIXME: also handle selection
   if (pos>=text.size())
     return;
-//cout << "pos="<<pos<<", text="<<text.size()<<endl;
+cout << "textDelete(): pos="<<pos<<", text="<<text.size()<<endl;
   while (text[pos]=='<') {
     taginc(text, &pos, nullptr);
   }
   if (pos>=text.size())
     return;
 
-  ssize_t len = utf8charsize(text, pos); // FIXME: entities
+  bool fragmentChanged = false;
+
+  size_t p=pos;
+  xmlinc(text, &p);
+  if (text[pos] == '&')
+    fragmentChanged = true;
+  
+  ssize_t len = p-pos;
+cout << "len="<<len<<endl;
+cout << text << endl;
   text.erase(pos, len);
+cout << text << endl;
 
   cout << "****** pos="<<pos<<", text="<<text.size()<<endl;
-  bool removedTags = false;
   while(pos>0 && pos+1<text.size() &&
         text[pos-1]=='>' && text[pos]=='<' && text[pos+1]=='/')
   {
@@ -1373,15 +1381,13 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
     text.erase(bgn, end-bgn);
 
     pos = bgn;
-    removedTags = true;
+    fragmentChanged = true;
   }
-  if (removedTags) {
+  if (fragmentChanged) {
     prepareHTMLText(text, xpos, &document);
-    updateMarker(text, &document, xpos);
-    return;
+  } else {
+    updatePrepared(text, &document, pos, -len);
   }
-
-  updatePrepared(text, &document, pos, -len);
   updateMarker(text, &document, xpos);
 }
 

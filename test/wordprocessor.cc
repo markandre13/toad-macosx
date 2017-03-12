@@ -529,6 +529,14 @@ TEST(WordProcessor, textDelete)
   vector<test> test = {
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
+    { .in = "What is seven &times; six?",
+      .pos = 14,
+      .frags = {
+        { .offset=0,  .txt="What is seven  six?", },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
     { .in = "This is a <i><b>bold</b></i> move.",
       .pos = 2,
       .frags = {
@@ -602,7 +610,8 @@ cout << "FIXME: need to check for empty test test" << endl;
 //      cout << "  got   : " << (*fragment)->offset << ", " << (*fragment)->length << endl;
       
       ASSERT_EQ((*fragment)->offset, f.offset);
-      ASSERT_EQ(text.substr((*fragment)->offset, (*fragment)->length), f.txt);
+//      ASSERT_STREQ(text.substr((*fragment)->offset, (*fragment)->length).c_str(), f.txt);
+      ASSERT_STREQ(f.txt, text.substr((*fragment)->offset, (*fragment)->length).c_str());
       ASSERT_EQ((*fragment)->attr.bold, f.bold);
       ASSERT_EQ((*fragment)->attr.italic, f.italics);
       
