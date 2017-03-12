@@ -199,16 +199,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       size_t pos = xpos[CURSOR];
       if (pos>=text.size())
         return;
-//cout << "pos="<<pos<<", text="<<text.size()<<endl;
-      while (text[pos]=='<') {
-        taginc(text, &pos, nullptr);
-      }
-      if (pos>=text.size())
-        return;
-      ssize_t len = utf8charsize(text, pos);
-      text.erase(pos, len);
-      updatePrepared(text, &document, pos, -len);
-//      updateMarker(text, &document, xpos);
+      textDelete(text, document, xpos);
       invalidateWindow();
       return;
     } break;
@@ -272,7 +263,6 @@ TTextEditor2::mouseEvent(const TMouseEvent &me)
   updateMarker(text, &document, xpos);
   invalidateWindow();
 }
-
 
 int 
 test_text()

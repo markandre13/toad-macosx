@@ -159,6 +159,8 @@ namespace toad {
     void tagrange(const string &text, vector<TTagRange> *result);
     void expandselection(const string &text, size_t *sb, size_t *se, const string &name, bool isadd);
 
+    void textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos);
+
     struct TTag
     {
       TTag() { open=close=false; }

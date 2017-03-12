@@ -1339,4 +1339,52 @@ for(size_t i=0; i<xpos.size(); ++i) {
   return out;
 }
 
+void
+textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
+{
+  // FIXME: selection
+  // FIXME: entity
+  // FIXME: self-closing tags
+
+  size_t pos = xpos[CURSOR]; // FIXME: also handle selection
+  if (pos>=text.size())
+    return;
+//cout << "pos="<<pos<<", text="<<text.size()<<endl;
+  while (text[pos]=='<') {
+    taginc(text, &pos, nullptr);
+  }
+  if (pos>=text.size())
+    return;
+
+  ssize_t len = utf8charsize(text, pos); // FIXME: entities
+  text.erase(pos, len);
+
+  cout << "****** pos="<<pos<<", text="<<text.size()<<endl;
+  bool removedTags = false;
+  while(pos>0 && pos+1<text.size() &&
+        text[pos-1]=='>' && text[pos]=='<' && text[pos+1]=='/')
+  {
+    size_t bgn = pos-1;
+    tagdec(text, &bgn);
+      
+    size_t end = pos;
+    taginc(text, &end);
+      
+    text.erase(bgn, end-bgn);
+
+    pos = bgn;
+    removedTags = true;
+  }
+  if (removedTags) {
+    prepareHTMLText(text, xpos, &document);
+    updateMarker(text, &document, xpos);
+    return;
+  }
+
+  updatePrepared(text, &document, pos, -len);
+  updateMarker(text, &document, xpos);
+}
+
+
+
 } // namespace toad::wordprocessor

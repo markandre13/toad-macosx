@@ -513,40 +513,115 @@ cout << "FIXME: need to check for empty test test" << endl;
   }
 }
 
-TEST(WordProcessor, updatePrepared)
+TEST(WordProcessor, textDelete)
 {
-  string text;
-  //       0         1         2         3         4         5
-  //       012345678901234567890123456789012345678901234567890
-  text =  "This is a <i><b>bold</b></i> move.";
+  struct fragtest {
+    size_t offset;
+    const char *txt;
+    bool bold, italics, eol;
+  };
+  struct test {
+    const char *in;
+    size_t pos, bgn, end;
+    vector<fragtest> frags;
+  };
+  
+  vector<test> test = {
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "This is a <i><b>bold</b></i> move.",
+      .pos = 2,
+      .frags = {
+        { .offset=0,  .txt="Ths is a ", },
+        { .offset=15, .txt="bold", .italics=true, .bold=true },
+        { .offset=27, .txt=" move." },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "This is a <i><b>bold</b></i> move.",
+      .pos = 10,
+      .frags = {
+        { .offset=0,  .txt="This is a ", },
+        { .offset=16, .txt="old", .italics=true, .bold=true },
+        { .offset=27, .txt=" move." },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "This is a <i><b>b</b></i> move.",
+      .pos = 10,
+      .frags = {
+        { .offset=0,  .txt="This is a  move.", },
+      }
+    },
+  };
+  
+  for(auto &t: test) {
+    string text(t.in);
+    vector<size_t> xpos;
+    xpos.assign(3, 0);
+    TPreparedDocument document;
+  
+    prepareHTMLText(t.in, xpos, &document);
 
-  vector<size_t> xpos;
-  xpos.assign(3, 0);
-  
-  TPreparedDocument document;
-  prepareHTMLText(text, xpos, &document);
-  
-  for(auto &line: document.lines) {
-    cout << "line:" << endl;
-    for(auto &fragment: line->fragments) {
-      cout << "  fragment: " << fragment->offset << ", " << fragment->length
-           << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
-           << (fragment->attr.bold?", bold":"")
-           << (fragment->attr.italic?", italics":"") << endl;
+    cout << "----------------------------------------------------------------------" << endl
+         << t.in << endl;
+     
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
     }
-  }
-  cout << endl;
   
-  text.erase(2,1);
-  updatePrepared(text, &document, 2, -1);
+    xpos[CURSOR]=t.pos;
+    textDelete(text, document, xpos);
 
-  for(auto &line: document.lines) {
-    cout << "line:" << endl;
-    for(auto &fragment: line->fragments) {
-      cout << "  fragment: " << fragment->offset << ", " << fragment->length
-           << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
-           << (fragment->attr.bold?", bold":"")
-           << (fragment->attr.italic?", italics":"") << endl;
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
     }
+
+    auto line = document.lines.begin();
+    if (line==document.lines.end()) {
+cout << "FIXME: need to check for empty test test" << endl;
+      continue;
+    }
+    auto fragment = (*line)->fragments.begin();
+//cout << "first line, first fragment" << endl;
+    for(auto &f: t.frags) {
+//      cout << "  expect: " << f.offset << ", " << f.length << (f.eol?", eol":"") << endl;
+//      cout << "  got   : " << (*fragment)->offset << ", " << (*fragment)->length << endl;
+      
+      ASSERT_EQ((*fragment)->offset, f.offset);
+      ASSERT_EQ(text.substr((*fragment)->offset, (*fragment)->length), f.txt);
+      ASSERT_EQ((*fragment)->attr.bold, f.bold);
+      ASSERT_EQ((*fragment)->attr.italic, f.italics);
+      
+//cout << "next fragment" << endl;
+      ++fragment;
+      
+      if (fragment == (*line)->fragments.end()) {
+//cout << "next line" << endl;
+        ++line;
+        if (line==document.lines.end()) {
+//cout << "last line" << endl;
+          break;
+        }
+        fragment = (*line)->fragments.begin();
+        ASSERT_EQ(true, f.eol);
+      } else {
+        ASSERT_EQ(false, f.eol);
+      }
+    }
+
   }
 }
