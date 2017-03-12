@@ -142,7 +142,7 @@ namespace toad {
     void prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document);
     // render text on screen
     void renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos);
-    void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, size_t len);
+    void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len);
 
     void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
     size_t positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos);

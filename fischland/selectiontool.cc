@@ -425,21 +425,6 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 #endif
 }
 
-void
-TPenBase::setScreenLineWidth(TCoord width)
-{
-  if (getMatrix()) {
-    setLineWidth(
-      1.0 /
-      distance(
-        getMatrix()->map(TPoint(0,0)),
-        getMatrix()->map(TPoint(1,0)))
-    );
-  } else {
-    setLineWidth(1);
-  }
-}
-
 bool
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {

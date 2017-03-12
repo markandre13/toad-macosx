@@ -678,6 +678,12 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
 }
 
 /**
+ * update TPreparedDocument after text had been added and removed
+ *
+ * \param text		the text which had been modified
+ * \param document	the prepared document data for text
+ * \param offset	location in text where the modification took place
+ * \param len		number of bytes added/removed
  * for now this function only handles inserting text to an existing fragment
  * todo
  * \li simple inserts must also create new text fragments when between "near" entities/tags
@@ -690,7 +696,7 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
  * \li replace
  */
 void
-updatePrepared(const string &text, TPreparedDocument *document, size_t offset, size_t len)
+updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len)
 {
   bool afterOffset = false;
   TCoord diffW = 0.0;

@@ -512,3 +512,7 @@ cout << "FIXME: need to check for empty test test" << endl;
     }
   }
 }
+
+TEST(WordProcessor, updatePrepared)
+{
+}

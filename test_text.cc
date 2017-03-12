@@ -192,9 +192,17 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       }
     } break;
     case TK_DELETE: {
-      // text.erase(0,1);
+      move = true;
+      text.erase(xpos[CURSOR], utf8charsize(text, xpos[CURSOR]));
+      updatePrepared(text, &document, xpos[CURSOR], -str.size());
+      updateMarker(text, &document, xpos);
+      invalidateWindow();
+cout << "delete" << endl;
+      return;
     } break;
     case TK_BACKSPACE: {
+      move = true;
+cout << "backspace" << endl;
     } break;
     default:
       updown = false;
