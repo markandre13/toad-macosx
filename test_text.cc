@@ -126,7 +126,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   size_t oldcursor = xpos[CURSOR];
   size_t sb = xpos[SELECTION_BGN];
   size_t se = xpos[SELECTION_END];
-  
+
   if (modifier & MK_CONTROL) {
     switch(key) {
       case 11:
