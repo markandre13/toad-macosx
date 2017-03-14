@@ -72,7 +72,7 @@ typedef unsigned short TKey;
 #define TK_BEGIN     0
 #else
 #define TK_RETURN    36
-#define TK_KP_RETURN 0xffff
+#define TK_KP_RETURN 76
 #define TK_TAB       48
 #define TK_LEFT_TAB  0xffff
 #define TK_INSERT    0xffff

@@ -203,6 +203,12 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       invalidateWindow();
       return;
     } break;
+    case TK_RETURN:
+    case TK_KP_RETURN: {
+      text.insert(xpos[CURSOR], "<br/>");
+      prepareHTMLText(text, xpos, &document);
+      invalidateWindow();
+    } break;
     default:
       updown = false;
   }
