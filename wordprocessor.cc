@@ -532,8 +532,9 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         if (fragment->offset == TTextFragment::npos) {
           fragment->offset = x0;
           fragment->length = 0;
-          line->ascent = font.getAscent();
-          line->descent = font.getDescent();
+          line->ascent = fragment->ascent = font.getAscent();
+          line->descent = fragment->descent = font.getDescent();
+          fragment->size.height = font.getHeight();
         }
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
@@ -616,6 +617,13 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       x += w;
       x0=x1;
     }
+  }
+  if (fragment->offset == TTextFragment::npos) {
+    fragment->offset = x0;
+    fragment->length = 0;
+    line->ascent = fragment->ascent = font.getAscent();
+    line->descent = fragment->descent = font.getDescent();
+    fragment->size.height = font.getHeight();
   }
   line->size.width = x;
   line->size.height=line->ascent + line->descent;

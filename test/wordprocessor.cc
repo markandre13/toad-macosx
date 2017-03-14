@@ -475,6 +475,14 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset=36, .length=6 },
       }
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Break<br/>",
+      .frags = {
+        { .offset= 0, .length=5, .eol=true },
+        { .offset=10, .length=0 },
+      },
+    },
   };
 
   for(auto &t: test) {

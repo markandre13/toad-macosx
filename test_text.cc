@@ -206,8 +206,11 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
     case TK_RETURN:
     case TK_KP_RETURN: {
       text.insert(xpos[CURSOR], "<br/>");
+      xmlinc(text, &xpos[CURSOR]);
       prepareHTMLText(text, xpos, &document);
+      updateMarker(text, &document, xpos);
       invalidateWindow();
+      return;
     } break;
     default:
       updown = false;
