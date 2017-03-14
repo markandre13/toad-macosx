@@ -412,8 +412,8 @@ void
 fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr, size_t *length)
 {
   if (fragment->offset == TTextFragment::npos) {
-    *cstr = "(null)";
-    *length = 6;
+    *cstr = "";
+    *length = 0;
     return;
   }
 
@@ -464,7 +464,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
   document->clear();
   if (text.empty())
     return;
-//cout << "------------------------------------------------------" << endl;
+//cout << "prepareHTMLText ------------------------------------------------------" << endl;
   string face="times";
   TFont font;
   font.setFont(face);
@@ -497,12 +497,15 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       line->descent = max(line->descent, font.getDescent());
 //cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
       if (!fragment || fragment->offset != TTextFragment::npos) {
+//if (!fragment)
+//  printf("%s:%u: fragment=%p\n", __FILE__, __LINE__, fragment);
+//else
+//  printf("%s:%u: fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->attr.setFont(font);
       }
       fragment->offset = x0;
-//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment->text, fragment->text);
       fragment->length = x1-x0;
 
       const char *cstr;
@@ -523,21 +526,33 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       TTag tag;
       taginc(text, &x1, &tag);
 //cout << "TAG: "<<tag<< endl;
-      x0=x1;
       
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
+//cout << "fragment->offset="<<fragment->offset<<", fragment->length="<<fragment->length<<endl;
+        if (fragment->offset == TTextFragment::npos) {
+          fragment->offset = x0;
+          fragment->length = 0;
+          line->ascent = font.getAscent();
+          line->descent = font.getDescent();
+        }
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
         document->lines.push_back(new TPreparedLine());
         document->lines.back()->origin.y = line->origin.y + line->size.height;
         line = document->lines.back();
-        line->offset  = x0;
+        line->offset  = x1;
         line->ascent  = 0;
         line->descent = 0;
         x=0;
       }
-      if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos) // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
+      x0=x1;
+
+      // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
+      if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos)  {
+//printf("%s:%u: fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
         line->fragments.push_back(new TTextFragment(fragment));
+      }
+
       fragment = line->fragments.back();
       if (tag.name=="br") {
       } else
@@ -575,12 +590,12 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
           fragment->attr.setFont(font);
         }
       }
-//printf("%s:%u: fragment=%p, text=%p '%s'\n", __FILE__, __LINE__, fragment, fragment, fragment->text, fragment->text);
     } else
     if (c=='&') {
       entityinc(text, &x1);
 
       if (!fragment || fragment->offset != TTextFragment::npos) {
+//printf("%s:%u: fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
@@ -628,6 +643,9 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
       p != document->lines.end();
       ++p)
   {
+//    if ( (*p)->fragments[0]->offset == string::npos)
+//      continue;
+  
     size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
     TPreparedLine *line = *p;
 //    cout << "  line " << line->text << " - " << textend << ", height=" << line->size.height << endl;
@@ -1348,14 +1366,24 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
   size_t pos = xpos[CURSOR]; // FIXME: also handle selection
   if (pos>=text.size())
     return;
+
+  bool fragmentChanged = false;
+
 cout << "textDelete(): pos="<<pos<<", text="<<text.size()<<endl;
+  TTag tag;
   while (text[pos]=='<') {
-    taginc(text, &pos, nullptr);
+    size_t old_pos = pos;
+    taginc(text, &pos, &tag);
+    if (tag.open && tag.close) {
+cout << "open/close tag " << tag.name << endl;
+      pos = old_pos;
+      fragmentChanged = true;
+      break;
+    }
   }
   if (pos>=text.size())
     return;
 
-  bool fragmentChanged = false;
 
   size_t p=pos;
   xmlinc(text, &p);

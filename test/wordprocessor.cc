@@ -437,6 +437,25 @@ TEST(WordProcessor, prepareHTMLText)
     },
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
+    { .in = "Let me<br/><br/>this to you.",
+      .frags = {
+        { .offset=0, .length=6, .eol=true },
+        { .offset=11, .length=0, .eol=true },
+        { .offset=16, .length=12,},
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Break<br/><br/><br/>Dance",
+      .frags = {
+        { .offset= 0, .length=5, .eol=true },
+        { .offset=10, .length=0, .eol=true },
+        { .offset=15, .length=0, .eol=true },
+        { .offset=20, .length=5 },
+      },
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
     { .in = "Let <b>me<br/>this</b> to you.",
       .frags = {
         { .offset= 0, .length=4 },
@@ -561,6 +580,123 @@ TEST(WordProcessor, textDelete)
       .pos = 10,
       .frags = {
         { .offset=0,  .txt="This is a  move.", },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "This is a <i><b>b</b>old</i> move.",
+      .pos = 10,
+      .frags = {
+        { .offset=0,  .txt="This is a ", },
+        { .offset=13, .txt="old", .italics=true},
+        { .offset=20, .txt=" move.", },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "This is a<br/> break dance.",
+      .pos = 9,
+      .frags = {
+        { .offset=0,  .txt="This is a break dance." },
+      }
+    },
+  };
+  
+  for(auto &t: test) {
+    string text(t.in);
+    vector<size_t> xpos;
+    xpos.assign(3, 0);
+    TPreparedDocument document;
+  
+    prepareHTMLText(t.in, xpos, &document);
+
+    cout << "----------------------------------------------------------------------" << endl
+         << t.in << endl;
+     
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
+    }
+  
+    xpos[CURSOR]=t.pos;
+    textDelete(text, document, xpos);
+
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
+    }
+
+    auto line = document.lines.begin();
+    if (line==document.lines.end()) {
+cout << "FIXME: need to check for empty test test" << endl;
+      continue;
+    }
+    auto fragment = (*line)->fragments.begin();
+//cout << "first line, first fragment" << endl;
+    for(auto &f: t.frags) {
+//      cout << "  expect: " << f.offset << ", " << f.length << (f.eol?", eol":"") << endl;
+//      cout << "  got   : " << (*fragment)->offset << ", " << (*fragment)->length << endl;
+      
+      ASSERT_EQ((*fragment)->offset, f.offset);
+//      ASSERT_STREQ(text.substr((*fragment)->offset, (*fragment)->length).c_str(), f.txt);
+      ASSERT_STREQ(f.txt, text.substr((*fragment)->offset, (*fragment)->length).c_str());
+      ASSERT_EQ((*fragment)->attr.bold, f.bold);
+      ASSERT_EQ((*fragment)->attr.italic, f.italics);
+      
+//cout << "next fragment" << endl;
+      ++fragment;
+      
+      if (fragment == (*line)->fragments.end()) {
+//cout << "next line" << endl;
+        ++line;
+        if (line==document.lines.end()) {
+//cout << "last line" << endl;
+          break;
+        }
+        fragment = (*line)->fragments.begin();
+        ASSERT_EQ(true, f.eol);
+      } else {
+        ASSERT_EQ(false, f.eol);
+      }
+    }
+
+  }
+}
+
+TEST(WordProcessor, textInsert)
+{
+return;
+
+  struct fragtest {
+    size_t offset;
+    const char *txt;
+    bool bold, italics, eol;
+  };
+  struct test {
+    const char *in;
+    size_t pos, bgn, end;
+    vector<fragtest> frags;
+  };
+  
+  vector<test> test = {
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Break<br/><br/><br/>Dance",
+      .pos = 15,
+      .frags = {
+        { .offset= 0, .txt="Break", },
+        { .offset=10, .txt="", },
+        { .offset=15, .txt="", },
+        { .offset=20,  .txt="Dance", },
       }
     },
   };
