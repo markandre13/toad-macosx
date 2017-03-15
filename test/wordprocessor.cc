@@ -365,6 +365,21 @@ TEST(WordProcessor, tagtoggle)
                            18,    25,
         "This <i>was</i> a bold move."
     },
+
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "hello<b>.....you</b> there.",
+      //              ^  <
+                      13,16,
+        "hello<b>.....</b>you there."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "hello<b><br/>you</b> there.",
+      //              ^  <
+                      13,16,
+        "hello<b><br/></b>you there."
+    },
   };
 
   for(auto &t: test) {
@@ -778,3 +793,8 @@ cout << "FIXME: need to check for empty test test" << endl;
 
   }
 }
+
+// hello<br/>you there.
+// hello<b><br/>you</b> there. <- then try to remove the bold!
+// hello<b></b><br/><b></b> there. <- then try to insert after <br/>
+// => CRASH

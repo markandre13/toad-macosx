@@ -1,3 +1,23 @@
+/*
+ * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, 
+ * MA  02111-1307,  USA
+ */
+
 #include <toad/utf8.hh>
 #include <toad/wordprocessor.hh>
 
@@ -1264,7 +1284,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
     
     bool onoff = false;
     if (add && inside_sel) {
-      if (tag0.open && tag0.name!=tag) {
+      if (tag0.open && !tag0.close && tag0.name!=tag) {
         for(auto &a: tagrange) {
           if (a.bgn==x0) {
             if (a.end>se) {
@@ -1274,7 +1294,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
           }
         }
       }
-      if (tag0.close && tag0.name!=tag) {
+      if (!tag0.open && tag0.close && tag0.name!=tag) {
         for(auto &a: tagrange) {
           if (a.end==x0) {
             if (a.bgn<sb) {
@@ -1287,7 +1307,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
     }
 
     if (!add && !inside_sel) {
-      if (tag0.open && tag0.name!=tag) {
+      if (tag0.open && !tag0.close && tag0.name!=tag) {
         DBG(cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;)
         for(auto &a: tagrange) {
           if (a.bgn==x0) {
@@ -1299,7 +1319,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
           }
         }
       }
-      if (tag0.close && tag0.name!=tag) {
+      if (!tag0.open && tag0.close && tag0.name!=tag) {
         DBG(cout << __LINE__ << ": look for " << tag0 << " at " << x0 << endl;)
         for(auto &a: tagrange) {
           if (a.end==x0) {
@@ -1319,7 +1339,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
     }
     
     // outside selection
-    if (tag0.close && tag0.name==tag) {
+    if (!tag0.open && tag0.close && tag0.name==tag) {
       --inside;
       DBG(cout << __LINE__ << ": --inside, inside=" << (inside) << endl;)
       if (!inside) {
@@ -1327,7 +1347,7 @@ for(size_t i=0; i<xpos.size(); ++i) {
         out += tag0;
       }
     } else
-    if (tag0.open && tag0.name==tag) {
+    if (tag0.open && !tag0.close && tag0.name==tag) {
       if (!inside) {
         DBG(cout << __LINE__ << ": add " << tag0 << endl;)
         out += tag0;
