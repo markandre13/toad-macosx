@@ -417,6 +417,7 @@ cout << " " << xpos[i];
 //cout << "'" << s << "'\n";
     }
 cout << endl;
+
     ASSERT_EQ(s, t.marker_out);
     
 /*
@@ -498,6 +499,26 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset=10, .length=0 },
       },
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Hello<b><br/></b> there.",
+      .frags = {
+        { .offset= 0, .length=5,  },
+        { .offset= 8, .length=0, .bold=true, .eol=true },
+        { .offset=17, .length=7 },
+      },
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Say<br/><b>no</b> more.",
+      .frags = {
+        { .offset= 0, .length=3, .eol=true },
+        { .offset= 8, .length=0, },
+        { .offset=11, .length=2, .bold=true },
+        { .offset=17, .length=5 },
+      },
+    },
+    
   };
 
   for(auto &t: test) {
@@ -623,103 +644,15 @@ TEST(WordProcessor, textDelete)
         { .offset=0,  .txt="This is a break dance." },
       }
     },
-  };
-  
-  for(auto &t: test) {
-    string text(t.in);
-    vector<size_t> xpos;
-    xpos.assign(3, 0);
-    TPreparedDocument document;
-  
-    prepareHTMLText(t.in, xpos, &document);
-
-    cout << "----------------------------------------------------------------------" << endl
-         << t.in << endl;
-     
-    for(auto &line: document.lines) {
-      cout << "line:" << endl;
-      for(auto &fragment: line->fragments) {
-        cout << "  fragment: " << fragment->offset << ", " << fragment->length
-             << (fragment->attr.bold?", bold":"")
-             << (fragment->attr.italic?", italics":"") << endl;
-      }
-    }
-  
-    xpos[CURSOR]=t.pos;
-    textDelete(text, document, xpos);
-
-    for(auto &line: document.lines) {
-      cout << "line:" << endl;
-      for(auto &fragment: line->fragments) {
-        cout << "  fragment: " << fragment->offset << ", " << fragment->length
-             << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
-             << (fragment->attr.bold?", bold":"")
-             << (fragment->attr.italic?", italics":"") << endl;
-      }
-    }
-
-    auto line = document.lines.begin();
-    if (line==document.lines.end()) {
-cout << "FIXME: need to check for empty test test" << endl;
-      continue;
-    }
-    auto fragment = (*line)->fragments.begin();
-//cout << "first line, first fragment" << endl;
-    for(auto &f: t.frags) {
-//      cout << "  expect: " << f.offset << ", " << f.length << (f.eol?", eol":"") << endl;
-//      cout << "  got   : " << (*fragment)->offset << ", " << (*fragment)->length << endl;
-      
-      ASSERT_EQ((*fragment)->offset, f.offset);
-//      ASSERT_STREQ(text.substr((*fragment)->offset, (*fragment)->length).c_str(), f.txt);
-      ASSERT_STREQ(f.txt, text.substr((*fragment)->offset, (*fragment)->length).c_str());
-      ASSERT_EQ((*fragment)->attr.bold, f.bold);
-      ASSERT_EQ((*fragment)->attr.italic, f.italics);
-      
-//cout << "next fragment" << endl;
-      ++fragment;
-      
-      if (fragment == (*line)->fragments.end()) {
-//cout << "next line" << endl;
-        ++line;
-        if (line==document.lines.end()) {
-//cout << "last line" << endl;
-          break;
-        }
-        fragment = (*line)->fragments.begin();
-        ASSERT_EQ(true, f.eol);
-      } else {
-        ASSERT_EQ(false, f.eol);
-      }
-    }
-
-  }
-}
-
-TEST(WordProcessor, textInsert)
-{
-return;
-
-  struct fragtest {
-    size_t offset;
-    const char *txt;
-    bool bold, italics, eol;
-  };
-  struct test {
-    const char *in;
-    size_t pos, bgn, end;
-    vector<fragtest> frags;
-  };
-  
-  vector<test> test = {
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
-    { .in = "Break<br/><br/><br/>Dance",
-      .pos = 15,
+    { .in = "Hello<b><br/>u</b> there.",
+      .pos = 13,
       .frags = {
-        { .offset= 0, .txt="Break", },
-        { .offset=10, .txt="", },
-        { .offset=15, .txt="", },
-        { .offset=20,  .txt="Dance", },
+        { .offset=0,  .txt="Hello",  },
+        { .offset=8,  .txt="", .bold=true, .eol=true },
+        { .offset=13, .txt="", .bold=true, },
+        { .offset=17, .txt=" there." },
       }
     },
   };
@@ -794,7 +727,48 @@ cout << "FIXME: need to check for empty test test" << endl;
   }
 }
 
+TEST(WordProcessor, textInsert)
+{
+  string text =
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+            "Say<br/><b>no</b> more.";
+    //               ^
+  vector<size_t> xpos;
+  xpos.assign(3, 0);
+  xpos[CURSOR]=8;
+  TPreparedDocument document;
+  prepareHTMLText(text, xpos, &document);
+
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
+    }
+  
+  string str("U");
+  text.insert(xpos[CURSOR], str);
+  updatePrepared(text, &document, xpos[CURSOR], str.size());
+
+  cout << "text:" << text << endl;
+
+    for(auto &line: document.lines) {
+      cout << "line:" << endl;
+      for(auto &fragment: line->fragments) {
+        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+             << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+             << (fragment->attr.bold?", bold":"")
+             << (fragment->attr.italic?", italics":"") << endl;
+      }
+    }
+
+}
+
 // hello<br/>you there.
 // hello<b><br/>you</b> there. <- then try to remove the bold!
-// hello<b></b><br/><b></b> there. <- then try to insert after <br/>
-// => CRASH
+// hello<b><br/></b> there. <- then try to insert after <br/>
+// => WRONG RESULT

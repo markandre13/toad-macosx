@@ -754,6 +754,7 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
   {
     TPreparedLine *line = *p;
     if (afterOffset) {
+//cout << ": afterOffset" << endl;
       line->offset += len;
       for(auto fragment: line->fragments) {
         fragment->offset+=len;
@@ -761,13 +762,20 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
       continue;
     }
     size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
+cout << ": line->offset="<<line->offset<<", offset="<<offset<<", textend="<<textend<<endl;
     if (line->offset <= offset && offset < textend) {
+cout << ": offset is within line" << endl;
       for(auto fragment: line->fragments) {
+cout << ":   fragment: " << fragment->offset << ", " << fragment->length
+     << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+     << (fragment->attr.bold?", bold":"")
+     << (fragment->attr.italic?", italics":"") << endl;
         if (afterOffset) {
           fragment->offset += len;
           fragment->origin.x += diffW;
         } else
         if (fragment->offset <= offset && offset <= fragment->offset + fragment->length) {
+cout << ":    adjust fragment" << endl;
           fragment->length += len;
 
           const char *cstr;
@@ -1189,14 +1197,14 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   
   while(x0<eol) {
 
-for(size_t i=0; i<xpos.size(); ++i) {
-  if (xpos[i]==x0) {
-    if (pos[i]!=out.size()) {
-      cout << __LINE__ << ": change xpos[" << i << "] from " << xpos[i] << " to " << out.size() << endl;
-      pos[i]=out.size();
+    for(size_t i=0; i<xpos.size(); ++i) {
+      if (xpos[i]==x0) {
+        if (pos[i]!=out.size()) {
+          DBG(cout << __LINE__ << ": change xpos[" << i << "] from " << xpos[i] << " to " << out.size() << endl;)
+          pos[i]=out.size();
+        }
+      }
     }
-  }
-}
 
     c = text[x0];
     if (sb==x0) {
@@ -1397,13 +1405,14 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
 
   bool fragmentChanged = false;
 
-cout << "textDelete(): pos="<<pos<<", text="<<text.size()<<endl;
+//cout << "textDelete >>>>>>>>>>>>>>>" << endl;
+//cout << "textDelete(): pos="<<pos<<", text="<<text.size()<<endl;
   TTag tag;
   while (text[pos]=='<') {
     size_t old_pos = pos;
     taginc(text, &pos, &tag);
     if (tag.open && tag.close) {
-cout << "open/close tag " << tag.name << endl;
+//cout << "self-closing tag " << tag.name << endl;
       pos = old_pos;
       fragmentChanged = true;
       break;
@@ -1412,21 +1421,22 @@ cout << "open/close tag " << tag.name << endl;
   if (pos>=text.size())
     return;
 
+  if (text[pos] == '&')
+    fragmentChanged = true;
 
   size_t p=pos;
   xmlinc(text, &p);
-  if (text[pos] == '&')
-    fragmentChanged = true;
-  
   ssize_t len = p-pos;
-cout << "len="<<len<<endl;
-cout << text << endl;
+//cout << "len="<<len<<endl;
+//cout << text << endl;
   text.erase(pos, len);
-cout << text << endl;
+//cout << text << endl;
 
-  cout << "****** pos="<<pos<<", text="<<text.size()<<endl;
-  while(pos>0 && pos+1<text.size() &&
-        text[pos-1]=='>' && text[pos]=='<' && text[pos+1]=='/')
+//  cout << "****** pos="<<pos<<", text="<<text.size()<<endl;
+  while(pos>=2 && pos+1<text.size() &&
+        text[pos-2]!='/' &&
+        text[pos-1]=='>' && 
+        text[pos]=='<' && text[pos+1]=='/')
   {
     size_t bgn = pos-1;
     tagdec(text, &bgn);
@@ -1440,13 +1450,14 @@ cout << text << endl;
     fragmentChanged = true;
   }
   if (fragmentChanged) {
+//cout << "prepareHTMLText" << endl;
     prepareHTMLText(text, xpos, &document);
   } else {
+//cout << "updatePrepared" << endl;
     updatePrepared(text, &document, pos, -len);
   }
   updateMarker(text, &document, xpos);
+//cout << "textDelete <<<<<<<<<<<<<<<" << endl;
 }
-
-
 
 } // namespace toad::wordprocessor
