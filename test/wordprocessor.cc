@@ -505,6 +505,7 @@ TEST(WordProcessor, prepareHTMLText)
       .frags = {
         { .offset= 0, .length=5,  },
         { .offset= 8, .length=0, .bold=true, .eol=true },
+        { .offset=13, .length=0, .bold=true },
         { .offset=17, .length=7 },
       },
     },
@@ -515,7 +516,7 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset= 0, .length=3, .eol=true },
         { .offset= 8, .length=0, },
         { .offset=11, .length=2, .bold=true },
-        { .offset=17, .length=5 },
+        { .offset=17, .length=6 },
       },
     },
     
@@ -526,6 +527,7 @@ TEST(WordProcessor, prepareHTMLText)
     TPreparedDocument document;
   
     xpos.assign(3, 0);
+
     prepareHTMLText(t.in, xpos, &document);
 
     cout << "----------------------------------------------------------------------" << endl
@@ -768,7 +770,4 @@ TEST(WordProcessor, textInsert)
 
 }
 
-// hello<br/>you there.
-// hello<b><br/>you</b> there. <- then try to remove the bold!
-// hello<b><br/></b> there. <- then try to insert after <br/>
-// => WRONG RESULT
+// CRASH when changing style of the 1st character
