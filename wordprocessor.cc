@@ -584,7 +584,10 @@ cout << "; x0="<<x0<<", fragment->offset="<<fragment->offset<<", fragment->lengt
 
       // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
       if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos)  {
-printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+if (fragment)
+  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+else
+  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
         line->fragments.push_back(new TTextFragment(fragment));
       }
 
@@ -778,7 +781,7 @@ cout << ": line->offset="<<line->offset<<", offset="<<offset<<", textend="<<text
 cout << ": offset is within line" << endl;
       for(auto fragment: line->fragments) {
 cout << ":   fragment: " << fragment->offset << ", " << fragment->length
-     << ", \"" << text.substr(fragment->offset, fragment->length) << "\" "
+     << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
      << (fragment->attr.bold?", bold":"")
      << (fragment->attr.italic?", italics":"") << endl;
         if (afterOffset) {

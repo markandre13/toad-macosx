@@ -519,6 +519,13 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset=17, .length=6 },
       },
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "",
+      .frags = {
+        { .offset= 0, .length=0 }
+      },
+    },
     
   };
 
@@ -545,7 +552,7 @@ TEST(WordProcessor, prepareHTMLText)
 // FIXME: do check if either data set is too small/too big
     auto line = document.lines.begin();
     if (line==document.lines.end()) {
-cout << "FIXME: need to check for empty test test" << endl;
+      ASSERT_EQ(0, t.frags.size());
       continue;
     }
     auto fragment = (*line)->fragments.begin();
@@ -592,6 +599,7 @@ TEST(WordProcessor, textDelete)
   };
   
   vector<test> test = {
+#if 0
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
     { .in = "What is seven &times; six?",
@@ -657,6 +665,15 @@ TEST(WordProcessor, textDelete)
         { .offset=17, .txt=" there." },
       }
     },
+#endif
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "<i><b>b</b></i>",
+      .pos = 6,
+      .frags = {
+        { .offset=0,  .txt="",  },
+      }
+    },
   };
   
   for(auto &t: test) {
@@ -694,7 +711,7 @@ TEST(WordProcessor, textDelete)
 
     auto line = document.lines.begin();
     if (line==document.lines.end()) {
-cout << "FIXME: need to check for empty test test" << endl;
+      ASSERT_EQ(0, t.frags.size());
       continue;
     }
     auto fragment = (*line)->fragments.begin();
@@ -769,5 +786,3 @@ TEST(WordProcessor, textInsert)
     }
 
 }
-
-// CRASH when changing style of the 1st character

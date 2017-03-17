@@ -93,7 +93,7 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.prepareHTMLText"
+	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.textDelete"
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
