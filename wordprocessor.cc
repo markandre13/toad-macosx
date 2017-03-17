@@ -482,8 +482,6 @@ void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
   document->clear();
-  if (text.empty())
-    return;
 cout << "prepareHTMLText ------------------------------------------------------" << endl;
   string face="times";
   TFont font;
@@ -504,6 +502,22 @@ cout << "; new line" << endl;
   line->descent = 0;
   
   TTextFragment *fragment = 0;
+ 
+  if (text.empty()) {
+    line->fragments.push_back(new TTextFragment(fragment));
+    fragment = line->fragments.back();
+    fragment->attr.setFont(font);
+    fragment->origin.x = 0;
+    fragment->size.width=0;
+    fragment->size.height=font.getHeight();
+    fragment->offset = 0;
+    fragment->length = 0;
+    line->ascent = fragment->ascent = font.getAscent();
+    line->descent = fragment->descent = font.getDescent();
+    line->size.height=line->ascent + line->descent;
+    line->size.width = 0;
+    return;
+  }
 
   while(x0<eol) {
     x1=x0;

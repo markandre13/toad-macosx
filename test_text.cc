@@ -89,6 +89,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 text="This was a bold move.";
 text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
 text="This is a <i><b>bold</b></i> move.";
+text="";  
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
