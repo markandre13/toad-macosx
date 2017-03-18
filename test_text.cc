@@ -127,6 +127,13 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
     return;
 
+cout << "##############################################" << endl;
+cout << "text: " << text << endl;
+cout << "cursor: " << xpos[CURSOR] << endl;
+cout << "key: " << key << endl;
+cout << "str: " << str << endl;
+cout << "##############################################" << endl;
+
   bool move = false;
   size_t oldcursor = xpos[CURSOR];
   size_t sb = xpos[SELECTION_BGN];

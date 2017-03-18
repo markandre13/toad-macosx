@@ -593,7 +593,7 @@ TEST(WordProcessor, textDelete)
     bool bold, italics, eol;
   };
   struct test {
-    const char *in;
+    const char *in, *out;
     size_t pos, bgn, end;
     vector<fragtest> frags;
   };
@@ -672,6 +672,18 @@ TEST(WordProcessor, textDelete)
         { .offset=0,  .txt="",  },
       }
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "<b>was<br/>ich<br/>s</b><i><b>ag</b>e</i>",
+      .out ="<b>was<br/>ich<br/>s</b><i><b>ag</b></i>",
+      .pos = 36,
+      .frags = {
+        { .offset = 3, .txt="was", .bold=true, .eol=true },
+        { .offset =11, .txt="ich", .bold=true, .eol=true },
+        { .offset =19, .txt="s", .bold=true, },
+        { .offset =30, .txt="ag", .bold=true, .italics=true },
+      }
+    },
   };
   
   for(auto &t: test) {
@@ -706,6 +718,9 @@ TEST(WordProcessor, textDelete)
              << (fragment->attr.italic?", italics":"") << endl;
       }
     }
+    
+    if (t.out)
+      ASSERT_STREQ(t.out, text.c_str());
 
     auto line = document.lines.begin();
     if (line==document.lines.end()) {
