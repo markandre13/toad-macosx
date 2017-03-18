@@ -89,7 +89,9 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 //text="This was a bold move.";
 //text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
 //text="This is a <i><b>bold</b></i> move.";
-//text="";  
+//text="<b><i>hello</i></b>";
+//text="this is a really unbelievable very long line.<br/>and this <b>isn't.</b>";
+text="hello <b>you.</b>";
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
@@ -103,6 +105,8 @@ TTextEditor2::paint()
   pen.drawString(0,0,text);
   
   // raw text
+cout << "xpos.size()="<<xpos.size()<<endl;
+cout << "xpos[CURSOR]="<<xpos[CURSOR]<<endl;
   TCoord x = pen.getTextWidth(text.substr(0, xpos[CURSOR]));
   TCoord h = pen.getHeight();
   pen.drawLine(x,0,x,h);
@@ -158,13 +162,15 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
 
   // FIXME?: we might want to set updown to false in more cases
   switch(key) {
-    case TK_RIGHT:
+    case TK_RIGHT: {
       move = true;
       updown = false;
+      size_t oldpos = xpos[CURSOR];
       if (xpos[CURSOR]<text.size())
         xmlinc(text, &xpos[CURSOR]);
-      cout << "after right at '" << text[xpos[CURSOR]] << "'" << endl;
-      break;
+      if (xpos[CURSOR]>text.size())
+        xpos[CURSOR]=oldpos;
+    } break;
     case TK_LEFT:
       updown = false;
       move = true;
@@ -221,6 +227,28 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
     case TK_END: {
       const auto &f = document.marker[CURSOR].line->fragments.back();
       xpos[CURSOR] = f->offset + f->length;
+      if (xpos[CURSOR]==text.size() &&
+          f->length==0 &&
+          document.marker[CURSOR].line->fragments.size()>1)
+      {
+        auto &&f = document.marker[CURSOR].line->fragments[
+          document.marker[CURSOR].line->fragments.size()-2
+        ];
+        xpos[CURSOR] = f->offset + f->length;
+      }
+      
+      cout << xpos[CURSOR] << " # " << text.size() << endl;
+
+      for(auto &&line: document.lines) {
+        for(auto &&fragment: line->fragments) {
+          cout << ":   fragment: " << fragment->offset << ", " << fragment->length
+               << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
+               << (fragment->attr.bold?", bold":"")
+               << (fragment->attr.italic?", italics":"") << endl;
+        }
+      }
+
+
       move = true;
     } break;
     default:
@@ -230,11 +258,23 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
   }
   
   if (!move) {
-    if (xpos[CURSOR]>text.size())
-      xpos[CURSOR] = text.size();
+    size_t pos = xpos[CURSOR];
+    if (pos>text.size()) {
+      pos = text.size();
+      //const auto &fragment = document.marker[CURSOR].line->fragments.back();
+      //pos = fragment->offset + fragment->length;
+    } else
 //cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
-    text.insert(xpos[CURSOR], str);
-    updatePrepared(text, &document, xpos[CURSOR], str.size());
+    if (pos==0 && text.size()>0 && document.marker[CURSOR].line->fragments[0]->length==0) {
+//      cout << "insert at head" << endl;
+      pos = document.marker[CURSOR].line->fragments[1]->offset;
+/*
+      cout << document.marker[CURSOR].line->fragments.size() << endl;
+
+*/
+    }
+    text.insert(pos, str);
+    updatePrepared(text, &document, pos, str.size());
     xmlinc(text, &xpos[CURSOR]);
     updateMarker(text, &document, xpos);
     invalidateWindow();
@@ -248,7 +288,7 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
     else
       se=xpos[CURSOR];
     if (sb>se) {
-      size_t a = sb; sb=se; se=a;
+      swap(sb, se);
     }
     xpos[SELECTION_BGN] = sb;
     xpos[SELECTION_END] = se;

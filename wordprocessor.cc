@@ -57,7 +57,7 @@ TTextAttribute::setFont(TPen &pen)
 
 TPreparedLine::~TPreparedLine()
 {
-  for(auto p: fragments)
+  for(auto &&p: fragments)
     delete p;
 }
 
@@ -69,7 +69,7 @@ TPreparedDocument::~TPreparedDocument()
 void
 TPreparedDocument::clear()
 {
-  for(auto p: lines)
+  for(auto &&p: lines)
     delete p;
   lines.clear();
   marker.clear();
@@ -79,7 +79,7 @@ TPreparedLine*
 TPreparedDocument::lineBefore(TPreparedLine *line) const
 {
   TPreparedLine *before = nullptr;
-  for(auto p: lines) {
+  for(auto &&p: lines) {
     if (p==line)
       return before;
     before = p;
@@ -119,7 +119,7 @@ string TTag::str() const
   if (!open && close)
     s+='/';
   s+=name;
-  for(auto p: attribute)
+  for(auto &&p: attribute)
     if (p.second.find('"')==string::npos)
       s+=" "+p.first+"=\""+p.second+"\"";
     else
@@ -728,7 +728,7 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
       pen.setColor(0,0,0);
     }
 
-    for(auto fragment: line->fragments) {
+    for(auto &&fragment: line->fragments) {
       fragment->attr.setFont(pen);
       
       TCoord y = line->origin.y + line->ascent - pen.getAscent();
@@ -785,7 +785,7 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
     if (afterOffset) {
 //cout << ": afterOffset" << endl;
       line->offset += len;
-      for(auto fragment: line->fragments) {
+      for(auto &&fragment: line->fragments) {
         fragment->offset+=len;
       }
       continue;
@@ -794,7 +794,7 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
 //cout << ": line->offset="<<line->offset<<", offset="<<offset<<", textend="<<textend<<endl;
     if (line->offset <= offset && offset < textend) {
 //cout << ": offset is within line" << endl;
-      for(auto fragment: line->fragments) {
+      for(auto &&fragment: line->fragments) {
 //cout << ":   fragment: " << fragment->offset << ", " << fragment->length
 //     << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
 //     << (fragment->attr.bold?", bold":"")
@@ -840,7 +840,7 @@ updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xp
     size_t textend = ((pl+1) == document->lines.end()) ? string::npos : (*(pl+1))->offset;
     TPreparedLine *line = *pl;
 //    cout << "  line " << line->offset << " - " << textend << endl;
-    for(auto &pos: xpos) {
+    for(auto &&pos: xpos) {
       if (line->offset<=pos && pos<textend) {
           vector<TTextFragment*>::const_iterator p;
           for(p = line->fragments.begin()+1;
@@ -876,7 +876,7 @@ lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &d
   assert(line);
 //cout << "------------------------- lineToCursor ---------------------" << endl;
   size_t offset = 0;
-  for(auto fragment: line->fragments) {
+  for(auto &&fragment: line->fragments) {
 //    cout << "  fragment: " << fragment->origin.x << ", " << fragment->size.width << endl;
     if (x < fragment->origin.x + fragment->size.width) {
 //      cout << "    found a fragment: " << endl;
@@ -935,7 +935,7 @@ size_t
 positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
 {
 //  cout << "-------------- foo -------------" << endl;
-  for(auto line: document.lines) {
+  for(auto &&line: document.lines) {
 //    cout << "line " << line->origin.y << ", " << line->size.height << endl;
     if (line->origin.y <= pos.y && pos.y < line->origin.y + line->size.height) {
       return lineToCursor(line, text, document, xpos, pos.x);
