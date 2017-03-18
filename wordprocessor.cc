@@ -78,27 +78,27 @@ TPreparedDocument::clear()
 TPreparedLine*
 TPreparedDocument::lineBefore(TPreparedLine *line) const
 {
-  TPreparedLine *before = 0;
+  TPreparedLine *before = nullptr;
   for(auto p: lines) {
     if (p==line)
       return before;
     before = p;
   }
-  return 0;
+  return nullptr;
 }
 
 TPreparedLine*
 TPreparedDocument::lineAfter(TPreparedLine *line) const
 {
   if (!line)
-    return 0;
-  TPreparedLine *before = 0;
-  for(auto p: lines) {
+    return nullptr;
+  TPreparedLine *before = nullptr;
+  for(auto &&p: lines) {
     if (before==line)
       return p;
     before = p;
   }
-  return 0;
+  return nullptr;
 }
 
 // o an entity is treated like a character
@@ -508,13 +508,14 @@ cout << "; new line" << endl;
     fragment = line->fragments.back();
     fragment->attr.setFont(font);
     fragment->origin.x = 0;
-    fragment->size.width=0;
-    fragment->size.height=font.getHeight();
+    fragment->origin.y = 0;
+    fragment->size.width = 0;
+    fragment->size.height = font.getHeight();
     fragment->offset = 0;
     fragment->length = 0;
     line->ascent = fragment->ascent = font.getAscent();
     line->descent = fragment->descent = font.getDescent();
-    line->size.height=line->ascent + line->descent;
+    line->size.height = line->ascent + line->descent;
     line->size.width = 0;
     return;
   }
@@ -775,7 +776,7 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
   bool afterOffset = false;
   TCoord diffW = 0.0;
 
-  cout << "updatePrepared: " << offset << ", " << len << endl;
+//  cout << "updatePrepared: " << offset << ", " << len << endl;
   for(vector<TPreparedLine*>::const_iterator p = document->lines.begin();
       p != document->lines.end();
       ++p)
@@ -790,20 +791,20 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
       continue;
     }
     size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
-cout << ": line->offset="<<line->offset<<", offset="<<offset<<", textend="<<textend<<endl;
+//cout << ": line->offset="<<line->offset<<", offset="<<offset<<", textend="<<textend<<endl;
     if (line->offset <= offset && offset < textend) {
-cout << ": offset is within line" << endl;
+//cout << ": offset is within line" << endl;
       for(auto fragment: line->fragments) {
-cout << ":   fragment: " << fragment->offset << ", " << fragment->length
-     << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
-     << (fragment->attr.bold?", bold":"")
-     << (fragment->attr.italic?", italics":"") << endl;
+//cout << ":   fragment: " << fragment->offset << ", " << fragment->length
+//     << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
+//     << (fragment->attr.bold?", bold":"")
+//     << (fragment->attr.italic?", italics":"") << endl;
         if (afterOffset) {
           fragment->offset += len;
           fragment->origin.x += diffW;
         } else
         if (fragment->offset <= offset && offset <= fragment->offset + fragment->length) {
-cout << ":    adjust fragment" << endl;
+//cout << ":    adjust fragment" << endl;
           fragment->length += len;
 
           const char *cstr;

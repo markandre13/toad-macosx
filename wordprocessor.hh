@@ -120,8 +120,8 @@ namespace toad {
     {
       TMarker() {
         pos.set(0,0);
-        line = 0;
-        fragment = 0;
+        line = nullptr;
+        fragment = nullptr;
       }
       TPoint pos;
       TPreparedLine *line;

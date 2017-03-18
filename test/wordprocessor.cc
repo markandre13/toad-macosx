@@ -599,7 +599,6 @@ TEST(WordProcessor, textDelete)
   };
   
   vector<test> test = {
-#if 0
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
     { .in = "What is seven &times; six?",
@@ -665,7 +664,6 @@ TEST(WordProcessor, textDelete)
         { .offset=17, .txt=" there." },
       }
     },
-#endif
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
     { .in = "<i><b>b</b></i>",
@@ -786,3 +784,29 @@ TEST(WordProcessor, textInsert)
     }
 
 }
+
+// cursor movement is as required:
+// aaaa<br/>bb<b>bbb</b><br/>cccccc
+//                  <        <
+//
+// but inserting a break between bbb and gives other results
+// aaa<b>bbb</b>ccc
+// aaa<b>bbb<br/></b>ccc
+//          <    <
+// and inserting at the head of the new line will now be bold
+// which is the same behaviour as Apple Pages. Good enough.
+//
+// 1. in this case the cursor won't be rendered within <b>
+// aaa<b><br/>bbb</b>ccc
+// 
+// 2. this code can go here:
+// <i><b>aaa</b></i>
+//                  <
+// but shouldn't (usually we are always one character behind the closing
+// tag, and here is no such position)
+//
+// 3. inserting here:
+// <b>aaaaaaa</b>
+// <
+// doesn't work (updatePrepated error)
+// and if we were to mimic Apple Pages, we would insert within <b>

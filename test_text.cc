@@ -86,10 +86,10 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
   text = "Fröhliche.<b>Weihnachten</b>.&times;&times;&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is not what we want to hear from Santa.";
-text="This was a bold move.";
-text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
-text="This is a <i><b>bold</b></i> move.";
-text="";  
+//text="This was a bold move.";
+//text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
+//text="This is a <i><b>bold</b></i> move.";
+//text="";  
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);
@@ -156,30 +156,31 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
     xpos[SELECTION_BGN] = xpos[SELECTION_END] = 0;
   }
 
+  // FIXME?: we might want to set updown to false in more cases
   switch(key) {
     case TK_RIGHT:
       move = true;
+      updown = false;
       if (xpos[CURSOR]<text.size())
         xmlinc(text, &xpos[CURSOR]);
       cout << "after right at '" << text[xpos[CURSOR]] << "'" << endl;
       break;
     case TK_LEFT:
+      updown = false;
       move = true;
       if (xpos[CURSOR]>0)
         xmldec(text, &xpos[CURSOR]);
       break;
-  }
-  switch(key) {
     case TK_DOWN: {
       if (!updown) {
         updown = true;
         updown_x = document.marker[CURSOR].pos.x;
       }
       TPreparedLine *line = document.lineAfter(document.marker[CURSOR].line);
-      if (line) {
-        xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
-        move = true;
-      }
+      if (!line)
+        return;
+      xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
+      move = true;
     } break;
     case TK_UP: {
       if (!updown) {
@@ -187,10 +188,10 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
         updown_x = document.marker[CURSOR].pos.x;
       }
       TPreparedLine *line = document.lineBefore(document.marker[CURSOR].line);
-      if (line) {
-        xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
-        move = true;
-      }
+      if (!line)
+        return;
+      xpos[CURSOR]=lineToCursor(line, text, document, xpos, updown_x);
+      move = true;
     } break;
     case TK_BACKSPACE:
       if (xpos[CURSOR]<=0)
@@ -213,7 +214,18 @@ TTextEditor2::keyDown(const TKeyEvent &ke)
       invalidateWindow();
       return;
     } break;
+    case TK_HOME:
+      xpos[CURSOR] = document.marker[CURSOR].line->offset;
+      move = true;
+      break;
+    case TK_END: {
+      const auto &f = document.marker[CURSOR].line->fragments.back();
+      xpos[CURSOR] = f->offset + f->length;
+      move = true;
+    } break;
     default:
+      if (str.empty())
+        return;
       updown = false;
   }
   
