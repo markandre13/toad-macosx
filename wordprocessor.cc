@@ -482,7 +482,7 @@ void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
   document->clear();
-cout << "prepareHTMLText ------------------------------------------------------" << endl;
+//cout << "prepareHTMLText ------------------------------------------------------" << endl;
   string face="times";
   TFont font;
   font.setFont(face);
@@ -493,7 +493,7 @@ cout << "prepareHTMLText ------------------------------------------------------"
   int c;
   TCoord w;
   
-cout << "; new line" << endl;
+//cout << "; new line" << endl;
   document->lines.push_back(new TPreparedLine());
   TPreparedLine *line = document->lines.back();
   line->offset = 0;
@@ -531,12 +531,12 @@ cout << "; new line" << endl;
     if (x1>x0) {
       line->ascent  = max(line->ascent,  font.getAscent());
       line->descent = max(line->descent, font.getDescent());
-cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
+//cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
       if (!fragment || fragment->offset != TTextFragment::npos) {
-if (!fragment)
-  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
-else
-  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+//if (!fragment)
+//  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
+//else
+//  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->attr.setFont(font);
@@ -561,7 +561,7 @@ else
     if (c=='<') {
       TTag tag;
       taginc(text, &x1, &tag);
-cout << "TAG: "<<tag<<", x0="<<x0<<endl;
+//cout << "TAG: "<<tag<<", x0="<<x0<<endl;
       
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
         if (fragment->offset == TTextFragment::npos) {
@@ -573,7 +573,7 @@ cout << "TAG: "<<tag<<", x0="<<x0<<endl;
         }
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
-cout << "; new line" << endl;
+//cout << "; new line" << endl;
         document->lines.push_back(new TPreparedLine());
         document->lines.back()->origin.y = line->origin.y + line->size.height;
         line = document->lines.back();
@@ -583,7 +583,7 @@ cout << "; new line" << endl;
         x=0;
       }
 
-cout << "; line->fragments.size()=" << line->fragments.size() << endl;
+//cout << "; line->fragments.size()=" << line->fragments.size() << endl;
       // when a new line begins with a tag, insert an empty fragment so that
       // text can be inserted before the tag
       if (line->fragments.size()==1 && fragment->offset==TTextFragment::npos) {
@@ -591,7 +591,7 @@ cout << "; line->fragments.size()=" << line->fragments.size() << endl;
         fragment = line->fragments.back();
         fragment->offset = x0;
         fragment->length = 0;
-cout << "; x0="<<x0<<", fragment->offset="<<fragment->offset<<", fragment->length="<<fragment->length<<endl;
+//cout << "; x0="<<x0<<", fragment->offset="<<fragment->offset<<", fragment->length="<<fragment->length<<endl;
       }
 
       x0=x1;
@@ -599,10 +599,10 @@ cout << "; x0="<<x0<<", fragment->offset="<<fragment->offset<<", fragment->lengt
 
       // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
       if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos)  {
-if (fragment)
-  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
-else
-  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
+//if (fragment)
+//  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+//else
+//  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
         line->fragments.push_back(new TTextFragment(fragment));
       }
 
@@ -648,7 +648,7 @@ else
       entityinc(text, &x1);
 
       if (!fragment || fragment->offset != TTextFragment::npos) {
-printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+//printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
@@ -1426,22 +1426,18 @@ void
 textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
 {
   // FIXME: selection
-  // FIXME: self-closing tags
 
-  size_t pos = xpos[CURSOR]; // FIXME: also handle selection
+  size_t pos = xpos[CURSOR];
   if (pos>=text.size())
     return;
 
   bool fragmentChanged = false;
 
-//cout << "textDelete >>>>>>>>>>>>>>>" << endl;
-//cout << "textDelete(): pos="<<pos<<", text="<<text.size()<<endl;
   TTag tag;
   while (text[pos]=='<') {
     size_t old_pos = pos;
     taginc(text, &pos, &tag);
     if (tag.open && tag.close) {
-//cout << "self-closing tag " << tag.name << endl;
       pos = old_pos;
       fragmentChanged = true;
       break;
@@ -1456,12 +1452,8 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
   size_t p=pos;
   xmlinc(text, &p);
   ssize_t len = p-pos;
-//cout << "len="<<len<<endl;
-//cout << text << endl;
   text.erase(pos, len);
-//cout << text << endl;
 
-//  cout << "****** pos="<<pos<<", text="<<text.size()<<endl;
   while(pos>=2 && pos+1<text.size() &&
         text[pos-2]!='/' &&
         text[pos-1]=='>' && 
@@ -1469,24 +1461,22 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
   {
     size_t bgn = pos-1;
     tagdec(text, &bgn);
+    if (text[bgn+1]=='/')
+      break;
       
     size_t end = pos;
     taginc(text, &end);
-      
     text.erase(bgn, end-bgn);
 
     pos = bgn;
     fragmentChanged = true;
   }
   if (fragmentChanged) {
-//cout << "prepareHTMLText" << endl;
     prepareHTMLText(text, xpos, &document);
   } else {
-//cout << "updatePrepared" << endl;
     updatePrepared(text, &document, pos, -len);
   }
   updateMarker(text, &document, xpos);
-//cout << "textDelete <<<<<<<<<<<<<<<" << endl;
 }
 
 } // namespace toad::wordprocessor
