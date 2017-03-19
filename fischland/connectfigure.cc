@@ -82,6 +82,18 @@ TFConnection::bounds() const
   TPoint p0(min(r0.x, r1.x), min(r0.y, r1.y));
   TPoint p1(max(r0.x+r0.w, r1.x+r1.w), max(r0.y+r0.h, r1.y+r1.h));
   
+  for(size_t i=1; i<p.size()-1; ++i) {
+    auto &&pt = p[i];
+    if (pt.x < p0.x)
+      p0.x = pt.x;
+    if (pt.x > p1.x)
+      p1.x = pt.x;
+    if (pt.y < p0.y)
+      p0.y = pt.y;
+    if (pt.y > p1.y)
+      p1.y = pt.y;
+  }
+  
   return TRectangle(p0,p1);
 }
 
@@ -121,12 +133,15 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   pen.setAlpha(alpha);
-          
+//cout << "TFConnection::paint()" << endl;          
   // pen.drawLine(p[0], p[1]);
   //pen.drawPolygon(p);
+//cout << "  move " << p[0] << endl;
   pen.move(&p[0]);
-  for(size_t i=1; i<p.size(); ++i)
+  for(size_t i=1; i<p.size(); ++i) {
+//    cout << "  line " << p[i] << endl;
     pen.line(&p[i]);
+  }
   pen.stroke();
 
   if (arrowmode == NONE) {
@@ -165,7 +180,6 @@ void
 TFConnection::updatePoints()
 {
   TVectorGraphic *f0, *f1;
-  TPoint p0, p1;
 
   if (start) {
     f0 = start->getPath();
@@ -176,9 +190,7 @@ TFConnection::updatePoints()
     TBoundary b;
     for(auto &p: *f0)
       b.expand(p->path->bounds());
-    p0 = b.center();
-  } else {
-    p0 = p.front();
+    p.front() = b.center();
   }
 
   if (end) {
@@ -190,49 +202,48 @@ TFConnection::updatePoints()
     TBoundary b;
     for(auto &p: *f1)
       b.expand(p->path->bounds());
-    p1 = b.center();
-  } else {
-    p1 = p.back();
+    p.back() = b.center();
   }
 
   // FIXME: we now need two different lines (the head and tail segments)
-  TVectorPath line;
-  line.move(p0);
-  line.line(p1);
   
   if (start) {
+    TVectorPath line;
+    line.move(p.front());
+    line.line(*(this->p.begin()+1));
     TIntersectionList il;
     for(auto &p: *f0)
       p->path->intersect(il, line);
     TCoord d=0.0;
+    TPoint pt(p.front());
     for(auto &p: il) {
       if (p.seg1.u>d) {
         d = p.seg1.u;
-        p0 = p.seg1.pt;
+        pt = p.seg1.pt;
       }
     }
+    p.front() = pt;
+    delete f0;
   }
   
   if (end) {
+    TVectorPath line;
+    line.move(*(this->p.end()-2));
+    line.line(p.back());
     TIntersectionList il;
     for(auto &p: *f1)
       p->path->intersect(il, line);
     TCoord d=1.0;
+    TPoint pt(p.back());
     for(auto &p: il) {
       if (p.seg1.u<d) {
         d = p.seg1.u;
-        p1 = p.seg1.pt;
+        pt = p.seg1.pt;
       }
     }
-  }
-
-  p.front() = p0;
-  p.back()  = p1;
-
-  if (start)
-    delete f0;
-  if (end)
+    p.back() = pt;
     delete f1;
+  }
 }
 
 void
@@ -244,7 +255,7 @@ bool
 TFConnection::getHandle(unsigned handle, TPoint *p)
 {
 //cout << "TFConnection::getHandle("<<handle<<", "<<*p<<")" << endl;
-  if (handle >= 2)
+  if (handle > this->p.size())
     return false;
   *p = this->p[handle];
   return true;
@@ -254,6 +265,9 @@ TFConnection::getHandle(unsigned handle, TPoint *p)
 void
 TFConnection::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier)
 {
+  if (handle==0 || handle>=p.size()-1)
+    return;
+  p[handle] = TPoint(x, y);
 }
 
 static vector<TPoint>::iterator newpoint;
@@ -263,33 +277,25 @@ TFConnection::mouseLDown(TFigureEditor *fe, TMouseEvent &me)
 {
 //  cout << "TFConnection::mouseLDown" << endl;
 
-  auto p(this->p.begin()), e(this->p.end()), m(this->p.end());
-  TCoord x1,y1,x2,y2;
+  auto p0(this->p.begin()),
+       p1(this->p.begin()+1),
+       e(this->p.end()),
+       m(this->p.end());
   TCoord min = OUT_OF_RANGE, d;
-
-  assert(p!=e);
-  --e;
-  assert(p!=e);
-  x2=e->x;
-  y2=e->y;
-  ++e;
-  while(p!=e) {
-    x1=x2;
-    y1=y2;
-    x2=p->x;
-    y2=p->y;
-    d = distance2Line(me.pos.x, me.pos.y, x1,y1, x2,y2);
+  
+  while(p1!=e) {
+    d = distance2Line(me.pos.x, me.pos.y, p0->x, p0->y, p1->x, p1->y);
     if (d<min) {
       min = d;
-      m = p;
+      m = p0;
     }
-    ++p;
+    p0=p1;
+    ++p1;
   }
   if (min > TFigure::RANGE)
     return TFigure::STOP;
 
-//  cout << "  insert a new point and drag it" << endl;
-  newpoint = this->p.insert(m, me.pos);
+  newpoint = this->p.insert(m+1, me.pos);
   return TFigure::CONTINUE;
 }
 
