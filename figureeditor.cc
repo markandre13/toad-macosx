@@ -591,6 +591,9 @@ TFigureEditor::paintGrid(TPenBase &pen)
   );
 
   TPoint origin = window->getOrigin();
+  
+  origin.x += visible.x;
+  origin.y += visible.y;
 
   TRegion region(*window->getUpdateRegion());
   TRectangle r;
