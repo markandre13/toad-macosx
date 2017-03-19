@@ -89,6 +89,8 @@ class TFigureAttributes:
     void selection2Bottom();
     void selectionUp();
     void selection2Top();
+    void selectionAlignHorizontal();
+    void selectionAlignVertical();
     void applyAll();
     
     // additional information on why sigChanged was triggered
@@ -324,6 +326,8 @@ class TFigureEditor:
     void selection2Bottom();
     void selectionUp();
     void selectionDown();
+    void selectionAlignHorizontal();
+    void selectionAlignVertical();
     void applyAll();
     
     void selectionCut();

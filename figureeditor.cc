@@ -212,6 +212,18 @@ TFigureAttributes::selection2Top()
 }
 
 void
+TFigureAttributes::selectionAlignVertical()
+{
+  if (current) current->selectionAlignVertical();
+}
+
+void
+TFigureAttributes::selectionAlignHorizontal()
+{
+  if (current) current->selectionAlignHorizontal();
+}
+
+void
 TFigureAttributes::applyAll()
 {
   if (current) current->applyAll();
@@ -361,6 +373,22 @@ TFigureEditor::init(TFigureModel *m)
   CONNECT(action->sigClicked, this, selectionDown);
   action = new TAction(this, "object|order|bottom");
   CONNECT(action->sigClicked, this, selection2Bottom);
+  
+  action = new TAction(this, "object|align|left");
+  action = new TAction(this, "object|align|horizontal");
+  CONNECT(action->sigClicked, this, selectionAlignHorizontal);
+  action = new TAction(this, "object|align|right");
+  action = new TAction(this, "object|align|top");
+  action = new TAction(this, "object|align|vertical");
+  CONNECT(action->sigClicked, this, selectionAlignVertical);
+  action = new TAction(this, "object|align|bottom");
+
+  action = new TAction(this, "object|distribute|horizontal");
+  action = new TAction(this, "object|distribute|vertical");
+  action = new TAction(this, "object|distribute|even");
+
+  action = new TAction(this, "object|lock");
+  action = new TAction(this, "object|unlock");
 
   action = new TAction(this, "object|group");
   CONNECT(action->sigClicked, this, group);
@@ -1151,6 +1179,58 @@ TFigureEditor::selectionDown()
   }
   quickready = false;
   window->invalidateWindow(visible);
+}
+
+void
+TFigureEditor::selectionAlignHorizontal()
+{
+  vector<TRectangle> bounds;
+  TCoord left(numeric_limits<TCoord>::max()),
+         right(numeric_limits<TCoord>::min());
+  for(auto &&f: selection) {
+    bounds.push_back(f->bounds());
+    TRectangle &b = bounds.back();
+    if (left>b.x)
+      left=b.x;
+    if (right<b.x+b.w)
+      right=b.x+b.w;
+  }
+  TCoord bx = left+(right-left)/2.0;
+  auto p = bounds.begin();
+  for(auto &&f: selection) {
+    TCoord fx = p->x + p->w/2.0;
+    TFigureSet set;
+    set.insert(f);
+    model->translate(set, bx-fx,0);
+    ++p;
+  }
+  window->invalidateWindow();
+}
+
+void
+TFigureEditor::selectionAlignVertical()
+{
+  vector<TRectangle> bounds;
+  TCoord top(numeric_limits<TCoord>::max()),
+         bottom(numeric_limits<TCoord>::min());
+  for(auto &&f: selection) {
+    bounds.push_back(f->bounds());
+    TRectangle &b = bounds.back();
+    if (top>b.y)
+      top=b.y;
+    if (bottom<b.y+b.h)
+      bottom=b.y+b.h;
+  }
+  TCoord by = top+(bottom-top)/2.0;
+  auto p = bounds.begin();
+  for(auto &&f: selection) {
+    TCoord fy = p->y + p->h/2.0;
+    TFigureSet set;
+    set.insert(f);
+    model->translate(set, 0, by-fy);
+    ++p;
+  }
+  window->invalidateWindow();
 }
 
 void

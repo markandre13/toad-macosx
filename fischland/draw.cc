@@ -858,7 +858,7 @@ TMainWindow::menuCopyright()
     "Fischland -- Copyright",
     "Fischland alpha -- A 2D vector graphics editor\n"
     "\n"
-    "Copyright (C) 2003-2015 by Mark-André Hopf <mhopf@mark13.org>\n"
+    "Copyright (C) 2003-2017 by Mark-André Hopf <mhopf@mark13.org>\n"
     "Visit http://www.mark13.org/fischland/.\n"
     "\n"
     "Pencil curve smoothing code was taken from Xara LX,\n"

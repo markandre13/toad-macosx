@@ -176,18 +176,6 @@ toad::TMenuLayout{
       }
     }
     toad::TMenuEntry {
-      name = "group"
-      label = "Group"
-      shortcut = "Ctrl+G"
-      icon = ""
-    }
-    toad::TMenuEntry {
-      name = "ungroup"
-      label = "Ungroup"
-      shortcut = "Shift+Ctrl+G"
-      icon = ""
-    }
-    toad::TMenuEntry {
       name = "transform"
       label = "Transform"
       icon = ""
@@ -212,35 +200,122 @@ toad::TMenuLayout{
         icon = ""
       }
     }
+
     toad::TMenuEntry {
-      name = "order"
-      label = "Order"
-      shortcut = ""
+      name = "order|up"
+      label = "Bring Forward"
+      shortcut = "PgDown"
       icon = ""
+    }
+    toad::TMenuEntry {
+      name = "order|top"
+      label = "Bring to Front"
+      shortcut = "Shift+PgDown"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "order|down"
+      label = "Send Backward"
+      shortcut = "PgUp"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "order|bottom"
+      label = "Send to Back"
+      shortcut = "Shift+PgUp"
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "align"
+      label = "Align Objects"
+      icon = ""
+      toad::TMenuEntry {
+        name = "left"
+        label = "Left"
+        shortcut = ""
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "horizontal"
+        label = "Middle"
+        shortcut = ""
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "right"
+        label = "Right"
+        shortcut = ""
+        icon = ""
+      }
+      toad::TMenuSeparator { }
       toad::TMenuEntry {
         name = "top"
         label = "Top"
-        shortcut = "Shift+PgDown"
+        shortcut = ""
         icon = ""
       }
       toad::TMenuEntry {
-        name = "up"
-        label = "Up"
-        shortcut = "PgDown"
-        icon = ""
-      }
-      toad::TMenuEntry {
-        name = "down"
-        label = "Down"
-        shortcut = "PgUp"
+        name = "vertical"
+        label = "Middle"
+        shortcut = ""
         icon = ""
       }
       toad::TMenuEntry {
         name = "bottom"
         label = "Bottom"
-        shortcut = "Shift+PgUp"
+        shortcut = ""
         icon = ""
       }
+    }
+    toad::TMenuEntry {
+      name = "distribute"
+      label = "Distribute Objects"
+      icon = ""
+      toad::TMenuEntry {
+        name = "horizontal"
+        label = "Horizontal"
+        shortcut = ""
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "vertical"
+        label = "Vertical"
+        shortcut = ""
+        icon = ""
+      }
+      toad::TMenuEntry {
+        name = "even"
+        label = "Even"
+        shortcut = ""
+        icon = ""
+      }
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "lock"
+      label = "Lock"
+      shortcut = "Ctrl+L"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "unlock"
+      label = "Unlock"
+      shortcut = "Shift+Ctrl+L"
+      icon = ""
+    }
+    toad::TMenuSeparator { }
+    toad::TMenuEntry {
+      name = "group"
+      label = "Group"
+      shortcut = "Ctrl+G"
+      icon = ""
+    }
+    toad::TMenuEntry {
+      name = "ungroup"
+      label = "Ungroup"
+      shortcut = "Shift+Ctrl+G"
+      icon = ""
     }
     toad::TMenuEntry {
       name = "path"
