@@ -18,31 +18,40 @@ fischland::TDocument {
       show = true
       print = true
       toad::TFRectangle {
-        id = 1
+        id = 2
         linecolor ={ 0 0 0 }
         linewidth = 1
         x = 304
         y = 124
-        w = 92
-        h = 52
+        w = 94
+        h = 54
       }
       toad::TFRectangle {
-        id = 2
+        id = 1
         linecolor ={ 0 0 0 }
         linewidth = 1
         x = 109.996
         y = 74.6602
-        w = 92
-        h = 62
+        w = 94
+        h = 64
       }
       toad::TFCircle {
-        id = 3
         linecolor ={ 0 0 0 }
         linewidth = 1
         x = 156.738
         y = 232.617
-        w = 110
-        h = 102
+        w = 112
+        h = 104
+      }
+      toad::TFConnection {
+        linecolor ={ 0 0 0 }
+        linewidth = 1
+        arrowmode = head
+        arrowtype = empty
+        arrowheight = 8
+        arrowwidth = 4
+        start = 1
+        end = 2
       }
     }
   }

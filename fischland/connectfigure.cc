@@ -71,12 +71,12 @@ TFConnection::bounds() const
   if (start) {
     r0 = start->bounds();
   } else {
-    r0.set(p[0], p[0]);
+    r0.set(p.front(), p.front());
   }
   if (end) {
     r1 = end->bounds();
   } else {
-    r1.set(p[1], p[1]);
+    r1.set(p.back(), p.back());
   }
   
   TPoint p0(min(r0.x, r1.x), min(r0.y, r1.y));
@@ -88,21 +88,46 @@ TFConnection::bounds() const
 TCoord
 TFConnection::distance(const TPoint &pos)
 {
-  return distance2Line(pos.x, pos.y, p[0].x,p[0].y, p[1].x,p[1].y);
+  auto p(this->p.begin()), e(this->p.end());
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
+
+  assert(p!=e);
+  --e;
+  assert(p!=e);
+  x2=e->x;
+  y2=e->y;
+  ++e;
+  while(p!=e) {
+    x1=x2;
+    y1=y2;
+    x2=p->x;
+    y2=p->y;
+    d = distance2Line(pos.x, pos.y, x1,y1, x2,y2);
+    if (d<min)
+      min = d;
+    ++p;
+  }
+  return min;
+//  return distance2Line(pos.x, pos.y, p[0].x,p[0].y, p[1].x,p[1].y);
 }
 
 void
 TFConnection::paint(TPenBase &pen, EPaintType type)
 {
   if (type!=EDIT) {
-    pen.setLineColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
-    pen.setFillColor(fill_color);
+    pen.setColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
   }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   pen.setAlpha(alpha);
           
-  pen.drawLine(p[0], p[1]);
+  // pen.drawLine(p[0], p[1]);
+  //pen.drawPolygon(p);
+  pen.move(&p[0]);
+  for(size_t i=1; i<p.size(); ++i)
+    pen.line(&p[i]);
+  pen.stroke();
 
   if (arrowmode == NONE) {
     pen.setAlpha(1);
@@ -114,9 +139,9 @@ TFConnection::paint(TPenBase &pen, EPaintType type)
   TCoord ah = arrowheight * line_width;
 
   if (arrowmode == HEAD || arrowmode == BOTH)
-    drawArrow(pen, p[1], p[0], line_color, fill_color, aw, ah, arrowtype);
+    drawArrow(pen, p.back(), *(p.end()-2), line_color, fill_color, aw, ah, arrowtype);
   if (arrowmode == TAIL || arrowmode == BOTH)
-    drawArrow(pen, p[0], p[1], line_color, fill_color, aw, ah, arrowtype);
+    drawArrow(pen, p.front(), *(p.begin()+1), line_color, fill_color, aw, ah, arrowtype);
   pen.setAlpha(1);
 }
 
@@ -125,7 +150,8 @@ TFConnection::getPath() const
 {
   auto *path = new TVectorPath;
   path->move(p[0]);
-  path->line(p[1]);
+  for(size_t i=1; i<p.size(); ++i)
+    path->line(p[i]);
   
   auto *vg = new TVectorGraphic;
   vg->push_back(new TVectorPainter(
@@ -152,7 +178,7 @@ TFConnection::updatePoints()
       b.expand(p->path->bounds());
     p0 = b.center();
   } else {
-    p0 = p[0];
+    p0 = p.front();
   }
 
   if (end) {
@@ -166,9 +192,10 @@ TFConnection::updatePoints()
       b.expand(p->path->bounds());
     p1 = b.center();
   } else {
-    p1 = p[1];
+    p1 = p.back();
   }
 
+  // FIXME: we now need two different lines (the head and tail segments)
   TVectorPath line;
   line.move(p0);
   line.line(p1);
@@ -199,8 +226,8 @@ TFConnection::updatePoints()
     }
   }
 
-  p[0] = p0;
-  p[1] = p1;
+  p.front() = p0;
+  p.back()  = p1;
 
   if (start)
     delete f0;
@@ -210,16 +237,78 @@ TFConnection::updatePoints()
 
 void
 TFConnection::translate(TCoord dx, TCoord dy) {
+  // we are bound to other figures (for now), so we can not translate
 }
 
 bool
-TFConnection::getHandle(unsigned n, TPoint *p) {
-  return false;
+TFConnection::getHandle(unsigned handle, TPoint *p)
+{
+//cout << "TFConnection::getHandle("<<handle<<", "<<*p<<")" << endl;
+  if (handle >= 2)
+    return false;
+  *p = this->p[handle];
+  return true;
 }
+
 
 void
 TFConnection::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier)
 {
+}
+
+static vector<TPoint>::iterator newpoint;
+
+unsigned
+TFConnection::mouseLDown(TFigureEditor *fe, TMouseEvent &me)
+{
+//  cout << "TFConnection::mouseLDown" << endl;
+
+  auto p(this->p.begin()), e(this->p.end()), m(this->p.end());
+  TCoord x1,y1,x2,y2;
+  TCoord min = OUT_OF_RANGE, d;
+
+  assert(p!=e);
+  --e;
+  assert(p!=e);
+  x2=e->x;
+  y2=e->y;
+  ++e;
+  while(p!=e) {
+    x1=x2;
+    y1=y2;
+    x2=p->x;
+    y2=p->y;
+    d = distance2Line(me.pos.x, me.pos.y, x1,y1, x2,y2);
+    if (d<min) {
+      min = d;
+      m = p;
+    }
+    ++p;
+  }
+  if (min > TFigure::RANGE)
+    return TFigure::STOP;
+
+//  cout << "  insert a new point and drag it" << endl;
+  newpoint = this->p.insert(m, me.pos);
+  return TFigure::CONTINUE;
+}
+
+unsigned
+TFConnection::mouseMove(TFigureEditor *fe, TMouseEvent &me)
+{
+//  cout << "TFConnection::mouseMove" << endl;
+  *newpoint = me.pos;
+  updatePoints();
+  return TFigure::CONTINUE;
+}
+
+unsigned
+TFConnection::mouseLUp(TFigureEditor *fe, TMouseEvent &me)
+{
+//  cout << "TFConnection::mouseLUp" << endl;
+  *newpoint = me.pos;
+  updatePoints();
+  return TFigure::STOP;
 }
 
 void

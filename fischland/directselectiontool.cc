@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+
+// FIXME: the directselection tool in Illustrator CS2 is not why I thought it was
+//        there the pencil tool is accompanied by three tools to
+//        o add points
+//        o remove points
+//        o move points
+//        instead I am going to make this more like the knot tool in Affinity Designer
+//        o click on the outline to add a point
+//        o click on a point to select it, del key can then delete it
+//        o click'n drag point to move it
+//        o click'n drag outline to adjust control points so that outline follows mouse
 
 #include "directselectiontool.hh"
 
@@ -47,6 +58,23 @@ TDirectSelectionTool::stop(TFigureEditor *fe)
 void
 TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
+  if (fe->state==30) {
+    TPoint pos;
+    fe->mouse2sheet(me.pos, &pos);
+    TMouseEvent me2(me, pos);
+    switch(me.type) {
+      case TMouseEvent::MOVE:
+        figure->mouseMove(fe, me2);
+        break;
+      case TMouseEvent::LUP:
+        figure->mouseLUp(fe, me2);
+      default:
+        fe->state = TFigureEditor::STATE_NONE;
+    }
+    fe->invalidateFigure(figure);
+    return;
+  }
+
   // figure was deleted but we were not informed...
   if (figure && fe->selection.find(figure)==fe->selection.end()) {
     stop(fe);
@@ -63,12 +91,13 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         f->mouseRDown(fe, me2);
       }
     } break;
+
     case TMouseEvent::LDOWN: {
       fe->getWindow()->setAllMouseMoveEvents(true);
       fe->quick = true;
-//cout << "mouse down" << endl;
-      if (figure && !(me.dblClick) ) {
-//cout << "  selection is not empty" << endl;
+      
+      // when a figure has been selected, handle the handles
+      if (figure && !me.dblClick ) {
         TPoint pos;
         fe->mouse2sheet(me.pos, &pos);
         // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
@@ -82,7 +111,6 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           if (memo_pt.x-fe->fuzziness<=pos.x && pos.x<=memo_pt.x+fe->fuzziness &&
               memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
           {
-//cout << "got handle " << h << endl;
             fe->getFigureShape(figure, &oldshape, fe->getMatrix());
             oldshape.x+=fe->getVisible().x;
             oldshape.y+=fe->getVisible().y;
@@ -94,17 +122,23 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           }
           ++h;
         }
+        
+        TMouseEvent me2(me, pos);
+        if (figure->mouseLDown(fe, me2)!=TFigure::STOP) {
+          fe->state = 30;
+          return;
+        }
+        
       }
 
       TPoint pos;
       fe->mouse2sheet(me.pos, &pos);
-//cout << "mouse:" <<me.x<<","<<me.y<<", sheet:"<<x<<","<<y<<endl;
       TFigure *f = fe->findFigureAt(pos);
       if (f!=figure) {
         if (figure)
           fe->invalidateFigure(figure);
         figure = f;
-        if (figure)
+          if (figure)
           fe->invalidateFigure(figure);
         fe->getWindow()->invalidateWindow();
         fe->quickready = false;
@@ -177,10 +211,12 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     return false;
   }
 
+//cout << "TDirectSelectionTool::paintSelection()" << endl;
+
   pen.push();
   pen.setColor(TColor::FIGURE_SELECTION);
   pen.setLineWidth(1);
-  figure->paint(pen);
+  figure->paint(pen, TFigure::EDIT);
   pen.setLineWidth(1);
   figure->paintSelection(pen, -1);
   pen.pop();
