@@ -143,6 +143,10 @@ TFConnection::updatePoints()
 
   if (start) {
     f0 = start->getPath();
+    if (!f0) {
+      cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ": figure " << start->getClassName() << " returned no path" << endl;
+      return;
+    }
     TBoundary b;
     for(auto &p: *f0)
       b.expand(p->path->bounds());
@@ -153,6 +157,10 @@ TFConnection::updatePoints()
 
   if (end) {
     f1 = end->getPath();
+    if (!f1) {
+      cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ": figure " << end->getClassName() << " returned no path" << endl;
+      return;
+    }
     TBoundary b;
     for(auto &p: *f1)
       b.expand(p->path->bounds());
