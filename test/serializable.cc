@@ -1,4 +1,5 @@
 #include <toad/io/serializable.hh>
+#include <toad/types.hh>
 #include <sstream>
 #include "gtest.h"
 
@@ -135,4 +136,132 @@ TEST(Serializeable, ReservedAttributeId)
   TOutObjectStream os(&out);
   ASSERT_THROW(os.store(&a), std::invalid_argument);
   os.close();
+}
+
+struct TestList: public TSerializable {
+  typedef TSerializable super;
+  string name;
+  unsigned x, y;
+  vector<TPoint> p;
+  
+  void print() {
+    cout << "TestList { name=\"" << name << "\", x=" << x << ", y=" << y << ", p={"<<endl;
+    for(auto &&pt: p)
+      cout << "  " << pt << endl;
+    cout << "}" << endl;
+  }
+  
+  SERIALIZABLE_INTERFACE(, TestList);
+};
+
+void
+store(TOutObjectStream &out, const vector<TPoint> &p)
+{
+  out << "{ ";
+  for(auto &&pt: p)
+    out << pt.x << " " << pt.y << " ";
+  out << "}";
+}
+
+bool
+restore(TInObjectStream &in, vector<TPoint> *p)
+{
+  cout << "restore vector<TPoint>" << endl;
+
+  if (in.what == ATV_GROUP &&
+      in.type.empty())
+  {
+    TATVInterpreter *interpreter = in.getInterpreter();
+    in.setInterpreter(nullptr);
+    while(true) {
+      TCoord x, y;
+
+      in.parse();
+      if (in.what==ATV_FINISHED)
+        break;
+      if (in.what!=ATV_VALUE || !in.attribute.empty() || !in.type.empty()) {
+        ATV_FAILED(in)
+        in.setInterpreter(interpreter);
+        return false;
+      }
+      ::restore(in, &x);
+
+      in.parse();
+      if (in.what!=ATV_VALUE || !in.attribute.empty() || !in.type.empty()) {
+        ATV_FAILED(in)
+        in.setInterpreter(interpreter);
+        return false;
+      }
+      ::restore(in, &y);
+
+      p->push_back(TPoint(x, y));
+    }
+    in.setInterpreter(interpreter);
+    return true;
+  }
+  return false;
+}
+
+void TestList::store(TOutObjectStream &out) const
+{
+  super::store(out);
+  ::store(out, "name", name);
+  ::store(out, "p",    p);
+  ::store(out, "x",    x);
+  ::store(out, "y",    y);
+}
+
+bool
+TestList::restore(TInObjectStream &in)
+{
+  if (
+    super::restore(in) ||
+    ::restore(in, "name",     &name) ||
+    ::restore(in, "p",        &p) ||
+    ::restore(in, "x",        &x) ||
+    ::restore(in, "y",        &y)
+  ) return true;
+  ATV_FAILED(in)
+  return false;
+}
+
+TEST(Serializeable, List) {
+  TestList l;
+  l.name     = "Wirsing";
+  l.x        = 10;
+  l.y        = 20;
+  l.p.push_back(TPoint(1,2));
+  l.p.push_back(TPoint(3.1415,4));
+  l.p.push_back(TPoint(5,6));
+  
+  toad::getDefaultStore().registerObject(new TestList());
+
+  // write
+  ostringstream out;
+  TOutObjectStream os(&out);
+  EXPECT_NO_THROW({os.store(&l);});
+  os.close();
+  
+  cout << out.str() << endl;
+
+  // read
+  istringstream in(out.str());
+  TInObjectStream is(&in);
+  
+  TSerializable *s = is.restore();
+  if (s) {
+    TestList *a = dynamic_cast<TestList*>(s);
+    if (a) {
+      a->print();
+    } else {
+      cout << "no a" << endl;
+    }
+  } else {
+    cout << "no s" << endl;
+  }
+  EXPECT_NO_THROW({is.close();});
+  
+  delete s;
+  
+//  c[0]->print();
 }
