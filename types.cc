@@ -19,6 +19,7 @@ toad::restore(TInObjectStream &in, vector<TPoint> *p)
   {
     TATVInterpreter *interpreter = in.getInterpreter();
     in.setInterpreter(nullptr);
+    p->clear();
     while(true) {
       TCoord x, y;
 

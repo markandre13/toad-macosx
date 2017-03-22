@@ -338,6 +338,7 @@ TFConnection::store(TOutObjectStream &out) const
   TFigureArrow::store(out);
   ::storePointer(out, "start", start);
   ::storePointer(out, "end", end);
+  ::store(out, "p", p);
 }
 
 bool
@@ -351,6 +352,7 @@ TFConnection::restore(TInObjectStream &in)
     TFigureArrow::restore(in) ||
     ::restorePointer(in, "start", &start) ||
     ::restorePointer(in, "end",   &end) ||
+    ::restore(in, "p", &p) ||
     super::restore(in)
   ) return true;
   ATV_FAILED(in)
