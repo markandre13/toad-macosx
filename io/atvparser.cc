@@ -591,6 +591,11 @@ TATVParser::startGroup()
     }
     if (debug)
         cerr << "parsed group" << endl;
+    if (what==ATV_FINISHED) { // interpret already consumed the whole group
+      position = 0;
+      pop();
+      return true;
+    }
     if (oldintp != interpreter && interpreter) {
       what = ATV_START;
       value.clear();
