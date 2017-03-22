@@ -20,7 +20,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   arrowbutton.cc scrollbar.cc utf8.cc undo.cc undomanager.cc model.cc \
 	   integermodel.cc floatmodel.cc textmodel.cc action.cc bitmap.cc \
 	   io/atvparser.cc io/binstream.cc io/serializable.cc io/urlstream.cc \
-	   gauge.cc colordialog.cc dragndrop.cc rgbmodel.cc \
+	   gauge.cc colordialog.cc dragndrop.cc rgbmodel.cc types.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
 	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
@@ -93,8 +93,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
-#	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
+	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
 

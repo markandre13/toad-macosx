@@ -24,6 +24,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <toad/io/serializable.hh>
 
 #import <CoreGraphics/CGBase.h>
 #import <CoreGraphics/CGGeometry.h>
@@ -95,6 +96,10 @@ inline TPoint operator/(const TPoint &a, TCoord b) {
 inline ostream& operator<<(ostream &s, const TPoint& p) {
   return s<<'('<<p.x<<','<<p.y<<')';
 }
+
+void store(TOutObjectStream &out, const vector<TPoint> &p);
+bool restore(TInObjectStream &in, vector<TPoint> *p);
+
 inline TCoord squaredLength(const TPoint &a) {
   return a.x*a.x+a.y*a.y;
 }
