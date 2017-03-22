@@ -118,6 +118,17 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
             hndl = true;
             tht = figure->startTranslateHandle();
             TUndoManager::beginUndoGrouping(fe->getModel());
+            
+            TPoint pt;
+            xalign.clear();
+            yalign.clear();
+            for(h=0; figure->getHandle(h,&pt); ++h) {
+              if (hndl && handle==h)
+                continue;
+              xalign.insert(pt.x);
+              yalign.insert(pt.y);
+            }
+            
             return;
           }
           ++h;
@@ -163,6 +174,46 @@ cout << "selected figure " << figure << endl;
         TPoint pos;
         fe->mouse2sheet(me.pos, &pos);
         fe->sheet2grid(pos, &pos);
+        
+        TCoord d, v;
+        
+        v = pos.x;
+        d = numeric_limits<TCoord>::max();
+        if (xaxis)
+          fe->invalidateWindow(); // FIXME: invalidates too much
+        xaxis = false;
+        for(TCoord x: xalign) {
+          TCoord d0 = fabs(pos.x - x);
+          if (d0 < TFigure::RANGE && d0 < d) {
+            v = x;
+            d = d0;
+            xaxis = true;
+            xaxisv = v;
+          }
+        }
+        if (xaxis)
+          fe->invalidateWindow(); // FIXME: invalidates too much
+        // FIXME: shouldn' invalidate xaxis when it hasn't changed
+        pos.x = v;
+
+        if (yaxis)
+          fe->invalidateWindow(); // FIXME: invalidates too much
+        yaxis = false;
+        v = pos.y;
+        d = numeric_limits<TCoord>::max();
+        for(TCoord y: yalign) {
+          TCoord d0 = fabs(pos.y - y);
+          if (d0 < TFigure::RANGE && d0 < d) {
+            v = y;
+            d = d0;
+            yaxis = true;
+            yaxisv = v;
+          }
+        }
+        pos.y = v;
+        if (yaxis)
+          fe->invalidateWindow(); // FIXME: invalidates too much
+        
         fe->getModel()->translateHandle(figure, handle, pos.x, pos.y, me.modifier());
       } else
       if (figure) {
@@ -218,6 +269,16 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   pen.setLineWidth(1);
   figure->paint(pen, TFigure::EDIT);
   pen.setLineWidth(1);
+  
+  if (xaxis || yaxis) {
+    pen.setLineStyle(TPen::DOT);
+    if (xaxis)
+      pen.drawLine(xaxisv,0, xaxisv, 1000); // FIXME
+    if (yaxis)
+      pen.drawLine(0, yaxisv, 1000, yaxisv); // FIXME
+    pen.setLineStyle(TPen::SOLID);
+  }
+  
   figure->paintSelection(pen, -1);
   pen.pop();
   return true;

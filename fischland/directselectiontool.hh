@@ -35,6 +35,10 @@ using namespace toad;
 class TDirectSelectionTool:
   public TFigureTool
 {
+    set<TCoord> xalign, yalign;
+    bool xaxis, yaxis;
+    TCoord xaxisv, yaxisv;
+    
     bool grab;                // grabbed selection for moving
     bool hndl;                // grabbed handle
     unsigned handle;          // the handle number
@@ -49,6 +53,7 @@ class TDirectSelectionTool:
     TDirectSelectionTool() {
       grab = false;
       hndl = false;
+      xaxis = yaxis = false;
       figure = 0;
     }
     static TDirectSelectionTool* getTool();
