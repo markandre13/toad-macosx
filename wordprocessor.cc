@@ -1498,3 +1498,237 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
 }
 
 } // namespace toad::wordprocessor
+
+using namespace toad;
+using namespace toad::wordprocessor;
+
+bool
+TWordProcessor::keyDown(const TKeyEvent &ke)
+{
+  TKey key = ke.key;
+  string str = ke.string;
+  unsigned modifier = ke.modifier;
+
+  // return on deadkeys
+  if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
+    return false;
+
+cout << "##############################################" << endl;
+cout << "text: " << text << endl;
+cout << "cursor: " << xpos[CURSOR] << endl;
+cout << "key: " << key << endl;
+cout << "str: " << str << endl;
+cout << "##############################################" << endl;
+
+  bool move = false;
+  size_t oldcursor = xpos[CURSOR];
+  size_t sb = xpos[SELECTION_BGN];
+  size_t se = xpos[SELECTION_END];
+
+  if (modifier & MK_CONTROL) {
+    switch(key) {
+      case 11:
+        *text = tagtoggle(*text, xpos, "b");
+        prepareHTMLText(*text, xpos, &document);
+        break;
+      case 32:
+        *text = tagtoggle(*text, xpos, "u");
+        prepareHTMLText(*text, xpos, &document);
+        break;
+      case 34:
+        *text = tagtoggle(*text, xpos, "i");
+        prepareHTMLText(*text, xpos, &document);
+        break;
+      default:
+        cout << "control '" << key << "'\n";
+        return false;
+    }
+    return true;
+  }
+  
+  if (modifier & MK_SHIFT) {
+    if (sb==se) {
+      // start a new selection
+      sb=se=oldcursor;
+    }
+  } else {
+    // clear an old selection
+    xpos[SELECTION_BGN] = xpos[SELECTION_END] = 0;
+  }
+
+  // FIXME?: we might want to set updown to false in more cases
+  switch(key) {
+    case TK_RIGHT: {
+      move = true;
+      updown = false;
+      size_t oldpos = xpos[CURSOR];
+      if (xpos[CURSOR]<text->size())
+        xmlinc(*text, &xpos[CURSOR]);
+      if (xpos[CURSOR]>text->size())
+        xpos[CURSOR]=oldpos;
+    } break;
+    case TK_LEFT:
+      updown = false;
+      move = true;
+      if (xpos[CURSOR]>0)
+        xmldec(*text, &xpos[CURSOR]);
+      break;
+    case TK_DOWN: {
+      if (!updown) {
+        updown = true;
+        updown_x = document.marker[CURSOR].pos.x;
+      }
+      TPreparedLine *line = document.lineAfter(document.marker[CURSOR].line);
+      if (!line)
+        return false;
+      xpos[CURSOR]=lineToCursor(line, *text, document, xpos, updown_x);
+      move = true;
+    } break;
+    case TK_UP: {
+      if (!updown) {
+        updown = true;
+        updown_x = document.marker[CURSOR].pos.x;
+      }
+      TPreparedLine *line = document.lineBefore(document.marker[CURSOR].line);
+      if (!line)
+        return false;
+      xpos[CURSOR]=lineToCursor(line, *text, document, xpos, updown_x);
+      move = true;
+    } break;
+    case TK_BACKSPACE:
+      if (xpos[CURSOR]<=0)
+        return false;
+      xmldec(*text, &xpos[CURSOR]);
+    case TK_DELETE: {
+      size_t pos = xpos[CURSOR];
+      if (pos>=text->size())
+        return false;
+      textDelete(*text, document, xpos);
+      return true;
+    } break;
+    case TK_RETURN:
+    case TK_KP_RETURN: {
+      text->insert(xpos[CURSOR], "<br/>");
+      xmlinc(*text, &xpos[CURSOR]);
+      prepareHTMLText(*text, xpos, &document);
+      updateMarker(*text, &document, xpos);
+      return true;
+    } break;
+    case TK_HOME:
+      xpos[CURSOR] = document.marker[CURSOR].line->offset;
+      move = true;
+      break;
+    case TK_END: {
+      const auto &f = document.marker[CURSOR].line->fragments.back();
+      xpos[CURSOR] = f->offset + f->length;
+      if (xpos[CURSOR]==text->size() &&
+          f->length==0 &&
+          document.marker[CURSOR].line->fragments.size()>1)
+      {
+        auto &&f = document.marker[CURSOR].line->fragments[
+          document.marker[CURSOR].line->fragments.size()-2
+        ];
+        xpos[CURSOR] = f->offset + f->length;
+      }
+      
+      cout << xpos[CURSOR] << " # " << text->size() << endl;
+
+      for(auto &&line: document.lines) {
+        for(auto &&fragment: line->fragments) {
+          cout << ":   fragment: " << fragment->offset << ", " << fragment->length
+               << ", \"" << (fragment->offset>=text->size() ? "" : text->substr(fragment->offset, fragment->length)) << "\" "
+               << (fragment->attr.bold?", bold":"")
+               << (fragment->attr.italic?", italics":"") << endl;
+        }
+      }
+      move = true;
+    } break;
+    default:
+      if (str.empty())
+        return false;
+      updown = false;
+  }
+  
+  if (!move) {
+    size_t pos = xpos[CURSOR];
+    if (pos>text->size()) {
+      pos = text->size();
+      //const auto &fragment = document.marker[CURSOR].line->fragments.back();
+      //pos = fragment->offset + fragment->length;
+    } else
+//cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
+    if (pos==0 && text->size()>0 && document.marker[CURSOR].line->fragments[0]->length==0) {
+      cout << "insert at head" << endl;
+      
+      cout << *text << endl;
+
+      for(auto &&line: document.lines) {
+        for(auto &&fragment: line->fragments) {
+          cout << ":   fragment: " << fragment->offset << ", " << fragment->length
+               << ", \"" << (fragment->offset>=text->size() ? "" : text->substr(fragment->offset, fragment->length)) << "\" "
+               << (fragment->attr.bold?", bold":"")
+               << (fragment->attr.italic?", italics":"") << endl;
+        }
+      }
+
+
+cout << "  line: " << document.marker[CURSOR].line << endl;
+cout << "  fragments: " << document.marker[CURSOR].line->fragments.size() << endl;
+      assert(document.marker[CURSOR].line->fragments.size()>=2);
+      pos = document.marker[CURSOR].line->fragments[1]->offset;
+/*
+      cout << document.marker[CURSOR].line->fragments.size() << endl;
+
+*/
+    }
+    text->insert(pos, str);
+    updatePrepared(*text, &document, pos, str.size());
+    xmlinc(*text, &xpos[CURSOR]);
+    updateMarker(*text, &document, xpos);
+    return true;
+  }
+  
+  if ((modifier & MK_SHIFT) && move) {
+    // adjust selection
+    if (sb==oldcursor)
+      sb=xpos[CURSOR];
+    else
+      se=xpos[CURSOR];
+    if (sb>se) {
+      swap(sb, se);
+    }
+    xpos[SELECTION_BGN] = sb;
+    xpos[SELECTION_END] = se;
+  }
+
+  updateMarker(*text, &document, xpos);
+  return true;
+}
+
+bool
+TWordProcessor::mouseEvent(const TMouseEvent &me)
+{
+  TPoint pos(me.pos.x, me.pos.y-72);
+  switch(me.type) {
+    case TMouseEvent::LDOWN:
+      xpos[CURSOR] = xpos[SELECTION_BGN] = xpos[SELECTION_END] = positionToOffset(*text, document, xpos, pos);
+      break;
+    case TMouseEvent::MOVE:
+      if (me.modifier() & MK_LBUTTON) {
+        size_t sb = xpos[CURSOR];
+        size_t se = positionToOffset(*text, document, xpos, pos);
+        if (sb>se) {
+          size_t a = sb; sb=se; se=a;
+        }
+        xpos[SELECTION_BGN] = sb;
+        xpos[SELECTION_END] = se;
+      }
+      break;
+    case TMouseEvent::LUP:
+      break;
+    default:
+      return false;
+  }
+  updateMarker(*text, &document, xpos);
+  return true;
+}

@@ -22,6 +22,7 @@
 #include <toad/color.hh>
 #include <toad/font.hh>
 #include <toad/pen.hh>
+#include <toad/window.hh>
 
 #include <vector>
 #include <map>
@@ -189,5 +190,32 @@ namespace toad {
 
 
   } // namespace wordprocessor
+
+// NOTE: TWordProcessor should be the TOAD specific wrapper class
+//       namespace wordprocessor should be indepenent of TOAD or any other UI library
+class TWordProcessor
+{
+  public:
+    string *text;
+    TWordProcessor() {text=nullptr;}
+    void init(string &aText) {
+      text = &aText;
+      xpos.assign(3, 0);
+      prepareHTMLText(*text, xpos, &document);
+      updateMarker(*text, &document, xpos);
+    }
+    vector<size_t> xpos;        // positions relative to text
+    wordprocessor::TPreparedDocument document; // data for screen representation of the text
+    
+    bool updown;                // 'true' when moving the cursor up and down
+    TCoord updown_x;            // the x position while moving up and down
+
+    void renderPrepared(TPen &pen) {
+      wordprocessor::renderPrepared(pen, text->data(), &document, xpos);
+    }
+    bool keyDown(const TKeyEvent &ke);
+    bool mouseEvent(const TMouseEvent&);
+};
+
 
 } // namespace toad
