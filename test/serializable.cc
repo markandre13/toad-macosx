@@ -138,6 +138,12 @@ TEST(Serializeable, ReservedAttributeId)
   os.close();
 }
 
+// check store/restore of vector<TPoint>
+// o store derivates from the atv format a bit and writes { x0 y0 x1 y1 ... }
+//   to save space.
+// o to parse this, restore sets interpreter to null and parses the list on
+//   its own. afterwards, the previous interpreter must be able to resume
+//   its work.
 struct TestList: public TSerializable {
   typedef TSerializable super;
   string name;
@@ -153,7 +159,6 @@ struct TestList: public TSerializable {
   
   SERIALIZABLE_INTERFACE(, TestList);
 };
-
 
 void TestList::store(TOutObjectStream &out) const
 {
@@ -178,41 +183,114 @@ TestList::restore(TInObjectStream &in)
   return false;
 }
 
-TEST(Serializeable, List) {
-  TestList l;
-  l.name     = "Wirsing";
-  l.x        = 10;
-  l.y        = 20;
-  l.p.push_back(TPoint(1,2));
-  l.p.push_back(TPoint(3.1415,4));
-  l.p.push_back(TPoint(5,6));
+struct TestListContainer: public TSerializable {
+  typedef TSerializable super;
+  string name0, name1;
+  TestList *l0, *l1;
   
+  void print() {
+    cout << "TestListContainer { name0=\"" << name0 << "\", name1=\"" << name1 << "\", " << endl;
+    if (l0)
+      l0->print();
+    if (l1)
+      l1->print();
+    cout << "}" << endl;
+  }
+  
+  SERIALIZABLE_INTERFACE(, TestListContainer);
+};
+
+void TestListContainer::store(TOutObjectStream &out) const
+{
+  super::store(out);
+  ::store(out, "name0", name0);
+  ::store(out, "l0", l0);
+  ::store(out, "l1", l1);
+  ::store(out, "name1", name1);
+}
+
+bool
+TestListContainer::restore(TInObjectStream &in)
+{
+  if (
+    super::restore(in) ||
+    ::restore(in, "name0",   &name0) ||
+    ::restore(in, "name1",   &name1) ||
+    ::restoreObject(in, "l0", &l0) ||
+    ::restoreObject(in, "l1", &l1)
+  ) return true;
+  ATV_FAILED(in)
+  return false;
+}
+
+TEST(Serializeable, List) {
+  TestList l0;
+  l0.name     = "Wirsing";
+  l0.x        = 10;
+  l0.y        = 20;
+  l0.p.push_back(TPoint(1,2));
+  l0.p.push_back(TPoint(3.1415,4));
+  l0.p.push_back(TPoint(5,6));
+
+  TestList l1;
+  l1.name     = "Kohl";
+  l1.x        = 30;
+  l1.y        = 40;
+  l1.p.push_back(TPoint(8,9));
+  
+  TestListContainer c;
+  c.name0 = "Kartoffel";
+  c.name1 = "Brei";
+  c.l0 = &l0;
+  c.l1 = &l1;
+  
+  toad::getDefaultStore().registerObject(new TestListContainer());
   toad::getDefaultStore().registerObject(new TestList());
 
   // write
   ostringstream out;
   TOutObjectStream os(&out);
-  EXPECT_NO_THROW({os.store(&l);});
+  EXPECT_NO_THROW({os.store(&c);});
   os.close();
   
-  cout << out.str() << endl;
+//  cout << out.str() << endl;
 
   // read
   istringstream in(out.str());
   TInObjectStream is(&in);
   
   TSerializable *s = is.restore();
-  if (s) {
-    TestList *a = dynamic_cast<TestList*>(s);
-    if (a) {
-      a->print();
-    } else {
-      cout << "no a" << endl;
-    }
-  } else {
-    cout << "no s" << endl;
-  }
   EXPECT_NO_THROW({is.close();});
+
+  EXPECT_NE(nullptr, s);
+  TestListContainer *a = dynamic_cast<TestListContainer*>(s);
+  EXPECT_NE(nullptr, a);
+
+  // a->print();
+  
+  // check value before list
+  EXPECT_EQ("Kartoffel", a->name0);
+  
+  ASSERT_EQ("Wirsing", a->l0->name);
+  ASSERT_DOUBLE_EQ(10, a->l0->x);
+  ASSERT_DOUBLE_EQ(20, a->l0->y);
+  ASSERT_EQ(3, a->l0->p.size());
+  ASSERT_DOUBLE_EQ(1, a->l0->p[0].x);
+  ASSERT_DOUBLE_EQ(2, a->l0->p[0].y);
+  ASSERT_DOUBLE_EQ(3.1415, a->l0->p[1].x);
+  ASSERT_DOUBLE_EQ(4, a->l0->p[1].y);
+  ASSERT_DOUBLE_EQ(5, a->l0->p[2].x);
+  ASSERT_DOUBLE_EQ(6, a->l0->p[2].y);
+
+  ASSERT_EQ("Kohl", a->l1->name);
+  ASSERT_DOUBLE_EQ(30, a->l1->x);
+  ASSERT_DOUBLE_EQ(40, a->l1->y);
+  ASSERT_EQ(1, a->l1->p.size());
+  ASSERT_DOUBLE_EQ(8, a->l1->p[0].x);
+  ASSERT_DOUBLE_EQ(9, a->l1->p[0].y);
+  
+  // check value after list
+  EXPECT_EQ("Brei", a->name1);
   
   delete s;
   
