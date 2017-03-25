@@ -46,12 +46,14 @@ namespace toad {
       TCoord size;
       bool bold:1;
       bool italic:1;
+      bool underline:1;
       TRGB bcolor;
       TRGB fcolor;
       
       TTextAttribute() {
         bold=false;
         italic=false;
+        underline=false;
         face="times";
         size=12;
       }
@@ -59,6 +61,7 @@ namespace toad {
         if (!a) {
           bold=false;
           italic=false;
+          underline=false;
           face="times";
           size=12;
           return;
@@ -67,6 +70,7 @@ namespace toad {
         size = a->size;
         bold = a->bold;
         italic = a->italic;
+        underline = a->underline;
         bcolor = a->bcolor;
         fcolor = a->fcolor;
       }
@@ -88,7 +92,7 @@ namespace toad {
       }
 
       // information on rendering
-      TPoint origin;
+      TPoint origin; // FIXME: origin.y is used for <sup> and should be part of TTextAttribute?
       TSize size;
       TCoord ascent, descent;
 

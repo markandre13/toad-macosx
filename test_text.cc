@@ -85,7 +85,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
   setSize(800,400);
   text = "Fröhliche.<b>Weihnachten</b>.&times;&times;&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
-         "Is not what we want to hear from Santa.";
+         "Is <u>not</u> what we want to hear from Santa.";
 //text="This was a bold move.";
 //text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
 //text="This is a <i><b>bold</b></i> move.";
@@ -143,6 +143,11 @@ cout << "##############################################" << endl;
     switch(key) {
       case 11:
         text = tagtoggle(text, xpos, "b");
+        prepareHTMLText(text, xpos, &document);
+        invalidateWindow();
+        break;
+      case 32:
+        text = tagtoggle(text, xpos, "u");
         prepareHTMLText(text, xpos, &document);
         invalidateWindow();
         break;

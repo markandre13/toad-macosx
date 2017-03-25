@@ -127,6 +127,8 @@ class TPenBase
     TCoord getAscent() const { return font->getAscent(); }
     TCoord getDescent() const { return font->getDescent(); }
     TCoord getHeight() const { return font->getHeight(); }
+    TCoord underlinePosition() const { return font->underlinePosition(); }
+    TCoord underlineThickness() const { return font->underlineThickness(); }
 
     void setColor(TCoord r, TCoord g, TCoord b) { vsetColor(r, g, b); }
     void setLineColor(TCoord r, TCoord g, TCoord b) { vsetLineColor(r, g, b); }

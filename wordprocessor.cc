@@ -642,6 +642,16 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
           fragment->attr.bold = false;
           fragment->attr.setFont(font);
         }
+      } else
+      if (tag.name=="u") {
+        if (tag.open) {
+          fragment->attr.underline = true;
+          fragment->attr.setFont(font);
+        }
+        if (tag.close) {
+          fragment->attr.underline = false;
+          fragment->attr.setFont(font);
+        }
       }
     } else
     if (c=='&') {
@@ -737,6 +747,13 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
       size_t size;
       fragment2cstr(fragment, text, &cstr, &size);
       pen.drawString(fragment->origin.x, y, cstr, size);
+      if (fragment->attr.underline) {
+cout << "underline: y=" << y << ", ascent=" << pen.getAscent() << ", underlinePosition=" << pen.underlinePosition() << endl;
+        pen.setLineWidth(pen.underlineThickness());
+        TCoord uy = y + pen.getAscent() - pen.underlinePosition() + 0.5;
+        pen.drawLine(fragment->origin.x, uy,
+                     fragment->origin.x+fragment->size.width, uy);
+      }
     }
   }
 
@@ -747,6 +764,7 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
     TCoord cy = document->marker[CURSOR].pos.y+
                 document->marker[CURSOR].line->ascent-
                 document->marker[CURSOR].fragment->ascent;
+    pen.setLineWidth(1.0);
     pen.drawLine(document->marker[CURSOR].pos.x, cy,
                  document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
   }

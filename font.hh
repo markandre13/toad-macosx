@@ -78,6 +78,8 @@ public:
     TCoord getHeight() const { return height; }
     TCoord getAscent() const { return baseline; }
     TCoord getDescent() const { return height - baseline; }
+    TCoord underlinePosition() const;
+    TCoord underlineThickness() const;
     TCoord getTextWidth(const char *text, size_t n);
     TCoord getTextWidth(const char *text) {
       return getTextWidth(text, strlen(text));

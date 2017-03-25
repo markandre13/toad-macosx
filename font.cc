@@ -231,6 +231,19 @@ TFont::getSlant() const
 }
 
 TCoord
+TFont::underlinePosition() const
+{
+  return [nsfont underlinePosition];
+}
+
+TCoord
+TFont::underlineThickness() const
+{
+  return [nsfont underlineThickness];
+}
+
+
+TCoord
 TFont::getTextWidth(const char *text, size_t len)
 {
   if (!nsfont)
