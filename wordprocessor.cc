@@ -612,12 +612,12 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       if (tag.name=="sup") {
         if (tag.open) {
           fragment->attr.size-=2;
-          fragment->origin.y+=2;
+          fragment->origin.y-=2;
           fragment->attr.setFont(font);
         }
         if (tag.close) {
           fragment->attr.size+=2;
-          fragment->origin.y-=2;
+          fragment->origin.y+=2;
           fragment->attr.setFont(font);
         }
       } else
@@ -731,7 +731,7 @@ renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, c
     for(auto &&fragment: line->fragments) {
       fragment->attr.setFont(pen);
       
-      TCoord y = line->origin.y + line->ascent - pen.getAscent();
+      TCoord y = line->origin.y + fragment->origin.y + line->ascent - pen.getAscent();
       
       const char *cstr;
       size_t size;

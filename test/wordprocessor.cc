@@ -435,7 +435,8 @@ TEST(WordProcessor, prepareHTMLText)
 {
   struct fragtest {
     size_t offset, length;
-    bool bold, italics, eol;
+    TCoord y;
+    bool bold, italics, size, eol;
   };
   struct test {
     const char *in;
@@ -526,6 +527,15 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset= 0, .length=0 }
       },
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "x<sup>2</sup>",
+      .frags = {
+        { .offset= 0, .length=1 },
+        { .offset= 6, .length=1, .y=-2 },
+        { .offset=13, .length=0 },
+      },
+    },
     
   };
 
@@ -543,13 +553,14 @@ TEST(WordProcessor, prepareHTMLText)
     for(auto &line: document.lines) {
       cout << "line:" << endl;
       for(auto &fragment: line->fragments) {
-        cout << "  fragment: " << fragment->offset << ", " << fragment->length
+        cout << "  fragment: offset=" << fragment->offset
+             << ", length=" << fragment->length
+             << ", y=" << fragment->origin.y
              << (fragment->attr.bold?", bold":"")
              << (fragment->attr.italic?", italics":"") << endl;
       }
     }
 
-// FIXME: do check if either data set is too small/too big
     auto line = document.lines.begin();
     if (line==document.lines.end()) {
       ASSERT_EQ(0, t.frags.size());
@@ -565,6 +576,7 @@ TEST(WordProcessor, prepareHTMLText)
       ASSERT_EQ((*fragment)->length, f.length);
       ASSERT_EQ((*fragment)->attr.bold, f.bold);
       ASSERT_EQ((*fragment)->attr.italic, f.italics);
+      ASSERT_EQ((*fragment)->origin.y, f.y);
       
 //cout << "next fragment" << endl;
       ++fragment;
@@ -582,6 +594,11 @@ TEST(WordProcessor, prepareHTMLText)
         ASSERT_EQ(false, f.eol);
       }
     }
+    // check that the result is not larger than the expected test set
+    if (line!=document.lines.end())
+      ASSERT_EQ(fragment, (*line)->fragments.end());
+    else
+      ASSERT_EQ(line, document.lines.end());
   }
 }
 

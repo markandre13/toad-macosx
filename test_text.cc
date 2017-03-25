@@ -91,7 +91,7 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 //text="This is a <i><b>bold</b></i> move.";
 //text="<b><i>hello</i></b>";
 //text="this is a really unbelievable very long line.<br/>and this <b>isn't.</b>";
-text="hello <b>you.</b>";
+//text="hello <b>you.</b>";
   xpos.assign(3, 0);
   prepareHTMLText(text, xpos, &document);
   updateMarker(text, &document, xpos);

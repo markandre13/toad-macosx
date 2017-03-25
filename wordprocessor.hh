@@ -84,6 +84,7 @@ namespace toad {
       }
       TTextFragment(const TTextFragment *t): attr(t?&t->attr:0) {
         offset = npos;
+        origin.y = t?t->origin.y:0;
       }
 
       // information on rendering
