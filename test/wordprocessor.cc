@@ -848,6 +848,9 @@ TEST(WordProcessor, textInsert)
 
 }
 
+// <b>hello</b>
+// ^ insert a 0 doesn't work
+
 // cursor movement is as required:
 // aaaa<br/>bb<b>bbb</b><br/>cccccc
 //                  <        <

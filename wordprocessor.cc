@@ -1656,18 +1656,11 @@ cout << "##############################################" << endl;
   }
   
   if (!move) {
-    size_t pos = xpos[CURSOR];
-    if (pos>text->size()) {
-      pos = text->size();
-      //const auto &fragment = document.marker[CURSOR].line->fragments.back();
-      //pos = fragment->offset + fragment->length;
-    } else
-//cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
-    if (pos==0 && text->size()>0 && document.marker[CURSOR].line->fragments[0]->length==0) {
-      cout << "insert at head" << endl;
-      
+
+      cout << "text:" << endl;      
       cout << *text << endl;
 
+      cout << "fragments:" << endl;
       for(auto &&line: document.lines) {
         for(auto &&fragment: line->fragments) {
           cout << ":   fragment: " << fragment->offset << ", " << fragment->length
@@ -1678,10 +1671,27 @@ cout << "##############################################" << endl;
       }
 
 
-cout << "  line: " << document.marker[CURSOR].line << endl;
-cout << "  fragments: " << document.marker[CURSOR].line->fragments.size() << endl;
-      assert(document.marker[CURSOR].line->fragments.size()>=2);
-      pos = document.marker[CURSOR].line->fragments[1]->offset;
+    size_t pos = xpos[CURSOR];
+    if (pos>text->size()) {
+      pos = text->size();
+      //const auto &fragment = document.marker[CURSOR].line->fragments.back();
+      //pos = fragment->offset + fragment->length;
+    } else
+//cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
+    if (pos==0 && text->size()>0) {
+      if (document.marker[CURSOR].line->fragments[0]->length==0) {
+        // insert at head, and head is an empty fragment (tag)
+        if (document.marker[CURSOR].line->fragments.size()==1) {
+          // just empty text: test case "<br/>Hi"
+          pos = document.marker[CURSOR].line->fragments[0]->offset;
+        } else {
+          // a tag, skip it: test cae "<b>Hi</b>"
+          pos = document.marker[CURSOR].line->fragments[1]->offset;
+        }
+      } else {
+        // text: test case "Hi"
+        pos = document.marker[CURSOR].line->fragments[0]->offset;
+      }
 /*
       cout << document.marker[CURSOR].line->fragments.size() << endl;
 
