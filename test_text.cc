@@ -80,7 +80,6 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
   text = "Fröhliche.<b>Weihnachten</b>.&times;&times;&times;.100<sup>3</sup> &amp; &lt;tag /&gt;. <br/>"
          "\"Merry Xmas you <i a=\"'7'\" b='\"8\"'>fittle</i> shit.\"<br/>"
          "Is <u>not</u> what we want to hear from Santa.";
-  wp.init(text);
   
 //text="This was a bold move.";
 //text="This w<i>as a </i><b><i>bo</i>ld</b> move.";
@@ -88,6 +87,9 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 //text="<b><i>hello</i></b>";
 //text="this is a really unbelievable very long line.<br/>and this <b>isn't.</b>";
 //text="hello <b>you.</b>";
+text="F";
+
+  wp.init(text);
 }
 
 void

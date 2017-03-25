@@ -564,6 +564,11 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
 //cout << "TAG: "<<tag<<", x0="<<x0<<endl;
       
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
+        if (!fragment) {
+          line->fragments.push_back(new TTextFragment(fragment));
+          fragment = line->fragments.back();
+          fragment->attr.setFont(font);
+        }
         if (fragment->offset == TTextFragment::npos) {
           fragment->offset = x0;
           fragment->length = 0;

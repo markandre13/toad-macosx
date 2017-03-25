@@ -543,6 +543,14 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset=13, .length=0 },
       },
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "<br/>F",
+      .frags = {
+        { .offset= 0, .length=0, .eol=true },
+        { .offset= 5, .length=1, },
+      },
+    },
     
   };
 
@@ -573,6 +581,7 @@ TEST(WordProcessor, prepareHTMLText)
       ASSERT_EQ(0, t.frags.size());
       continue;
     }
+    ASSERT_GE((*line)->fragments.size(), 1);
     auto fragment = (*line)->fragments.begin();
 //cout << "first line, first fragment" << endl;
     for(auto &f: t.frags) {
