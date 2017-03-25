@@ -380,6 +380,13 @@ TEST(WordProcessor, tagtoggle)
                       13,16,
         "hello<b><br/></b>you there."
     },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "hello &times; you there.",
+      //               ^  <
+                       14,17,
+        "hello &times; <b>you</b> there."
+    },
   };
 
   for(auto &t: test) {

@@ -1087,7 +1087,8 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
     } else
     if (c=='&') {
       entityinc(text, &x1);
-//      cout << x0 << "entity: " << text.substr(x0,x1-x0) << endl;
+//      cout << x0 << " entity: " << text.substr(x0,x1-x0) << endl;
+      x0=x1;
     }
   }
   return false;
