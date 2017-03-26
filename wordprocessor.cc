@@ -44,7 +44,7 @@ TTextAttribute::setFont(TFont &font)
 }
 
 void
-TTextAttribute::setFont(TPen &pen)
+TTextAttribute::setFont(TPenBase &pen)
 {
   ostringstream fontname;
   fontname << face << ":size=" << size;
@@ -483,9 +483,8 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
 {
   document->clear();
 //cout << "prepareHTMLText ------------------------------------------------------" << endl;
-  string face="times";
   TFont font;
-  font.setFont(face);
+  font.setFont("arial,helvetica,sans-serif");
 
   TCoord x=0;
   size_t x0=0, x1=0;
@@ -629,11 +628,9 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       if (tag.name=="i") {
         if (tag.open) {
           fragment->attr.italic=true;
-          fragment->attr.size=48;
           fragment->attr.setFont(font);
         }
         if (tag.close) {
-          fragment->attr.size=12;
           fragment->attr.italic=false;
           fragment->attr.setFont(font);
         }
@@ -694,9 +691,9 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
 }
 
 void
-renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos)
+renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos)
 {
-///cout << "render-------------" << endl;
+//cout << "render-------------" << endl;
 //cout << "we have " << document->lines.size() << " lines" << endl;
 //  pen.setColor(164,205,1);
 //  pen.setColor(0.64,0.8,1);

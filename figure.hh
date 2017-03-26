@@ -27,6 +27,7 @@
 #include <toad/bitmap.hh>
 #include <toad/figuremodel.hh>
 #include <toad/io/serializable.hh>
+#include <toad/wordprocessor.hh>
 
 namespace toad {
 
@@ -443,20 +444,23 @@ class TFText:
   public TFRectangle
 {
     typedef TFRectangle super;
+    
   public:
     TFText() {
       p1.x = p1.y = 0;
       fontname = "arial,helvetica,sans-serif:size=12";
     }
-    TFText(TCoord x,TCoord y, const string &text) {
+    TFText(TCoord x,TCoord y, const string &aText) {
       p1.x = x;
       p1.y = y;
       fontname = "arial,helvetica,sans-serif:size=12";
-      this->text = text;
+      text = aText;
+      wp.init(text);
       calcSize();
     }
-    void setText(const string &t) {
-      text = t;
+    void setText(const string &aText) {
+      text = aText;
+      wp.init(text);
       calcSize();
     }
     void setFont(const string &fontname) {
@@ -487,6 +491,7 @@ class TFText:
     bool restore(TInObjectStream&) override;
     
   protected:
+    TWordProcessor wp;
     string text;
     string fontname;
     virtual void calcSize();

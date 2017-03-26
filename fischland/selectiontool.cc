@@ -72,9 +72,22 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   TRectangle r;
 
   if (fe->state == TFigureEditor::STATE_EDIT) {
-cout << "TSelectionTool: ignore mouse in edit mode" << endl;
-//    figure = tmpsel.begin();
-//    unsigned r = figure->mouseEventn(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
+cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
+    if (me.type == TMouseEvent::LDOWN) {
+      figure = *tmpsel.begin();
+//cout << "selection = " << figure << endl;
+      fe->mouse2sheet(me.pos, &p);
+      TFigure *f = fe->findFigureAt(p);
+//cout << "at mouse " << f << endl;
+      if (f!=figure) {
+//cout << "stop" << endl;
+        if (figure->stop(fe)==TFigure::DELETE) {
+          cout << "TSelectionTool::mouseEvent: should delete figure" << endl;
+        }
+        fe->state = TFigureEditor::STATE_NONE;
+      }
+    }
+//    unsigned r = figure->mouseEvent(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
     return;
   }
 

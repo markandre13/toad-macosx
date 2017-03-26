@@ -55,7 +55,7 @@ namespace toad {
         bold=false;
         italic=false;
         underline=false;
-        face="times";
+        face="arial,helvetica,sans-serif";
         size=12;
       }
       TTextAttribute(const TTextAttribute *a) {
@@ -63,7 +63,7 @@ namespace toad {
           bold=false;
           italic=false;
           underline=false;
-          face="times";
+          face="arial,helvetica,sans-serif";
           size=12;
           return;
         }
@@ -77,7 +77,7 @@ namespace toad {
       }
 
       void setFont(TFont &font);
-      void setFont(TPen  &pen);
+      void setFont(TPenBase &pen);
     };
 
     struct TTextFragment
@@ -147,7 +147,7 @@ namespace toad {
     // prepare text for screen
     void prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document);
     // render text on screen
-    void renderPrepared(TPen &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos);
+    void renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos);
     void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len);
 
     void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
@@ -211,7 +211,9 @@ class TWordProcessor
     bool updown;                // 'true' when moving the cursor up and down
     TCoord updown_x;            // the x position while moving up and down
 
-    void renderPrepared(TPen &pen) {
+    void renderPrepared(TPenBase &pen) {
+      if (!text)
+        return;
       wordprocessor::renderPrepared(pen, text->data(), &document, xpos);
     }
     bool keyDown(const TKeyEvent &ke);
