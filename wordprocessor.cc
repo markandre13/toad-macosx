@@ -1446,6 +1446,36 @@ for(size_t i=0; i<xpos.size(); ++i) {
   return out;
 }
 
+// insert str at cursor at move cursor forward
+void
+textInsert(string &text, TPreparedDocument &document, vector<size_t> &xpos, const string &str)
+{
+  size_t pos = xpos[CURSOR];
+  if (pos>text.size()) {
+    pos = text.size();
+  } else
+  if (pos==0 && text.size()>0) {
+    if (document.marker[CURSOR].line->fragments[0]->length==0) {
+      // insert at head, and head is an empty fragment (tag)
+      if (document.marker[CURSOR].line->fragments.size()==1) {
+        // just empty text: test case "<br/>Hi"
+        pos = document.marker[CURSOR].line->fragments[0]->offset;
+      } else {
+        // a tag, skip it: test cae "<b>Hi</b>"
+        pos = document.marker[CURSOR].line->fragments[1]->offset;
+      }
+    } else {
+      // text: test case "Hi"
+      pos = document.marker[CURSOR].line->fragments[0]->offset;
+    }
+  }
+  text.insert(pos, str);
+  updatePrepared(text, &document, pos, str.size());
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+}
+
+// delete character at cursor
 void
 textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
 {
@@ -1656,51 +1686,7 @@ cout << "##############################################" << endl;
   }
   
   if (!move) {
-
-      cout << "text:" << endl;      
-      cout << *text << endl;
-
-      cout << "fragments:" << endl;
-      for(auto &&line: document.lines) {
-        for(auto &&fragment: line->fragments) {
-          cout << ":   fragment: " << fragment->offset << ", " << fragment->length
-               << ", \"" << (fragment->offset>=text->size() ? "" : text->substr(fragment->offset, fragment->length)) << "\" "
-               << (fragment->attr.bold?", bold":"")
-               << (fragment->attr.italic?", italics":"") << endl;
-        }
-      }
-
-
-    size_t pos = xpos[CURSOR];
-    if (pos>text->size()) {
-      pos = text->size();
-      //const auto &fragment = document.marker[CURSOR].line->fragments.back();
-      //pos = fragment->offset + fragment->length;
-    } else
-//cout << "insert: cursor="<<xpos[CURSOR]<<", text="<<text.size()<<endl;
-    if (pos==0 && text->size()>0) {
-      if (document.marker[CURSOR].line->fragments[0]->length==0) {
-        // insert at head, and head is an empty fragment (tag)
-        if (document.marker[CURSOR].line->fragments.size()==1) {
-          // just empty text: test case "<br/>Hi"
-          pos = document.marker[CURSOR].line->fragments[0]->offset;
-        } else {
-          // a tag, skip it: test cae "<b>Hi</b>"
-          pos = document.marker[CURSOR].line->fragments[1]->offset;
-        }
-      } else {
-        // text: test case "Hi"
-        pos = document.marker[CURSOR].line->fragments[0]->offset;
-      }
-/*
-      cout << document.marker[CURSOR].line->fragments.size() << endl;
-
-*/
-    }
-    text->insert(pos, str);
-    updatePrepared(*text, &document, pos, str.size());
-    xmlinc(*text, &xpos[CURSOR]);
-    updateMarker(*text, &document, xpos);
+    textInsert(*text, document, xpos, str);
     return true;
   }
   
