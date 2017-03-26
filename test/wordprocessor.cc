@@ -551,6 +551,16 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset= 5, .length=1, },
       },
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "prepare<br/>&lt;tag&gt;",
+      .frags = {
+        { .offset= 0, .length=7, .eol=true },
+        { .offset=12, .length=4, },
+        { .offset=16, .length=3, },
+        { .offset=19, .length=4, },
+      },
+    },
     
   };
 
