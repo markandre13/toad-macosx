@@ -511,7 +511,7 @@ TEST(WordProcessor, prepareHTMLText)
     //       012345678901234567890123456789012345678901234567890
     { .in = "Hello<b><br/></b> there.",
       .frags = {
-        { .offset= 0, .length=5,  },
+        { .offset= 0, .length=5, },
         { .offset= 8, .length=0, .bold=true, .eol=true },
         { .offset=13, .length=0, .bold=true },
         { .offset=17, .length=7 },
@@ -575,56 +575,30 @@ TEST(WordProcessor, prepareHTMLText)
     cout << "----------------------------------------------------------------------" << endl
          << t.in << endl;
      
+    auto f = t.frags.begin();
     for(auto &line: document.lines) {
       cout << "line:" << endl;
-      for(auto &fragment: line->fragments) {
+      ASSERT_NE(f, t.frags.end());
+      for(auto &&fragment: line->fragments) {
         cout << "  fragment: offset=" << fragment->offset
              << ", length=" << fragment->length
              << ", y=" << fragment->origin.y
              << (fragment->attr.bold?", bold":"")
              << (fragment->attr.italic?", italics":"") << endl;
-      }
-    }
-
-    auto line = document.lines.begin();
-    if (line==document.lines.end()) {
-      ASSERT_EQ(0, t.frags.size());
-      continue;
-    }
-    ASSERT_GE((*line)->fragments.size(), 1);
-    auto fragment = (*line)->fragments.begin();
-//cout << "first line, first fragment" << endl;
-    for(auto &f: t.frags) {
-//      cout << "  expect: " << f.offset << ", " << f.length << (f.eol?", eol":"") << endl;
-//      cout << "  got   : " << (*fragment)->offset << ", " << (*fragment)->length << endl;
-      
-      ASSERT_EQ((*fragment)->offset, f.offset);
-      ASSERT_EQ((*fragment)->length, f.length);
-      ASSERT_EQ((*fragment)->attr.bold, f.bold);
-      ASSERT_EQ((*fragment)->attr.italic, f.italics);
-      ASSERT_EQ((*fragment)->origin.y, f.y);
-      
-//cout << "next fragment" << endl;
-      ++fragment;
-      
-      if (fragment == (*line)->fragments.end()) {
-//cout << "next line" << endl;
-        ++line;
-        if (line==document.lines.end()) {
-//cout << "last line" << endl;
-          break;
+        ASSERT_EQ(fragment->offset,      f->offset);
+        ASSERT_EQ(fragment->length,      f->length);
+        ASSERT_EQ(fragment->attr.bold,   f->bold);
+        ASSERT_EQ(fragment->attr.italic, f->italics);
+        ASSERT_EQ(fragment->origin.y,    f->y);
+        if ( fragment == line->fragments.back() && // end of line but...
+             line != document.lines.back() )       // ...not end of document
+        {
+          ASSERT_TRUE(f->eol);
         }
-        fragment = (*line)->fragments.begin();
-        ASSERT_EQ(true, f.eol);
-      } else {
-        ASSERT_EQ(false, f.eol);
+        ++f;
       }
     }
-    // check that the result is not larger than the expected test set
-    if (line!=document.lines.end())
-      ASSERT_EQ(fragment, (*line)->fragments.end());
-    else
-      ASSERT_EQ(line, document.lines.end());
+    ASSERT_EQ(f, t.frags.end());
   }
 }
 
