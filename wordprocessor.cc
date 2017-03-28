@@ -471,6 +471,19 @@ fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr
   *length = fragment->length;
 }
 
+void dump(const string &text, const TPreparedDocument &document)
+{
+  for(auto &&line: document.lines) {
+    cout << "line:" << endl;
+    for(auto &&fragment: line->fragments) {
+      cout << "  fragment: " << fragment->offset << ", " << fragment->length
+           << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
+           << (fragment->attr.bold?", bold":"")
+           << (fragment->attr.italic?", italics":"") << endl;
+    }
+  }
+}
+
 /**
  * initialize TPreparedDocument from XML text
  *
@@ -492,7 +505,6 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
   int c;
   TCoord w;
   
-//cout << "; new line" << endl;
   document->lines.push_back(new TPreparedLine());
   TPreparedLine *line = document->lines.back();
   line->offset = 0;
@@ -528,14 +540,11 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
       utf8inc(text, &x1);
     }
     if (x1>x0) {
+//cout << "text from " << x0 << " to " << x1 << endl;
       line->ascent  = max(line->ascent,  font.getAscent());
       line->descent = max(line->descent, font.getDescent());
-//cout << "line: " << line << ", " << line->ascent << ", " << line->descent << endl;
       if (!fragment || fragment->offset != TTextFragment::npos) {
-//if (!fragment)
-//  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
-//else
-//  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+//cout << "  new fragment" << endl;
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->attr.setFont(font);
@@ -560,10 +569,11 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
     if (c=='<') {
       TTag tag;
       taginc(text, &x1, &tag);
-//cout << "TAG: "<<tag<<", x0="<<x0<<endl;
+//cout << text.substr(x0, x1-x0) << " from " << x0 << " to " << x1 << endl;
       
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
         if (!fragment) {
+//cout << "  no fragment -> create new one" << endl;
           line->fragments.push_back(new TTextFragment(fragment));
           fragment = line->fragments.back();
           fragment->attr.setFont(font);
@@ -577,7 +587,7 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         }
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
-//cout << "; new line" << endl;
+//cout << "  br -> new line" << endl;
         document->lines.push_back(new TPreparedLine());
         document->lines.back()->origin.y = line->origin.y + line->size.height;
         line = document->lines.back();
@@ -587,7 +597,6 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         x=0;
       }
 
-//cout << "; line->fragments.size()=" << line->fragments.size() << endl;
       // when a new line begins with a tag, insert an empty fragment so that
       // text can be inserted before the tag
       if (line->fragments.size()==1 && fragment->offset==TTextFragment::npos) {
@@ -595,18 +604,13 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         fragment = line->fragments.back();
         fragment->offset = x0;
         fragment->length = 0;
-//cout << "; x0="<<x0<<", fragment->offset="<<fragment->offset<<", fragment->length="<<fragment->length<<endl;
       }
 
       x0=x1;
 
-
       // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
       if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos)  {
-//if (fragment)
-//  printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
-//else
-//  printf("%s:%u: add fragment=%p\n", __FILE__, __LINE__, fragment);
+//cout << "  empty line or used fragment -> create new one" << endl;
         line->fragments.push_back(new TTextFragment(fragment));
       }
 
@@ -658,9 +662,10 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
     } else
     if (c=='&') {
       entityinc(text, &x1);
+//cout << text.substr(x0, x1-x0) << " from " << x0 << " to " << x1 << endl;
 
       if (!fragment || fragment->offset != TTextFragment::npos) {
-//printf("%s:%u: add fragment=%p, offset=%zu, length=%zu\n", __FILE__, __LINE__, fragment, fragment->offset, fragment->length);
+//cout << "  empty line or used fragment -> create new one" << endl;
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
