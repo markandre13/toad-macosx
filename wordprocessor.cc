@@ -669,8 +669,8 @@ prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocumen
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
-        fragment->offset = x0;
       }
+      fragment->offset=x0;
       fragment->length=x1-x0;
       const char *cstr;
       size_t size;
