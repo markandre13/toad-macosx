@@ -1265,6 +1265,7 @@ main(int argc, char **argv, char **envv)
 
   static const char bm[6][32][32+1] = {
     {
+    // CURSOR_PEN
     // 0        1         2         3
     // 12345678901234567890123456789012
       "    .                           ",
@@ -1300,6 +1301,7 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                "
     },{
+    // CURSOR_PEN_CLOSE
     // 0        1         2         3
     // 12345678901234567890123456789012
       "    .                           ",
@@ -1335,6 +1337,7 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                "
     },{
+    // CURSOR_PEN_EDGE
     // 0        1         2         3
     // 12345678901234567890123456789012
       "    .                           ",
@@ -1370,6 +1373,7 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                "
     },{
+    // CURSOR_PEN_DRAG
     // 0        1         2         3
     // 12345678901234567890123456789012
       " #                              ",
@@ -1405,6 +1409,7 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                "
     },{
+    // CURSOR_PENCIL_CLOSE
     // 0        1         2         3
     // 12345678901234567890123456789012
       "                ####            ",
@@ -1440,6 +1445,7 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                "
     },{
+    // CURSOR_PENCIL
     // 0        1         2         3
     // 12345678901234567890123456789012
       "                ####            ",

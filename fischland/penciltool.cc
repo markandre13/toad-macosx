@@ -28,6 +28,8 @@
 
 #include <sys/time.h>
 
+using namespace fischland;
+
 TPencilTool::TPencilTool()
 {
   back = front = 0; 
@@ -100,7 +102,7 @@ TPencilTool::stop(TFigureEditor *fe)
 {
   fe->getWindow()->setAllMouseMoveEvents(false);
   fe->getWindow()->flagCompressMotion = true;
-  fe->getWindow()->setCursor(0);
+  fe->getWindow()->setCursor(nullptr);
   fe->state = TFigureEditor::STATE_NONE;
   fe->invalidateWindow();
 }
@@ -114,9 +116,9 @@ TPencilTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
       ke.key != TK_CONTROL_R)
     return;
   if (ke.type != TKeyEvent::UP)
-    fe->getWindow()->setCursor(fischland::cursor[4]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL_CLOSE]);
   else
-    fe->getWindow()->setCursor(fischland::cursor[5]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL]);
 }
  
 
@@ -134,9 +136,9 @@ static timeval t0;
   switch(me.type) {
     case TMouseEvent::ENTER:
       if (me.modifier() & MK_CONTROL)
-        fe->getWindow()->setCursor(fischland::cursor[4]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL_CLOSE]);
       else
-        fe->getWindow()->setCursor(fischland::cursor[5]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL]);
       break;
     case TMouseEvent::LDOWN:
       // prepare to sample the freehand curve
@@ -200,7 +202,7 @@ static timeval t0;
                 f->polygon.back().y - fe->fuzziness <= y &&
                 f->polygon.back().y + fe->fuzziness >= y )
             {
-              fe->getWindow()->setCursor(fischland::cursor[4]);
+              fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL_CLOSE]);
               return;
             } else
             if (!f->closed &&
@@ -209,12 +211,12 @@ static timeval t0;
                 f->polygon.front().y - fe->fuzziness <= y &&
                 f->polygon.front().y + fe->fuzziness >= y )
             {
-              fe->getWindow()->setCursor(fischland::cursor[4]);
+              fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL_CLOSE]);
               return;
             }
           }
         }
-        fe->getWindow()->setCursor(fischland::cursor[5]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL]);
         return;
       }
 
@@ -235,10 +237,10 @@ static timeval t0;
           polygon.front().y-fe->fuzziness<=y && y<=polygon.front().y+fe->fuzziness)
         )
       {
-        fe->getWindow()->setCursor(fischland::cursor[4]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL_CLOSE]);
         closed = true;
       } else {
-        fe->getWindow()->setCursor(fischland::cursor[5]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PENCIL]);
         closed = false;
       }
       

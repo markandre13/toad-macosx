@@ -24,6 +24,8 @@
 #include <toad/boolmodel.hh>
 #include <toad/integermodel.hh>
 
+using namespace fischland;
+
 TPenTool*
 TPenTool::getTool()
 {
@@ -37,28 +39,28 @@ void
 TPenTool::cursor(TFigureEditor *fe, int x, int y)
 {
   if (!path) {
-    fe->getWindow()->setCursor(fischland::cursor[0]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
     return;
   }
   if (down) {
-    fe->getWindow()->setCursor(fischland::cursor[3]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_DRAG]);
     return;
   }
   if (!path->polygon.empty() &&
        path->polygon.front().x-fe->fuzziness<=x && x<=path->polygon.front().x+fe->fuzziness &&
        path->polygon.front().y-fe->fuzziness<=y && y<=path->polygon.front().y+fe->fuzziness)
   {
-    fe->getWindow()->setCursor(fischland::cursor[1]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_CLOSE]);
     return;
   }
   if (!path->polygon.empty() &&
        path->polygon.back().x-fe->fuzziness<=x && x<=path->polygon.back().x+fe->fuzziness &&
        path->polygon.back().y-fe->fuzziness<=y && y<=path->polygon.back().y+fe->fuzziness)
   {
-    fe->getWindow()->setCursor(fischland::cursor[2]);
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_EDGE]);
     return;
   }
-  fe->getWindow()->setCursor(fischland::cursor[0]);
+  fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
 }
 
 void
@@ -67,7 +69,7 @@ TPenTool::stop(TFigureEditor *fe)
 //cout << "stop pen" << endl;
 //  fe->getWindow()->ungrabMouse();
   fe->getWindow()->setAllMouseMoveEvents(true);
-  fe->getWindow()->setCursor(0);
+  fe->getWindow()->setCursor(nullptr);
   fe->state = TFigureEditor::STATE_NONE;
   if (path) {
 /*
@@ -111,7 +113,7 @@ TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (me.modifier() & MK_CONTROL || me.dblClick) {
         // end with open path
         stop(fe);
-        fe->getWindow()->setCursor(fischland::cursor[0]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
         return;
       } else
       if (!path->polygon.empty() &&
@@ -146,7 +148,7 @@ TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         path->polygon.addPoint(x1, y1);
         path->closed = true;
         stop(fe);
-        fe->getWindow()->setCursor(fischland::cursor[0]);
+        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
         return;
       }
       //    )(      )(      )
