@@ -24,6 +24,7 @@
 #include "pentool.hh"
 #include "penciltool.hh"
 #include "directselectiontool.hh"
+#include "texttool.hh"
 #include "rotatetool.hh"
 #include "connecttool.hh"
 #include "colorpicker.hh"
@@ -431,7 +432,8 @@ serialize.registerObject(new TFPath());
         wnd = rb = new TFatRadioButton(this, "text", state);
         wnd->setToolTip("Text");
         rb->loadBitmap(RESOURCE("tool_text.png"));
-        CONNECT(rb->sigClicked, me, setTool, &ftext);
+        // CONNECT(rb->sigClicked, me, setTool, &ftext);
+        CONNECT(rb->sigClicked, me, setTool, TTextTool::getTool());
         break;
       case 7:
         wnd = rb = new TFatRadioButton(this, "circle", state);

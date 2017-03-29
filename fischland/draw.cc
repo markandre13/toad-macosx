@@ -1263,7 +1263,7 @@ main(int argc, char **argv, char **envv)
   bmp_vlogo = new TBitmap();
   bmp_vlogo->load(RESOURCE("logo_vertical.jpg"));
 
-  static const char bm[6][32][32+1] = {
+  static const char bm[7][32][32+1] = {
     {
     // CURSOR_PEN
     // 0        1         2         3
@@ -1480,6 +1480,42 @@ main(int argc, char **argv, char **envv)
       "                                ",
       "                                ",
       "                                "
+    },{
+    // CURSOR_TEXT
+    // 0        1         2         3
+    // 12345678901234567890123456789012
+      " ##   ##                        ",
+      "#..# #..#                       ",
+      " ##.#.##                        ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "   #.#                          ",
+      "  ##.##                         ",
+      " #.....#                        ",
+      "  ##.##                         ",
+      "   #.#                          ",
+      " ##. .##                        ",
+      "#..# #..#                       ",
+      " ##   ##                        ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                ",
+      "                                "
     }
   };
   cursor[0] = new TCursor(bm[0], 4, 0);
@@ -1488,6 +1524,7 @@ main(int argc, char **argv, char **envv)
   cursor[3] = new TCursor(bm[3], 0, 0);
   cursor[4] = new TCursor(bm[4], 0, 21);
   cursor[5] = new TCursor(bm[5], 0, 21);
+  cursor[6] = new TCursor(bm[6], 5, 13);
 
   new TToolBox(0, "Tools");
 //  if (argc==1) {

@@ -45,7 +45,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
 	 fischland/toolbox.cc fischland/colorpicker.cc \
 	 fischland/selectiontool.cc fischland/directselectiontool.cc \
-	 fischland/rotatetool.cc \
+	 fischland/rotatetool.cc fischland/texttool.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \
 	 fischland/filltool.cc fischland/filltoolutil.cc \
 	 fischland/fischeditor.cc
