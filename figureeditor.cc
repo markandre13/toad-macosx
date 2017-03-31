@@ -1423,7 +1423,7 @@ TFigureEditor::mouse2sheet(TPoint mouse, TPoint *sheet)
 void
 TFigureEditor::mouseEvent(const TMouseEvent &me)
 {
-//cerr << "TFigureEditor::mouseEvent" << endl << endl << endl;
+//cerr << "TFigureEditor::mouseEvent " << me.name() << endl;
   if (!model)
     return;
 
@@ -1478,7 +1478,7 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     if (preferences)
       preferences->setCurrent(this);
   }  
-
+//cout << "call tool" << endl;
   tool->mouseEvent(this, me);
 }
 

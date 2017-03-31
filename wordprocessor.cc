@@ -755,7 +755,7 @@ renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *documen
       fragment2cstr(fragment, text, &cstr, &size);
       pen.drawString(fragment->origin.x, y, cstr, size);
       if (fragment->attr.underline) {
-cout << "underline: y=" << y << ", ascent=" << pen.getAscent() << ", underlinePosition=" << pen.underlinePosition() << endl;
+//cout << "underline: y=" << y << ", ascent=" << pen.getAscent() << ", underlinePosition=" << pen.underlinePosition() << endl;
         pen.setLineWidth(pen.underlineThickness());
         TCoord uy = y + pen.getAscent() - pen.underlinePosition() + 0.5;
         pen.drawLine(fragment->origin.x, uy,

@@ -1405,14 +1405,15 @@ fischland/toolbox.o: fischland/selectiontool.hh include/toad/undomanager.hh
 fischland/toolbox.o: include/toad/action.hh fischland/filltool.hh
 fischland/toolbox.o: fischland/fpath.hh fischland/pentool.hh
 fischland/toolbox.o: fischland/penciltool.hh fischland/directselectiontool.hh
-fischland/toolbox.o: fischland/rotatetool.hh fischland/connecttool.hh
-fischland/toolbox.o: fischland/colorpicker.hh fischland/colorpalette.hh
-fischland/toolbox.o: include/toad/combobox.hh include/toad/textfield.hh
-fischland/toolbox.o: include/toad/textarea.hh include/toad/control.hh
-fischland/toolbox.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
-fischland/toolbox.o: fischland/fischland.hh fischland/cairo.hh
-fischland/toolbox.o: fischland/config.h include/toad/pushbutton.hh
-fischland/toolbox.o: include/toad/buttonbase.hh include/toad/labelowner.hh
+fischland/toolbox.o: fischland/texttool.hh fischland/rotatetool.hh
+fischland/toolbox.o: fischland/connecttool.hh fischland/colorpicker.hh
+fischland/toolbox.o: fischland/colorpalette.hh include/toad/combobox.hh
+fischland/toolbox.o: include/toad/textfield.hh include/toad/textarea.hh
+fischland/toolbox.o: include/toad/control.hh include/toad/scrollbar.hh
+fischland/toolbox.o: include/toad/dnd/color.hh fischland/fischland.hh
+fischland/toolbox.o: fischland/cairo.hh fischland/config.h
+fischland/toolbox.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
+fischland/toolbox.o: include/toad/labelowner.hh
 fischland/toolbox.o: include/toad/fatradiobutton.hh
 fischland/toolbox.o: include/toad/radiobuttonbase.hh
 fischland/toolbox.o: include/toad/fatcheckbutton.hh
@@ -1518,6 +1519,24 @@ fischland/rotatetool.o: include/toad/floatmodel.hh
 fischland/rotatetool.o: include/toad/figure/createtool.hh
 fischland/rotatetool.o: include/toad/figuretool.hh include/toad/core.hh
 fischland/rotatetool.o: fischland/fischland.hh
+fischland/texttool.o: fischland/texttool.hh include/toad/figureeditor.hh
+fischland/texttool.o: include/toad/figure.hh include/toad/penbase.hh
+fischland/texttool.o: include/toad/color.hh include/toad/types.hh
+fischland/texttool.o: include/toad/io/serializable.hh
+fischland/texttool.o: include/toad/io/atvparser.hh include/toad/font.hh
+fischland/texttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+fischland/texttool.o: include/toad/window.hh include/toad/interactor.hh
+fischland/texttool.o: include/toad/cursor.hh include/toad/region.hh
+fischland/texttool.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+fischland/texttool.o: include/toad/model.hh include/toad/connect.hh
+fischland/texttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+fischland/texttool.o: include/toad/scrollpane.hh include/toad/undo.hh
+fischland/texttool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+fischland/texttool.o: include/toad/integermodel.hh
+fischland/texttool.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
+fischland/texttool.o: include/toad/figure/createtool.hh
+fischland/texttool.o: include/toad/figuretool.hh include/toad/core.hh
+fischland/texttool.o: fischland/fischland.hh
 fischland/pentool.o: fischland/pentool.hh fischland/fpath.hh
 fischland/pentool.o: include/toad/figure.hh include/toad/penbase.hh
 fischland/pentool.o: include/toad/color.hh include/toad/types.hh

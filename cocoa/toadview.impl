@@ -303,9 +303,15 @@
 - (void) mouseMoved:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::MOVE;
-  TMouseEvent::_doMouse(twindow, me);
+  if (TWindow::grabWindow) { // FIXME: TWindow::grabWindow should be used for all mouse handlers
+    TMouseEvent me(theEvent, TWindow::grabWindow);
+    me.type = TMouseEvent::MOVE;
+    TMouseEvent::_doMouse(TWindow::grabWindow, me);
+  } else {
+    TMouseEvent me(theEvent, twindow);
+    me.type = TMouseEvent::MOVE;
+    TMouseEvent::_doMouse(twindow, me);
+  }
   TOAD_DBG_LEAVE
 }
 

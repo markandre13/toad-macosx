@@ -211,6 +211,8 @@ class TWindow:
     bool _allMouseMoveEvents:1;
 
     static TWindow* lastMouse;
+    static TWindow* grabWindow;
+    static bool grabMove;
     static TWindow* grabPopupWindow;
     static TRegion* updateRegion;
     

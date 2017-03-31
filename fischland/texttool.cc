@@ -95,139 +95,30 @@ cout << "---------------" << endl;
 void
 TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
-  TPoint pos;
-  fe->mouse2sheet(me.pos, &pos);
-  TCoord x=pos.x;
-  TCoord y=pos.y;
+//  cout << "TTextTool::mouseEvent " << me.pos << " " << fe->getWindow() << " '" << fe->getWindow()->getTitle() << "' " << me.name() << endl;
 
   switch(me.type) {
     case TMouseEvent::ENTER:
-      cursor(fe, x, y);
+      fe->getWindow()->grabMouse();
       break;
-#if 0
-    case TMouseEvent::LDOWN:
-      if (fe->state == TFigureEditor::STATE_NONE) {
-        // start creation
-        fe->state = TFigureEditor::STATE_CREATE;
-        fe->getWindow()->setAllMouseMoveEvents(true);
-        path = new TFPath();
-        path->removeable = true;
-        fe->getAttributes()->setAllReasons();
-        path->setAttributes(fe->getAttributes());
-        fe->getAttributes()->clearReasons();
-      } else
-      if (me.modifier() & MK_CONTROL || me.dblClick) {
-        // end with open path
-        stop(fe);
-        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
-        return;
-      } else
-      if (!path->polygon.empty() &&
-          path->polygon.front().x-fe->fuzziness<=x && x<=path->polygon.front().x+fe->fuzziness &&
-          path->polygon.front().y-fe->fuzziness<=y && y<=path->polygon.front().y+fe->fuzziness)
-      {
-        // end with closed path
-        TPolygon::iterator p0, p1;
-        if (path->polygon.size()%3 == 1) {
-          p0 = path->polygon.end();
-          --p0;
-          p1 = p0;
-          --p0;
-          if (p0->x == p1->x && p0->y == p1->y) {
-            path->corner.push_back(0);
-          } else {
-//            cout << "last corner is " << (unsigned)path->corner.back() << endl;
-            if (path->corner.back()!=2) // ==1
-              path->corner.back() = 4;
-            path->corner.push_back(1);
-          }
-          path->polygon.addPoint(p1->x - ( p0->x - p1->x ),
-                                 p1->y - ( p0->y - p1->y ));
-        } else {
-          path->corner.push_back(1);
-        }
-        p0 = p1 = path->polygon.begin();
-        ++p0;
-        TCoord x1 = p1->x, y1 = p1->y;
-        path->polygon.addPoint(p1->x - ( p0->x - p1->x ),
-                               p1->y - ( p0->y - p1->y ));
-        path->polygon.addPoint(x1, y1);
-        path->closed = true;
-        stop(fe);
-        fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
-        return;
-      }
-      //    )(      )(      )
-      // 1 2  3 4  5  6 7  8
-      // 1 2  0 1  2  0 1  2
-      // 0 1  2 3  4  5 6  7
-      // ^      ^       ^
-//      cout << "going to add points: " << path->polygon.size() << endl;
-      if (path->polygon.size()%3 == 1) {
-        // if (x == polygon.back().x && y==polygon.back().y) {
-        if (path->polygon.back().x-fe->fuzziness<=x && x<=path->polygon.back().x+fe->fuzziness &&
-            path->polygon.back().y-fe->fuzziness<=y && y<=path->polygon.back().y+fe->fuzziness)
-        {
-          // corner after smooth curve
-          path->polygon.addPoint(x, y);
-//cout << "corner after smooth curve" << endl;
-        } else {
-          // smooth curve after smooth curve
-//cout << "smooth curve after smooth curve" << endl;
-          TPolygon::iterator p0, p1;
-          p0 = path->polygon.end();
-          --p0;
-          p1 = p0;
-          --p0;
-          if (p0->x != p1->x || p0->y != p1->y)
-            path->corner.back() = 4;
-          path->polygon.addPoint(p1->x - ( p0->x - p1->x ),
-                                 p1->y - ( p0->y - p1->y ));
-          path->polygon.addPoint(x, y);
-          path->polygon.addPoint(x, y);
-          path->corner.push_back(0);
-        }
-      } else {
-//cout << "hmm 1: add two start points ?o|" << endl;
-        // this one add's point 0,1 and 2,3
-        path->polygon.addPoint(x, y);
-        path->polygon.addPoint(x, y);
-        path->corner.push_back(0);
-      }
-//      cout << "points now: " << path->polygon.size() << endl;
-      down = true;
-      break;
-    case TMouseEvent::MOVE:
-      if (down) {
-//        cout << "move with " << path->polygon.size() << ", " << path->polygon.size()%3 << endl;
-        if (path->polygon.size()%3 == 2) {
-//cout << "hmm 2" << endl;
-          // make points 0,1 a smooth point
-          path->corner.back() |= 2; // 2nd point has curve
-          path->polygon.back().x = x;
-          path->polygon.back().y = y;
-        } else {
-//cout << "hmm 3" << endl;
-          path->corner.back() |= 1; // 1st point has curve
-          TPolygon::iterator p0, p1;
-          p0 = path->polygon.end();
-          --p0;
-          p1 = p0;
-          --p0;
-          p0->x = p1->x - ( x - p1->x );
-          p0->y = p1->y - ( y - p1->y );
-        }
-      }
-      cursor(fe, x, y);
-      break;
-    case TMouseEvent::LUP:
-
-      down = false;
-      cursor(fe, x, y);
-      break;
-#endif
+    case TMouseEvent::LEAVE:
+      TWindow::ungrabMouse();
+      return;
   }
-  fe->invalidateWindow();
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
+  TFigure *figure = fe->findFigureAt(pos);
+
+// cout << me.pos << " -> " << pos << " -> " << figure << endl;
+
+  if (!figure) {
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_AREA]);
+  } else
+  if (dynamic_cast<TFText*>(figure)) {
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT]);
+  } else {
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_SHAPE]);
+  }
 }
 
 void

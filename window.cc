@@ -50,6 +50,8 @@ typedef map<TWindow*,string> TTextMap;
 static TTextMap tooltipmap;
 
 TWindow* TWindow::lastMouse = nullptr;
+TWindow* TWindow::grabWindow = nullptr;
+bool TWindow::grabMove;
 TWindow* TWindow::grabPopupWindow = nullptr;
 string TKeyEvent::_nonDeadKeyString;
 
@@ -155,7 +157,9 @@ TWindow::closeRequest()
 void
 TWindow::grabMouse(bool allmove, TWindow *confine, TCursor::EType type)
 {
-//  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
+  grabWindow = this;
+  grabMove = _allMouseMoveEvents;
+  // cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 }
 
 
@@ -168,15 +172,20 @@ TWindow::grabPopupMouse(bool allmove, TCursor::EType type)
     ungrabMouse();
   }
   grabPopupWindow = this;
-  lastMouse = 0;
+  lastMouse = nullptr;
 }
 
 void
 TWindow::ungrabMouse()
 {
+  if (grabWindow) {
+    grabWindow->_allMouseMoveEvents = grabMove;
+    grabWindow = nullptr;
+    return;
+  }
   if (grabPopupWindow) {
     TWindow *wnd = grabPopupWindow;
-    grabPopupWindow = 0;
+    grabPopupWindow = nullptr;
     wnd->closeRequest();
     return;
   }
@@ -405,8 +414,6 @@ TWindow::_up(TMouseEvent::EType type, NSEvent *theEvent)
   me.dblClick = (type!=TMouseEvent::ROLL_UP && type!=TMouseEvent::ROLL_DOWN) ? [theEvent clickCount]==2 : false;
   TMouseEvent::_doMouse(this, me);
 }
-
-
                                                                                                                                                                                                  
 unsigned
 TWindow::getParentlessCount()
@@ -510,12 +517,11 @@ TWindow::destroyParentless()
   return twindow->flagParentlessAssistant ? NO : YES;
 }
 
-/*
 - (BOOL)canBecomeKeyWindow
 {
   return twindow->flagParentlessAssistant ? NO : YES;
 }
-*/
+
 /*
 - (void)becomeMainWindow {
   printf("%s\n", __FUNCTION__);

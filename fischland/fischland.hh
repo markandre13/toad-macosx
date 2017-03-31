@@ -16,6 +16,9 @@ namespace fischland {
     CURSOR_PENCIL_CLOSE = 4,
     CURSOR_PENCIL = 5,
     CURSOR_TEXT = 6,
+    CURSOR_TEXT_AREA = 7,
+    CURSOR_TEXT_SHAPE = 8,
+    CURSOR_TEXT_PATH = 9,
   };
   extern toad::TCursor *cursor[16];
 }

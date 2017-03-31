@@ -50,6 +50,15 @@ TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
 static void 
 _doMouse2(TWindow *twindow, TMouseEvent &me)
 {
+//cout << "_doMouse2: " << twindow << " '" << twindow->getTitle() << "' " << me.name() << ", _allMouseMoveEvents=" << twindow->_allMouseMoveEvents << endl;
+  if (TWindow::grabWindow) {
+//    cout << "call " << TWindow::grabWindow << " instead of " << twindow << endl;
+//    NSPoint p = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
+
+    TWindow::grabWindow->mouseEvent(me);
+    return;
+  }
+
   if (me.type == TMouseEvent::ENTER) {
     if (twindow->cursor && twindow->cursor->cursor)
       [twindow->cursor->cursor set];
@@ -70,6 +79,7 @@ _doMouse2(TWindow *twindow, TMouseEvent &me)
     flt = flt->next;
   }
 
+//  cout << "_doMouse2: " << me.name() << endl;
   if (twindow->layout && twindow->layout->mouseEvent(me))
     return;
 
@@ -144,6 +154,7 @@ TMouseEvent::tilt() const
 void
 TMouseEvent::_doMouse(TWindow *twindow, TMouseEvent &me)
 {
+//  cout << "_doMouse: " << me.name() << endl;
 /*
 if (me.type == TMouseEvent::LUP)
 {
