@@ -774,7 +774,6 @@ TWindow::destroyWindow()
   
   if (!nswindow)
     return;
-  [nswindow setWindow: nil];
   [nswindow close];
   nswindow->twindow = NULL;
   nswindow = nil;
