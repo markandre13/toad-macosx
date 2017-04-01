@@ -449,6 +449,8 @@ class TFText:
     TFText() {
       p1.x = p1.y = 0;
       fontname = "arial,helvetica,sans-serif:size=12";
+      wp.init(text);
+      calcSize();
     }
     TFText(TCoord x,TCoord y, const string &aText) {
       p1.x = x;
@@ -483,12 +485,17 @@ class TFText:
     unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
     unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
     unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
+    void mouseEvent(TMouseEvent &me) { // FIXME
+      me.pos -= p1;
+      wp.mouseEvent(me);
+    }
 
     TCloneable* clone() const override { return new TFText(*this); }
 
     const char * getClassName() const override { return "toad::TFText"; } 
     void store(TOutObjectStream&) const override;
     bool restore(TInObjectStream&) override;
+
     
   protected:
     TWordProcessor wp;

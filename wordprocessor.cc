@@ -957,7 +957,7 @@ adjust:
 
 // pos to xpos
 size_t
-positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos)
+positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, const TPoint &pos)
 {
 //  cout << "-------------- foo -------------" << endl;
   for(auto &&line: document.lines) {
@@ -1550,14 +1550,14 @@ TWordProcessor::keyDown(const TKeyEvent &ke)
   // return on deadkeys
   if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
     return false;
-
+#if 0
 cout << "##############################################" << endl;
 cout << "text: " << text << endl;
 cout << "cursor: " << xpos[CURSOR] << endl;
 cout << "key: " << key << endl;
 cout << "str: " << str << endl;
 cout << "##############################################" << endl;
-
+#endif
   bool move = false;
   size_t oldcursor = xpos[CURSOR];
   size_t sb = xpos[SELECTION_BGN];
@@ -1712,15 +1712,15 @@ cout << "##############################################" << endl;
 bool
 TWordProcessor::mouseEvent(const TMouseEvent &me)
 {
-  TPoint pos(me.pos.x, me.pos.y-72);
   switch(me.type) {
     case TMouseEvent::LDOWN:
-      xpos[CURSOR] = xpos[SELECTION_BGN] = xpos[SELECTION_END] = positionToOffset(*text, document, xpos, pos);
+      cout << "TWordProcessor::mouseEvent(): ldown at " << me.pos << endl;
+      xpos[CURSOR] = xpos[SELECTION_BGN] = xpos[SELECTION_END] = positionToOffset(*text, document, xpos, me.pos);
       break;
     case TMouseEvent::MOVE:
       if (me.modifier() & MK_LBUTTON) {
         size_t sb = xpos[CURSOR];
-        size_t se = positionToOffset(*text, document, xpos, pos);
+        size_t se = positionToOffset(*text, document, xpos, me.pos);
         if (sb>se) {
           size_t a = sb; sb=se; se=a;
         }

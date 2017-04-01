@@ -151,7 +151,7 @@ namespace toad {
     void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len);
 
     void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
-    size_t positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, TPoint &pos);
+    size_t positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, const TPoint &pos);
 
     size_t lineToCursor(const TPreparedLine *line, const string &text, TPreparedDocument &document, vector<size_t> &xpos, TCoord x);
 

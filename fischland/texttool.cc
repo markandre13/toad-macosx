@@ -69,26 +69,10 @@ TTextTool::cursor(TFigureEditor *fe, int x, int y)
 void
 TTextTool::stop(TFigureEditor *fe)
 {
-//cout << "stop pen" << endl;
-//  fe->getWindow()->ungrabMouse();
-  fe->getWindow()->setAllMouseMoveEvents(true);
+  text = nullptr;
+  TWindow::ungrabMouse();
   fe->getWindow()->setCursor(nullptr);
   fe->state = TFigureEditor::STATE_NONE;
-#if 0
-  if (path) {
-/*
-cout << "---------------" << endl;
-for(unsigned i=0; i<path->corner.size(); ++i)
-  cout << i << ": " << (unsigned)path->corner[i] << endl;
-cout << "---------------" << endl;
-*/
-    if (path->polygon.size()>=4)
-      fe->addFigure(path);
-    else
-      delete path;
-    path = 0;
-  }
-#endif
   fe->invalidateWindow();
 }
 
@@ -96,7 +80,22 @@ void
 TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
 //  cout << "TTextTool::mouseEvent " << me.pos << " " << fe->getWindow() << " '" << fe->getWindow()->getTitle() << "' " << me.name() << endl;
+  TPoint pos;
+  fe->mouse2sheet(me.pos, &pos);
 
+  TFText *textUnderMouse = nullptr;
+  TFigure *figureUnderMouse = fe->findFigureAt(pos);
+  if (!figureUnderMouse) {
+    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_AREA]);
+  } else {
+    textUnderMouse = dynamic_cast<TFText*>(figureUnderMouse);
+    if (textUnderMouse) {
+      fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT]);
+    } else {
+      fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_SHAPE]);
+    }
+  }
+  
   switch(me.type) {
     case TMouseEvent::ENTER:
       fe->getWindow()->grabMouse();
@@ -104,82 +103,55 @@ TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     case TMouseEvent::LEAVE:
       TWindow::ungrabMouse();
       return;
-  }
-  TPoint pos;
-  fe->mouse2sheet(me.pos, &pos);
-  TFigure *figure = fe->findFigureAt(pos);
-
-// cout << me.pos << " -> " << pos << " -> " << figure << endl;
-
-  if (!figure) {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_AREA]);
-  } else
-  if (dynamic_cast<TFText*>(figure)) {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT]);
-  } else {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_SHAPE]);
+    case TMouseEvent::LDOWN:
+      if (textUnderMouse && textUnderMouse != text) {
+        textUnderMouse->startInPlace();
+        fe->state = TFigureEditor::STATE_EDIT;
+        fe->clearSelection();
+      }
+      if (!textUnderMouse && text)
+        fe->invalidateFigure(text);
+      text = textUnderMouse;
+      if (text) {
+        TMouseEvent me2(me, pos);
+        text->mouseEvent(me2);
+        fe->invalidateFigure(text);
+      } else
+      if (figureUnderMouse) {
+      } else {
+        TPoint posInGrid;
+        fe->sheet2grid(pos, &posInGrid);
+        text = new TFText(posInGrid.x, posInGrid.y, "");
+        text->removeable = true;
+        fe->getAttributes()->setAllReasons();
+        text->setAttributes(fe->getAttributes());
+        cout << "create TFText " << text << endl;
+        fe->addFigure(text);
+        text->startInPlace();
+        fe->state = TFigureEditor::STATE_EDIT;
+        fe->clearSelection();
+        fe->invalidateFigure(text);
+      }
+      break;
   }
 }
 
 void
 TTextTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 {
-#if 0
-  if (ke.type != TKeyEvent::DOWN)
+  if (!text)
     return;
-  if (!path)
-    return;
-  TPolygon &polygon = path->polygon;
-  vector<byte> &corner = path->corner;
-  switch(ke.key) {
-    case TK_ESCAPE:
-      delete path;
-      path = 0;
-      stop(fe);
-      break;
-    case TK_DELETE:
-    case TK_BACKSPACE:
-#if 0
-      cout << "delete with " << polygon.size() 
-           << " (" << polygon.size()%3 << "), "
-           << corner.size() << endl;
-#endif
-      // fe->invalidateFigure(path);
-      fe->invalidateWindow();
-      if (polygon.size()==2) {
-        if (corner[0] & 2) {
-          polygon[1].x = polygon[0].x;
-          polygon[1].y = polygon[0].y;
-          corner[0] = 0;
-        } else {
-          polygon.erase(polygon.end()-2, polygon.end());
-          corner.erase(corner.end()-1);
-        }
-      } else
-      if (polygon.size()%3 == 1) { // 4 7 10 ...
-#if 0
-        if (corner[polygon.size()/3] & 1) {
-          polygon[polygon.size()-2].x = polygon[polygon.size()-1].x;
-          polygon[polygon.size()-2].y = polygon[polygon.size()-1].y;
-          corner[polygon.size()/3] = 0;
-        } else {
-#endif
-          polygon.erase(polygon.end()-2, polygon.end());
-          corner.erase(corner.end()-1);
-//        }
-      } else
-      if (polygon.size()%3 == 2) { // 5 8 11 ...
-        polygon.erase(polygon.end()-1);
-        corner.back() &= 1;
+
+  switch(ke.type) {
+    case TKeyEvent::DOWN:
+      unsigned r = text->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
+      // FIXME: delete figure if required
+      fe->invalidateWindow(); // FIXME: TWordProcessor doesn't update all sizes correctly
+      if (r & TFigure::STOP) {
+        stop(fe);
       }
-#if 0
-      cout << "delete with " << polygon.size() 
-           << " (" << polygon.size()%3 << "), "
-           << corner.size() << endl;
-#endif
       break;
   }
-#endif
 }
 
 bool

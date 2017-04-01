@@ -28,8 +28,9 @@ using namespace toad;
 class TTextTool:
   public TFigureTool
 {
+    TFText *text;
   public:
-    TTextTool() {
+    TTextTool(): text(nullptr) {
     }
     static TTextTool* getTool();
     void cursor(TFigureEditor *fe, int x, int y);

@@ -29,14 +29,15 @@ void
 TFText::calcSize()
 {
   TCoord w=0, h=0;
-  cout << "TFText::calcSize()" << endl;
+cout << "TFText::calcSize()" << endl;
   for(auto &&line: wp.document.lines) {
-    cout << "  line " << line->size.width << ", " << line->size.height << endl;
+cout << "  line " << line->size.width << ", " << line->size.height << endl;
     w = max(w, line->size.width);
     h += line->size.height;
   }
   p2.x=p1.x+w;
   p2.y=p1.y+h;
+cout << "  new area: " << p1 << ", " << p2 << endl;
 }
 
 void 
