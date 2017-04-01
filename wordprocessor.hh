@@ -196,6 +196,8 @@ namespace toad {
 //       namespace wordprocessor should be indepenent of TOAD or any other UI library
 class TWordProcessor
 {
+  private:
+    TWordProcessor(const TWordProcessor&) {}
   public:
     string *text;
     TWordProcessor() {text=nullptr;}

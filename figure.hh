@@ -446,20 +446,10 @@ class TFText:
     typedef TFRectangle super;
     
   public:
-    TFText() {
-      p1.x = p1.y = 0;
-      fontname = "arial,helvetica,sans-serif:size=12";
-      wp.init(text);
-      calcSize();
-    }
-    TFText(TCoord x,TCoord y, const string &aText) {
-      p1.x = x;
-      p1.y = y;
-      fontname = "arial,helvetica,sans-serif:size=12";
-      text = aText;
-      wp.init(text);
-      calcSize();
-    }
+    TFText();
+    TFText(const TFText&);
+    TFText(TCoord x,TCoord y, const string &aText, TFigure *aRelation=nullptr);
+    
     void setText(const string &aText) {
       text = aText;
       wp.init(text);
@@ -495,14 +485,16 @@ class TFText:
     const char * getClassName() const override { return "toad::TFText"; } 
     void store(TOutObjectStream&) const override;
     bool restore(TInObjectStream&) override;
-
     
   protected:
     TWordProcessor wp;
+    
     string text;
     string fontname;
     virtual void calcSize();
-    static size_t cx;  // cursor position while editing
+
+    TFigure *relation;
+    bool editEvent(TFigureEditEvent &editEvent) override;
 };
 
 /**

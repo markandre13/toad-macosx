@@ -116,16 +116,16 @@ TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         TMouseEvent me2(me, pos);
         text->mouseEvent(me2);
         fe->invalidateFigure(text);
-      } else
-      if (figureUnderMouse) {
       } else {
         TPoint posInGrid;
         fe->sheet2grid(pos, &posInGrid);
-        text = new TFText(posInGrid.x, posInGrid.y, "");
+        text = new TFText(posInGrid.x, posInGrid.y, "", figureUnderMouse);
+        if (figureUnderMouse) {
+          TFigureEditor::relatedTo[figureUnderMouse].insert(text);
+        }
         text->removeable = true;
         fe->getAttributes()->setAllReasons();
         text->setAttributes(fe->getAttributes());
-        cout << "create TFText " << text << endl;
         fe->addFigure(text);
         text->startInPlace();
         fe->state = TFigureEditor::STATE_EDIT;

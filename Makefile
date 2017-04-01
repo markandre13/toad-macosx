@@ -62,7 +62,7 @@ SRC=$(SRC_SHARED) $(SRC_COCOA) $(SRC_FISH)
 CXX=g++ -ObjC++ -std=gnu++1z
 #CXX=clang --language=objective-c++ --std=gnu++1z
 CXXFLAGS=-g -O0 \
-	 -frtti \
+	 -frtti -fsanitize=address -fno-omit-frame-pointer -fno-optimize-sibling-calls \
 	 -Wall \
 	 -Winconsistent-missing-override \
 	 -Werror=inconsistent-missing-override \
@@ -76,6 +76,7 @@ OBJS    = $(SRC:.cc=.o)
 $(EXEC): $(OBJS)
 	@mkdir -p fischland.app/Contents/MacOS
 	$(CXX) \
+	-fsanitize=address \
 	-framework CoreFoundation \
 	-framework AppKit \
 	$(OBJS) -o $(EXEC)

@@ -22,8 +22,72 @@
 #include <toad/figureeditor.hh>
 
 using namespace toad;
+TFText::TFText() {
+  relation = nullptr;
+  p1.x = p1.y = 0;
+  fontname = "arial,helvetica,sans-serif:size=12";
+  wp.init(text);
+  calcSize();
+}
 
-size_t TFText::cx = 0;
+TFText::TFText(const TFText &t) {
+  relation = nullptr;
+  p1 = t.p1;
+  p2 = t.p2;
+  fontname = t.fontname;
+  wp.init(text);
+  calcSize();
+}
+
+TFText::TFText(TCoord x,TCoord y, const string &aText, TFigure *aRelation) {
+  p1.x = x;
+  p1.y = y;
+  fontname = "arial,helvetica,sans-serif:size=12";
+  text = aText;
+  relation = aRelation;
+  if (relation) {
+    TRectangle bounds = relation->bounds();
+    p1.set(bounds.x+3, bounds.y+3);
+  }
+  wp.init(text);
+  calcSize();
+}
+
+bool
+TFText::editEvent(TFigureEditEvent &editEvent)
+{
+  // FIXME: add helper functions for RELATION_REMOVED and REMOVED
+  switch(editEvent.type) {
+    case TFigureEditEvent::RELATION_MODIFIED: {
+      if (!relation) {
+        cout << "TFText::editEvent: event for relation modifed but pointer is null" << endl;
+        return false;
+      }
+      TRectangle bounds = relation->bounds();
+      p1.set(bounds.x+3, bounds.y+3);
+      // in theory, an TFText with a relation is wrapped inside the relation and
+      // we shouldn't need to invalidate
+      } break;
+    case TFigureEditEvent::RELATION_REMOVED:
+      if (editEvent.model->figures.find(relation) != editEvent.model->figures.end()) {
+        relation = nullptr;
+      }
+      break;
+    case TFigureEditEvent::REMOVED: {
+      if (relation) {
+        auto p = TFigureEditor::relatedTo.find(relation);
+        if (p!=TFigureEditor::relatedTo.end()) {
+          p->second.erase(this);
+          if (p->second.empty())
+            TFigureEditor::relatedTo.erase(p);
+        }
+      }
+    } break;
+    default:
+      ;
+  }
+  return false;
+}
 
 void 
 TFText::calcSize()
@@ -73,14 +137,12 @@ TFText::getHandle(unsigned, TPoint*)
 bool 
 TFText::startInPlace()
 {
-  cx = 0;
   return true;
 }
 
 void 
 TFText::startCreate()
 {
-  cx = 0;
 }
 
 unsigned 
@@ -106,28 +168,6 @@ TFText::keyDown(TFigureEditor *editor, TKey key, char *str, unsigned modifier)
 unsigned 
 TFText::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
-  switch(editor->state) {
-    case TFigureEditor::STATE_START_CREATE:
-      cx = 0;
-      p1 = m.pos;
-      calcSize();
-      editor->invalidateFigure(this);
-      startInPlace();
-      return CONTINUE|NOGRAB;
-      
-    case TFigureEditor::STATE_CREATE:
-    case TFigureEditor::STATE_EDIT:
-      if (distance(m.pos)>RANGE) {
-        editor->invalidateFigure(this);
-        if (text.empty())
-          return STOP|DELETE|REPEAT;
-        return STOP|REPEAT;
-      }
-      break;
-      
-    default:
-      break;
-  }
   return CONTINUE;
 }
 
@@ -176,22 +216,23 @@ TFText::store(TOutObjectStream &out) const
   super::store(out);
   ::store(out, "fontname", fontname);
   ::store(out, "text", text);
+  ::storePointer(out, "relation", relation);
 }
 
 bool
 TFText::restore(TInObjectStream &in)
 {
+  if (::finished(in)) {
+    TFigureEditor::restoreRelation(const_cast<const TFigure**>(&relation), this);
+    wp.init(text);
+    calcSize();
+  }
   if (
     ::restore(in, "text", &text) ||
     ::restore(in, "fontname", &fontname) ||
+    ::restorePointer(in, "relation", &relation) ||
     super::restore(in)
-  ) {
-    if (in.what == ATV_FINISHED) {
-      wp.init(text);
-      calcSize();
-    }
-    return true;
-  }
+  ) return true;
   ATV_FAILED(in)
   return false;
 }

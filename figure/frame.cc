@@ -50,7 +50,7 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
     pen.setColor(line_color);
     pen.drawString(r.x+5, r.y-fh/2, text);
   }
-
+#if 0
   if (type==EDIT) {
     pen.setColor(line_color);
     TCoord fh = getDefaultFont().getHeight();
@@ -58,6 +58,7 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
     TCoord yp = r.y-fh/2;
     pen.drawLine(r.x+dx,yp,r.x+dx,yp+pen.getHeight());
   }
+#endif
 }
 
 TRectangle
