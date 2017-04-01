@@ -1690,6 +1690,27 @@ cout << "##############################################" << endl;
   }
   
   if (!move) {
+    if (str=="&") {
+      text->insert(xpos[CURSOR], "&amp;");
+      xmlinc(*text, &xpos[CURSOR]);
+      prepareHTMLText(*text, xpos, &document);
+      updateMarker(*text, &document, xpos);
+      return true;
+    } else
+    if (str=="<") {
+      text->insert(xpos[CURSOR], "&lt;");
+      xmlinc(*text, &xpos[CURSOR]);
+      prepareHTMLText(*text, xpos, &document);
+      updateMarker(*text, &document, xpos);
+      return true;
+    } else
+    if (str==">") {
+      text->insert(xpos[CURSOR], "&gt;");
+      xmlinc(*text, &xpos[CURSOR]);
+      prepareHTMLText(*text, xpos, &document);
+      updateMarker(*text, &document, xpos);
+      return true;
+    }
     textInsert(*text, document, xpos, str);
     return true;
   }
