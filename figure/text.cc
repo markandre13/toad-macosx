@@ -84,6 +84,7 @@ TFText::editEvent(TFigureEditEvent &editEvent)
       }
     } break;
     default:
+      return super::editEvent(editEvent);
       ;
   }
   return false;
