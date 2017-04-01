@@ -36,8 +36,12 @@ class TFConnection:
     
     // line types: straight, orthogonal, curved, bezier
 
-    TFConnection(): start(nullptr), end(nullptr) { p.assign(2, TPoint(0, 0)); }
-    TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {}
+    TFConnection(): start(nullptr), end(nullptr) {
+      p.assign(2, TPoint(0, 0));
+    }
+    TFConnection(TFigure *inStart, TFigure *inEnd): start(inStart), end(inEnd) {
+      p.assign(2, TPoint(0, 0));
+    }
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TVectorGraphic* getPath() const override;
     TRectangle bounds() const override;
