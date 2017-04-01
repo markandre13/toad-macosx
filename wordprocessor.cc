@@ -57,10 +57,8 @@ TTextAttribute::setFont(TPenBase &pen)
 
 TPreparedLine::~TPreparedLine()
 {
-  for(auto &&p: fragments) {
-    cout << "    free fragment " << p << endl;
+  for(auto &&p: fragments)
     delete p;
-  }
 }
 
 TPreparedDocument::~TPreparedDocument()
@@ -71,12 +69,8 @@ TPreparedDocument::~TPreparedDocument()
 void
 TPreparedDocument::clear()
 {
-  cout << this << " TPreparedDocument::clear() >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << endl;
-  for(auto &&p: lines) {
-    cout << "  free line " << p << endl;
+  for(auto &&p: lines)
     delete p;
-  }
-  cout << this << " TPreparedDocument::clear() <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
   lines.clear();
   marker.clear();
 }
