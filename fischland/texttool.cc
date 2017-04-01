@@ -146,7 +146,6 @@ TTextTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
     case TKeyEvent::DOWN:
       unsigned r = text->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
       // FIXME: delete figure if required
-      fe->invalidateWindow(); // FIXME: TWordProcessor doesn't update all sizes correctly
       if (r & TFigure::STOP) {
         stop(fe);
       }

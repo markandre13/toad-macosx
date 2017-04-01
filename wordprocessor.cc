@@ -841,6 +841,7 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
           
           diffW = font.getTextWidth(cstr, size) - fragment->size.width;
           fragment->size.width += diffW;
+          line->size.width += diffW;
           
           afterOffset = true;
         }
