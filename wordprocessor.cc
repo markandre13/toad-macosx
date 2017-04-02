@@ -359,8 +359,17 @@ entityinc(const string &text, size_t *cx)
 void
 entitydec(const string &text, size_t *cx)
 {
+  size_t oldCX = *cx;
   while(*cx > 0 && text[*cx]!='&') {
     utf8dec(text, cx);
+    if (text[*cx]==';' || text[*cx]=='>') { // another entity is closing or a tag -> not an entity
+      *cx = oldCX;
+      return;
+    }
+  }
+  if (*cx==0 && text[0]!='&') {	// at head and still no opening '&' -> not an entity
+    *cx = oldCX;
+    return;
   }
 }
 

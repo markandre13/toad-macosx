@@ -112,6 +112,16 @@ TEST(WordProcessor, xmldec)
   
   x=12; xmldec("Move &times;<i>to</i> it.", &x);
   ASSERT_EQ(5, x);
+  
+  // semicolon not belonging to entity
+  x=10; xmldec("a &amp; b;", &x);
+  ASSERT_EQ(9, x);
+  
+  x=5; xmldec("what;", &x);
+  ASSERT_EQ(4, x);
+  
+  x=11; xmldec("<br/> when;", &x);
+  ASSERT_EQ(10, x);
 }
 
 TEST(WordProcessor, isadd)
@@ -309,7 +319,6 @@ TEST(WordProcessor, tagtoggle)
                           17,       27,
         "<b>Hello </b><i><b>this </b>is <u>not <b>totally</b></u><b> really</b></i><b> awesome.</b>"
     },
-
     { // 0         1         2         3         4         5         6         7         8         9
       // 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
         "<b>Hello </b><i><b>this </b>is <u>not <b>totally</b></u><b> really</b></i><b> awesome.</b>",
