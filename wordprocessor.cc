@@ -369,7 +369,12 @@ xmlinc(const string &text, size_t *cx)
 {
 //  cout << "--------------- '" << text << "', " << *cx << endl;
   TTag tag;
+  size_t oldCX = *cx;
   while(true) {
+    if (*cx >= text.size()) {
+      *cx = oldCX;
+      return;
+    }
     switch(text[*cx]) {
       case '<':
         taginc(text, cx, &tag);
