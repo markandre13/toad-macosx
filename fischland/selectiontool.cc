@@ -99,8 +99,9 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
         fe->getWindow()->setAllMouseMoveEvents(true);
       }
       
-      if (downHandle(fe, me))
+      if (downHandle(fe, me)) {
         break;
+      }
 
       // find figure under mouse
       fe->mouse2sheet(me.pos, &p);
@@ -114,6 +115,7 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
         cout << "TSelectionTool: figure shall be edited" << endl;
         fe->state = TFigureEditor::STATE_EDIT;
         fe->clearSelection();
+        // invalidateBounding(fe);
         tmpsel.clear();
         tmpsel.insert(figure);
         fe->invalidateWindow();
@@ -141,6 +143,7 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
       if (fe->selection.find(figure) == fe->selection.end() &&
           !(me.modifier() & MK_SHIFT))
       {
+// invalidate???
         fe->clearSelection();
       }
 
@@ -151,7 +154,7 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
         last_s = me.pos;
         grab = true;
         calcSelectionsBoundingRectangle(fe);
-        fe->invalidateWindow();
+        invalidateBounding(fe);
         break;
       }
       
@@ -159,7 +162,8 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
       if (!tmpsel.empty() &&
           !(me.modifier() & MK_SHIFT))
       {
-        fe->invalidateWindow();
+        // fe->invalidateWindow();
+        invalidateBounding(fe);
         tmpsel.clear();
       }
       
