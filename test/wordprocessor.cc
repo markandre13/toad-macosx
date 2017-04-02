@@ -144,6 +144,8 @@ TEST(WordProcessor, isadd)
   //                 ^          <
   ASSERT_EQ(isadd("ab<b>cde</b>fg", "b", 2,14), true);
   //                 ^           <
+  ASSERT_EQ(isadd("ab&times;cd", "b", 2,9), true);
+  //                 ^      <
 }
 
 TEST(WordProcessor, tagtoggle)
@@ -157,6 +159,7 @@ TEST(WordProcessor, tagtoggle)
   };
 
   static vector<test> test = {
+#if 0
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -386,6 +389,14 @@ TEST(WordProcessor, tagtoggle)
       //               ^  <
                        14,17,
         "hello &times; <b>you</b> there."
+    },
+#endif
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "hello &times; you there.",
+      //       ^      <
+               6,     13,
+        "hello <b>&times;</b> you there."
     },
   };
 
@@ -886,6 +897,19 @@ TEST(WordProcessor, textInsert)
         { .offset= 3, .txt="&amp;" },
         { .offset= 8, .txt="T", .eol=true },
         { .offset=14, .txt="def" }
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "Fine with<i><b>&lt;&gt;&amp;</b></i> you.",
+      .pos = 23,
+      .frags = {
+        { .offset= 0, .txt="Fine with" },
+        { .offset=15, .txt="&lt;",  .italics=true, .bold=true },
+        { .offset=19, .txt="&gt;",  .italics=true, .bold=true },
+        { .offset=23, .txt="T",     .italics=true, .bold=true },
+        { .offset=24, .txt="&amp;", .italics=true, .bold=true },
+        { .offset=37, .txt=" you." }
       }
     },
   };

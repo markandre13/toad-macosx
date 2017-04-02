@@ -27,7 +27,7 @@ using toad::utf8dec;
 using toad::utf8charsize;
 using toad::TPoint;
 
-#define DBG(CMD)
+#define DBG(CMD) CMD
 
 namespace toad::wordprocessor {
 
@@ -1089,7 +1089,7 @@ positionToOffset(const string &text, TPreparedDocument &document, vector<size_t>
 bool
 isadd(const string &text, const string &tag, size_t bgn, size_t end)
 {
-//cout << "-----------------------" << endl;
+//cout << "isadd -----------------------" << endl;
   // we'll optimize this later
   size_t idx = 0;
   
@@ -1105,14 +1105,18 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
   while(x0<xpos[SELECTION_END]) {
     x1=x0;
     while(x1<eol) {
+//cout << x1 << " " << (char)c << endl;
       c = text[x1];
-      if (c=='<' || c=='&')
+      if (c=='<')
         break;
       if (xpos[SELECTION_BGN] <= x1 && !inside) {
 //cout << "true in text at " << x1 << endl;
         return true;
       }
-      utf8inc(text, &x1);
+      if (c=='&')
+        entityinc(text, &x1);
+      else
+        utf8inc(text, &x1);
     }
     x0=x1;
     if (c=='<') {
@@ -1128,22 +1132,18 @@ isadd(const string &text, const string &tag, size_t bgn, size_t end)
         if (tag0.name==tag) {
 //          cout << " open";
           inside = true;
-//      cout << endl;
-      if (xpos[SELECTION_BGN] < (x1-1) && !inside) {
-//cout << "true in tag at " << x1 << endl;
-        return true;
-      }
+//          cout << endl;
+          if (xpos[SELECTION_BGN] < (x1-1) && !inside) {
+//            cout << "true in tag at " << x1 << endl;
+            return true;
+          }
         }
       }
 //      cout << endl;
       x0=x1;
-    } else
-    if (c=='&') {
-      entityinc(text, &x1);
-//      cout << x0 << " entity: " << text.substr(x0,x1-x0) << endl;
-      x0=x1;
     }
   }
+//cout << "return false" << endl;
   return false;
 }
 
@@ -1279,7 +1279,7 @@ tagtoggle(const string &text, vector<size_t> &xpos, const string &tag)
   
   // find out whether we are about to add or remove tag
   bool add = isadd(text, tag, sb, se);
-  DBG(cout << "isadd: " << add << endl;)
+  DBG(cout << "isadd: " << (add?"true":"false") << endl;)
 
   // the algoritm following later is good at removing the onoff related tags
   // when the selection encloses the largest possible area to be within tag.
