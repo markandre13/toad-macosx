@@ -27,7 +27,7 @@ using toad::utf8dec;
 using toad::utf8charsize;
 using toad::TPoint;
 
-#define DBG(CMD) CMD
+#define DBG(CMD)
 
 namespace toad::wordprocessor {
 
@@ -1368,6 +1368,8 @@ for(size_t i=0; i<xpos.size(); ++i) {
 
           DBG(cout << __LINE__ << ": +<"<<tag<<">, ++inside, inside=" << (inside+1) << endl;)
           out += "<"+tag+">";
+        } else {
+          DBG(cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;)
         }
         ++inside;
       }
@@ -1429,10 +1431,11 @@ for(size_t i=0; i<xpos.size(); ++i) {
         for(auto &a: tagrange) {
           if (a.bgn==x0) {
             DBG(cout << __LINE__ << ":  tag has range " << a.bgn << " to " << a.end << endl;)
-            if (a.end>sb) {
+            if (a.end>sb && a.bgn < se) {
               DBG(cout << __LINE__ << ": del: tag end "<<a.end<<" is after selection bgn "<<sb<< endl;) // FIXME: text
               onoff = true;
             }
+            break;
           }
         }
       }
@@ -1441,18 +1444,19 @@ for(size_t i=0; i<xpos.size(); ++i) {
         for(auto &a: tagrange) {
           if (a.end==x0) {
             DBG(cout << "  tag has range " << a.bgn << " to " << a.end << endl;)
-            if (a.bgn<se) {
-              DBG(cout << "del: tag bgn "<<a.end<<" is after selection end "<<se<< endl;) // FIXME: text
+            if (a.bgn<se && a.end>sb) { // FIXME: or a.end>=sb ??
+              DBG(cout << "del: tag bgn "<<a.bgn<<" is before selection end "<<se<< endl;) // FIXME: text
               onoff = true;
             }
+            break;
           }
         }
       }
     }
     
     if (onoff && inside) {
-      DBG(cout << __LINE__ << ": add </" << tag << ">" << endl;)
       out+="</"+tag+">";
+      DBG(cout << __LINE__ << ":  add tag </" << tag << ">" << "\t:" << out << endl;)
     }
     
     // outside selection
@@ -1460,33 +1464,35 @@ for(size_t i=0; i<xpos.size(); ++i) {
       --inside;
       DBG(cout << __LINE__ << ": --inside, inside=" << (inside) << endl;)
       if (!inside) {
-        DBG(cout << __LINE__ << ": add " << tag0 << endl;)
         out += tag0;
+        DBG(cout << __LINE__ << ":  add tag " << tag0 << "\t:" << out << endl;)
       }
     } else
     if (tag0.open && !tag0.close && tag0.name==tag) {
       if (!inside) {
-        DBG(cout << __LINE__ << ": add " << tag0 << endl;)
         out += tag0;
+        DBG(cout << __LINE__ << ":  add tag " << tag0 << "\t:" << out << endl;)
       }
-      ++inside;
       DBG(cout << __LINE__ << ": ++inside, inside=" << (inside+1) << endl;)
+      ++inside;
     } else {
-      DBG(cout << __LINE__ << ": copy tag " << tag0 << endl;)
       out += tag0;
+      DBG(cout << __LINE__ << ": copy tag " << tag0 << "\t:" << out << endl;)
     }
 
     if (onoff && inside) {
-      DBG(cout << __LINE__ << ": add <" << tag << ">" << endl;)
       out+="<"+tag+">";
+      DBG(cout << __LINE__ << ":  add tag <" << tag << ">"<< "\t:" << out  << endl;)
     }
 
     x0=x1;
   }
 
   // still inside? don't
-  if (inside==1)
+  if (inside==1) {
     out+="</"+tag+">";
+    DBG(cout << __LINE__ << ":  add tag <" << tag << ">"<< "\t:" << out  << endl;)
+  }
 
 for(size_t i=0; i<xpos.size(); ++i) {
   if (xpos[i]==text.size()) {
