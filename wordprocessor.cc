@@ -1185,7 +1185,6 @@ tagrange(const string &text, vector<TTagRange> *result)
 }
 
 // FIXME: write tests for this one
-// FIXME: implement isadd==false
 void
 expandselection(const string &text, size_t *sb, size_t *se, const string &name)
 {
@@ -1217,6 +1216,7 @@ expandselection(const string &text, size_t *sb, size_t *se, const string &name)
       DBG(cout << "TAIL_JUST_PASSED" << endl;)
       tail = TAIL_JUST_PASSED;
     }
+//    cout << cx << ": " << text[cx] << endl;
     size_t x = cx;
     if (text[cx]=='<') {
       TTag tag;
@@ -1229,6 +1229,9 @@ expandselection(const string &text, size_t *sb, size_t *se, const string &name)
             inside_since = x;
           }
           head = HEAD_INSIDE;
+        } else {
+          if (tail==TAIL_JUST_PASSED)
+            tail=TAIL_PASSED;
         }
       }
       if (tag.close) {
@@ -1611,9 +1614,9 @@ TWordProcessor::keyDown(const TKeyEvent &ke)
   // return on deadkeys
   if (key==TK_SHIFT_L || key==TK_SHIFT_R || key==TK_CONTROL_L || key==TK_CONTROL_R)
     return false;
-#if 0
+#if 1
 cout << "##############################################" << endl;
-cout << "text: " << text << endl;
+cout << "text: " << *text << endl;
 cout << "cursor: " << xpos[CURSOR] << endl;
 cout << "key: " << key << endl;
 cout << "str: " << str << endl;

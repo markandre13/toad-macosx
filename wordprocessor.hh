@@ -169,7 +169,7 @@ namespace toad {
       size_t bgn, end;
     };
     void tagrange(const string &text, vector<TTagRange> *result);
-    void expandselection(const string &text, size_t *sb, size_t *se, const string &name, bool isadd);
+    void expandselection(const string &text, size_t *sb, size_t *se, const string &name);
 
     void textInsert(string &text, TPreparedDocument &document, vector<size_t> &xpos, const string &str);
     void textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos);

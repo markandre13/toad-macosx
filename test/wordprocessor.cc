@@ -382,6 +382,8 @@ TEST(WordProcessor, tagtoggle)
                       13,16,
         "hello<b><br/></b>you there."
     },
+
+    // with entities
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
         "hello &times; you there.",
@@ -395,6 +397,27 @@ TEST(WordProcessor, tagtoggle)
       //       ^      <
                6,     13,
         "hello <b>&times;</b> you there."
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "abc<br/><i>edf</i>",
+      // ^       <
+         0,      8,
+        "<b>abc<br/></b><i>edf</i>"
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "abc<br/>&lt;<i>edf</i>",
+      // ^       <
+         0,      8,
+        "<b>abc<br/></b>&lt;<i>edf</i>"
+    },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "abc<br/>&lt;<i>edf</i>",
+      // ^           <
+         0,         12,
+        "<b>abc<br/>&lt;</b><i>edf</i>"
     },
   };
 
@@ -446,6 +469,15 @@ cout << endl;
     
   }
 }
+
+TEST(WordProcessor, expandselection)
+{
+  size_t sb=0, se=8;
+  expandselection("abc<br/><i>edf</i>", &sb, &se, "b");
+  ASSERT_EQ(0, sb);
+  ASSERT_EQ(8, se);
+}
+
 
 TEST(WordProcessor, prepareHTMLText)
 {
