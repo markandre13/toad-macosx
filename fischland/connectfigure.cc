@@ -255,7 +255,7 @@ bool
 TFConnection::getHandle(unsigned handle, TPoint *p)
 {
 //cout << "TFConnection::getHandle("<<handle<<", "<<*p<<")" << endl;
-  if (handle > this->p.size())
+  if (handle >= this->p.size())
     return false;
   *p = this->p[handle];
   return true;

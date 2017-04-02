@@ -170,6 +170,10 @@ struct TSize:
     TSize(TCoord w, TCoord h) { width=w; height=h; }
 };
 
+inline ostream& operator<<(ostream &s, const TSize& p) {
+  return s<<'('<<p.width<<','<<p.height<<')';
+}
+
 struct TRectangle;
 
 struct TBoundary

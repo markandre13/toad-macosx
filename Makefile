@@ -88,6 +88,7 @@ TEST_OBJ=$(TEST_SRC:.cc=.o)
 test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@mkdir -p test.app/Contents/MacOS
 	$(CXX) \
+	-fsanitize=address \
 	-framework CoreFoundation \
 	-framework AppKit \
 	$(TEST_OBJ) -o test.app/Contents/MacOS/test

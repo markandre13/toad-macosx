@@ -87,9 +87,14 @@ namespace toad {
       TTextFragment() {
         offset = npos;
       }
-      TTextFragment(const TTextFragment *t): attr(t?&t->attr:0) {
+      TTextFragment(const TTextFragment *t): attr(t?&t->attr:nullptr) {
         offset = npos;
-        origin.y = t?t->origin.y:0;
+/*
+        if (t) {
+          origin = t->origin;
+          size   = t->size;
+        }
+*/
       }
 
       // information on rendering
@@ -149,6 +154,7 @@ namespace toad {
     // render text on screen
     void renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos);
     void updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len);
+    void dump(const string &text, const TPreparedDocument &document);
 
     void updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos);
     size_t positionToOffset(const string &text, TPreparedDocument &document, vector<size_t> &xpos, const TPoint &pos);

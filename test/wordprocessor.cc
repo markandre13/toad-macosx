@@ -559,9 +559,21 @@ TEST(WordProcessor, prepareHTMLText)
         { .offset=12, .length=4, },
         { .offset=16, .length=3, },
         { .offset=19, .length=4, },
+        { .offset=23, .length=0, },
       },
     },
-    
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "prepare&lt;<br/>tag&gt;",
+      .frags = {
+        { .offset= 0, .length=7,  },
+        { .offset= 7, .length=4, },
+        { .offset=11, .length=0, .eol=true },
+        { .offset=16, .length=3, },
+        { .offset=19, .length=4, },
+        { .offset=23, .length=0, },
+      },
+    },
   };
 
   for(auto &t: test) {
@@ -814,6 +826,22 @@ TEST(WordProcessor, textInsert)
   vector<test> test = {
     //       0         1         2         3         4         5
     //       012345678901234567890123456789012345678901234567890
+    { .in = "",
+      .pos = 0,
+      .frags = {
+        { .offset=0,  .txt="T" },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "a",
+      .pos = 1,
+      .frags = {
+        { .offset=0,  .txt="aT" },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
     { .in = "<br/>",
       .pos = 0,
       .frags = {
@@ -837,6 +865,27 @@ TEST(WordProcessor, textInsert)
       .frags = {
         { .offset=3,  .txt="THi", .bold=true },
         { .offset=10, .txt="" },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "abc&amp;",
+      .pos = 8,
+      .frags = {
+        { .offset=0, .txt="abc" },
+        { .offset=3, .txt="&amp;" },
+        { .offset=8, .txt="T" },
+      }
+    },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "abc&amp;<br/>def",
+      .pos = 8,
+      .frags = {
+        { .offset= 0, .txt="abc" },
+        { .offset= 3, .txt="&amp;" },
+        { .offset= 8, .txt="T", .eol=true },
+        { .offset=14, .txt="def" }
       }
     },
   };
@@ -922,6 +971,101 @@ TEST(WordProcessor, textInsert)
       ASSERT_EQ(line, document.lines.end());
 
   }
+}
+
+TEST(WordProcessor, variousEntityTests)
+{
+  string text="abc";
+  vector<size_t> xpos;
+  xpos.assign(3, 0);
+  TPreparedDocument document;
+  prepareHTMLText(text, xpos, &document);
+
+  xpos[CURSOR]=3;
+
+  text.insert(xpos[CURSOR], "&amp;");
+  xmlinc(text, &xpos[CURSOR]);
+  prepareHTMLText(text, xpos, &document);
+  updateMarker(text, &document, xpos);
+  
+cout << "=====================================================================" << endl;
+  cout << "0         1         2         3         4         5" << endl;
+  cout << "012345678901234567890123456789012345678901234567890" << endl;
+  cout << text << endl;
+  cout << xpos[CURSOR] << endl;
+  cout << document.marker[CURSOR].pos << endl;
+  dump(text, document);
+cout << "textInsert ----------------------------------------------------------" << endl;
+
+  textInsert(text, document, xpos, "d");
+
+  cout << "0         1         2         3         4         5" << endl;
+  cout << "012345678901234567890123456789012345678901234567890" << endl;
+  cout << text << endl;
+  cout << xpos[CURSOR] << endl;
+  cout << document.marker[CURSOR].pos << endl;
+  dump(text, document);
+
+cout << "lineBreak -----------------------------------------------------------" << endl;
+
+  text.insert(xpos[CURSOR], "<br/>");
+  xmlinc(text, &xpos[CURSOR]);
+  prepareHTMLText(text, xpos, &document);
+  updateMarker(text, &document, xpos);
+
+  cout << "0         1         2         3         4         5" << endl;
+  cout << "012345678901234567890123456789012345678901234567890" << endl;
+  cout << text << endl;
+  cout << xpos[CURSOR] << endl;
+  cout << document.marker[CURSOR].pos << endl;
+  dump(text, document);
+  
+  ASSERT_EQ(0, document.lines.back()->fragments.back()->origin.x);
+}
+
+TEST(WordProcessor, updateMarker)
+{
+  string text="ab&lt;cd";
+  vector<size_t> xpos;
+  xpos.assign(3, 0);
+  TPreparedDocument document;
+  prepareHTMLText(text, xpos, &document);
+
+  // before 'a'
+  xpos[CURSOR]=0;
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
+  
+  // before 'b'
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
+
+  // before '&amp;'
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
+
+  // before 'c'
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
+
+  // before 'd'
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
+
+  // behind 'd'
+  xmlinc(text, &xpos[CURSOR]);
+  updateMarker(text, &document, xpos);
+  dump(text, document);
+  cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
 }
 
 // <b>hello</b>

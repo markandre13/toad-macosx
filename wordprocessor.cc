@@ -471,7 +471,8 @@ fragment2cstr(const TTextFragment *fragment, const char *text, const char **cstr
   *length = fragment->length;
 }
 
-void dump(const string &text, const TPreparedDocument &document)
+void
+dump(const string &text, const TPreparedDocument &document)
 {
   for(auto &&line: document.lines) {
     cout << "line:" << endl;
@@ -479,7 +480,10 @@ void dump(const string &text, const TPreparedDocument &document)
       cout << "  fragment: " << fragment->offset << ", " << fragment->length
            << ", \"" << (fragment->offset>=text.size() ? "" : text.substr(fragment->offset, fragment->length)) << "\" "
            << (fragment->attr.bold?", bold":"")
-           << (fragment->attr.italic?", italics":"") << endl;
+           << (fragment->attr.italic?", italics":"")
+           << ", origin=" << fragment->origin
+           << ", size=" << fragment->size
+           << endl;
     }
   }
 }
@@ -494,7 +498,6 @@ void dump(const string &text, const TPreparedDocument &document)
 void
 prepareHTMLText(const string &text, const vector<size_t> &xpos, TPreparedDocument *document)
 {
-cout << "prepareHTMLText " << document << endl;
   document->clear();
 //cout << "prepareHTMLText ------------------------------------------------------" << endl;
   TFont font;
@@ -516,6 +519,7 @@ cout << "prepareHTMLText " << document << endl;
   TTextFragment *fragment = 0;
  
   if (text.empty()) {
+//cout << __FILE__ << ":" << __LINE__ << endl;
     line->fragments.push_back(new TTextFragment(fragment));
     fragment = line->fragments.back();
     fragment->attr.setFont(font);
@@ -546,6 +550,7 @@ cout << "prepareHTMLText " << document << endl;
       line->descent = max(line->descent, font.getDescent());
       if (!fragment || fragment->offset != TTextFragment::npos) {
 //cout << "  new fragment" << endl;
+//cout << __FILE__ << ":" << __LINE__ << endl;
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->attr.setFont(font);
@@ -575,6 +580,7 @@ cout << "prepareHTMLText " << document << endl;
       if (tag.open && tag.name=="br") { // FIXME: the <br/> must be treated like a character
         if (!fragment) {
 //cout << "  no fragment -> create new one" << endl;
+//cout << __FILE__ << ":" << __LINE__ << endl;
           line->fragments.push_back(new TTextFragment(fragment));
           fragment = line->fragments.back();
           fragment->attr.setFont(font);
@@ -588,6 +594,19 @@ cout << "prepareHTMLText " << document << endl;
         }
         line->size.width=x;
         line->size.height=line->ascent + line->descent;
+
+        if (document->lines.back()->fragments.back()->length>0 &&
+            text[document->lines.back()->fragments.back()->offset] == '&')
+        {
+//cout << __FILE__ << ":" << __LINE__ << endl;
+          document->lines.back()->fragments.push_back(new TTextFragment(fragment));
+          fragment = line->fragments.back();
+          fragment->offset = x0;
+          fragment->length=0;
+//          f->attr.setFont(font);
+//          f->size.height = font.getHeight();
+        }
+
 //cout << "  br -> new line" << endl;
         document->lines.push_back(new TPreparedLine());
         document->lines.back()->origin.y = line->origin.y + line->size.height;
@@ -602,7 +621,6 @@ cout << "prepareHTMLText " << document << endl;
       // text can be inserted before the tag
       if (line->fragments.size()==1 && fragment->offset==TTextFragment::npos) {
         fragment = line->fragments.back();
-        fragment = line->fragments.back();
         fragment->offset = x0;
         fragment->length = 0;
       }
@@ -612,7 +630,11 @@ cout << "prepareHTMLText " << document << endl;
       // FIXME: need an attr outside the line to cope with line wraps, by using a 'next fragment'
       if (line->fragments.empty() || line->fragments.back()->offset != TTextFragment::npos)  {
 //cout << "  empty line or used fragment -> create new one" << endl;
+//cout << __FILE__ << ":" << __LINE__ << endl;
+//cout << "x="<<x<<endl;
         line->fragments.push_back(new TTextFragment(fragment));
+        fragment = line->fragments.back();
+        fragment->origin.x = x;
       }
 
       fragment = line->fragments.back();
@@ -667,6 +689,7 @@ cout << "prepareHTMLText " << document << endl;
 
       if (!fragment || fragment->offset != TTextFragment::npos) {
 //cout << "  empty line or used fragment -> create new one" << endl;
+//cout << __FILE__ << ":" << __LINE__ << endl;
         line->fragments.push_back(new TTextFragment(fragment));
         fragment = line->fragments.back();
         fragment->origin.x = x;
@@ -694,23 +717,29 @@ cout << "prepareHTMLText " << document << endl;
   }
   line->size.width = x;
   line->size.height=line->ascent + line->descent;
+
+  if (document->lines.back()->fragments.back()->length>0 &&
+      text[document->lines.back()->fragments.back()->offset] == '&')
+  {
+//cout << __FILE__ << ":" << __LINE__ << endl;
+//cout << "  last fragment " << fragment->origin << ", " << fragment->size << endl;
+    document->lines.back()->fragments.push_back(new TTextFragment(fragment));
+    fragment = line->fragments.back();
+    fragment->offset = text.size();
+    fragment->length=0;
+    fragment->origin.x = x;
+    fragment->size.height = font.getHeight();
+    fragment->ascent =  font.getAscent();
+    fragment->descent = font.getDescent();
+//cout << "  final fragment " << fragment->origin << ", " << fragment->size << endl;
+  }
 }
 
 void
 renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *document, const vector<size_t> &xpos)
 {
-//cout << "render-------------" << endl;
-//cout << "we have " << document->lines.size() << " lines" << endl;
-//  pen.setColor(164,205,1);
-//  pen.setColor(0.64,0.8,1);
-//  pen.setColor(0,1,1);
-/*
-  pen.fillRectangle(document->pos[SELECTION_BGN].pos.x,
-                    document->pos[SELECTION_BGN].pos.y,
-                    document->pos[SELECTION_END].pos.x - document->pos[SELECTION_BGN].pos.x,
-                    pen.getHeight());
-  pen.setColor(0,0,0);
-*/
+//cout << "renderPrepared document " << document << " ============================================================" << endl;
+//dump(text, *document);
 //  cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
 //  cout << "cursor " <<  document->pos[CURSOR].line << " " << document->pos[CURSOR].line->size.height << endl;
 //  for(auto &&line: document->lines) {
@@ -773,28 +802,25 @@ renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *documen
                 document->marker[CURSOR].line->ascent-
                 document->marker[CURSOR].fragment->ascent;
     pen.setLineWidth(1.0);
+/*
+dump(text, *document);
+cout << "draw cursor at " << document->marker[CURSOR].pos << " ("<<cy<<"), height " << document->marker[CURSOR].fragment->size.height << endl;
+cout << "  document->marker[CURSOR].pos.y = " << document->marker[CURSOR].pos.y << endl;
+cout << "  document->marker[CURSOR].line->ascent = " << document->marker[CURSOR].line->ascent << endl;
+cout << "  document->marker[CURSOR].fragment->ascent = " << document->marker[CURSOR].fragment->ascent << endl;
+*/
     pen.drawLine(document->marker[CURSOR].pos.x, cy,
                  document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
   }
 }
 
 /**
- * update TPreparedDocument after text had been added and removed
+ * update TPreparedDocument after changes which wouldn't affect line and fragment count
  *
  * \param text		the text which had been modified
  * \param document	the prepared document data for text
  * \param offset	location in text where the modification took place
  * \param len		number of bytes added/removed
- * for now this function only handles inserting text to an existing fragment
- * todo
- * \li simple inserts must also create new text fragments when between "near" entities/tags
- * \li insert text with tags and entities
- * \li the two points above suggest reusing code from prepareHTML
- *     (keep in mind that stuff like prepareHTML is intended to be plugable,
- *     so that we could also handle syntax highlightning for programming
- *     languages)
- * \li remove
- * \li replace
  */
 void
 updatePrepared(const string &text, TPreparedDocument *document, size_t offset, ssize_t len)
@@ -826,25 +852,30 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
 //     << (fragment->attr.bold?", bold":"")
 //     << (fragment->attr.italic?", italics":"") << endl;
         if (afterOffset) {
+//cout << "afterOffset" << endl;
           fragment->offset += len;
           fragment->origin.x += diffW;
-        } else
-        if (fragment->offset <= offset && offset <= fragment->offset + fragment->length) {
-//cout << ":    adjust fragment" << endl;
-          fragment->length += len;
-
-          const char *cstr;
-          size_t size;
-          fragment2cstr(fragment, text.data(), &cstr, &size);
-    
-          TFont font;
-          fragment->attr.setFont(font);
-          
-          diffW = font.getTextWidth(cstr, size) - fragment->size.width;
-          fragment->size.width += diffW;
-          line->size.width += diffW;
-          
-          afterOffset = true;
+        } else {
+//cout << ":    fragment->offset="<<fragment->offset<<", offset="<<offset<<", f->o+f->l="<<(fragment->offset + fragment->length)<<endl;
+          if (fragment->offset <= offset && offset <= fragment->offset + fragment->length) {
+            // entities are not edited, skip to the next fragment
+            if (fragment->length>0 && text[fragment->offset] == '&')
+              continue;
+//cout << ":    adjust fragment from " << fragment->length << " to " << (fragment->length+len) << endl;
+            fragment->length += len;
+            const char *cstr;
+            size_t size;
+            fragment2cstr(fragment, text.data(), &cstr, &size);
+      
+            TFont font;
+            fragment->attr.setFont(font);
+            
+            diffW = font.getTextWidth(cstr, size) - fragment->size.width;
+            fragment->size.width += diffW;
+            line->size.width += diffW;
+            
+            afterOffset = true;
+          }
         }
       }
     }
@@ -857,41 +888,54 @@ updatePrepared(const string &text, TPreparedDocument *document, size_t offset, s
 void
 updateMarker(const string &text, TPreparedDocument *document, vector<size_t> &xpos)
 {
-//  cout << "--------------- updateMarker ----------------" << endl;
-  
-  document->marker.resize(xpos.size());
+//cout << "--------------- updateMarker in document " << document << " ----------------" << endl;
+  document->marker.assign(xpos.size(), TMarker());
+
+  // for all lines
   for(vector<TPreparedLine*>::const_iterator pl = document->lines.begin();
       pl != document->lines.end();
       ++pl)
   {
     size_t textend = ((pl+1) == document->lines.end()) ? string::npos : (*(pl+1))->offset;
     TPreparedLine *line = *pl;
-//    cout << "  line " << line->offset << " - " << textend << endl;
-    for(auto &&pos: xpos) {
+//cout << "  line " << line->offset << " - " << textend << endl;
+
+    // for all markers
+    for(size_t idx=0; idx<xpos.size(); ++idx) {
+      auto &&pos = xpos[idx];
+      // if marker is within line
       if (line->offset<=pos && pos<textend) {
           vector<TTextFragment*>::const_iterator p;
           for(p = line->fragments.begin()+1;
               p != line->fragments.end();
               ++p)
           {
-            if (pos<(*p)->offset) {
+            if (pos<=(*p)->offset) {
               break;
             }
           }
           --p;
-//          cout << "    in fragment : " << (*p)->offset << endl;
+//if (idx==0) cout << "    in fragment : " << (*p)->offset << endl;
           TFont font;
           (*p)->attr.setFont(font);
           
           const char *cstr;
           size_t size;
           fragment2cstr(*p, text.data(), &cstr, &size);
-
-          document->marker[&pos-xpos.data()].pos.x    = (*p)->origin.x + font.getTextWidth(cstr, pos-(*p)->offset);
-          document->marker[&pos-xpos.data()].pos.y    = line->origin.y;
-          document->marker[&pos-xpos.data()].line     = line;
-          document->marker[&pos-xpos.data()].fragment = *p;
-//printf("%s:%u: x0=%zu, x1=%zu, pos=%zu, x=%f\n", __FILE__, __LINE__, x0, x1, pos, prepared->pos[&pos-xpos.data()].x);
+          if (size == (*p)->length)
+            size = pos - (*p)->offset;
+          document->marker[idx].pos.x    = (*p)->origin.x + font.getTextWidth(cstr, size);
+          document->marker[idx].pos.y    = line->origin.y;
+          document->marker[idx].line     = line;
+          document->marker[idx].fragment = *p;
+/*
+if (idx==0) {
+  cout << "      cstr='" << cstr << "'" << endl;
+  cout << "      strlen=" << strlen(cstr) << ", pos=" << pos << ", offset=" << (*p)->offset << endl;
+  cout << "      size="<<size<<endl;
+  cout << "      pos="<<document->marker[idx].pos<<endl;
+}
+*/
       }
     }
   }
@@ -1570,14 +1614,17 @@ cout << "##############################################" << endl;
       case 11:
         *text = tagtoggle(*text, xpos, "b");
         prepareHTMLText(*text, xpos, &document);
+        updateMarker(*text, &document, xpos); // FIXME: move into prepareHTMLText?
         break;
       case 32:
         *text = tagtoggle(*text, xpos, "u");
         prepareHTMLText(*text, xpos, &document);
+        updateMarker(*text, &document, xpos); // FIXME: move into prepareHTMLText?
         break;
       case 34:
         *text = tagtoggle(*text, xpos, "i");
         prepareHTMLText(*text, xpos, &document);
+        updateMarker(*text, &document, xpos); // FIXME: move into prepareHTMLText?
         break;
       default:
         cout << "control '" << key << "'\n";
