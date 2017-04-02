@@ -419,6 +419,13 @@ TEST(WordProcessor, tagtoggle)
          0,         12,
         "<b>abc<br/>&lt;</b><i>edf</i>"
     },
+    { // 0         1         2         3         4         5
+      // 012345678901234567890123456789012345678901234567890
+        "<b><i>TFigure<br/></i>asd</b>",
+      //                       ^  <
+                              22,25,
+        "<b><i>TFigure<br/></i></b>asd"
+    },
   };
 
   for(auto &t: test) {
