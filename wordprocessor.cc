@@ -1517,6 +1517,16 @@ textInsert(string &text, TPreparedDocument &document, vector<size_t> &xpos, cons
       pos = document.marker[CURSOR].line->fragments[0]->offset;
     }
   }
+
+  // when inserting between entities, we need a new fragment
+  if (pos<text.size() && text[pos]=='&') {
+    text.insert(pos, str);
+    prepareHTMLText(text, xpos, &document);
+    xmlinc(text, &xpos[CURSOR]);
+    updateMarker(text, &document, xpos);
+    return;
+  }
+
   text.insert(pos, str);
   updatePrepared(text, &document, pos, str.size());
   xmlinc(text, &xpos[CURSOR]);
@@ -1573,9 +1583,14 @@ textDelete(string &text, TPreparedDocument &document, vector<size_t> &xpos)
     pos = bgn;
     fragmentChanged = true;
   }
+  if (text[pos] == '&')
+    fragmentChanged = true;
+  
   if (fragmentChanged) {
+//cout << "fragmentChanged, prepareHTMLText" << endl;
     prepareHTMLText(text, xpos, &document);
   } else {
+//cout << "no fragment change, updatePrepared" << endl;
     updatePrepared(text, &document, pos, -len);
   }
   updateMarker(text, &document, xpos);

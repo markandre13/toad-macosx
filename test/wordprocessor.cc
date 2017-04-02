@@ -159,7 +159,6 @@ TEST(WordProcessor, tagtoggle)
   };
 
   static vector<test> test = {
-#if 0
     // touch at head
     { // 0         1         2         3         4
       // 0123456789012345678901234567890123456789012
@@ -390,7 +389,6 @@ TEST(WordProcessor, tagtoggle)
                        14,17,
         "hello &times; <b>you</b> there."
     },
-#endif
     { // 0         1         2         3         4         5
       // 012345678901234567890123456789012345678901234567890
         "hello &times; you there.",
@@ -741,6 +739,18 @@ TEST(WordProcessor, textDelete)
         { .offset =45, .txt="" },
       }
     },
+    //       0         1         2         3         4         5
+    //       012345678901234567890123456789012345678901234567890
+    { .in = "ab<i><b>c&amp;de</b></i>fg",
+      .out ="ab<i><b>&amp;de</b></i>fg",
+      .pos = 8,
+      .frags = {
+        { .offset = 0, .txt="ab" },
+        { .offset = 8, .txt="&amp;",  .bold=true, .italics=true },
+        { .offset =13, .txt="de", .bold=true, .italics=true },
+        { .offset =23, .txt="fg" },
+      }
+    },
   };
   
   for(auto &t: test) {
@@ -993,7 +1003,6 @@ TEST(WordProcessor, textInsert)
       ASSERT_EQ(fragment, (*line)->fragments.end());
     else
       ASSERT_EQ(line, document.lines.end());
-
   }
 }
 
