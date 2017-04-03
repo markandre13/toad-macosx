@@ -64,7 +64,9 @@ TFText::editEvent(TFigureEditEvent &editEvent)
         return false;
       }
       TRectangle bounds = relation->bounds();
-      p1.set(bounds.x+3, bounds.y+3);
+      TPoint difference = TPoint(p1.x-bounds.x-3, p1.y-bounds.y-3);
+      p1 -= difference;
+      p2 -= difference;
       // in theory, an TFText with a relation is wrapped inside the relation and
       // we shouldn't need to invalidate
       } break;
