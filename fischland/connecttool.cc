@@ -44,6 +44,7 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   TPoint p;
   TFigure *figure;
+  TFText *text;
 
   switch(me.type) {
     case TMouseEvent::LDOWN:
@@ -51,13 +52,16 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       fe->mouse2sheet(me.pos, &p);
       figure = fe->findFigureAt(p);
       if (figure) {
+        text = dynamic_cast<TFText*>(figure);
+        if (text)
+          figure = text->relation;
         fconnect = new TFConnection(figure, nullptr);
         fe->getAttributes()->setAllReasons();
         fconnect->setAttributes(fe->getAttributes());
         fconnect->p[1] = p;
         fconnect->updatePoints();
         firstFigure = figure;
-        fe->invalidateWindow();
+        fe->invalidateFigure(fconnect);
         fe->getWindow()->grabMouse(true);
       }
       break;
@@ -65,7 +69,11 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (!firstFigure)
         break;
       fe->mouse2sheet(me.pos, &p);
-      overFigure = figure = fe->findFigureAt(p);
+      figure = fe->findFigureAt(p);
+      text = dynamic_cast<TFText*>(figure);
+      if (text)
+        figure = text->relation;
+      overFigure = figure;
       if (figure == firstFigure) {
         fconnect->p[1] = p;
       }
@@ -73,7 +81,7 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       if (!figure)
         fconnect->p[1] = p;
       fconnect->updatePoints();
-      fe->invalidateWindow();
+      fe->invalidateFigure(fconnect);
       break;
     case TMouseEvent::LUP:
       if (!firstFigure)
@@ -84,9 +92,9 @@ TConnectTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         TFigureEditor::relatedTo[fconnect->start].insert(fconnect);
       if (fconnect->end)
         TFigureEditor::relatedTo[fconnect->end  ].insert(fconnect);
+      fe->invalidateFigure(fconnect);
       fconnect = nullptr;
       fe->getWindow()->ungrabMouse();
-      fe->invalidateWindow();
       break;
   }
 }
