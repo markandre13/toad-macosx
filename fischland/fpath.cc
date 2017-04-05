@@ -316,24 +316,26 @@ TFPath::paint(TPenBase &pen, EPaintType type)
   TCoord aw = arrowwidth * line_width;
   TCoord ah = arrowheight * line_width;
 
-  if (arrowmode == TFLine::TAIL || arrowmode == TFLine::BOTH) {
+  if (polygon.size()>=4) {
+    if (arrowmode == TFLine::TAIL || arrowmode == TFLine::BOTH) {
 //cout << "cornerAtHandle(TAIL)==" << cornerAtHandle(0) << endl;
-    unsigned c = cornerAtHandle(0);
-    if (c!=0)
-      TFLine::drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
-    else
-      TFLine::drawArrow(pen, polygon[0], polygon[3], line_color, fill_color, aw, ah, arrowtype);
-  }
+      unsigned c = cornerAtHandle(0);
+      if (c!=0)
+        TFLine::drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
+      else
+        TFLine::drawArrow(pen, polygon[0], polygon[3], line_color, fill_color, aw, ah, arrowtype);
+    }
     
-  if (arrowmode == TFLine::HEAD || arrowmode == TFLine::BOTH) {
+    if (arrowmode == TFLine::HEAD || arrowmode == TFLine::BOTH) {
 //cout << "cornerAtHandle(HEAD)==" << cornerAtHandle(polygon.size()-1) << endl;
-    unsigned c = cornerAtHandle(polygon.size()-1);
-    if (c==0)
-      TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-3], line_color, fill_color, aw, ah, arrowtype);
-    else
-      TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-4], line_color, fill_color, aw, ah, arrowtype);
+      unsigned c = cornerAtHandle(polygon.size()-1);
+      if (c==0)
+        TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-3], line_color, fill_color, aw, ah, arrowtype);
+      else
+        TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-4], line_color, fill_color, aw, ah, arrowtype);
 //pen.setColor(1,0,0);
 //pen.drawLine(polygon[polygon.size()-1], polygon[polygon.size()-3]);
+    }
   }
   
   if (type!=EDIT && type!=SELECT)
