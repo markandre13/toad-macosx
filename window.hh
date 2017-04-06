@@ -277,7 +277,7 @@ class TWindow:
     void grabPopupMouse(bool allmove=true, TCursor::EType type=TCursor::DEFAULT);
     static void ungrabMouse();
 
-    virtual void mouseEvent(const TMouseEvent &) override;
+    virtual void mouseEvent(const TMouseEvent &);
     virtual void mouseMove(const TMouseEvent &);
     virtual void mouseEnter(const TMouseEvent &);
     virtual void mouseLeave(const TMouseEvent &);
@@ -288,7 +288,7 @@ class TWindow:
     virtual void mouseMUp(const TMouseEvent &);
     virtual void mouseRUp(const TMouseEvent &);  
     
-    void keyEvent(const TKeyEvent&) override;
+    virtual void keyEvent(const TKeyEvent&);
     virtual void keyDown(const TKeyEvent&);
     virtual void keyUp(const TKeyEvent&);
 
@@ -304,7 +304,7 @@ class TWindow:
       PLACE_TOOLTIP
     };
     void placeWindow(EWindowPlacement how, TWindow *parent=NULL, TCoord dx=0.0, TCoord dy=0.0);
-    void windowEvent(const TWindowEvent &we) override;
+    virtual void windowEvent(const TWindowEvent &we);
 
     enum EChildNotify {
       TCHILD_TITLE, TCHILD_POSITION, TCHILD_RESIZE, TCHILD_ADD,
