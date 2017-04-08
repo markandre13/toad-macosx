@@ -28,12 +28,14 @@
 #include <toad/pushbutton.hh>
 
 #include <cassert>
+#include <set>
 
 using namespace toad;
 
 class TTestToolbar:
   public TWindow
 {
+    unique_ptr<GChoice<int>> choice;
   public:
     TTestToolbar(TWindow *parent, const string &title);
 };
@@ -58,11 +60,11 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // action = new TAction(this, "view|grid");
   // action->type = TAction::CHECKBUTTON;
 
-  GChoice<int> *m = new GChoice<int>(this, "tool|toolbox");
-  m->add("select", 1);
-  m->add("zoom",   2);
-  connect(m->sigClicked, [=] {
-    cout << "radio button " << m->getValue() << endl;
+  choice = make_unique<GChoice<int>>(this, "tool|toolbox");
+  choice->add("select", 1);
+  choice->add("zoom",   2);
+  connect(choice->sigClicked, [=] {
+    cout << "radio button " << choice->getValue() << endl;
   });
 
   setLayout(layout);
@@ -70,7 +72,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
 
 // FIXME: this should be TFatRadioButton, but TRadioStateModel is not compatible with TAbstractChoice
 class TToolButton:
-  public TButtonBase
+  public TButtonBase, public TSlot
 {
     typedef TButtonBase super;
   public:
@@ -78,8 +80,8 @@ class TToolButton:
                 const string &,
                 TAbstractChoice *choice,
                 size_t index);
-  protected:
     TAbstractChoice *choice;
+  protected:
     size_t index;
     void paint();
 };
@@ -87,9 +89,15 @@ class TToolButton:
 TToolButton::TToolButton(TWindow *parent, const string &title, TAbstractChoice *aChoice, size_t anIndex)
   :TButtonBase(parent, title), choice(aChoice), index(anIndex)
 {
-  connect(choice->getModel()->sigChanged, [=] {
+  connect(choice->getModel()->sigChanged, this, [=] {
     this->invalidateWindow();
   });
+/*
+  disconnect(choice->getModel()->sigChanged, this, [=] {
+    this.choices.remove(choice);
+    this->choice = nullptr;
+  });
+*/
 }
 
 void
@@ -107,7 +115,7 @@ TToolButton::paint()
 }
 
 class TToolBar:
-  public TWindow
+  public TWindow, public TSlot
 {
   public:
     TToolBar(TWindow *parent, const string &title);
@@ -120,7 +128,7 @@ class TToolBar:
 TToolBar::TToolBar(TWindow *parent, const string &title):
   TWindow(parent, title)
 {
-  connect(TAction::actions.sigChanged, [=] {
+  connect(TAction::actions.sigChanged, this, [=] {
     this->actionsChanged();
   });
   setShape(640, 900, 320, 32);
@@ -131,6 +139,8 @@ TToolBar::TToolBar(TWindow *parent, const string &title):
 void
 TToolBar::actionsChanged()
 {
+  std::set<std::string> found;
+
   for(TActionStorage::iterator i = TAction::actions.begin();
       i != TAction::actions.end();
       ++i)
@@ -138,6 +148,7 @@ TToolBar::actionsChanged()
     TAction *action = *i;
     switch(action->type) {
       case TAction::BUTTON:
+        found.insert(action->getTitle());
         addAction(action->getTitle(), action);
         break;
       case TAction::CHECKBUTTON:
@@ -147,9 +158,22 @@ TToolBar::actionsChanged()
         if (!choice)
           break;
         for(size_t i=0; i<choice->getSize(); ++i) {
-          addChoice(choice->getTitle() + '|' + choice->getID(i), choice, i);
+          string title = choice->getTitle() + '|' + choice->getID(i);
+          found.insert(title);
+          addChoice(title, choice, i);
         }
         break;
+    }
+  }
+
+repeat:
+  for(TInteractor *child = getFirstChild(); child; child=child->getNextSibling()) {
+    if (found.find(child->getTitle()) == found.end()) {
+      TToolButton *button = dynamic_cast<TToolButton*>(child);
+      if (button) {
+        delete button;
+        goto repeat;
+      }
     }
   }
 }
