@@ -60,10 +60,15 @@ class TAction:
       DOMAIN_FOCUS,
       PARENT_FOCUS
     };
+    enum EType {
+      BUTTON,
+      CHECKBUTTON,
+      RADIOBUTTON
+    };
 
     static TActionStorage actions;
 
-    TAction(TInteractor *, const string&, EActivation activation = PARENT_FOCUS);
+    TAction(TInteractor *, const string&, EType type = BUTTON, EActivation activation = PARENT_FOCUS);
     virtual ~TAction();
     
     // enable/disable
@@ -79,11 +84,7 @@ class TAction:
     //! the status of the action (enabled/disabled) has changed
     TSignal sigChanged;
     
-    enum EType {
-      BUTTON,
-      CHECKBUTTON,
-      RADIOBUTTON
-    } type;
+    EType type;
     
     virtual unsigned getSize() const;
     virtual const string& getID(unsigned idx) const;
@@ -114,8 +115,8 @@ class TChoiceModel:
     }
     void select(unsigned idx) {
       // cout << "selected " << data[idx]->id << endl;
-      sigChanged();
       this->idx = idx;
+      sigChanged();
     }
     unsigned getSelection() const {
       return idx;
@@ -138,6 +139,7 @@ class GChoiceModel:
       d->id = id;
       d->what = what;
       data.push_back(d);
+      TAction::actions.sigChanged();
     }
     unsigned getSize() const { return data.size(); }
     const string& getID(unsigned idx) const { return data[idx]->id; }
@@ -157,7 +159,13 @@ class TAbstractChoice:
   public TAction
 {
   public:
-    TAbstractChoice(TWindow *p, const string &t):TAction(p, t) {}
+    TAbstractChoice(TWindow *parent,
+                    const string &title,
+                    EType type = BUTTON,
+                    EActivation activation = PARENT_FOCUS)
+      :TAction(parent, title, type, activation)
+    {}
+
     virtual ~TAbstractChoice();
     virtual TChoiceModel* getModel() = 0;
 };
@@ -172,11 +180,9 @@ class GChoice:
   public:
     GChoice<T>(TWindow *p, 
                const string &id,
-               GChoiceModel<T> *m=new GChoiceModel<T>()):
-      TAbstractChoice(p,id), model(m)
-    {
-      type = RADIOBUTTON;
-    }
+               GChoiceModel<T> *m=new GChoiceModel<T>())
+      :TAbstractChoice(p, id, TAction::RADIOBUTTON), model(m)
+    {}
     
     TChoiceModel* getModel() { return model; }
   

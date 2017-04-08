@@ -450,7 +450,7 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 //cerr << "create tree " << dummy << endl;
   TAction *action;
   if (!found) {   
-    action = new TAction(dummy, "add point", TAction::ALWAYS);
+    action = new TAction(dummy, "add point", TAction::BUTTON, TAction::ALWAYS);
     TCLOSURE4(
       action->sigClicked,
       figure, this,
@@ -463,7 +463,7 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
     )
     action = new TAction(dummy, "split");
   } else {
-    action = new TAction(dummy, "delete point", TAction::ALWAYS);
+    action = new TAction(dummy, "delete point", TAction::BUTTON, TAction::ALWAYS);
     TCLOSURE3(
       action->sigClicked,
       figure, this,

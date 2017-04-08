@@ -1,0 +1,37 @@
+toad::TMenuLayout{
+  scope = "toplevel"
+  toad::TMenuEntry {
+    name = "file"
+    label = "File"
+    shortcut = ""
+    icon = ""
+    toad::TMenuEntry {
+      name = "file|select" 
+      label = "Zing"  
+    }
+    toad::TMenuEntry {
+      name = "quit" 
+      label = "Quit"  
+      shortcut = "Alt+F4"
+      icon = "exit.png"
+    }
+  }
+  toad::TMenuEntry {
+    name = "tool"
+    label = "Tool"
+    shortcut = ""
+    icon = ""
+    toad::TMenuEntry {
+      name = "toolbox" 
+      label = "ToolBox"
+      toad::TMenuEntry {
+        name = "select" 
+        label = "Select"
+      }
+      toad::TMenuEntry {
+        name = "zoom" 
+        label = "Zoom"
+      }
+    }
+  }
+}

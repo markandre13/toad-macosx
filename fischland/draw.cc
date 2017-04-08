@@ -1134,6 +1134,7 @@ void test_path();
 void test_image();
 void test_curve();
 void test_text();
+void test_toolbar();
 void test_tablet();
 void test_path_bool();
 void test_guitar();
@@ -1213,6 +1214,12 @@ main(int argc, char **argv, char **envv)
     if (strcmp(argv[1], "--test-text")==0) {
       toad::initialize(1, argv);
       test_text();
+      toad::terminate();
+      return 0;
+    }
+    if (strcmp(argv[1], "--test-toolbar")==0) {
+      toad::initialize(1, argv);
+      test_toolbar();
       toad::terminate();
       return 0;
     }

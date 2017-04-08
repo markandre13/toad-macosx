@@ -212,7 +212,7 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 //cerr << "create tree " << dummy << endl;
   TAction *action;
   if (!found) {
-    action = new TAction(dummy, "add point", TAction::ALWAYS);
+    action = new TAction(dummy, "add point", TAction::BUTTON, TAction::ALWAYS);
     TCLOSURE4(
       action->sigClicked,
       figure, this,
@@ -224,7 +224,7 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
       edit->invalidateFigure(figure);
     )
   } else {
-    action = new TAction(dummy, "delete point", TAction::ALWAYS);
+    action = new TAction(dummy, "delete point", TAction::BUTTON, TAction::ALWAYS);
     TCLOSURE3(
       action->sigClicked,
       figure, this,

@@ -47,19 +47,20 @@ TAbstractChoice::~TAbstractChoice()
  *     wrong.
  */
 
-TAction::TAction(TInteractor *parent, const string &id, EActivation a)
+TAction::TAction(TInteractor *parent, const string &id, EType type, EActivation activation)
   :TInteractor(parent, id)
 {
   has_focus = false;
   has_domain_focus = true;
   enabled = true;
+  bitmap = nullptr;
 
   // FIXME: I need to throw some more brain on this statement
-  if (a==PARENT_FOCUS && parent && parent->getParent()==NULL) a = DOMAIN_FOCUS;
+  if (activation==PARENT_FOCUS && parent && parent->getParent()==NULL) activation = DOMAIN_FOCUS;
 
-  activation = a;
-  bitmap = 0;
-  type = BUTTON;
+  this->activation = activation;
+  this->type = type;
+
   actions.push_back(this);
 }
 

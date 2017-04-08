@@ -34,6 +34,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   test_combobox.cc test_cursor.cc test_colordialog.cc test_grab.cc \
 	   test_path.cc test_image.cc test_curve.cc test_text.cc test_tablet.cc \
 	   test_path_bool.cc test_guitar.cc test_vector_buffer.cc test_path_offset.cc \
+	   test_toolbar.cc \
 	   \
 	   booleanop.cc \
 	   \
@@ -1210,6 +1211,19 @@ test_path_offset.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_offset.o: include/toad/model.hh include/toad/connect.hh
 test_path_offset.o: include/toad/wordprocessor.hh include/toad/vector.hh
 test_path_offset.o: include/toad/geometry.hh
+test_toolbar.o: include/toad/window.hh include/toad/interactor.hh
+test_toolbar.o: include/toad/types.hh include/toad/io/serializable.hh
+test_toolbar.o: include/toad/io/atvparser.hh include/toad/cursor.hh
+test_toolbar.o: include/toad/color.hh include/toad/region.hh
+test_toolbar.o: include/toad/pen.hh include/toad/penbase.hh
+test_toolbar.o: include/toad/font.hh include/toad/pointer.hh
+test_toolbar.o: include/toad/matrix2d.hh include/toad/springlayout.hh
+test_toolbar.o: include/toad/layout.hh include/toad/eventfilter.hh
+test_toolbar.o: include/toad/menubar.hh include/toad/menuhelper.hh
+test_toolbar.o: include/toad/connect.hh include/toad/action.hh
+test_toolbar.o: include/toad/model.hh include/toad/command.hh
+test_toolbar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
+test_toolbar.o: include/toad/labelowner.hh include/toad/control.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
@@ -2806,6 +2820,19 @@ test_path_offset.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test_path_offset.o: include/toad/model.hh include/toad/connect.hh
 test_path_offset.o: include/toad/wordprocessor.hh include/toad/vector.hh
 test_path_offset.o: include/toad/geometry.hh
+test_toolbar.o: include/toad/window.hh include/toad/interactor.hh
+test_toolbar.o: include/toad/types.hh include/toad/io/serializable.hh
+test_toolbar.o: include/toad/io/atvparser.hh include/toad/cursor.hh
+test_toolbar.o: include/toad/color.hh include/toad/region.hh
+test_toolbar.o: include/toad/pen.hh include/toad/penbase.hh
+test_toolbar.o: include/toad/font.hh include/toad/pointer.hh
+test_toolbar.o: include/toad/matrix2d.hh include/toad/springlayout.hh
+test_toolbar.o: include/toad/layout.hh include/toad/eventfilter.hh
+test_toolbar.o: include/toad/menubar.hh include/toad/menuhelper.hh
+test_toolbar.o: include/toad/connect.hh include/toad/action.hh
+test_toolbar.o: include/toad/model.hh include/toad/command.hh
+test_toolbar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
+test_toolbar.o: include/toad/labelowner.hh include/toad/control.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
