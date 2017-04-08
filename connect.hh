@@ -1,7 +1,7 @@
 /* DO NOT EDIT - THIS IS A GENERATED FILE (EDIT CONNECT.HH.PM!)
  *
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,9 @@
 
 #include <cstdlib>
 #include <functional>
+#include <vector>
+#include <map>
+#include <set>
 
 namespace toad {  // connect.hh
 
@@ -168,6 +171,12 @@ class TSignal
     void lock();
     void unlock();
     void print();
+    size_t size() const {
+      size_t n=0;
+      for(const auto *node = _list; node; node=node->next)
+        ++n;
+      return n;
+    }
 #ifdef TOAD_SECURE
     unsigned delayedtrigger;
 #endif
@@ -196,6 +205,26 @@ inline void disconnect(TSignal &s, T *n) {
 
 static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
   return s.add(c);
+}   
+
+class TSlot {
+  public:
+    std::map<TSignal*, std::set<TSignalLink*>> slots; // FIXME: memory consumption?
+    TSignalLink* add(TSignal *signal, TSignalLink *link) {
+      slots[signal].insert(link);
+      return link;
+    }
+    ~TSlot() {
+      for(auto &&slot: slots) {
+        for(auto &&link: slot.second) {
+          slot.first->remove(link);
+        }
+      }
+    }
+};
+
+static inline TSignalLink* connect(TSignal &signal, TSlot *slot, std::function<void()> closure) {
+  return slot->add(&signal, signal.add(closure));
 }   
 
 // help template for connect_value, connect_value_of, ...

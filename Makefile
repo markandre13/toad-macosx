@@ -52,7 +52,7 @@ SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
 	 fischland/fischeditor.cc
 
 SRC_TEST=test/main.cc test/util.cc test/gtest-all.cc \
-         test/display.cc test/figureeditor.cc \
+         test/display.cc test/figureeditor.cc test/signal.cc \
          test/wordprocessor.cc \
          test/serializable.cc \
          test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
@@ -96,7 +96,7 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="WordProcessor.*"
+	./test.app/Contents/MacOS/test --gtest_filter="Signal.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
@@ -1693,6 +1693,7 @@ test/figureeditor.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 test/figureeditor.o: include/toad/floatmodel.hh
 test/figureeditor.o: include/toad/figure/createtool.hh
 test/figureeditor.o: include/toad/figuretool.hh fischland/connectfigure.hh
+test/signal.o: include/toad/connect.hh test/gtest.h
 test/wordprocessor.o: include/toad/wordprocessor.hh include/toad/types.hh
 test/wordprocessor.o: include/toad/io/serializable.hh
 test/wordprocessor.o: include/toad/io/atvparser.hh include/toad/color.hh
