@@ -682,11 +682,10 @@ void TMenuHelper::TRootNode::actionChanged()
  */
 void TMenuHelper::TNode::trigger(unsigned idx)
 {
-  TActionSet::iterator p(actions.begin()), e(actions.end());
-  while(p!=e) {
-    if ((*p)->isEnabled())
-      (*p)->delayedTrigger(idx);
-    ++p;
+  for(auto &&p: actions) {
+    if (p->isEnabled()) {
+      p->delayedTrigger(idx);
+    }
   }
 }
 
