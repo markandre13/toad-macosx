@@ -25,12 +25,20 @@ toad::TMenuLayout{
       name = "toolbox" 
       label = "ToolBox"
       toad::TMenuEntry {
-        name = "select" 
-        label = "Select"
+        name = "selection" 
+        label = "Selection"
       }
       toad::TMenuEntry {
-        name = "zoom" 
-        label = "Zoom"
+        name = "directselection" 
+        label = "Direct Selection"
+      }
+      toad::TMenuEntry {
+        name = "pen" 
+        label = "Pen/Radiograph/Bezier"
+      }
+      toad::TMenuEntry {
+        name = "pencil" 
+        label = "Pencil/Nib/Brush/Freehand"
       }
     }
   }

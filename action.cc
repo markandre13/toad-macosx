@@ -106,8 +106,9 @@ TAction::isEnabled() const
 {
   if (!enabled)
     return false;
-  if (!sigClicked.isConnected())
-    return false;
+// FIXME?: GChoice<T> may also signal via it's model
+//  if (!sigClicked.isConnected())
+//    return false;
   switch(activation) {
     case ALWAYS:
       return true;

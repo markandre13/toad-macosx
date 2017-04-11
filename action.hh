@@ -60,7 +60,7 @@ class TAction:
       DOMAIN_FOCUS,
       PARENT_FOCUS
     };
-    enum EType {
+    enum EType { // FIXME: remove type from action, create 3 different classes instead?
       BUTTON,
       CHECKBUTTON,
       RADIOBUTTON
@@ -178,11 +178,23 @@ class GChoice:
   public TAbstractChoice
 {
   public:
+    GChoiceModel<T> *model;
+    TSignalLink *signalLink;
+
     GChoice<T>(TWindow *p, 
                const string &id,
                GChoiceModel<T> *m=new GChoiceModel<T>())
       :TAbstractChoice(p, id, TAction::RADIOBUTTON), model(m)
-    {}
+    {
+      signalLink = connect(model->sigChanged, [=] {
+        cout << "GChoiceModel<T>::sigChanged -> GChoice<T>::sigChanged" << endl;
+        this->sigChanged();
+      });
+    }
+    
+    ~GChoice<T>() {
+      model->sigChanged.remove(signalLink);
+    }
     
     TChoiceModel* getModel() { return model; }
   
@@ -209,7 +221,6 @@ class GChoice:
       return sigClicked.delayedTrigger();
     }
     virtual unsigned getSelection() const { return model->getSelection(); }
-    GChoiceModel<T> *model;
 };
 
 }
