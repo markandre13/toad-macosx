@@ -97,14 +97,18 @@ TTextEditor2::paint()
 {
   TPen pen(this);
   
-  pen.drawString(0,0,text);
   
   // raw text
 //cout << "xpos.size()="<<xpos.size()<<endl;
 //cout << "xpos[CURSOR]="<<xpos[CURSOR]<<endl;
+//wp.xpos[toad::wordprocessor::CURSOR]=464;
   TCoord x = pen.getTextWidth(text.substr(0, wp.xpos[toad::wordprocessor::CURSOR]));
   TCoord h = pen.getHeight();
-  pen.drawLine(x,0,x,h);
+  TCoord l = 0;
+  if (x>200)
+    l=200-x;
+  pen.drawString(l,0,text);
+  pen.drawLine(l+x,0,l+x,h);
 
   // parsed text
   pen.translate(0,72);
