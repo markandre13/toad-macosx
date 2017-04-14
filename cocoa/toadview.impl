@@ -202,6 +202,15 @@
 - (void)tabletProximity:(NSEvent *)theEvent
 {
   TMouseEvent me(theEvent, twindow, TMouseEvent::TABLET_PROXIMITY);
+
+  // FIXME: this should be in a central function
+  TEventFilter *flt = toad::global_evt_filter;
+  while(flt) {
+    if (flt->mouseEvent(me))
+      return;
+    flt = flt->next;
+  }
+
   twindow->mouseEvent(me);
 }
 
