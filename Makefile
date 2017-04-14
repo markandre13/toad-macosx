@@ -1224,6 +1224,7 @@ test_toolbar.o: include/toad/connect.hh include/toad/action.hh
 test_toolbar.o: include/toad/model.hh include/toad/command.hh
 test_toolbar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_toolbar.o: include/toad/labelowner.hh include/toad/control.hh
+test_toolbar.o: include/toad/focusmanager.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
@@ -2834,6 +2835,7 @@ test_toolbar.o: include/toad/connect.hh include/toad/action.hh
 test_toolbar.o: include/toad/model.hh include/toad/command.hh
 test_toolbar.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
 test_toolbar.o: include/toad/labelowner.hh include/toad/control.hh
+test_toolbar.o: include/toad/focusmanager.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh

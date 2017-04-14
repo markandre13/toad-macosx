@@ -27,6 +27,8 @@
 
 #include <toad/pushbutton.hh>
 
+#include <toad/focusmanager.hh>
+
 #include <cassert>
 #include <set>
 
@@ -97,14 +99,13 @@ TPencilTool2* TPencilTool2::getTool() {
 class TToolBox2:
   public GChoiceModel<TFigureTool2*>
 {
+    // each pointer has it's own active tool
+    map<TMouseEvent::TPointerID, TFigureTool2*> toolForPointer;
+    TMouseEvent::TPointerID activePointer;
   public:
-    TToolBox2() {
-      add("selection",       TSelectionTool2::getTool());
-      add("directselection", TDirectSelectionTool2::getTool());
-      add("pen",             TPenTool2::getTool());
-      add("pencil",          TPencilTool2::getTool());
-    }
+    TToolBox2();
     static TToolBox2 *getToolBox();
+    void selectPointer(TMouseEvent::TPointerID pointerID);
 };
 
 TToolBox2* TToolBox2::getToolBox() {
@@ -112,6 +113,48 @@ TToolBox2* TToolBox2::getToolBox() {
   if (!tool) tool = new TToolBox2();
   return tool;
 }
+
+TToolBox2::TToolBox2()
+{
+  activePointer = 0;
+  add("selection",       TSelectionTool2::getTool());
+  add("directselection", TDirectSelectionTool2::getTool());
+  add("pen",             TPenTool2::getTool());
+  add("pencil",          TPencilTool2::getTool());
+  
+  // FIXME: this would be nicer with closures
+  class TMyEventFilter: public TEventFilter {
+      TToolBox2 *toolbox;
+    public:
+      TMyEventFilter(TToolBox2 *aToolBox):toolbox(aToolBox) {}
+    protected:
+      bool mouseEvent(TMouseEvent &me) override {
+        if (me.type==TMouseEvent::TABLET_PROXIMITY) {
+          toolbox->selectPointer(me.pointerID());
+        }
+      }
+  };
+  TFocusManager::insertEventFilter(new TMyEventFilter(this), NULL, KF_GLOBAL);
+}
+
+void
+TToolBox2::selectPointer(TMouseEvent::TPointerID pointerID)
+{
+  if (activePointer == pointerID)
+    return;
+
+  // new pointing device, save old one
+  toolForPointer[activePointer] = getValue();
+
+  // switch to the previously known tool for the new pointing device
+  auto &&knownTool = toolForPointer.find(pointerID);
+  if (knownTool != toolForPointer.end()) {
+    setValue(knownTool->second);
+  }
+  
+  activePointer = pointerID;
+}
+
 
 class TTestToolbar:
   public TWindow
@@ -143,15 +186,6 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // action->type = TAction::CHECKBUTTON;
 
   choice = make_unique<GChoice<TFigureTool2*>>(this, "tool|toolbox", TToolBox2::getToolBox());
-
-  // removing the following commit will break the program
-/*
-  connect(choice->sigClicked, [=] {
-    cout << "radio button " << choice->getValue()->name() << endl;
-  });
-*/
-  TAction::actions.sigChanged(); // FIXME: watches only see super class TAction on creation, make that a delayed trigger
-
   setLayout(layout);
 }
 
@@ -169,7 +203,7 @@ class TToolButton:
     TChoiceModel *choice;
   protected:
     size_t index;
-    void paint();
+    void paint() override;
 };
 
 TToolButton::TToolButton(TWindow *parent, const string &title, TChoiceModel *aChoice, size_t anIndex)
@@ -179,6 +213,7 @@ TToolButton::TToolButton(TWindow *parent, const string &title, TChoiceModel *aCh
     this->invalidateWindow();
   });
 /*
+  // FIXME: an alternative to TSlot?
   disconnect(choice->getModel()->sigChanged, this, [=] {
     this.choices.remove(choice);
     this->choice = nullptr;
@@ -214,6 +249,8 @@ class TToolBar:
 TToolBar::TToolBar(TWindow *parent, const string &title):
   TWindow(parent, title)
 {
+  flagParentlessAssistant = true;
+
   connect(TAction::actions.sigChanged, this, [=] {
     this->actionsChanged();
   });
@@ -225,6 +262,7 @@ TToolBar::TToolBar(TWindow *parent, const string &title):
 void
 TToolBar::actionsChanged()
 {
+cout << endl;
 cout << "TToolBar::actionsChanged()" << endl;
   std::set<std::string> found;
 
@@ -258,22 +296,6 @@ cout << "    '" << title << "'" << endl;
         break;
     }
   }
-  
-  // catch all button there are. disable/enable as sensible.
-  // show buttons not available as actions as disabled?
-  // the whole toolbar is defined via configuration file?
-/*
-repeat:
-  for(TInteractor *child = getFirstChild(); child; child=child->getNextSibling()) {
-    if (found.find(child->getTitle()) == found.end()) {
-      TToolButton *button = dynamic_cast<TToolButton*>(child);
-      if (button) {
-        delete button;
-        goto repeat;
-      }
-    }
-  }
-*/
 }
 
 void
@@ -309,6 +331,7 @@ cout << "toolbar: addChoice(" << title << ", ...)" << endl;
   connect(button->sigClicked, [=] {
     choice->select(index);
   });
+  
 }
 
 int 
