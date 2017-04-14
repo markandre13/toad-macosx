@@ -115,28 +115,49 @@ typedef unsigned short TKey;
 
 class TLayout;
 
-class TMouseEvent
+class TMouseEvent // FIXME: TPointerEvent?
 {
   public:
-    static void _doMouse(TWindow *twindow, TMouseEvent &me);
-  
-    NSEvent *nsevent;
-    TMouseEvent(NSEvent *ne, TWindow *window);
-    TMouseEvent(const TMouseEvent &me, TPoint p) {
-      nsevent = me.nsevent;
-      pos = p;
-      type = me.type;
-      _modifier = me._modifier;
-      dblClick = me.dblClick;
-      window = me.window;
-    };
-
     enum EType {
       MOVE, ENTER, LEAVE,
       LDOWN, MDOWN, RDOWN, LUP, MUP, RUP,
       ROLL_UP, ROLL_DOWN,
       TABLET_POINT, TABLET_PROXIMITY
     };
+    enum EPointerType {
+      UNKNOWN = NX_TABLET_POINTER_UNKNOWN,
+      PEN     = NX_TABLET_POINTER_PEN,
+      CURSOR  = NX_TABLET_POINTER_CURSOR,
+      ERASER  = NX_TABLET_POINTER_ERASER
+    };
+    typedef unsigned long long TUniqueID;
+
+  protected:
+    void init(NSEvent *ne, TWindow *window);
+    EPointerType _pointerType;
+    TUniqueID _uniqueID;
+    bool _proximity;
+
+  public:
+    static void _doMouse(TWindow *twindow, TMouseEvent &me);
+  
+    NSEvent *nsevent;
+    TMouseEvent(NSEvent *ne, TWindow *window) {
+      init(ne, window);
+    }
+    TMouseEvent(NSEvent *ne, TWindow *window, EType type);
+    TMouseEvent(const TMouseEvent &me, TPoint p) {
+      nsevent = me.nsevent;
+      pos = p;
+      type = me.type;
+      _pointerType = me._pointerType;
+      _uniqueID = me._uniqueID;
+      _proximity = me._proximity;
+      _modifier = me._modifier;
+      dblClick = me.dblClick;
+      window = me.window;
+    };
+
     EType type;
     const char* name() const;
   
@@ -151,6 +172,10 @@ class TMouseEvent
     float rotation() const;
     // degree /100.0
     TPoint tilt() const;
+    
+    EPointerType pointerType() const { return _pointerType; }
+    TUniqueID uniqueID() const { return _uniqueID; }
+    bool proximity() const { return _proximity; }
     
     unsigned modifier() const { return __modifier; }
     enum EPointingDeviceType {

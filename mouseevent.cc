@@ -30,21 +30,47 @@ using namespace toad;
 
 unsigned TMouseEvent::_modifier = 0;
 
-TMouseEvent::TMouseEvent(NSEvent *anEvent, TWindow *aWindow) {
+// the following values are only delivered to proximity events.
+// these static variables are used to copy them into all events.
+static TMouseEvent::EPointerType staticPointerType = TMouseEvent::UNKNOWN;
+static TMouseEvent::TUniqueID staticUniqueID = 0;
+static bool staticProximity = false;
+
+void
+TMouseEvent::init(NSEvent *anEvent, TWindow *aWindow)
+{
   nsevent = anEvent;
   if (aWindow) {
-    NSPoint p = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
+    auto &&p = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
     pos.x = p.x;
     pos.y = p.y;
-// cerr << "TMouseEvent::TMouseEvent: pos=("<<x<<","<<y<<"), origin=("<<aWindow->getOriginX()<<","<<aWindow->getOriginY()<<")\n";
     pos -= aWindow->getOrigin();
   }
   window = aWindow;
   dblClick = false;
   __modifier = [nsevent modifierFlags] 
            | _modifier;
+  _pointerType = staticPointerType;
+  _uniqueID = staticUniqueID;
+  _proximity = staticProximity;
 }
 
+TMouseEvent::TMouseEvent(NSEvent *nsevent, TWindow *window, EType aType)
+{
+  type = aType;
+  if (type==TABLET_PROXIMITY) {
+    if ([nsevent isEnteringProximity]) {
+      staticPointerType = static_cast<EPointerType>([nsevent pointingDeviceType]);
+      staticUniqueID = [nsevent uniqueID];
+      staticProximity = true;
+    } else {
+      staticPointerType = UNKNOWN;
+      staticUniqueID = 0;
+      staticProximity = false;
+    }
+  }
+  init(nsevent, window);
+}
 
 // _doMouse helper: handle layout and global event filter
 static void 

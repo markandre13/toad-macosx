@@ -195,23 +195,20 @@
 
 - (void)tabletPoint:(NSEvent *)theEvent
 {
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::TABLET_POINT;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::TABLET_POINT);
   twindow->mouseEvent(me);
 }
 
 - (void)tabletProximity:(NSEvent *)theEvent
 {
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::TABLET_PROXIMITY;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::TABLET_PROXIMITY);
   twindow->mouseEvent(me);
 }
 
 - (void) mouseEntered:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::ENTER;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::ENTER);
   TMouseEvent::_doMouse(twindow, me);
   TOAD_DBG_LEAVE
 }
@@ -219,8 +216,7 @@
 - (void) mouseExited:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::LEAVE;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::LEAVE);
   TMouseEvent::_doMouse(twindow, me);
   TOAD_DBG_LEAVE
 }
@@ -276,8 +272,7 @@
 - (void) mouseDragged:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::MOVE;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::MOVE);
   TMouseEvent::_doMouse(twindow, me);
   TOAD_DBG_LEAVE
 }
@@ -285,8 +280,7 @@
 - (void) rightMouseDragged:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::MOVE;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::MOVE);
   TMouseEvent::_doMouse(twindow, me);
   TOAD_DBG_LEAVE
 }
@@ -294,8 +288,7 @@
 - (void) otherMouseDragged:(NSEvent*)theEvent
 {
   TOAD_DBG_ENTER
-  TMouseEvent me(theEvent, twindow);
-  me.type = TMouseEvent::MOVE;
+  TMouseEvent me(theEvent, twindow, TMouseEvent::MOVE);
   TMouseEvent::_doMouse(twindow, me);
   TOAD_DBG_LEAVE
 }
@@ -304,12 +297,10 @@
 {
   TOAD_DBG_ENTER
   if (TWindow::grabWindow) { // FIXME: TWindow::grabWindow should be used for all mouse handlers
-    TMouseEvent me(theEvent, TWindow::grabWindow);
-    me.type = TMouseEvent::MOVE;
+    TMouseEvent me(theEvent, TWindow::grabWindow, TMouseEvent::MOVE);
     TMouseEvent::_doMouse(TWindow::grabWindow, me);
   } else {
-    TMouseEvent me(theEvent, twindow);
-    me.type = TMouseEvent::MOVE;
+    TMouseEvent me(theEvent, twindow, TMouseEvent::MOVE);
     TMouseEvent::_doMouse(twindow, me);
   }
   TOAD_DBG_LEAVE
