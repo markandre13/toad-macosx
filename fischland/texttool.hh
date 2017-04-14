@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,12 +28,18 @@ using namespace toad;
 class TTextTool:
   public TFigureTool
 {
+    enum {
+      CURSOR_TEXT = 0,
+      CURSOR_TEXT_AREA = 1,
+      CURSOR_TEXT_SHAPE = 2,
+      CURSOR_TEXT_PATH = 3,
+    };
+    static TCursor *cursor[4];
     TFText *text;
   public:
     TTextTool(): text(nullptr) {
     }
     static TTextTool* getTool();
-    void cursor(TFigureEditor *fe, int x, int y);
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
     bool paintSelection(TFigureEditor *fe, TPenBase &pen);

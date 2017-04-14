@@ -26,46 +26,6 @@
 
 using namespace fischland;
 
-TTextTool*
-TTextTool::getTool()
-{
-  static TTextTool* tool = 0;
-  if (!tool)
-    tool = new TTextTool();
-  return tool;
-}
-
-void
-TTextTool::cursor(TFigureEditor *fe, int x, int y)
-{
-  fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT]);
-#if 0
-  if (!path) {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
-    return;
-  }
-  if (down) {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_DRAG]);
-    return;
-  }
-  if (!path->polygon.empty() &&
-       path->polygon.front().x-fe->fuzziness<=x && x<=path->polygon.front().x+fe->fuzziness &&
-       path->polygon.front().y-fe->fuzziness<=y && y<=path->polygon.front().y+fe->fuzziness)
-  {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_CLOSE]);
-    return;
-  }
-  if (!path->polygon.empty() &&
-       path->polygon.back().x-fe->fuzziness<=x && x<=path->polygon.back().x+fe->fuzziness &&
-       path->polygon.back().y-fe->fuzziness<=y && y<=path->polygon.back().y+fe->fuzziness)
-  {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN_EDGE]);
-    return;
-  }
-  fe->getWindow()->setCursor(fischland::cursor[CURSOR_PEN]);
-#endif
-}
-
 void
 TTextTool::stop(TFigureEditor *fe)
 {
@@ -86,13 +46,13 @@ TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   TFText *textUnderMouse = nullptr;
   TFigure *figureUnderMouse = fe->findFigureAt(pos);
   if (!figureUnderMouse) {
-    fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_AREA]);
+    fe->getWindow()->setCursor(cursor[CURSOR_TEXT_AREA]);
   } else {
     textUnderMouse = dynamic_cast<TFText*>(figureUnderMouse);
     if (textUnderMouse) {
-      fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT]);
+      fe->getWindow()->setCursor(cursor[CURSOR_TEXT]);
     } else {
-      fe->getWindow()->setCursor(fischland::cursor[CURSOR_TEXT_SHAPE]);
+      fe->getWindow()->setCursor(cursor[CURSOR_TEXT_SHAPE]);
     }
   }
   
@@ -190,3 +150,168 @@ TTextTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 #endif
   return false;
 }
+
+static const char cursorData[4][32][32+1] = {
+  {
+  // CURSOR_TEXT
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "     ##   ##                    ",
+    "    #..# #..#                   ",
+    "     ##.#.##                    ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "      ##.##                     ",
+    "     #.....#                    ",
+    "      ##.##                     ",
+    "       #.#                      ",
+    "     ##. .##                    ",
+    "    #..# #..#                   ",
+    "     ##   ##                    ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_TEXT_AREA
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "     ##   ##                    ",
+    " #  #..# #..#  #                ",
+    "#.#.#.#.#.#.#.#.#               ",
+    " # # # #.# # # #                ",
+    "#.#    #.#    #.#               ",
+    " #     #.#     #                ",
+    "#.#    #.#    #.#               ",
+    " #     #.#     #                ",
+    "#.#    #.#    #.#               ",
+    " #     #.#     #                ",
+    "#.#    #.#    #.#               ",
+    " #    ##.##    #                ",
+    "#.#  #.....#  #.#               ",
+    " #     #.##    #                ",
+    "#.#    #.#    #.#               ",
+    " # # ##.#.#  # #                ",
+    "#.#.#...#...#.#.#               ",
+    "   # ### ### # #                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_TEXT_SHAPE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "      ##   ##                   ",
+    "     #..# #..#                  ",
+    "     #.#.#.#.#                  ",
+    "    # # #.# # #                 ",
+    "   #.#  #.#  #.#                ",
+    "  # #   #.#   # #               ",
+    " #.#    #.#    #.#              ",
+    " ##     #.#     ##              ",
+    "#.#     #.#     #.#             ",
+    " #      #.#      #              ",
+    "#.#     #.#     #.#             ",
+    " ##    ##.##    ##              ",
+    " #.#  #.....#  #.#              ",
+    "  # #  ##.##  # #               ",
+    "   #.# ##.## #.#                ",
+    "    # #..#..# #                 ",
+    "     #..#.#..#                  ",
+    "      ## # ##                   ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_TEXT_PATH
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "     ## # ##                    ",
+    "    #..#.#..#                   ",
+    "     ##.#.##                    ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#                      ",
+    "       #.#      #               ",
+    "       #.#    ##.#              ",
+    "       #.#  ##.##               ",
+    "      ##.###.##                 ",
+    "     #......#                   ",
+    "   ##.##.###                    ",
+    " ##.## #.#                      ",
+    "#.## ##.#.##                    ",
+    " #  #...#...#                   ",
+    "     ### ###                    ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  }
+};
+
+TCursor* TTextTool::cursor[4];
+
+TTextTool*
+TTextTool::getTool()
+{
+  static TTextTool* tool = 0;
+  if (!tool) {
+    cursor[CURSOR_TEXT]       = new TCursor(cursorData[0], 9, 12);
+    cursor[CURSOR_TEXT_AREA]  = new TCursor(cursorData[1], 9, 12);
+    cursor[CURSOR_TEXT_SHAPE] = new TCursor(cursorData[2], 9, 12);
+    cursor[CURSOR_TEXT_PATH]  = new TCursor(cursorData[3], 9, 12);
+    tool = new TTextTool();
+  }
+  return tool;
+}
+
