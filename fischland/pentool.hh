@@ -38,10 +38,10 @@ class TPenTool:
     }
     static TPenTool* getTool();
     void cursor(TFigureEditor *fe, int x, int y);
-    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    bool paintSelection(TFigureEditor *fe, TPenBase &pen);
-    void stop(TFigureEditor*);
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me) override;
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke) override;
+    bool paintSelection(TFigureEditor *fe, TPenBase &pen) override;
+    void stop(TFigureEditor*) override;
 };
 
 #endif
