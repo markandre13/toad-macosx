@@ -514,12 +514,12 @@ TWindow::destroyParentless()
 
 - (BOOL)canBecomeMainWindow
 {
-  return twindow->flagParentlessAssistant ? NO : YES;
+  return (twindow->flagParentlessAssistant || twindow->flagPopup) ? NO : YES;
 }
 
 - (BOOL)canBecomeKeyWindow
 {
-  return twindow->flagParentlessAssistant ? NO : YES;
+  return (twindow->flagParentlessAssistant || twindow->flagPopup) ? NO : YES;
 }
 
 /*
