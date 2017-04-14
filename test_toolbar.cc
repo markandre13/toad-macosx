@@ -29,78 +29,22 @@
 
 #include <toad/focusmanager.hh>
 
+#include <toad/figure/createtool.hh>
+#include "fischland/selectiontool.hh"
+#include "fischland/directselectiontool.hh"
+#include "fischland/texttool.hh"
+
 #include <cassert>
 #include <set>
 
 using namespace toad;
-
-class TFigureTool2
-{
-  public:
-    virtual string name() const = 0;
-};
-
-class TSelectionTool2:
-  public TFigureTool2
-{
-  public:
-    static TSelectionTool2* getTool();
-    string name() const override { return "selection tool"; }
-};
-
-TSelectionTool2* TSelectionTool2::getTool() {
-  static TSelectionTool2 *tool = nullptr;
-  if (!tool) tool = new TSelectionTool2();
-  return tool;
-}
-
-class TDirectSelectionTool2:
-  public TFigureTool2
-{
-  public:
-    static TDirectSelectionTool2* getTool();
-    string name() const override { return "direct selection tool"; }
-};
-
-TDirectSelectionTool2* TDirectSelectionTool2::getTool() {
-  static TDirectSelectionTool2 *tool = nullptr;
-  if (!tool) tool = new TDirectSelectionTool2();
-  return tool;
-}
-
-class TPenTool2:
-  public TFigureTool2
-{
-  public:
-    static TPenTool2* getTool();
-    string name() const override { return "pen tool"; }
-};
-
-TPenTool2* TPenTool2::getTool() {
-  static TPenTool2 *tool = nullptr;
-  if (!tool) tool = new TPenTool2();
-  return tool;
-}
-
-class TPencilTool2:
-  public TFigureTool2
-{
-  public:
-    static TPencilTool2* getTool();
-    string name() const override { return "pencil tool"; }
-};
-
-TPencilTool2* TPencilTool2::getTool() {
-  static TPencilTool2 *tool = nullptr;
-  if (!tool) tool = new TPencilTool2();
-  return tool;
-}
+using namespace fischland;
 
 class TToolBox2:
-  public GChoiceModel<TFigureTool2*>
+  public GChoiceModel<TFigureTool*>
 {
     // each pointer has it's own active tool
-    map<TMouseEvent::TPointerID, TFigureTool2*> toolForPointer;
+    map<TMouseEvent::TPointerID, TFigureTool*> toolForPointer;
     TMouseEvent::TPointerID activePointer;
   public:
     TToolBox2();
@@ -117,10 +61,10 @@ TToolBox2* TToolBox2::getToolBox() {
 TToolBox2::TToolBox2()
 {
   activePointer = 0;
-  add("selection",       TSelectionTool2::getTool());
-  add("directselection", TDirectSelectionTool2::getTool());
-  add("pen",             TPenTool2::getTool());
-  add("pencil",          TPencilTool2::getTool());
+  add("selection",       TSelectionTool::getTool());
+  add("directselection", TDirectSelectionTool::getTool());
+  add("pen",             TTextTool::getTool());
+  add("pencil",          new TFCreateTool(new TFRectangle));
   
   // FIXME: this would be nicer with closures
   class TMyEventFilter: public TEventFilter {
@@ -159,7 +103,7 @@ TToolBox2::selectPointer(TMouseEvent::TPointerID pointerID)
 class TTestToolbar:
   public TWindow
 {
-    unique_ptr<GChoice<TFigureTool2*>> choice;
+    unique_ptr<GChoice<TFigureTool*>> choice;
     TAction *toolActions;
   public:
     TTestToolbar(TWindow *parent, const string &title);
@@ -185,7 +129,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // action = new TAction(this, "view|grid");
   // action->type = TAction::CHECKBUTTON;
 
-  choice = make_unique<GChoice<TFigureTool2*>>(this, "tool|toolbox", TToolBox2::getToolBox());
+  choice = make_unique<GChoice<TFigureTool*>>(this, "tool|toolbox", TToolBox2::getToolBox());
   setLayout(layout);
 }
 
