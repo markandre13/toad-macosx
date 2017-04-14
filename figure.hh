@@ -486,6 +486,7 @@ class TFText:
     void store(TOutObjectStream&) const override;
     bool restore(TInObjectStream&) override;
     
+    TFigure *relation;
   protected:
     TWordProcessor wp;
     
@@ -493,7 +494,6 @@ class TFText:
     string fontname;
     virtual void calcSize();
 
-    TFigure *relation;
     bool editEvent(TFigureEditEvent &editEvent) override;
 };
 
