@@ -145,6 +145,18 @@ class GChoiceModel:
     const string& getID(unsigned idx) const { return data[idx]->id; }
     const T& getValue() const { return data[idx]->what; }
     const T& getValue(unsigned idx) const { return data[idx]->what; }
+    void setValue(T value) {
+      if (value==getValue())
+        return;
+      unsigned idx=0;
+      for(auto &&p: data) {
+        if (p->what==value) {
+          select(idx);
+          break;
+        }
+        ++idx;
+      }
+    }
     
   protected:
     struct TData {
