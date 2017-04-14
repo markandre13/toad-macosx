@@ -604,6 +604,7 @@ TFigureEditor::paint()
 void
 TFigureEditor::paintGrid(TPenBase &pen)
 {
+return;
   if (!preferences ||
       !preferences->drawgrid ||
       preferences->gridsize <= 0.0)
