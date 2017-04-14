@@ -139,7 +139,6 @@ class GChoiceModel:
       d->id = id;
       d->what = what;
       data.push_back(d);
-      TAction::actions.sigChanged();
     }
     unsigned getSize() const { return data.size(); }
     const string& getID(unsigned idx) const { return data[idx]->id; }
@@ -199,12 +198,15 @@ class GChoice:
       :TAbstractChoice(p, id, TAction::RADIOBUTTON), model(m)
     {
       signalLink = connect(model->sigChanged, [=] {
-        cout << "GChoiceModel<T>::sigChanged -> GChoice<T>::sigChanged" << endl;
         this->sigChanged();
       });
+      // FIXME: TAction already added this object, but then the type was still TAction
+      //        update when GChoice isn't a subclass of TAction anymore
+      TAction::actions.sigChanged();
     }
     
     ~GChoice<T>() {
+      // FIXME: this must be easier, update when TSlot is finished
       model->sigChanged.remove(signalLink);
     }
     
