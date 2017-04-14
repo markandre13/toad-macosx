@@ -130,12 +130,13 @@ class TMouseEvent // FIXME: TPointerEvent?
       CURSOR  = NX_TABLET_POINTER_CURSOR,
       ERASER  = NX_TABLET_POINTER_ERASER
     };
-    typedef unsigned long long TUniqueID;
+    // some graphic tables, ie. Wacom, provide a unique id for each pen
+    typedef unsigned long long TPointerID;
 
   protected:
     void init(NSEvent *ne, TWindow *window);
     EPointerType _pointerType;
-    TUniqueID _uniqueID;
+    TPointerID _pointerID;
     bool _proximity;
 
   public:
@@ -151,7 +152,7 @@ class TMouseEvent // FIXME: TPointerEvent?
       pos = p;
       type = me.type;
       _pointerType = me._pointerType;
-      _uniqueID = me._uniqueID;
+      _pointerID = me._pointerID;
       _proximity = me._proximity;
       _modifier = me._modifier;
       dblClick = me.dblClick;
@@ -174,7 +175,7 @@ class TMouseEvent // FIXME: TPointerEvent?
     TPoint tilt() const;
     
     EPointerType pointerType() const { return _pointerType; }
-    TUniqueID uniqueID() const { return _uniqueID; }
+    TPointerID pointerID() const { return _pointerID; }
     bool proximity() const { return _proximity; }
     
     unsigned modifier() const { return __modifier; }

@@ -33,7 +33,7 @@ unsigned TMouseEvent::_modifier = 0;
 // the following values are only delivered to proximity events.
 // these static variables are used to copy them into all events.
 static TMouseEvent::EPointerType staticPointerType = TMouseEvent::UNKNOWN;
-static TMouseEvent::TUniqueID staticUniqueID = 0;
+static TMouseEvent::TPointerID staticPointerID = 0;
 static bool staticProximity = false;
 
 void
@@ -51,7 +51,7 @@ TMouseEvent::init(NSEvent *anEvent, TWindow *aWindow)
   __modifier = [nsevent modifierFlags] 
            | _modifier;
   _pointerType = staticPointerType;
-  _uniqueID = staticUniqueID;
+  _pointerID = staticPointerID;
   _proximity = staticProximity;
 }
 
@@ -61,11 +61,11 @@ TMouseEvent::TMouseEvent(NSEvent *nsevent, TWindow *window, EType aType)
   if (type==TABLET_PROXIMITY) {
     if ([nsevent isEnteringProximity]) {
       staticPointerType = static_cast<EPointerType>([nsevent pointingDeviceType]);
-      staticUniqueID = [nsevent uniqueID];
+      staticPointerID = [nsevent uniqueID];
       staticProximity = true;
     } else {
       staticPointerType = UNKNOWN;
-      staticUniqueID = 0;
+      staticPointerID = 0;
       staticProximity = false;
     }
   }
