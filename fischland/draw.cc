@@ -20,7 +20,7 @@
 
 #include "fischland.hh"
 #include "fischeditor.hh"
-#include "toolbox.hh"
+#include "fishbox.hh"
 #include "colorpalette.hh"
 #include "lineal.hh"
 #include "page.hh"
@@ -954,7 +954,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
 
   CONNECT(me->sigFischModified, this, editorModified);
   editor = me;
-  me->setAttributes(TToolBox::preferences);
+  me->setAttributes(TFishBox::preferences);
   me->setBackground(1,1,1);
   me->setRowHeaderRenderer(new TLineal(true));
   me->setColHeaderRenderer(new TLineal(false));
@@ -1496,7 +1496,7 @@ main(int argc, char **argv, char **envv)
   cursor[4] = new TCursor(bm[4], 0, 21);
   cursor[5] = new TCursor(bm[5], 0, 21);
 
-  new TToolBox(0, "Tools");
+  new TFishBox(0, "Tools");
 //  if (argc==1) {
   TMainWindow *wnd =  new TMainWindow(0, programname);
   wnd->load("a.fish");

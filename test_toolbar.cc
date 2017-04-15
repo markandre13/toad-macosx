@@ -114,12 +114,22 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
 {
   setShape(640,1000,320,200);
   
+  // create children
   TMenuBar *menu = new TMenuBar(this, "menubar");
   menu->loadLayout("test_toolbar_menu.atv");
-  
-  TSpringLayout *layout = new TSpringLayout;
-  layout->attach("menubar", TSpringLayout::TOP | TSpringLayout::RIGHT | TSpringLayout::BOTTOM);
 
+  TFigureEditor *editor = new TFigureEditor(this, "editor");
+
+  // this way, we would have to remove the editor from the toolbox again:
+  //
+  // TToolBox2::getToolBox()->addEditor(editor);
+  //
+  // this way, we can give a fuck about cleaning up resources and calling
+  // setTool in all connected figure editors:
+  //
+  // editor->setToolBox(TToolBox2::getToolBox());
+
+  // create actions
   TAction *action;  
   action = new TAction(this, "file|quit");
   connect(action->sigClicked, [&] {
@@ -130,6 +140,12 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // action->type = TAction::CHECKBUTTON;
 
   choice = make_unique<GChoice<TFigureTool*>>(this, "tool|toolbox", TToolBox2::getToolBox());
+  
+  // layout children
+  TSpringLayout *layout = new TSpringLayout;
+  layout->attach("menubar", TSpringLayout::TOP | TSpringLayout::LEFT | TSpringLayout::RIGHT);
+  layout->attach("editor", TSpringLayout::LEFT | TSpringLayout::RIGHT | TSpringLayout::BOTTOM);
+  layout->attach("editor", TSpringLayout::TOP, "menubar");
   setLayout(layout);
 }
 

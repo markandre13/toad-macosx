@@ -20,7 +20,7 @@
 
 #include "colorpicker.hh"
 #include "colorpalette.hh"
-#include "toolbox.hh"
+#include "fishbox.hh"
 #include <toad/pen.hh>
 
 using namespace fischland;
@@ -140,7 +140,7 @@ bool
 TColorPicker::click(const TMouseEvent &me)
 {
   if (me.dblClick) {
-    TColorPalette *cp = new TColorPalette(0, "Palette", TToolBox::preferences);
+    TColorPalette *cp = new TColorPalette(0, "Palette", TFishBox::preferences);
     cp->createWindow();
     return true;
   }

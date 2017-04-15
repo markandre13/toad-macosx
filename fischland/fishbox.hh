@@ -30,20 +30,20 @@ namespace fischland {
 
 using namespace toad;
 
-class TToolBox:
+class TFishBox:
   public toad::TDialog
 {
     typedef TDialog super;
     TBitmap bmp;
     TIntegerModel alpha;
   public:
-    TToolBox(TWindow *p, const std::string &t);
+    TFishBox(TWindow *p, const std::string &t);
     void paint();
 
     TSingleSelectionModel *lw_sm, *ls_sm, *am_sm, *at_sm;
     void preferencesChanged();
 
-    static TToolBox *toolbox;
+    static TFishBox *toolbox;
     static PFigureAttributes preferences;
 };
 

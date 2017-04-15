@@ -18,7 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "toolbox.hh"
+#include "fishbox.hh"
 #include "selectiontool.hh"
 #include "filltool.hh"
 #include "pentool.hh"
@@ -205,8 +205,8 @@ class TFontButton:
     }
 };
 
-TToolBox* TToolBox::toolbox = 0;
-PFigureAttributes TToolBox::preferences;
+TFishBox* TFishBox::toolbox = 0;
+PFigureAttributes TFishBox::preferences;
 
 void
 setLineWidth(TSingleSelectionModel *model)
@@ -216,20 +216,20 @@ setLineWidth(TSingleSelectionModel *model)
     n=48;
   else
     n*=96;
-  if (TToolBox::preferences->linewidth != n) {
-    TToolBox::preferences->reason.linewidth = true;
-    TToolBox::preferences->linewidth = n/96.0;
-    TToolBox::preferences->sigChanged();
+  if (TFishBox::preferences->linewidth != n) {
+    TFishBox::preferences->reason.linewidth = true;
+    TFishBox::preferences->linewidth = n/96.0;
+    TFishBox::preferences->sigChanged();
   }
 }
 
 void
-TToolBox::preferencesChanged()
+TFishBox::preferencesChanged()
 {
   int n;
 
   // lw_sm, line width selection model
-  n = TToolBox::preferences->linewidth*96.0;
+  n = TFishBox::preferences->linewidth*96.0;
   if (n==48)
     n=0;
   else
@@ -239,19 +239,19 @@ TToolBox::preferencesChanged()
     lw_sm->select(0, n);
   }
 
-  n = TToolBox::preferences->linestyle - 1;
+  n = TFishBox::preferences->linestyle - 1;
   if (n != ls_sm->getRow()) {
  //   cout << "line style changed from " << ls_sm->getRow() << " to " << n << endl;
     ls_sm->select(0, n);
   } 
 
-  n = TToolBox::preferences->arrowmode;
+  n = TFishBox::preferences->arrowmode;
   if (n != am_sm->getRow()) {
 //    cout << "arrow mode changed from " << am_sm->getRow() << " to " << n << endl;
     am_sm->select(0, n);
   } 
 
-  n = TToolBox::preferences->arrowtype;
+  n = TFishBox::preferences->arrowtype;
   if (n != at_sm->getRow()) {
 //    cout << "arrow style changed from " << at_sm->getRow() << " to " << n << endl;
     at_sm->select(0, n);
@@ -262,10 +262,10 @@ void
 setLineStyle(TSingleSelectionModel *model)
 {
   TPenBase::ELineStyle n = static_cast<TPenBase::ELineStyle>(model->getRow()+1);
-  if (TToolBox::preferences->linestyle != n) {
-    TToolBox::preferences->reason.linestyle = true;
-    TToolBox::preferences->linestyle = n;
-    TToolBox::preferences->sigChanged();
+  if (TFishBox::preferences->linestyle != n) {
+    TFishBox::preferences->reason.linestyle = true;
+    TFishBox::preferences->linestyle = n;
+    TFishBox::preferences->sigChanged();
   }
 }
 
@@ -273,10 +273,10 @@ void
 setArrowMode(TSingleSelectionModel *model)
 {
   TFLine::EArrowMode n = static_cast<TFLine::EArrowMode>(model->getRow());
-  if (TToolBox::preferences->arrowmode != n) {
-    TToolBox::preferences->reason.arrowmode = true;
-    TToolBox::preferences->arrowmode = n;
-    TToolBox::preferences->sigChanged();
+  if (TFishBox::preferences->arrowmode != n) {
+    TFishBox::preferences->reason.arrowmode = true;
+    TFishBox::preferences->arrowmode = n;
+    TFishBox::preferences->sigChanged();
   }
 }
 
@@ -284,10 +284,10 @@ void
 setArrowType(TSingleSelectionModel *model)
 {
   TFLine::EArrowType n = static_cast<TFLine::EArrowType>(model->getRow());
-  if (TToolBox::preferences->arrowtype != n) {
-    TToolBox::preferences->reason.arrowstyle = true;
-    TToolBox::preferences->arrowtype = n;;
-    TToolBox::preferences->sigChanged();
+  if (TFishBox::preferences->arrowtype != n) {
+    TFishBox::preferences->reason.arrowstyle = true;
+    TFishBox::preferences->arrowtype = n;;
+    TFishBox::preferences->sigChanged();
   }
 }
 
@@ -295,19 +295,19 @@ static void
 selectFont()
 {
   TFontDialog dlg(0, "Select Font");
-  dlg.setFont(TToolBox::preferences->getFont());
+  dlg.setFont(TFishBox::preferences->getFont());
   dlg.setFontSize(dlg.getFontSize());
   dlg.doModalLoop();
   if (dlg.getResult() == TMessageBox::OK) {
     dlg.setFontSize(dlg.getFontSize());
-    TToolBox::preferences->setFont(dlg.getFont());
+    TFishBox::preferences->setFont(dlg.getFont());
   }
 }
 
 static void
 openPalette(TWindow *parent)
 {
-  TColorPalette *cp = new TColorPalette(parent, "Palette", TToolBox::preferences);
+  TColorPalette *cp = new TColorPalette(parent, "Palette", TFishBox::preferences);
   cp->createWindow();
 }
 
@@ -338,14 +338,14 @@ TColorPickTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
   fe->mouse2sheet(me.pos, &pos);
   TFigure *f = fe->findFigureAt(pos);
   if (f) {
-    TToolBox::preferences->setAllReasons();
-    f->getAttributes(TToolBox::preferences);
-    TToolBox::preferences->sigChanged();
+    TFishBox::preferences->setAllReasons();
+    f->getAttributes(TFishBox::preferences);
+    TFishBox::preferences->sigChanged();
   }
 }
 
 
-TToolBox::TToolBox(TWindow *p, const string &t):
+TFishBox::TFishBox(TWindow *p, const string &t):
   super(p, t)
 {
 TObjectStore& serialize(toad::getDefaultStore());
@@ -652,7 +652,7 @@ serialize.registerObject(new TFPath());
 }
 
 void
-TToolBox::paint()
+TFishBox::paint()
 {
   TPen pen(this);
 
