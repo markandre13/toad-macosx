@@ -1,4 +1,4 @@
-.PHONY: all run depend test gdb
+.PHONY: all run depend test gdb doc
 
 EXEC=fischland.app/Contents/MacOS/fischland
 
@@ -102,6 +102,9 @@ test: test.app/Contents/MacOS/test
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
+
+doc:
+	cd doc && /Applications/Doxygen.app/Contents/Resources/doxygen
 
 clean:
 	rm -f $(OBJS) $(EXEC) .gdb_history
