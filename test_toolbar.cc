@@ -40,25 +40,26 @@
 using namespace toad;
 using namespace fischland;
 
-class TToolBox2:
+class TToolBox:
   public GChoiceModel<TFigureTool*>
 {
     // each pointer has it's own active tool
     map<TMouseEvent::TPointerID, TFigureTool*> toolForPointer;
     TMouseEvent::TPointerID activePointer;
   public:
-    TToolBox2();
-    static TToolBox2 *getToolBox();
+    TToolBox();
+    static TToolBox *getToolBox();
     void selectPointer(TMouseEvent::TPointerID pointerID);
 };
 
-TToolBox2* TToolBox2::getToolBox() {
-  static TToolBox2 *tool = nullptr;
-  if (!tool) tool = new TToolBox2();
+TToolBox*
+TToolBox::getToolBox() {
+  static TToolBox *tool = nullptr;
+  if (!tool) tool = new TToolBox();
   return tool;
 }
 
-TToolBox2::TToolBox2()
+TToolBox::TToolBox()
 {
   activePointer = 0;
   add("selection",       TSelectionTool::getTool());
@@ -68,21 +69,22 @@ TToolBox2::TToolBox2()
   
   // FIXME: this would be nicer with closures
   class TMyEventFilter: public TEventFilter {
-      TToolBox2 *toolbox;
+      TToolBox *toolbox;
     public:
-      TMyEventFilter(TToolBox2 *aToolBox):toolbox(aToolBox) {}
+      TMyEventFilter(TToolBox *aToolBox):toolbox(aToolBox) {}
     protected:
       bool mouseEvent(TMouseEvent &me) override {
         if (me.type==TMouseEvent::TABLET_PROXIMITY) {
           toolbox->selectPointer(me.pointerID());
         }
+        return false;
       }
   };
   TFocusManager::insertEventFilter(new TMyEventFilter(this), NULL, KF_GLOBAL);
 }
 
 void
-TToolBox2::selectPointer(TMouseEvent::TPointerID pointerID)
+TToolBox::selectPointer(TMouseEvent::TPointerID pointerID)
 {
   if (activePointer == pointerID)
     return;
@@ -104,7 +106,6 @@ class TTestToolbar:
   public TWindow
 {
     unique_ptr<GChoice<TFigureTool*>> choice;
-    TAction *toolActions;
   public:
     TTestToolbar(TWindow *parent, const string &title);
 };
@@ -122,12 +123,12 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
 
   // this way, we would have to remove the editor from the toolbox again:
   //
-  // TToolBox2::getToolBox()->addEditor(editor);
+  // TToolBox::getToolBox()->addEditor(editor);
   //
   // this way, we can give a fuck about cleaning up resources and calling
   // setTool in all connected figure editors:
   //
-  // editor->setToolBox(TToolBox2::getToolBox());
+  // editor->setToolBox(TToolBox::getToolBox());
 
   // create actions
   TAction *action;  
@@ -139,7 +140,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // action = new TAction(this, "view|grid");
   // action->type = TAction::CHECKBUTTON;
 
-  choice = make_unique<GChoice<TFigureTool*>>(this, "tool|toolbox", TToolBox2::getToolBox());
+  choice = make_unique<GChoice<TFigureTool*>>(this, "tool|toolbox", TToolBox::getToolBox());
   
   // layout children
   TSpringLayout *layout = new TSpringLayout;
@@ -222,8 +223,8 @@ TToolBar::TToolBar(TWindow *parent, const string &title):
 void
 TToolBar::actionsChanged()
 {
-cout << endl;
-cout << "TToolBar::actionsChanged()" << endl;
+//cout << endl;
+//cout << "TToolBar::actionsChanged()" << endl;
   std::set<std::string> found;
 
   for(TActionStorage::iterator i = TAction::actions.begin();
@@ -233,23 +234,23 @@ cout << "TToolBar::actionsChanged()" << endl;
     TAction *action = *i;
     switch(action->type) {
       case TAction::BUTTON:
-cout << "  button '" << action->getTitle() << "'" << endl;
+//cout << "  button '" << action->getTitle() << "'" << endl;
         found.insert(action->getTitle());
         addAction(action->getTitle(), action);
         break;
       case TAction::CHECKBUTTON:
-cout << "  checkbox" << endl;
+//cout << "  checkbox" << endl;
         break;
       case TAction::RADIOBUTTON:
-cout << "  radiobutton '" << action->getTitle() << "'" << endl;
+//cout << "  radiobutton '" << action->getTitle() << "'" << endl;
         TAbstractChoice *choice = dynamic_cast<TAbstractChoice*>(action);
         if (!choice) {
-          cout << "    choice is not an abstract choice" << endl;
+//          cout << "    choice is not an abstract choice" << endl;
           break;
         }
         for(size_t i=0; i<choice->getSize(); ++i) {
           string title = choice->getTitle() + '|' + choice->getID(i);
-cout << "    '" << title << "'" << endl;
+//cout << "    '" << title << "'" << endl;
           found.insert(title);
           addChoice(title, choice->getModel(), i);
         }
@@ -266,7 +267,7 @@ TToolBar::addAction(const string &title, TAction*)
 void
 TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
 {
-cout << "toolbar: addChoice(" << title << ", ...)" << endl;
+//cout << "toolbar: addChoice(" << title << ", ...)" << endl;
 
   TCoord x = 0;
   for(TInteractor *child = getFirstChild(); child; child=child->getNextSibling()) {
@@ -300,9 +301,9 @@ test_toolbar()
   new TToolBar(nullptr, "TToolBar");
   new TTestToolbar(nullptr, "TTestToolbar");
 
-  connect(TToolBox2::getToolBox()->sigChanged, [=] {
-    cout << "TToolBox2.sigChanged: selected tool" << endl;
-//    cout << "selected tool '" << TToolBox2::getToolBox()->choice->getValue()->name() << "'" << endl;
+  connect(TToolBox::getToolBox()->sigChanged, [=] {
+    cout << "TToolBox.sigChanged: selected tool" << endl;
+//    cout << "selected tool '" << TToolBox::getToolBox()->choice->getValue()->name() << "'" << endl;
   });
 
   toad::mainLoop();
