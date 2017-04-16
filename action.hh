@@ -113,7 +113,7 @@ class TChoiceModel:
     TChoiceModel() {
       idx = 0;
     }
-    void select(unsigned idx) {
+    virtual void select(unsigned idx) {
       // cout << "selected " << data[idx]->id << endl;
       this->idx = idx;
       sigChanged();

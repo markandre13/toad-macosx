@@ -43,7 +43,7 @@ TFGroup::modelChanged()
 
 TFGroup::~TFGroup()
 {
-  disconnect(gadgets.sigChanged, this);
+  gadgets.sigChanged.remove(this);
 }
 
 /**

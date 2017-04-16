@@ -77,7 +77,7 @@ TRadioStateModel::remove(TRadioButtonBase *rb)
     ++p;
   }  
 
-  disconnect(rb->sigClicked, this);
+  rb->sigClicked.remove(this);
 }
 
 void 

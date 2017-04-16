@@ -49,7 +49,7 @@ class TIntegerTextModel:
     }
     ~TIntegerTextModel() {
       if (model)
-        disconnect(model->sigChanged, this);
+        model->sigChanged.remove(this);
     }
     int filter(int c) {
       if (c=='\n') {

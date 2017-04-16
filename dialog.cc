@@ -597,9 +597,11 @@ TDialogLayout::restore(TInObjectStream &in)
 TLayoutEditor *
 TDialogLayout::createEditor(TWindow *inWindow, TWindow *forWindow)
 {
-  return new TLayoutEditDialog(inWindow, "TDialogLayout.editor", this, forWindow);
+//  return new TLayoutEditDialog(inWindow, "TDialogLayout.editor", this, forWindow);
+  return nullptr;
 }
 
+#if 0
 TLayoutEditDialog::TLayoutEditDialog(TWindow *parent,
                                      const string &title,
                                      TDialogLayout *layout,
@@ -808,3 +810,4 @@ TLayoutEditDialog::sizeChanged()
   layout->height = height;
   forWindow->setSize(width, height);
 }
+#endif

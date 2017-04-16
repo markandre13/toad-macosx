@@ -40,18 +40,6 @@
 using namespace toad;
 using namespace fischland;
 
-class TToolBox:
-  public GChoiceModel<TFigureTool*>
-{
-    // each pointer has it's own active tool
-    map<TMouseEvent::TPointerID, TFigureTool*> toolForPointer;
-    TMouseEvent::TPointerID activePointer;
-  public:
-    TToolBox();
-    static TToolBox *getToolBox();
-    void selectPointer(TMouseEvent::TPointerID pointerID);
-};
-
 TToolBox*
 TToolBox::getToolBox() {
   static TToolBox *tool = nullptr;
@@ -62,11 +50,8 @@ TToolBox::getToolBox() {
 TToolBox::TToolBox()
 {
   activePointer = 0;
-  add("selection",       TSelectionTool::getTool());
-  add("directselection", TDirectSelectionTool::getTool());
-  add("pen",             TTextTool::getTool());
-  add("pencil",          new TFCreateTool(new TFRectangle));
-  
+/*
+*/  
   // FIXME: this would be nicer with closures
   class TMyEventFilter: public TEventFilter {
       TToolBox *toolbox;
@@ -128,7 +113,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   // this way, we can give a fuck about cleaning up resources and calling
   // setTool in all connected figure editors:
   //
-  // editor->setToolBox(TToolBox::getToolBox());
+  editor->setToolBox(TToolBox::getToolBox());
 
   // create actions
   TAction *action;  
@@ -152,7 +137,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
 
 // FIXME: this should be TFatRadioButton, but TRadioStateModel is not compatible with TAbstractChoice
 class TToolButton:
-  public TButtonBase, public TSlot
+  public TButtonBase
 {
     typedef TButtonBase super;
   public:
@@ -197,7 +182,7 @@ TToolButton::paint()
 }
 
 class TToolBar:
-  public TWindow, public TSlot
+  public TWindow
 {
   public:
     TToolBar(TWindow *parent, const string &title);
@@ -298,6 +283,12 @@ TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
 int 
 test_toolbar()
 {
+  TToolBox *tb = TToolBox::getToolBox();
+  tb->add("selection",       TSelectionTool::getTool());
+  tb->add("directselection", TDirectSelectionTool::getTool());
+  tb->add("pen",             TTextTool::getTool());
+  tb->add("pencil",          new TFCreateTool(new TFRectangle));
+
   new TToolBar(nullptr, "TToolBar");
   new TTestToolbar(nullptr, "TTestToolbar");
 

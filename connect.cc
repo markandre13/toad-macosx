@@ -24,8 +24,6 @@
  * TOAD's implementation of callbacks to member functions.
  */
 
-#ifndef TEST_CONNECT
-
 #include <cstddef>
 #include <toad/connect.hh>
 
@@ -34,153 +32,6 @@
 #include <assert.h>
 
 using namespace std;
-
-#else
-
-#include <cstddef>
-#include "connect.hh"
-#include <iostream>
-#include <cassert>
-
-using namespace toad;
-
-struct TMySource 
-{
-  TSignal sigAction;
-  int value;
-  int getValue() { return value; }
-};
-
-struct TMyDestination
-{
-  void DoIt() { cout << "DoIt" << endl; exit(0); }
-  void DoIt(int n) { cout << "DoIt: " << n << endl; exit(0); }
-  void DoIt2(int n=7) { cout << "DoIt2: " << n << endl; exit(0); }
-};
-
-static
-void DoItFunc()
-{
-  exit(0);
-}
-
-static
-void DoIt2Func(int n)
-{
-  cout << "DoIt2Func " << n << endl;
-  exit(0);
-}
-
-int
-main()
-{
-  TMySource *source = new TMySource();
-  source->value = 42;
-  TMyDestination *destination = new TMyDestination();
-
-  // plain connect (inline & macro variant)
-  //----------------------------------------
-#ifdef TEST1
-  connect(
-    source->sigAction,
-    destination, &TMyDestination::DoIt);
-#endif
-
-#ifdef TEST2
-  CONNECT(
-    source->sigAction,
-    destination, DoIt);
-#endif
-
-  // connect with one parameter from method (inline & macro variant)
-  //-----------------------------------------------------------------
-#ifdef TEST3
-  connect_value_of(
-    source->sigAction, 
-    destination, &TMyDestination::DoIt,
-    source, &TMySource::getValue);
-#endif
-
-#ifdef TEST4
-  CONNECT_VALUE_OF(
-    source->sigAction, 
-    destination, DoIt,
-    source, getValue());
-#endif
-
-  // connect with one parameter from variable (inline only)
-  //--------------------------------------------------------
-#ifdef TEST5
-  connect_value_of(
-    source->sigAction, 
-    destination, &TMyDestination::DoIt,
-    &source->value);
-#endif
-
-  // connect with one parameter from getValue method (inline & macro variant)
-  //---------------------------------------------------------------
-#ifdef TEST6
-  connect_value(
-    source->sigAction, 
-    destination, &TMyDestination::DoIt,
-    source);
-#endif
-
-#ifdef TEST7
-  CONNECT_VALUE(
-    source->sigAction,
-    destination, DoIt,
-    source);
-#endif
-
-  // connection with code (macro only)
-  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#ifdef TEST8
-  TSignalLink *r;
-  BGN_CONNECT_CODE(source->sigAction, destination, source, &r);
-    dst->DoIt(src->getValue()*10);
-  END_CONNECT_CODE();
-#endif
-
-// the usual connect doesn't work with predefined arguments, but
-// '*_CONNECT_CODE'
-#if 0
-  connect(
-    source->sigAction,
-    destination, &TMyDestination::DoIt2);
-#endif
-
-#ifdef TEST9
-  BGN_CONNECT_CODE(source->sigAction, destination, source, NULL);
-    dst->DoIt2();
-  END_CONNECT_CODE();
-#endif
-
-  // connection with one predefined value
-#ifdef TEST10
-  connect(
-    source->sigAction,
-    destination, &TMyDestination::DoIt2, 43);
-#endif
-
-  // plain connect with function
-#ifdef TEST11
-  connect(source->sigAction, DoItFunc);
-#endif
-
-#ifdef TEST12
-  connect(source->sigAction, DoIt2Func, 43);
-#endif
-
-
-  source->sigAction();
-
-  exit(1);
-}
-
-#endif
-
-//---------------------------------------------------------------------------
 
 namespace toad {
 
@@ -408,50 +259,46 @@ TSignal::trigger()
   return true;
 }
 
-#ifndef TEST_CONNECT
+std::map<TSlot*, std::map<TSignal*, std::set<TSignalLink*> > > TSlot::slotContainer;
 
-#if 0
-
-class TCommandDelayedTrigger:
-  public TCommand
-{     
-    TSignal *signal;
-  public:
-    TCommandDelayedTrigger(TSignal *s):signal(s){}
-    void execute() {
-#ifdef TOAD_SECURE
-      signal->delayedtrigger--;
-#endif
-      signal->trigger();
-    }
-};
-
-/**   
- * Invoke all actions connected to the signal from the message queue.
- *
- * Unlike <code>trigger()<code/> this method returns <i>before</i>
- * the signal is triggered. Execution will start after all events  
- * in the message queue (at the time this method was invoked) are 
- * processed.
- *
- * A risk of this function is that the signal get's destroyed before
- * execution. TOAD catches this error when compiled with
- * TOAD_SECURE is defined during compilation of the TOAD library.
- *
- * \return false' when the signal is connected to anything
- * \sa trigger
- */
-bool TSignal::delayedTrigger()
+TSignalLink*
+toad::connect(TSignal &signal, TSlot *slot, std::function<void()> closure)
 {
-  if (!_list) return false;
-#ifdef TOAD_SECURE
-  delayedtrigger++;
-#endif
-  TOADBase::sendMessage(new TCommandDelayedTrigger(this));
+//cout << "connect from signal " << &signal << " slot " << slot << endl;
+  TSignalLink *link = signal.add(closure);
+  TSlot::slotContainer[slot][&signal].insert(link);
+  return link;
+}   
+
+void
+toad::disconnect(TSignal &signal, TSlot *slot)
+{
+//cout << "disconnect from signal " << &signal << " slot " << slot << endl;
+  auto &&storedSlot = TSlot::slotContainer.find(slot);
+  if (storedSlot==TSlot::slotContainer.end())
+    return;
+  auto &&storedSignal = storedSlot->second.find(&signal);
+  if (storedSignal == storedSlot->second.end())
+    return;
+  for(auto &&link: storedSignal->second)
+    storedSignal->first->remove(link);
+  storedSlot->second.erase(storedSignal);
+  if (storedSlot->second.empty())
+    TSlot::slotContainer.erase(storedSlot);
 }
 
-#endif
+TSlot::~TSlot() {
+  auto &&slot = slotContainer.find(this);
+  if (slot==slotContainer.end())
+    return;
+  for(auto &&signal: slot->second) {
+    for(auto &&link: signal.second) {
+      signal.first->remove(link);
+    }
+  }
+  slotContainer.erase(slot);
+}
 
-#endif
+
 
 } // namespace toad

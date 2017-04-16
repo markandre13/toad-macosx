@@ -32,6 +32,7 @@
 #include <toad/floatmodel.hh>
 
 #include <toad/figure/createtool.hh>
+#include <toad/action.hh>
 
 #include <set>
 #include <vector>
@@ -50,11 +51,46 @@ class TFigureEditorHeaderRenderer
     virtual void mouseEvent(const TMouseEvent&);
 };
 
+/**
+ * \ingroup figure
+ * \class toad::TToolBox
+ *
+ * TToolBox provides a collection of TFigureTools to TFigureEditor.
+ *
+ * A TFigureEditor has one TToolBox, while a TToolBox may be assigned to
+ * many TFigureEditors.
+ *
+ * One TFigureTool within TToolBox is the active tool, to which
+ * TFigureEditor will delegate all edit events.
+ *
+ * When the pointing device provides an ID, as is the case with some graphic
+ * tablet pens, TToolBox will also maintain a separate active tool per pen.
+ */
+class TToolBox:
+  public GChoiceModel<TFigureTool*>
+{
+    typedef GChoiceModel<TFigureTool*> super;
+
+    // each pointer has it's own active tool
+    map<TMouseEvent::TPointerID, TFigureTool*> toolForPointer;
+    TMouseEvent::TPointerID activePointer;
+  public:
+    TToolBox();
+    TFigureTool* getTool() const { return getValue(); }
+    static TToolBox *getToolBox();
+    void selectPointer(TMouseEvent::TPointerID pointerID);
+};
+
+/**
+ * \ingroup figure
+ * \class toad::TFigureAttributes
+ *
+ * Not yet sure whether to keep this class. There's just too much crap in it.
+ */
 class TFigureAttributes:
   public TModel
 {
     TFigureEditor *current;
-    TFigureTool *tool;
     TFigureAttributes(const TFigureAttributes&) {};
   public:
   
@@ -80,8 +116,6 @@ class TFigureAttributes:
     void setOperation(unsigned);
     // unsigned getOperation() const { return current->getOperation(); }
     void setCreate(TFigure *figure);
-    void setTool(TFigureTool*);
-    TFigureTool* getTool() const { return tool; }
     
     void group();
     void ungroup();
@@ -112,8 +146,6 @@ class TFigureAttributes:
       bool arrowstyle:1;
       
       bool fontname:1;
-      
-      bool tool:1; // we might not want to place the tool here
     } reason;
     
     void setAllReasons(bool f=true) {
@@ -128,8 +160,7 @@ class TFigureAttributes:
       reason.linestyle =
       reason.arrowmode =
       reason.arrowstyle =
-      reason.fontname =
-      reason.tool = f;
+      reason.fontname = f;
     }
 
     void clearReasons() {
@@ -194,7 +225,7 @@ class TFigureEditor:
     typedef TScrollPane super;
     typedef TFigureEditor TThis;
     PFigureModel model;
-    TFigureTool *tool;
+    TToolBox *toolbox;
   public:
     static std::map<const TFigure*, std::set<const TFigure*>> relatedTo;
     static void restoreRelation(const TFigure **from, const TFigure *to);
@@ -206,7 +237,6 @@ class TFigureEditor:
     TFigureEditor();
     void setWindow(TWindow*);
     TWindow* getWindow() const { return window; }
-    TFigureTool* getTool() const { return tool; }
 
     TFigureEditor(TWindow*, const string &title, TFigureModel *model=0);
     ~TFigureEditor();
@@ -260,14 +290,7 @@ class TFigureEditor:
     TFigureEditorHeaderRenderer *col_header_renderer;
 
   public:
-    static const unsigned OP_SELECT = 0;
-//    static const unsigned OP_CREATE = 1;
-    static const unsigned OP_ROTATE = 2;
-    void setOperation(unsigned);
-    unsigned getOperation() const { return operation; }
-    void setCreate(TFigure *figure);
-    void setTool(TFigureTool*);
-    virtual void toolChanged(TFigureTool*);
+    void setToolBox(TToolBox *toolbox);
     
     // not all these methods work now, but the first 4 should do
     void identity();
@@ -328,7 +351,7 @@ class TFigureEditor:
     void selectionDown();
     void selectionAlignHorizontal();
     void selectionAlignVertical();
-    void applyAll();
+//    void applyAll();
     
     void selectionCut();
     void selectionCopy();
@@ -399,8 +422,6 @@ class TFigureEditor:
   protected:
     void init(TFigureModel *m);
     
-    unsigned operation;
-    
     TFigure* gadget;        // the current gadget during create & edit
 
     int handle;             // the current handle or -1 during select
@@ -412,8 +433,10 @@ class TFigureEditor:
     void scrolled(TCoord dx, TCoord dy) override;
     
     void adjustPane() override;
-
-    void stopOperation();   // stop the current operation
+    
+    TFigureTool *getTool() const;
+    void start();
+    void stop();
 };
 
 } // namespace toad

@@ -147,32 +147,10 @@ TFigureAttributes::TFigureAttributes()
   arrowtype = TFLine::EMPTY;
   
   current = 0;
-  tool = 0;
 }
 
 TFigureAttributes::~TFigureAttributes()
 {
-}
-
-void
-TFigureAttributes::setOperation(unsigned op)
-{
-  if (current) current->setOperation(op);
-}
-
-void TFigureAttributes::setCreate(TFigure *figure)
-{
-  setTool(new TFCreateTool(figure));
-}
-
-void
-TFigureAttributes::setTool(TFigureTool *aTool)
-{
-  if (tool==aTool)
-    return;
-  tool = aTool;
-  reason.tool = true;
-  sigChanged();
 }
 
 void
@@ -226,7 +204,7 @@ TFigureAttributes::selectionAlignHorizontal()
 void
 TFigureAttributes::applyAll()
 {
-  if (current) current->applyAll();
+  // if (current) current->applyAll();
 }
 
 /*
@@ -334,12 +312,11 @@ TFigureEditor::init(TFigureModel *m)
   quickready = false;
   modified = false;
   preferences = 0;
-  tool = 0;
+  toolbox = nullptr;
   fuzziness = 3;
 
   handle = -1;
   gadget = NULL;
-  operation = OP_SELECT;
   state = STATE_NONE;
   use_scrollbars = true;
   mat = 0;
@@ -695,41 +672,12 @@ return;
 void
 TFigureEditor::paintSelection(TPenBase &pen)
 {
-  if (tool) {
-    if (tool->paintSelection(this, pen))
-      return;
-  }
-
-  // draw the selection marks over all figures
-  for(auto sp = selection.begin(); sp != selection.end(); ++sp) {
-    pen.setLineWidth(1);
-    if (*sp!=gadget) {
-      (*sp)->paintSelection(pen, -1);
-    } else {
-      (*sp)->paintSelection(pen, handle);
-    }
-  }
-
-  if (state==STATE_SELECT_RECT) {
-    const TMatrix2D *mat = pen.getMatrix();
-    if (mat) {
-      pen.push();
-      pen.identity();
-      pen.setColor(0,0,0);
-      pen.setLineStyle(TPen::DOT);
-      pen.setLineWidth(1.0);
-      TCoord x0, y0, x1, y1;
-      mat->map(down_x, down_y, &x0, &y0);
-      mat->map(select_x, select_y, &x1, &y1);
-      pen.drawRectanglePC(x0, y0, x1-x0, y1-y0);
-      pen.pop();
-    } else {
-      pen.setColor(0,0,0);
-      pen.setLineStyle(TPen::DOT);
-      pen.setLineWidth(0);
-      pen.drawRectanglePC(down_x, down_y, select_x-down_x, select_y-down_y);
-    }
-  }
+  if (!toolbox)
+    return;
+  TFigureTool *tool = toolbox->getTool();
+  if (!tool)
+    return;
+  tool->paintSelection(this, pen);
 }
 
 /**
@@ -865,7 +813,6 @@ TFigureEditor::setAttributes(TFigureAttributes *p) {
   preferences = p;
   if (preferences) {
     preferences->setCurrent(this);
-    setTool(preferences->getTool());
     connect(preferences->sigChanged, this, &TThis::preferencesChanged);
   }
 }
@@ -877,12 +824,6 @@ TFigureEditor::preferencesChanged()
     return;
   quickready=false;
 
-  if (preferences->reason.tool) {
-    if (state != STATE_NONE)
-      stopOperation();
-    tool = preferences->getTool();
-  }
-
 //  if (preferences->reason.grid) {
     invalidateWindow(visible);
 //  }
@@ -892,9 +833,6 @@ TFigureEditor::preferencesChanged()
 //    invalidateWindow(visible);
 //  }
 
-  if (tool)
-    tool->setAttributes(preferences);
-  
   model->setAttributes(selection, preferences);
 //  invalidateWindow(visible); 
 
@@ -934,9 +872,6 @@ TFigureEditor::modelChanged()
   bool update_scrollbars = false;
   modified = true;
   quickready = false; // force a view update when quick mode is enabled
-  if (tool) {
-    tool->modelChanged(this);
-  }
   switch(model->type) {
     case TFigureModel::MODIFY:
     case TFigureModel::MODIFIED:
@@ -1248,13 +1183,54 @@ TFigureEditor::ungroup()
     model->ungroup(selection, &selection);
 }
 
+TFigureTool*
+TFigureEditor::getTool() const
+{
+  TFigureTool *tool = nullptr;
+  if (!toolbox)
+    return tool;
+  tool = toolbox->getTool();
+  return tool;
+}
+
+void
+TFigureEditor::start()
+{
+}
+
+void
+TFigureEditor::stop()
+{
+  TFigureTool *tool = getTool();
+cout << "TFigureEditor::stop(): current tool is " << tool << endl;
+  if (tool)
+    tool->stop(this);
+}
+
+void
+TFigureEditor::setToolBox(TToolBox *toolbox)
+{
+  if (this->toolbox) {
+    disconnect(this->toolbox->sigChanged, this);
+  }
+
+  this->toolbox = toolbox;
+
+  if (this->toolbox) {
+    connect(this->toolbox->sigChanged, this, [=] {
+cout << "toolbox.sigChanged -> TFigureEditor::stop()" << endl;
+      this->stop();
+    });
+  }
+}
+
 void
 TFigureEditor::setModel(TFigureModel *m)
 {
   if (model==m)
     return;
   if (model) {
-    stopOperation();
+    stop();
     clearSelection();
     disconnect(model->sigChanged, this);
     TUndoManager::unregisterModel(this, model);
@@ -1269,86 +1245,6 @@ TFigureEditor::setModel(TFigureModel *m)
     invalidateWindow(visible);
     updateScrollbars();
   }
-}
-
-/**
- * Abondon the current mode of operation and select a new mode.
- */
-void
-TFigureEditor::setOperation(unsigned op)
-{
-#if VERBOSE
-  cout << "Setting Operation " << op << endl;
-#endif
-  stopOperation();
-  clearSelection();
-  if (window)
-    window->setFocus();
-  operation = op;
-  tool = 0;
-  setTool(0);
-}
-
-void
-TFigureEditor::setCreate(TFigure *figure)
-{
-  setTool(new TFCreateTool(figure));
-}
-
-void
-TFigureEditor::setTool(TFigureTool *aTool)
-{
-//cout << "TFigureEditor: setTool " << aTool << endl;
-  stopOperation();
-  clearSelection();
-  if (tool!=aTool) {
-    tool = aTool;
-    toolChanged(aTool);
-  }
-  if (window)
-    window->setFocus();
-}
-
-void
-TFigureEditor::toolChanged(TFigureTool*)
-{
-}
-
-void
-TFigureEditor::applyAll()
-{
-  preferences->setAllReasons();
-  model->setAttributes(selection, preferences);
-}
-
-/**
- * Abort the current operation mode.
- */
-void
-TFigureEditor::stopOperation()
-{
-  if (tool) {
-    tool->stop(this);
-  } else {
-    switch(state) {
-      case STATE_CREATE:
-        clearSelection();
-        if (gadget) {
-          // selection.insert(gadget);
-          model->figures.clear();
-          model->figures.insert(gadget);
-          model->type = TFigureModel::MODIFIED;
-          model->sigChanged();
-        }
-        window->setAllMouseMoveEvents(true);
-        break;
-    }
-  }
-  if (gadget) {
-    invalidateFigure(gadget);
-    gadget = NULL;
-  }
-  state = STATE_NONE;
 }
 
 namespace {
@@ -1405,6 +1301,9 @@ TFigureEditor::keyEvent(const TKeyEvent &ke)
 {
   if (!model)
     return;
+  if (!toolbox)
+    return;
+  TFigureTool *tool = toolbox->getTool();
   if (tool)
     tool->keyEvent(this, ke);
 }
@@ -1456,7 +1355,7 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
         TMouseEvent me2(me, TPoint(me.pos.x, pos.y));
         row_header_renderer->mouseEvent(me2);
       } else {
-        if (!tool) {
+        if (!toolbox) {
           super::mouseEvent(me);
           return;
         }
@@ -1466,11 +1365,8 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
       ;
   }
   
-  if (!tool)
-    return;
   if (!window)
     return;
-    
   if (me.type==TMouseEvent::LDOWN ||
       me.type==TMouseEvent::MDOWN ||
       me.type==TMouseEvent::RDOWN)
@@ -1479,7 +1375,10 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     if (preferences)
       preferences->setCurrent(this);
   }  
-//cout << "call tool" << endl;
+
+  if (!toolbox)
+    return;
+  TFigureTool *tool = toolbox->getTool();
   tool->mouseEvent(this, me);
 }
 

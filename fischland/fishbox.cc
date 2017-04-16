@@ -390,27 +390,27 @@ serialize.registerObject(new TFPath());
         wnd = rb = new TFatRadioButton(this, "select", state);
         wnd->setToolTip("Selection");
         rb->loadBitmap(RESOURCE("tool_select.png"));
-        CONNECT(rb->sigClicked, me, setTool, TSelectionTool::getTool());
-        me->setTool(TSelectionTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TSelectionTool::getTool());
+//        me->setTool(TSelectionTool::getTool());
         rb->setDown();
         break;
       case 1:
         wnd = rb = new TFatRadioButton(this, "directselect", state);
         wnd->setToolTip("Direct Selection");
         rb->loadBitmap(RESOURCE("tool_directselect.png"));
-        CONNECT(rb->sigClicked, me, setTool, TDirectSelectionTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TDirectSelectionTool::getTool());
         break;
       case 2:
         wnd = rb = new TFatRadioButton(this, "bezier", state);
         wnd->setToolTip("Pen: draw beziers");
         rb->loadBitmap(RESOURCE("tool_pen.png"));
-        CONNECT(rb->sigClicked, me, setTool, TPenTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TPenTool::getTool());
         break;
       case 3:
         wnd = rb = new TFatRadioButton(this, "freehand", state);
         wnd->setToolTip("Pencil: freehand curves");
         rb->loadBitmap(RESOURCE("tool_pencil.png"));
-        CONNECT(rb->sigClicked, me, setTool, TPencilTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TPencilTool::getTool());
         break;
 /*
       case 2:
@@ -419,7 +419,7 @@ serialize.registerObject(new TFPath());
         wnd = rb = new TFatRadioButton(this, "connect", state);
         wnd->setToolTip("Connect");
         rb->loadBitmap(RESOURCE("tool_connect.png"));
-        CONNECT(rb->sigClicked, me, setTool, TConnectTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TConnectTool::getTool());
         break;
 /*
         wnd = rb = new TFatRadioButton(this, "floodfill", state);
@@ -433,19 +433,19 @@ serialize.registerObject(new TFPath());
         wnd->setToolTip("Text");
         rb->loadBitmap(RESOURCE("tool_text.png"));
         // CONNECT(rb->sigClicked, me, setTool, &ftext);
-        CONNECT(rb->sigClicked, me, setTool, TTextTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TTextTool::getTool());
         break;
       case 7:
         wnd = rb = new TFatRadioButton(this, "circle", state);
         wnd->setToolTip("Ellipse");
         rb->loadBitmap(RESOURCE("tool_circ.png"));
-        CONNECT(rb->sigClicked, me, setTool, &fcirc);
+//        CONNECT(rb->sigClicked, me, setTool, &fcirc);
         break;
       case 8:
         wnd = rb = new TFatRadioButton(this, "rectangle", state);
         wnd->setToolTip("Rectangle");
         rb->loadBitmap(RESOURCE("tool_rect.png"));
-        CONNECT(rb->sigClicked, me, setTool, &frect);
+//        CONNECT(rb->sigClicked, me, setTool, &frect);
         break;
         
       case 9:
@@ -642,12 +642,13 @@ serialize.registerObject(new TFPath());
   rb->setSize(28,28);
   rb->setToolTip("pick attributes from figure");
   rb->loadBitmap(RESOURCE("tool_pick.png"));
+/*
   TCLOSURE1(
     rb->sigClicked,
     attr, me,
     attr->setTool(TColorPickTool::getTool());
   )
-  
+*/  
   CONNECT(preferences->sigChanged, this, preferencesChanged);
 }
 

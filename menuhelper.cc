@@ -464,7 +464,7 @@ TMenuHelper::TNode::~TNode()
 {
   TActionSet::iterator p(actions.begin()), e(actions.end());
   while(p!=e) {
-    disconnect((*p)->sigChanged, this);
+    (*p)->sigChanged.remove(this);
     ++p;
   }
   
@@ -641,7 +641,7 @@ DBM(cout << "remove action " << a << endl;)
   if (p!=actions.end()) {
     TAction *a = *p;
     actions.erase(p);
-    disconnect(a->sigChanged, this);
+    a->sigChanged.remove(this);
     actionChanged();
   }
 }
@@ -940,7 +940,7 @@ TMenuLayout::TMenuLayout(const TMenuLayout&)
 TMenuLayout::~TMenuLayout()
 {
 //  cerr << "TMenuLayout::~TMenuLayout() " << this << endl;
-  disconnect(TAction::actions.sigChanged, this);
+  TAction::actions.sigChanged.remove(this);
 }
 
 /**

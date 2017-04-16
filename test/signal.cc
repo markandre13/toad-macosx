@@ -4,6 +4,8 @@
 
 using namespace toad;
 
+namespace {
+
 class TReceiver:  
   public TSlot
 {
@@ -15,7 +17,7 @@ class TGiver
     TSignal signal;
 };
 
-TEST(Signal, SingleSlot)
+TEST(Signal, SingleSlotDestructor)
 {
   TGiver giver;
   ASSERT_EQ(0, giver.signal.size());
@@ -25,6 +27,18 @@ TEST(Signal, SingleSlot)
     });
     ASSERT_EQ(1, giver.signal.size());
   }
+  ASSERT_EQ(0, giver.signal.size());
+}
+
+TEST(Signal, SingleSlotDisconnect)
+{
+  TGiver giver;
+  ASSERT_EQ(0, giver.signal.size());
+  TReceiver receiver;
+  connect(giver.signal, &receiver, [] {
+  });
+  ASSERT_EQ(1, giver.signal.size());
+  disconnect(giver.signal, &receiver);
   ASSERT_EQ(0, giver.signal.size());
 }
 
@@ -53,3 +67,5 @@ TEST(Signal, ListOfSlots)
   ASSERT_EQ(0, giver.signal.size());
 }
 */
+
+}

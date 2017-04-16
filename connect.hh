@@ -193,39 +193,48 @@ inline void disconnect(TSignal &s) {
 	s.remove();
 }
 
-/**
- * \ingroup callback
- *
- * Remove the given link from the signal.
- */
-template <class T>
-inline void disconnect(TSignal &s, T *n) {
-	s.remove(n);
-}
-
 static inline TSignalLink* connect(TSignal &s, std::function<void()> c) {
   return s.add(c);
 }   
 
+/**
+ * \ingroup callback
+ * \class toad::TSlot
+ *
+ * TSlot helps removing connections from TSignal when the referenced object is destroyed
+ * or to deliberatly remove a connection from TSignal.
+ *
+ * To do so, the referenced class must inherit TSlot (which every
+ * TInteractor/TWindow does).
+ *
+ * connect(signal, slot, [=] { slot->doSomething(); });
+ * ...
+ * disconnect(signal, slot);
+ * or
+ * delete slot;
+ *
+ * The reasoning behind the design was this:
+ *
+ * \li it's called slot, because that is it's closest approximation in the
+ *     signal/slot architecture.
+ * \li the whole idea of this class is convenience
+ * \li connect and disconnect are considered rare operations and thus can be slow
+ * \li many objects are considered receivers, hence TSlot should have a low
+ *     memory footprint
+ */
 class TSlot {
   public:
-    std::map<TSignal*, std::set<TSignalLink*>> slots; // FIXME: memory consumption?
-    TSignalLink* add(TSignal *signal, TSignalLink *link) {
-      slots[signal].insert(link);
-      return link;
-    }
-    ~TSlot() {
-      for(auto &&slot: slots) {
-        for(auto &&link: slot.second) {
-          slot.first->remove(link);
-        }
-      }
-    }
+    static std::map<TSlot*,
+      std::map<TSignal*,
+        std::set<TSignalLink*>
+      >
+    > slotContainer;
+    
+    virtual ~TSlot();
 };
 
-static inline TSignalLink* connect(TSignal &signal, TSlot *slot, std::function<void()> closure) {
-  return slot->add(&signal, signal.add(closure));
-}   
+TSignalLink* connect(TSignal &signal, TSlot *slot, std::function<void()> closure);
+void disconnect(TSignal &signal, TSlot *slot);
 
 // help template for connect_value, connect_value_of, ...
 //-------------------------------------------------------
