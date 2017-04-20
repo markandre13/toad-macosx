@@ -143,7 +143,7 @@ TEditModel::changed(EReason reason)
       TSlideTreeModel *nstm = getSlideTreeModel();
       if (nstm!=stm) {
         if (stm)
-          disconnect(stm->sigChanged, this);
+          stm->sigChanged.remove(this);
         stm = nstm;
         if (stm)
           connect(stm->sigChanged, this, &TEditModel::stmChanged);
@@ -154,7 +154,7 @@ TEditModel::changed(EReason reason)
       TLayerTreeModel *nltm = getLayerTreeModel();
       if (nltm!=ltm) {
         if (ltm)
-          disconnect(ltm->sigChanged, this);
+          ltm->sigChanged.remove(this);
         ltm = nltm;
         if (ltm)
           connect(ltm->sigChanged, this, &TEditModel::ltmChanged);
