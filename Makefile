@@ -58,6 +58,7 @@ SRC_TEST=test/main.cc test/util.cc test/gtest-all.cc \
 	 test/figureeditor.cc test/figureeditor-render.cc \
 	 test/wordprocessor.cc \
 	 test/serializable.cc \
+	 test/rectangle.cc \
 	 test/booleanop.cc test/lineintersection.cc test/fitcurve.cc
 
 #fischland/fontdialog.cc
@@ -99,8 +100,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
-#	./test.app/Contents/MacOS/test --gtest_filter="Signal.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
+	./test.app/Contents/MacOS/test --gtest_filter="Rectangle.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test

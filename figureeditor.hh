@@ -409,7 +409,8 @@ class TFigureEditor:
     void mouseEvent(const TMouseEvent&) override;
     void keyEvent(const TKeyEvent&) override;
 
-    virtual void mouse2sheet(TPoint mouse, TPoint *sheet);
+    virtual void mouse2sheet(TPoint mouse, TPoint *sheet); // FIXME: replaced with mouse2model
+    void mouse2model(const TPoint &mouse, TPoint *model) { mouse2sheet(mouse, model); }
     virtual void sheet2grid(TPoint sheet, TPoint *grid);
     virtual void minimalAreaSize(TCoord *x1, TCoord *y1, TCoord *x2, TCoord *y2);
     
@@ -435,6 +436,12 @@ class TFigureEditor:
     void adjustPane() override;
     
     TFigureTool *getTool() const;
+
+    static TFigureEditor* activeEditor;
+    static TFigureTool*   activeTool;
+    static TFigureModel*  activeModel;
+
+  public:
     void start();
     void stop();
 };

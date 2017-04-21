@@ -272,6 +272,12 @@ TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
   else
   if (title=="tool|toolbox|pencil")
     button->loadBitmap("resource/tool_pencil.png");
+  else
+  if (title=="tool|toolbox|text")
+    button->loadBitmap("resource/tool_text.png");
+  else
+  if (title=="tool|toolbox|rectangle")
+    button->loadBitmap("resource/tool_rect.png");
 
   button->setShape(x,0,32,32);
   connect(button->sigClicked, [=] {
@@ -286,8 +292,10 @@ test_toolbar()
   TToolBox *tb = TToolBox::getToolBox();
   tb->add("selection",       TSelectionTool::getTool());
   tb->add("directselection", TDirectSelectionTool::getTool());
-  tb->add("pen",             TTextTool::getTool());
-  tb->add("pencil",          new TFCreateTool(new TFRectangle));
+//  tb->add("pen",             TTextTool::getTool());
+  tb->add("text",             TTextTool::getTool());
+//  tb->add("pencil",          new TFCreateTool(new TFRectangle));
+  tb->add("rectangle",       new TFCreateTool(new TFRectangle));
 
   new TToolBar(nullptr, "TToolBar");
   new TTestToolbar(nullptr, "TTestToolbar");

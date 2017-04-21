@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2016 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,50 +23,82 @@
 
 using namespace fischland;
 
-TSelectionTool*
-TSelectionTool::getTool()
-{
-  static TSelectionTool* tool = 0;
-  if (!tool)
-    tool = new TSelectionTool();
-  return tool;
-}
-
-void
-TSelectionTool::stop(TFigureEditor *fe)
-{
-  fe->getWindow()->setAllMouseMoveEvents(true);
-  fe->getWindow()->setCursor(0);
-  fe->state = TFigureEditor::STATE_NONE;
-}
-
-void
-TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
-{
-  if (fe->state != TFigureEditor::STATE_EDIT) {
-    cout << "no editing" << endl;
-    return;
-  }
-  if (tmpsel.begin()==tmpsel.end()) {
-    cout << "no keyevent to figure" << endl;
-    return;
-  }
-  cout << "key event to figure" << endl;
-  TFigure *figure = *tmpsel.begin();
-  switch(ke.type) {
-    case TKeyEvent::DOWN:
-      unsigned r = figure->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
-      if (r & TFigure::STOP) {
-        fe->state = TFigureEditor::STATE_NONE;
-        fe->invalidateWindow();
-      }
-      break;
-  }
-}
-
 void
 TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
+  TPoint pos;
+  TFigure *figure;
+  fe->mouse2sheet(me.pos, &pos);
+  figure = fe->findFigureAt(pos);
+
+  // FIXME: use state for outer switch to improve readability?
+  switch(me.type) {
+    case TMouseEvent::ENTER:
+      fe->getWindow()->setAllMouseMoveEvents(true);
+    case TMouseEvent::MOVE:
+      switch(state) {
+        case STATE_NONE:
+          if (setCursorForHandle(fe, me))
+            break;
+          if (!figure)
+            fe->getWindow()->setCursor(cursor[CURSOR_SELECT]);
+          else
+          if (fe->selection.contains(figure))
+            fe->getWindow()->setCursor(cursor[CURSOR_SELECT_MOVE]);
+          else
+            fe->getWindow()->setCursor(cursor[CURSOR_SELECT_HOVER]);
+          break;
+        case STATE_DRAG_MARQUEE:
+          dragMarquee(fe, me);
+          break;
+      }
+      break;
+    case TMouseEvent::LEAVE:
+      fe->getWindow()->setCursor(nullptr);
+      fe->getWindow()->setAllMouseMoveEvents(false);
+      break;
+    case TMouseEvent::LDOWN:
+      // if figure is not part already selected and the shift key is not pressed
+      if (!fe->selection.contains(figure) &&
+          !(me.modifier() & MK_SHIFT))
+      {
+        invalidateBounding(fe);
+        fe->clearSelection();
+      }
+
+      // on a figure, start grab (prepare to move the selected figures)
+      if (figure) {
+        fe->selection.insert(figure);
+        fe->sheet2grid(pos, &last);
+        last_s = me.pos;
+        state = STATE_MOVE_SELECTION;
+        calcSelectionsBoundingRectangle(fe);
+        invalidateBounding(fe);
+        fe->getWindow()->setCursor(cursor[CURSOR_SELECT_MOVE]);
+        break;
+      }
+      
+      // invalidate old tempory selection
+      if (!tmpsel.empty() &&
+          !(me.modifier() & MK_SHIFT))
+      {
+        invalidateBounding(fe);
+        tmpsel.clear();
+      }
+      startMarquee(me);
+      break;
+    case TMouseEvent::LUP:
+      switch(state) {
+        case STATE_DRAG_MARQUEE:
+          stopMarquee(fe);
+          break;
+        case STATE_MOVE_SELECTION:
+          state = STATE_NONE;
+          break;
+      }
+      break;
+  }
+#if 0
   TFigure *figure;
   TPoint p;
   TRectangle r;
@@ -95,6 +127,7 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
     case TMouseEvent::LDOWN:
       // get mouse move events
       if (fe->state == TFigureEditor::STATE_NONE) {
+        fe->start();
         fe->state = TFigureEditor::STATE_CREATE;
         fe->getWindow()->setAllMouseMoveEvents(true);
       }
@@ -207,45 +240,114 @@ cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
 
       // calculate the selections bounding rectangle
       calcSelectionsBoundingRectangle(fe);
+      fe->stop();
       fe->invalidateWindow();
       fe->getWindow()->setAllMouseMoveEvents(false);
       break;
     default:
       ;
   }
+#endif
 }
 
 void
+TSelectionTool::stop(TFigureEditor *fe)
+{
+  fe->getWindow()->setAllMouseMoveEvents(true);
+  fe->getWindow()->setCursor(nullptr);
+  fe->state = TFigureEditor::STATE_NONE;
+}
+
+void
+TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
+{
+  if (fe->state != TFigureEditor::STATE_EDIT) {
+    cout << "no editing" << endl;
+    return;
+  }
+  if (tmpsel.begin()==tmpsel.end()) {
+    cout << "no keyevent to figure" << endl;
+    return;
+  }
+  cout << "key event to figure" << endl;
+  TFigure *figure = *tmpsel.begin();
+  switch(ke.type) {
+    case TKeyEvent::DOWN:
+      unsigned r = figure->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
+      if (r & TFigure::STOP) {
+        fe->state = TFigureEditor::STATE_NONE;
+        fe->invalidateWindow();
+      }
+      break;
+  }
+}
+
+void
+TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
+{
+  static const TCoord s = 5.0; // size
+  TCoord w = x1 - x0;
+  TCoord h = y1 - y0;
+  switch(i) {
+    case  0: r->set(x0    +1.5, y0+1   , s, s); break;
+    case  1: r->set(x0+w/2    , y0+1   , s, s); break;
+    case  2: r->set(x0+w  -0.5, y0+1   , s, s); break;
+    case  3: r->set(x0+w  -0.5, y0+h/2 , s, s); break;
+    case  4: r->set(x0+w  -0.5, y0+h   , s, s); break;
+    case  5: r->set(x0+w/2    , y0+h   , s, s); break;
+    case  6: r->set(x0    +1.5, y0+h   , s, s); break;
+    case  7: r->set(x0    +1.5, y0+h/2 , s, s); break;
+
+    case  8: r->set(x0    -s, y0    -s, s, s); break;
+    case  9: r->set(x0+w/2  , y0    -s, s, s); break;
+    case 10: r->set(x0+w  +s, y0    -s, s, s); break;
+    case 11: r->set(x0+w  +s, y0+h/2  , s, s); break;
+    case 12: r->set(x0+w  +s, y0+h  +s, s, s); break;
+    case 13: r->set(x0+w/2  , y0+h  +s, s, s); break;
+    case 14: r->set(x0    -s, y0+h  +s, s, s); break;
+    case 15: r->set(x0    -s, y0+h/2  , s, s); break;
+  }
+  r->translate(TPoint(-s/2.0, -s/2.0));
+}
+
+bool
 TSelectionTool::setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me)
 {
   if (fe->selection.empty())
-    return;
+    return false;
   
   // origin is already applied by scroll pane?
   
   TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
   TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
   
-  TCursor::EType cursor = TCursor::DEFAULT;
-  for(unsigned i=0; i<8; ++i) {
+  for(unsigned i=0; i<16; ++i) {
     TRectangle r;
     getBoundingHandle(i, &r);
     if (r.isInside(x, y)) {
-      static const TCursor::EType wind[8] = {
-       TCursor::NW_RESIZE,
-       TCursor::N_RESIZE,
-       TCursor::NE_RESIZE,
-       TCursor::E_RESIZE,
-       TCursor::SE_RESIZE,
-       TCursor::S_RESIZE,
-       TCursor::SW_RESIZE,
-       TCursor::W_RESIZE
+      static const int wind[16] = {
+        CURSOR_SELECT_RESIZE_NW,
+        CURSOR_SELECT_RESIZE_N,
+        CURSOR_SELECT_RESIZE_NE,
+        CURSOR_SELECT_RESIZE_E,
+        CURSOR_SELECT_RESIZE_SE,
+        CURSOR_SELECT_RESIZE_S,
+        CURSOR_SELECT_RESIZE_SW,
+        CURSOR_SELECT_RESIZE_W,
+        CURSOR_SELECT_ROTATE_NW,
+        CURSOR_SELECT_ROTATE_N,
+        CURSOR_SELECT_ROTATE_NE,
+        CURSOR_SELECT_ROTATE_E,
+        CURSOR_SELECT_ROTATE_SE,
+        CURSOR_SELECT_ROTATE_S,
+        CURSOR_SELECT_ROTATE_SW,
+        CURSOR_SELECT_ROTATE_W
       };
-      cursor = wind[i];
-      break;
+      fe->getWindow()->setCursor(cursor[wind[i]]);
+      return true;
     }
   }
-  fe->getWindow()->setCursor(cursor);
+  return false;
 }
 
 bool
@@ -383,6 +485,89 @@ TSelectionTool::moveGrab(TFigureEditor *fe, const TMouseEvent &me)
 }
 
 void
+TSelectionTool::startMarquee(const TMouseEvent &me)
+{
+  state = STATE_DRAG_MARQUEE;
+  marqueeDraggedOpen = false;
+  marqueeStart = marqueeEnd = me.pos;
+}
+
+void
+TSelectionTool::dragMarquee(TFigureEditor *fe, const TMouseEvent &me)
+{
+  if (!marqueeDraggedOpen) {
+    if (maxDistanceAlongAxis(me.pos, marqueeStart) < 2)
+      return;
+    marqueeDraggedOpen = true;
+    temporarySelection.clear();
+  }
+
+  TPoint origin = fe->getWindow()->getOrigin();
+  fe->getWindow()->invalidateWindow(
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+  );
+  marqueeEnd = me.pos;
+  fe->getWindow()->invalidateWindow(
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+  );
+
+  TPoint p0, p1;
+  fe->mouse2model(marqueeStart, &p0);
+  fe->mouse2model(marqueeEnd, &p1);
+  TRectangle marquee(p0, p1);
+  
+  temporarySelection.clear();
+  for(auto &&figure: *fe->getModel()) {
+    TRectangle shape;
+    fe->getFigureShape(figure, &shape, nullptr);
+    if (shape.isInside(marquee)) {
+      temporarySelection.insert(figure);
+    }
+  }
+}
+
+void
+TSelectionTool::paintMarquee(TFigureEditor *fe, TPenBase &pen)
+{
+  for(auto &&figure: temporarySelection) {
+    pen.setLineWidth(1);   
+    figure->paintSelection(pen, -1);
+  }
+
+  pen.push();
+  TCoord tx = 0.0, ty = 0.0;
+  if (pen.getMatrix()) {
+    tx = pen.getMatrix()->tx - fe->getVisible().x;
+    ty = pen.getMatrix()->ty - fe->getVisible().y;
+  }
+  pen.identity();
+  pen.translate(tx, ty);
+  pen.setColor(TColor::FIGURE_SELECTION);
+  pen.setLineWidth(1);
+  pen.setAlpha(0.3);
+  
+  TRectangle marquee(marqueeStart, marqueeEnd);
+  
+  if (pen.getAlpha()!=1.0)
+    pen.fillRectangle(marquee);
+  pen.setAlpha(1.0);
+  pen.drawRectangle(marquee);
+  pen.pop();
+}
+
+void
+TSelectionTool::stopMarquee(TFigureEditor *fe)
+{
+  state = STATE_NONE;
+  fe->selection.insert(temporarySelection.begin(), temporarySelection.end());
+  calcSelectionsBoundingRectangle(fe);
+  TPoint origin = fe->getWindow()->getOrigin();
+  fe->getWindow()->invalidateWindow(
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+  );
+}
+
+void
 TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
 {
   if (!rect) {
@@ -427,9 +612,9 @@ TSelectionTool::invalidateBounding(TFigureEditor *fe)
 {
   TPoint origin = fe->getWindow()->getOrigin();
   fe->getWindow()->invalidateWindow(
-    x0-4 + origin.x + fe->getVisible().x,
-    y0-4 + origin.y + fe->getVisible().y,
-    x1-x0+10,y1-y0+10);
+    x0-5+ origin.x + fe->getVisible().x,
+    y0-5 + origin.y + fe->getVisible().y,
+    x1-x0+11, y1-y0+11);
 #if 0
   cout << "invalidate bounding ("
        << x0-4 + fe->getWindow()->getOriginX() + fe->getVisible().x
@@ -452,7 +637,10 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.pop();
     return true;
   }
-
+  
+  if (state==STATE_DRAG_MARQUEE) {
+    paintMarquee(fe, pen);
+  } else
   // 'down' means that the user is holding the mouse button,
   // draw the interactive selection rectangle
   if (down) {
@@ -529,22 +717,6 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   return true;
 }
 
-void
-TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
-{
-  int w = x1 - x0;
-  int h = y1 - y0;
-  switch(i) {
-    case 0: r->set(x0-1  , y0-1  , 4, 4); break;
-    case 1: r->set(x0+w/2-2, y0-1  , 4, 4); break;
-    case 2: r->set(x0+w-2, y0-1  , 4, 4); break;
-    case 3: r->set(x0+w-2, y0+h/2-2, 4, 4); break;
-    case 4: r->set(x0+w-2, y0+h-2, 4, 4); break;
-    case 5: r->set(x0+w/2-2, y0+h-2, 4, 4); break;
-    case 6: r->set(x0-1,   y0+h-2, 4, 4); break;
-    case 7: r->set(x0-1,   y0+h/2-2, 4, 4); break;
-  }
-}
       
 void
 TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
@@ -554,8 +726,8 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
     TRectangle r;
 #if 1
     fe->getFigureShape(*p, &r, NULL);
-    r.x-=1;
-    r.y-=1;
+    r.x-=2;
+    r.y-=2;
     r.w+=2;
     r.h+=2;
 //cout << "-> getFigureShape -> " << r << endl;
@@ -599,4 +771,575 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
 
 //cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
 
+}
+
+static const char cursorData[15][32][32+1] = {
+  {
+  // CURSOR_SELECT
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "##                              ",
+    "#.#                             ",
+    "#..#                            ",
+    "#...#                           ",
+    "#....#                          ",
+    "#.....#                         ",
+    "#......#                        ",
+    "#.......#                       ",
+    "#...#####                       ",
+    "#..#                            ",
+    "#.#                             ",
+    "##                              ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_HOVER
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "##                              ",
+    "#.#                             ",
+    "#..#                            ",
+    "#...#                           ",
+    "#....#                          ",
+    "#.....#                         ",
+    "#......#                        ",
+    "#.......#                       ",
+    "#...#####                       ",
+    "#..#    ########                ",
+    "#.#     #......#                ",
+    "##      #.####.#                ",
+    "        #.#  #.#                ",
+    "        #.#  #.#                ",
+    "        #.####.#                ",
+    "        #......#                ",
+    "        ########                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_MOVE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "##                              ",
+    "#.#                             ",
+    "#..#                            ",
+    "#...#                           ",
+    "#....#                          ",
+    "#.....#                         ",
+    "#......#    #                   ",
+    "#.......#  #.#                  ",
+    "#...##### #...#                 ",
+    "#..#     #.....#                ",
+    "#.#     ####.####               ",
+    "##     #.# #.# #.#              ",
+    "      #..###.###..#             ",
+    "     #.............#            ",
+    "      #..###.###..#             ",
+    "       #.# #.# #.#              ",
+    "        ####.####               ",
+    "         #.....#                ",
+    "          #...#                 ",
+    "           #.#                  ",
+    "            #                   ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_RESIZE_N
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "    #                           ",
+    "   #.#                          ",
+    "  #...#                         ",
+    " #.....#                        ",
+    "####.####                       ",
+    "   #.#                          ",
+    "   ###                          ",
+    "  #...#                         ",
+    "   ###                          ",
+    "   #.#                          ",
+    "####.####                       ",
+    " #.....#                        ",
+    "  #...#                         ",
+    "   #.#                          ",
+    "    #                           ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+  },{
+  // CURSOR_SELECT_RESIZE_NE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "        #######                 ",
+    "         #....#                 ",
+    "          #...#                 ",
+    "          #...#                 ",
+    "         #.##.#                 ",
+    "      # #.#  ##                 ",
+    "     #.# #    #                 ",
+    "      #.#                       ",
+    "#    # #.#                      ",
+    "##  #.# #                       ",
+    "#.##.#                          ",
+    "#...#                           ",
+    "#...#                           ",
+    "#....#                          ",
+    "#######                         ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_RESIZE_E
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "    #     #                     ",
+    "   ##     ##                    ",
+    "  #.#  #  #.#                   ",
+    " #..###.###..#                  ",
+    "#.....#.#.....#                 ",
+    " #..###.###..#                  ",
+    "  #.#  #  #.#                   ",
+    "   ##     ##                    ",
+    "    #     #                     ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_RESIZE_SE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "#######                         ",
+    "#....#                          ",
+    "#...#                           ",
+    "#...#                           ",
+    "#.##.#                          ",
+    "##  #.# #                       ",
+    "#    # #.#                      ",
+    "      #.#                       ",
+    "     #.# #    #                 ",
+    "      # #.#  ##                 ",
+    "         #.##.#                 ",
+    "          #...#                 ",
+    "          #...#                 ",
+    "         #....#                 ",
+    "        #######                 ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_N
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "#     ###     #                 ",
+    "##  ##...##  ##                 ",
+    "#.##..###..##.#                 ",
+    "#...##   ##...#                 ",
+    "#...#     #...#                 ",
+    "#....#   #....#                 ",
+    "####### #######                 ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_NE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "     #                          ",
+    "    ##                          ",
+    "   #.#                          ",
+    "  #..###                        ",
+    " #......##                      ",
+    "  #..###..#                     ",
+    "   #.#  #.#                     ",
+    "    ##   #.#                    ",
+    "     #   #.#                    ",
+    "      ####.####                 ",
+    "       #.....#                  ",
+    "        #...#                   ",
+    "         #.#                    ",
+    "          #                     ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_E
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "#######                         ",
+    "#....#                          ",
+    "#...#                           ",
+    "#...#                           ",
+    "#.##.#                          ",
+    "## #.#                          ",
+    "#   #.#                         ",
+    "    #.#                         ",
+    "#   #.#                         ",
+    "##  .#                          ",
+    "#.##.#                          ",
+    "#...#                           ",
+    "#...#                           ",
+    "#....#                          ",
+    "#######                         ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_SE
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "          #                     ",
+    "         #.#                    ",
+    "        #...#                   ",
+    "       #.....#                  ",
+    "      ####.####                 ",
+    "     #   #.#                    ",
+    "    ##   #.#                    ",
+    "   #.#  #.#                     ",
+    "  #..###..#                     ",
+    " #......##                      ",
+    "  #..###                        ",
+    "   #.#                          ",
+    "    ##                          ",
+    "     #                          ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_S
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "####### #######                 ",
+    "#....#   #....#                 ",
+    "#...#     #...#                 ",
+    "#...##   ##...#                 ",
+    "#.##..###..##.#                 ",
+    "##  ##...##  ##                 ",
+    "#     ###     #                 ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_SW
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "    #                           ",
+    "   #.#                          ",
+    "  #...#                         ",
+    " #.....#                        ",
+    "####.####                       ",
+    "   #.#   #                      ",
+    "   #.#   ##                     ",
+    "    #.#  #.#                    ",
+    "    #..###..#                   ",
+    "     ##......#                  ",
+    "       ###..#                   ",
+    "         #.#                    ",
+    "         ##                     ",
+    "         #                      ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_W
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "#######                         ",
+    " #....#                         ",
+    "  #...#                         ",
+    "  #...#                         ",
+    " #.##.#                         ",
+    " #.# ##                         ",
+    "#.#   #                         ",
+    "#.#                             ",
+    "#.#   #                         ",
+    " #.# ##                         ",
+    " #. #.#                         ",
+    "  #...#                         ",
+    "  #...#                         ",
+    " #....#                         ",
+    "#######                         ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  },{
+  // CURSOR_SELECT_ROTATE_NW
+  // 0        1         2         3
+  // 12345678901234567890123456789012
+    "         #                      ",
+    "         ##                     ",
+    "         #.#                    ",
+    "       ###..#                   ",
+    "     ##......#                  ",
+    "    #..###..#                   ",
+    "    #.#  #.#                    ",
+    "   #.#   ##                     ",
+    "   #.#   #                      ",
+    "####.####                       ",
+    " #.....#                        ",
+    "  #...#                         ",
+    "   #.#                          ",
+    "    #                           ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                "
+  }
+};
+
+TCursor* TSelectionTool::cursor[15];
+
+TSelectionTool*
+TSelectionTool::getTool()
+{
+  static TSelectionTool* tool = nullptr;
+  if (!tool) {
+    cursor[CURSOR_SELECT]           = new TCursor(cursorData[ 0], 1, 1);
+    cursor[CURSOR_SELECT_HOVER]     = new TCursor(cursorData[ 1], 1, 1);
+    cursor[CURSOR_SELECT_MOVE]      = new TCursor(cursorData[ 2], 1, 1);
+    cursor[CURSOR_SELECT_RESIZE_N]  = new TCursor(cursorData[ 3], 5, 5);
+    cursor[CURSOR_SELECT_RESIZE_NE] = new TCursor(cursorData[ 4], 8, 8);
+    cursor[CURSOR_SELECT_RESIZE_E]  = new TCursor(cursorData[ 5], 8, 5);
+    cursor[CURSOR_SELECT_RESIZE_SE] = new TCursor(cursorData[ 6], 8, 8);
+
+    cursor[CURSOR_SELECT_ROTATE_N]  = new TCursor(cursorData[ 7], 8, 2);
+    cursor[CURSOR_SELECT_ROTATE_NE] = new TCursor(cursorData[ 8],10, 6);
+    cursor[CURSOR_SELECT_ROTATE_E]  = new TCursor(cursorData[ 9], 6, 8);
+    cursor[CURSOR_SELECT_ROTATE_SE] = new TCursor(cursorData[10],10, 9);
+    cursor[CURSOR_SELECT_ROTATE_S]  = new TCursor(cursorData[11], 8, 6-2);
+    cursor[CURSOR_SELECT_ROTATE_SW] = new TCursor(cursorData[12], 6, 9);
+    cursor[CURSOR_SELECT_ROTATE_W]  = new TCursor(cursorData[13], 2, 8);
+    cursor[CURSOR_SELECT_ROTATE_NW] = new TCursor(cursorData[14], 6, 6);
+    tool = new TSelectionTool();
+  }
+  return tool;
 }

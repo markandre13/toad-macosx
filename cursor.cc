@@ -41,6 +41,8 @@ TWindow::setCursor(const TCursor *c)
   if (c && c->cursor) {
     // FIXME: only if mouse is inside this window
     [c->cursor set];
+  } else {
+    [[NSCursor arrowCursor] set];
   }
 }
 

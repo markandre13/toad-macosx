@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,6 +35,11 @@ using namespace toad;
 class TDirectSelectionTool:
   public TFigureTool
 {
+    enum {
+      STATE_NONE,
+      STATE_FIGURE_HANDLES_MOUSE
+    } state;
+
     set<TCoord> xalign, yalign;
     bool xaxis, yaxis;
     TCoord xaxisv, yaxisv;
@@ -54,11 +59,14 @@ class TDirectSelectionTool:
       grab = false;
       hndl = false;
       xaxis = yaxis = false;
-      figure = 0;
+      figure = nullptr;
+      state = STATE_NONE;
     }
     static TDirectSelectionTool* getTool();
-  
+
+  protected:
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    bool handleLDown(TFigureEditor *fe, const TPoint &pos);
     bool paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
 };

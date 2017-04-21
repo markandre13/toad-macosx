@@ -113,6 +113,11 @@ inline TCoord length(const TPoint &a) {
 inline TCoord distance(const TPoint &a, const TPoint &b) {
   return length(a-b);
 }
+
+/** return the maximum distance between two points along either x- or y-axis */
+inline TCoord maxDistanceAlongAxis(const TPoint &a, const TPoint &b) {
+  return max(fabs(a.x-b.x), fabs(a.y-b.y));
+}
 	
 /** normalize the input vector and returns it */
 inline TPoint normalize(const TPoint &v) {
@@ -243,8 +248,23 @@ struct TRectangle
   void set(TCoord x, TCoord y, TCoord w, TCoord h); // { this->x=x; this->y=y; this->w=w; this->h=h; }
   void set(const TPoint&, const TPoint&);
   bool isInside(TCoord px, TCoord py) const { return x<=px && px<=x+w && y<=py && py<=y+h; }
-  bool isInside(TPoint p) const { return isInside(p.x, p.y); }
+  bool isInside(const TPoint &p) const { return isInside(p.x, p.y); }
+  bool isInside(const TRectangle &r) const { return r.isInside(TPoint(x, y)) && r.isInside(TPoint(x+w, y+h)); }
   bool intersects(const TRectangle &r) const;
+  
+  TRectangle& translate(const TPoint &point) {
+    x += point.x;
+    y += point.y;
+    return *this;
+  }
+  TRectangle& expand(TCoord expansion) {
+    x -= expansion;
+    y -= expansion;
+    expansion *= 2.0;
+    w += expansion;
+    h += expansion;
+    return *this;
+  }
 };
 
 inline TBoundary::TBoundary(const TRectangle &rectangle) { set(rectangle); }

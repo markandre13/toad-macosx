@@ -1,6 +1,6 @@
 /*
  * Fischland -- A 2D vector graphics editor
- * Copyright (C) 1999-2007 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1999-2017 by Mark-André Hopf <mhopf@mark13.org>
  * Visit http://www.mark13.org/fischland/.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -304,7 +304,7 @@ TCursor* TTextTool::cursor[4];
 TTextTool*
 TTextTool::getTool()
 {
-  static TTextTool* tool = 0;
+  static TTextTool* tool = nullptr;
   if (!tool) {
     cursor[CURSOR_TEXT]       = new TCursor(cursorData[0], 9, 12);
     cursor[CURSOR_TEXT_AREA]  = new TCursor(cursorData[1], 9, 12);

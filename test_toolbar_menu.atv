@@ -17,6 +17,14 @@ toad::TMenuLayout{
     }
   }
   toad::TMenuEntry {
+    name = "edit"
+    label = "Edit"
+  }
+  toad::TMenuEntry {
+    name = "object"
+    label = "Object"
+  }
+  toad::TMenuEntry {
     name = "tool"
     label = "Tool"
     shortcut = ""
@@ -39,6 +47,14 @@ toad::TMenuLayout{
       toad::TMenuEntry {
         name = "pencil" 
         label = "Pencil/Nib/Brush/Freehand"
+      }
+      toad::TMenuEntry {
+        name = "text" 
+        label = "Text"
+      }
+      toad::TMenuEntry {
+        name = "rectangle" 
+        label = "Rectangle"
       }
     }
   }

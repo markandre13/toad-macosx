@@ -1193,18 +1193,49 @@ TFigureEditor::getTool() const
   return tool;
 }
 
+/**
+ * TFigureTool operates in two modes. Passive and active.
+ *
+ * In passive mode the model or view won't be modified in a way which may
+ * require a rollback in case the operation is aborted. TFigureTool uses this
+ * to show different cursors depding on which type of figure is benath the cursor.
+ *
+ * In active mode, initiated by calling start(), TFigureTool may modify the
+ * view, model, etc.. One the operation is finished or aborted, stop() will be
+ * called.
+ *
+ * stop() may be called by TFigureTool itself or by the figureeditor when
+ * @li start() is invoked again
+ * @li the figure editor's model changes
+ * @li the figure editor is closed
+ *
+ * 
+ */
+
+TFigureEditor* TFigureEditor::activeEditor = nullptr;
+TFigureTool*   TFigureEditor::activeTool   = nullptr;
+TFigureModel*  TFigureEditor::activeModel  = nullptr;
+
 void
 TFigureEditor::start()
 {
+  if (activeEditor) {
+    activeEditor->stop();
+  }
+  activeEditor = this;
+  activeTool  = getTool();
+  activeModel = getModel();
 }
 
 void
 TFigureEditor::stop()
 {
-  TFigureTool *tool = getTool();
-cout << "TFigureEditor::stop(): current tool is " << tool << endl;
-  if (tool)
-    tool->stop(this);
+cout << "TFigureEditor::stop(): current tool is " << activeTool << endl;
+  if (activeTool)
+    activeTool->stop(this);
+  activeEditor = nullptr;
+  activeTool   = nullptr;
+  activeModel  = nullptr;
 }
 
 void
@@ -1217,6 +1248,7 @@ TFigureEditor::setToolBox(TToolBox *toolbox)
   this->toolbox = toolbox;
 
   if (this->toolbox) {
+    // switching to a new tool stops the active mode
     connect(this->toolbox->sigChanged, this, [=] {
 cout << "toolbox.sigChanged -> TFigureEditor::stop()" << endl;
       this->stop();
@@ -1230,6 +1262,7 @@ TFigureEditor::setModel(TFigureModel *m)
   if (model==m)
     return;
   if (model) {
+    // switching to a new model stops the active mode
     stop();
     clearSelection();
     disconnect(model->sigChanged, this);

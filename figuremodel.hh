@@ -36,7 +36,15 @@ class TFTransform;
 /**
  * \ingroup figure
  */
-typedef set<TFigure*> TFigureSet;
+class TFigureSet:
+  public set<TFigure*>
+{
+  public:
+    bool contains(TFigure *figure) {
+      return find(figure) != end();
+    }
+};
+  
 typedef vector<TFigure*> TFigureVector;
 
 class TFigureAtDepthList;

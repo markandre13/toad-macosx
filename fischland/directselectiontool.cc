@@ -36,29 +36,16 @@ using namespace fischland;
 TDirectSelectionTool*
 TDirectSelectionTool::getTool()
 {
-  static TDirectSelectionTool* tool = 0;
+  static TDirectSelectionTool* tool = nullptr;
   if (!tool)
     tool = new TDirectSelectionTool();
   return tool;
 }
 
 void
-TDirectSelectionTool::stop(TFigureEditor *fe)
-{
-  fe->getWindow()->setAllMouseMoveEvents(false);
-  fe->getWindow()->setCursor(0);
-  fe->state = TFigureEditor::STATE_NONE;
-  fe->quick = false;
-  if (figure) {
-    fe->invalidateFigure(figure);
-    figure = 0;
-  }
-}
-
-void
 TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
-  if (fe->state==30) {
+  if (state == STATE_FIGURE_HANDLES_MOUSE) {
     TPoint pos;
     fe->mouse2sheet(me.pos, &pos);
     TMouseEvent me2(me, pos);
@@ -69,19 +56,22 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       case TMouseEvent::LUP:
         figure->mouseLUp(fe, me2);
       default:
-        fe->state = TFigureEditor::STATE_NONE;
+        state = STATE_NONE;
     }
     fe->invalidateFigure(figure);
     return;
   }
 
+#if 0
   // figure was deleted but we were not informed...
   if (figure && fe->selection.find(figure)==fe->selection.end()) {
     stop(fe);
     return;
   }
+#endif
   
   switch(me.type) {
+#if 0
     case TMouseEvent::RDOWN: {
       TPoint pos;
       fe->mouse2sheet(me.pos, &pos);
@@ -91,71 +81,46 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         f->mouseRDown(fe, me2);
       }
     } break;
+#endif
 
     case TMouseEvent::LDOWN: {
       fe->getWindow()->setAllMouseMoveEvents(true);
       fe->quick = true;
       
-      // when a figure has been selected, handle the handles
-      if (figure && !me.dblClick ) {
-        TPoint pos;
-        fe->mouse2sheet(me.pos, &pos);
-        // map desktop (mx,my) to figure (x,y) (copied from findFigureAt)
-        TCoord x, y;
-
-        // loop over all handles
-        unsigned h = 0;
-        while(true) {
-          if (!figure->getHandle(h,&memo_pt))
-            break;
-          if (memo_pt.x-fe->fuzziness<=pos.x && pos.x<=memo_pt.x+fe->fuzziness &&
-              memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
-          {
-            fe->getFigureShape(figure, &oldshape, fe->getMatrix());
-            oldshape.x+=fe->getVisible().x;
-            oldshape.y+=fe->getVisible().y;
-            handle = h;
-            hndl = true;
-            tht = figure->startTranslateHandle();
-            TUndoManager::beginUndoGrouping(fe->getModel());
-            
-            TPoint pt;
-            xalign.clear();
-            yalign.clear();
-            for(h=0; figure->getHandle(h,&pt); ++h) {
-              if (hndl && handle==h)
-                continue;
-              xalign.insert(pt.x);
-              yalign.insert(pt.y);
-            }
-            
-            return;
-          }
-          ++h;
-        }
-        
-        TMouseEvent me2(me, pos);
-        if (figure->mouseLDown(fe, me2)!=TFigure::STOP) {
-          fe->state = 30;
-          return;
-        }
-        
-      }
-
       TPoint pos;
       fe->mouse2sheet(me.pos, &pos);
+
+      // when a figure has been selected, handle the handles
+      if (figure && !me.dblClick ) {
+
+        if (handleLDown(fe, pos))
+          return;
+/*
+        // this is something i added for TFConnection to add new points in
+        // edit mode, but it breaks switching to another figure
+        TMouseEvent me2(me, pos);
+        if (figure->mouseLDown(fe, me2)!=TFigure::STOP) {
+          cout << "TDirectSelectionTool: figure handles mouse" << endl;
+          state = STATE_FIGURE_HANDLES_MOUSE;
+          return;
+        }
+*/
+      }
+
       TFigure *f = fe->findFigureAt(pos);
       if (f!=figure) {
         if (figure)
           fe->invalidateFigure(figure);
         figure = f;
-          if (figure)
+        if (figure)
           fe->invalidateFigure(figure);
-        fe->getWindow()->invalidateWindow();
+
+        // fe->getWindow()->invalidateWindow();
         fe->quickready = false;
+        
         fe->clearSelection();
         if (figure) {
-cout << "selected figure " << figure << endl;
+cout << "TDirectSelectionTool::selected figure " << figure << " " << figure->getClassName() << endl;
           fe->selection.insert(figure);
         }
       } else {
@@ -193,7 +158,7 @@ cout << "selected figure " << figure << endl;
         }
         if (xaxis)
           fe->invalidateWindow(); // FIXME: invalidates too much
-        // FIXME: shouldn' invalidate xaxis when it hasn't changed
+        // FIXME: shouldn't invalidate xaxis when it hasn't changed
         pos.x = v;
 
         if (yaxis)
@@ -247,6 +212,59 @@ cout << "selected figure " << figure << endl;
         fe->invalidateFigure(figure);
       }
       break;
+  }
+}
+
+/**
+ *
+ * @return 'true' when a handle was found 
+ */
+bool
+TDirectSelectionTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
+{        
+  unsigned h = 0;
+  while(true) {
+    if (!figure->getHandle(h, &memo_pt))
+      break;
+    if (memo_pt.x-fe->fuzziness<=pos.x && pos.x<=memo_pt.x+fe->fuzziness &&
+        memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
+    {
+      fe->getFigureShape(figure, &oldshape, fe->getMatrix());
+      oldshape.x+=fe->getVisible().x;
+      oldshape.y+=fe->getVisible().y;
+      handle = h;
+      hndl = true;
+      tht = figure->startTranslateHandle();
+      TUndoManager::beginUndoGrouping(fe->getModel());
+      
+      TPoint pt;
+      xalign.clear();
+      yalign.clear();
+      for(h=0; figure->getHandle(h,&pt); ++h) {
+        if (hndl && handle==h)
+          continue;
+        xalign.insert(pt.x);
+        yalign.insert(pt.y);
+      }
+      
+      return true;
+    }
+    ++h;
+  }
+  return false;
+}
+
+
+void
+TDirectSelectionTool::stop(TFigureEditor *fe)
+{
+  fe->getWindow()->setAllMouseMoveEvents(false);
+  fe->getWindow()->setCursor(0);
+  fe->state = TFigureEditor::STATE_NONE;
+  fe->quick = false;
+  if (figure) {
+    fe->invalidateFigure(figure);
+    figure = 0;
   }
 }
 
