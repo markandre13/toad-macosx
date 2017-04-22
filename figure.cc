@@ -32,34 +32,28 @@ using namespace toad;
 /**
  * \defgroup figure Figures
  *
- * Figures are 2 dimensional graphic primitives.
+ * Direct manipulation 2d graphics.
  */
 
 /**
+ * \ingroup figure
  * \class toad::TFigure
  *
- * TFigure (TFigure in later releases), provides a 2 dimensional figure
- * which is painted by TFigureWindow and can be manipulated by TFigureEditor.
+ * TFigure is the base class for editable 2d graphic objects within the
+ * TFigureEditor window.
  *
  * Most of the virtual methods provided by TFigure are to support the
  * TFigureEditor class.
  *
+ * TFigure itself supports only translate and scale as built-in
+ * transformations.
  *
- * \li
- *   paint: this is the most important method
+ * For all other transformations, TFigure can be made a child of either
+ * @li TFTransform		affinite transform, including rotate and shear
+ * @li TFTransformStrokeAndFX	affinite transform, will also transform line width and fx like patterns
+ * @li TFTransformPerspective
+ * @li TFTransformBezier
  *
- * Methods used during object creation:
- *
- * \li
- *   paint
- * \li
- *   startCreate: this is the first method called when TFigureEditor
- *   starts to create a gadget
- * \li
- *   mouseLDown, mouseMove, mouseLUp: these methods are called after
- *   'startCreate' and shall handle the creation prozess of the figure.
- *   The return value can be a combination of NOTHING, CONTINUE, STOP, REPEAT
- *   or DELETE.
  */
 
 #if 1

@@ -995,7 +995,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   connect(a->sigClicked, [me] {
     if (me->getModel() && !me->selection.empty()) {
       cout << "perspective" << endl;
-      me->getModel()->transform(me->selection, new TFTransform);
+      me->getModel()->transform(me->selection, new TFPerspectiveTransform);
     }
   });
 

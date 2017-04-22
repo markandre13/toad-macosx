@@ -31,7 +31,7 @@ namespace toad {
 class TFigureEditor;
 class TFigure;
 class TFGroup;
-class TFTransform;
+class TFPerspectiveTransform;
 
 /**
  * \ingroup figure
@@ -116,7 +116,7 @@ class TFigureModel:
     void translateHandle(TFigure *figure, unsigned handle, TCoord x, TCoord y, unsigned modifier);
     bool startInPlace(TFigure *figure, TFigureEditor *fe = 0);
     TFigure* group(TFigureSet &);
-    TFigure* transform(TFigureSet &set, TFTransform *transform);
+    TFigure* transform(TFigureSet &set, TFPerspectiveTransform *transform);
     void _undoGroup(TFGroup*, TFigureAtDepthList &figures);
 
     void ungroup(TFigureSet &grouped, TFigureSet *ungrouped);

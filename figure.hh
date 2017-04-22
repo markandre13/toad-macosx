@@ -205,7 +205,7 @@ class TFigure:
     bool restore(TInObjectStream &in) override;
 };
 
-//! To be renamed into 'TFigure'
+//! To be renamed into 'TAttributedFigure'
 //! what about *mat ?
 class TColoredFigure:
   public TFigure
@@ -246,6 +246,63 @@ class TColoredFigure:
 //    virtual void setFont(const string&);
 };
 
+/**
+ * \ingroup figure
+ *
+ */
+class TFTransformBase:
+  public TFigure
+{
+  public:
+    TFigure *figure;
+};
+
+/*
+class TFPerspectiveTransform:
+  public TFTransformBase
+{
+};
+
+class TFBezierTransform:
+  public TFTransformBase
+{
+};
+*/
+
+/**
+ * \ingroup figure
+ *
+ */
+class TFAffiniteTransformBase:
+  public TFTransformBase
+{
+  public:
+    TMatrix2D matrix;
+};
+
+/**
+ * \ingroup figure
+ *
+ * affinite transformation which does also scale stroke & fx like textures
+ */
+class TFTransformStrokeAndFX:
+  public TFAffiniteTransformBase
+{
+  protected:
+    void paint(TPenBase &pen, EPaintType type=NORMAL) override;
+};
+
+/**
+ * \ingroup figure
+ *
+ * affinite transformation which does not scale stroke & fx
+ */
+class TFTransform:
+  public TFAffiniteTransformBase
+{
+  protected:
+    void paint(TPenBase &pen, EPaintType type=NORMAL) override;
+};
 
 /**
  * \ingroup figure
@@ -591,7 +648,7 @@ class TFGroup:
     void modelChanged();
 };
 
-class TFTransform:
+class TFPerspectiveTransform:
   public TFigure
 {
     TFigureModel figures;
@@ -613,8 +670,8 @@ class TFTransform:
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
 
-    TCloneable* clone() const override { return new TFTransform(*this); }
-    const char * getClassName() const override { return "toad::TFTransformPerspective"; }
+    TCloneable* clone() const override { return new TFPerspectiveTransform(*this); }
+    const char * getClassName() const override { return "toad::TFPerspectiveTransform"; }
     void store(TOutObjectStream&) const override;
     bool restore(TInObjectStream&) override;
 };

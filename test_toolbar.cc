@@ -276,6 +276,9 @@ TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
   if (title=="tool|toolbox|text")
     button->loadBitmap("resource/tool_text.png");
   else
+  if (title=="tool|toolbox|circle")
+    button->loadBitmap("resource/tool_circ.png");
+  else
   if (title=="tool|toolbox|rectangle")
     button->loadBitmap("resource/tool_rect.png");
 
@@ -296,6 +299,7 @@ test_toolbar()
   tb->add("text",             TTextTool::getTool());
 //  tb->add("pencil",          new TFCreateTool(new TFRectangle));
   tb->add("rectangle",       new TFCreateTool(new TFRectangle));
+  tb->add("circle",          new TFCreateTool(new TFCircle));
 
   new TToolBar(nullptr, "TToolBar");
   new TTestToolbar(nullptr, "TTestToolbar");

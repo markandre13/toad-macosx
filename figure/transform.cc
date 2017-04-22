@@ -27,7 +27,7 @@ using namespace toad;
 static const TCoord ADDING = 0.001; // to avoid dividing by zero
 
 // two vanishing point perspective
-void TFTransform::prepare()
+void TFPerspectiveTransform::prepare()
 {
   A = orig[0];
   C = orig[2];
@@ -68,7 +68,7 @@ void TFTransform::prepare()
 }
 
 TPoint
-TFTransform::transform(const TPoint &I) const
+TFPerspectiveTransform::transform(const TPoint &I) const
 {
   TCoord rG = (C.y-I.y)/(C.y-A.y);
   TCoord rH = (I.x-A.x)/(C.x-A.x);
@@ -92,7 +92,7 @@ TFTransform::transform(const TPoint &I) const
 }
 
 TCoord
-TFTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
+TFPerspectiveTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
 {
   TCoord d = OUT_OF_RANGE;
   for (auto p: figures) {
@@ -104,7 +104,7 @@ TFTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
 }
 
 void
-TFTransform::translate(TCoord dx, TCoord dy)
+TFPerspectiveTransform::translate(TCoord dx, TCoord dy)
 {
   TPoint d(dx, dy);
   for(size_t i=0; i<4; ++i)
@@ -114,7 +114,7 @@ TFTransform::translate(TCoord dx, TCoord dy)
 }
 
 void 
-TFTransform::init()
+TFPerspectiveTransform::init()
 {
   assert(!figures.empty());
   TRectangle r;
@@ -168,7 +168,7 @@ TFTransform::init()
 }
 
 void 
-TFTransform::paint(TPenBase &pen, EPaintType type)
+TFPerspectiveTransform::paint(TPenBase &pen, EPaintType type)
 {
   if (type==EDIT || type==SELECT) {
     pen.setLineColor(TColor::FIGURE_SELECTION);
@@ -193,7 +193,7 @@ TFTransform::paint(TPenBase &pen, EPaintType type)
 }
 
 TRectangle
-TFTransform::bounds() const
+TFPerspectiveTransform::bounds() const
 {
   TPoint p0, p1;
   p0 = p1 = E;
@@ -211,7 +211,7 @@ TFTransform::bounds() const
 }
 
 bool
-TFTransform::getHandle(unsigned n, TPoint *p)
+TFPerspectiveTransform::getHandle(unsigned n, TPoint *p)
 {
   if (n>=4)
     return false;
@@ -220,7 +220,7 @@ TFTransform::getHandle(unsigned n, TPoint *p)
 }
 
 void
-TFTransform::translateHandle(unsigned n, TCoord x, TCoord y, unsigned modifier)
+TFPerspectiveTransform::translateHandle(unsigned n, TCoord x, TCoord y, unsigned modifier)
 {
   if (n>=4)
     return;
@@ -229,13 +229,13 @@ TFTransform::translateHandle(unsigned n, TCoord x, TCoord y, unsigned modifier)
 }
 
 void
-TFTransform::store(TOutObjectStream &out) const
+TFPerspectiveTransform::store(TOutObjectStream &out) const
 {
   figures.store(out);
 }
 
 bool
-TFTransform::restore(TInObjectStream &in)
+TFPerspectiveTransform::restore(TInObjectStream &in)
 {
   if (in.what == ATV_FINISHED) {
     return true;

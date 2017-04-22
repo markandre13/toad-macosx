@@ -600,7 +600,7 @@ TFigureModel::group(TFigureSet &set)
 }
 
 TFigure*
-TFigureModel::transform(TFigureSet &set, TFTransform *transform)
+TFigureModel::transform(TFigureSet &set, TFPerspectiveTransform *transform)
 {
 //  TUndoGroup *undo = new TUndoGroup(this);
   
