@@ -375,7 +375,7 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
   TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
   TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
 // cout << "down at " << x << ", " << y << endl;
-  for(unsigned i=0; i<8; ++i) {
+  for(unsigned i=0; i<16; ++i) {
     TRectangle r;
     getBoundingHandle(i, &r);
 // cout << "  check " << r.x << ", " << r.y << endl;
@@ -385,6 +385,10 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
       handleStart = me.pos;
       m.identity();
       oldBoundary = boundary;
+      if (selectedHandle>=8) {
+        rotationCenter = boundary.center();
+        rotationStartDirection = atan2(y - rotationCenter.y, x - rotationCenter.x);
+      }
       return true;
     }
   }
@@ -394,6 +398,15 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
 
 void
 TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
+{
+  if (selectedHandle<8)
+    moveHandle2Scale(fe, me);
+  else
+    moveHandle2Rotate(fe, me);
+}
+
+void
+TSelectionTool::moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me)
 {
   fe->getWindow()->invalidateWindow();
 
@@ -458,6 +471,23 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
   m.translate(-OX0, -OY0);
 
   invalidateBounding(fe);
+}
+
+void
+TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
+{
+  fe->getWindow()->invalidateWindow();
+
+  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
+  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+
+  double rotd = atan2(y - rotationCenter.y, x - rotationCenter.x);
+  rotd-=rotationStartDirection;
+  
+  m.identity();
+  m.translate(rotationCenter);
+  m.rotate(rotd);
+  m.translate(-rotationCenter);
 }
 
 void

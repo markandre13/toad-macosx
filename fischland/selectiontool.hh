@@ -91,9 +91,13 @@ class TSelectionTool:
     TPoint handleStart;
     TMatrix2D m;
     TBoundary oldBoundary;
+    TPoint rotationCenter;
+    double rotationStartDirection;
     bool setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me);
     bool downHandle(TFigureEditor *fe, const TMouseEvent &me);
     void moveHandle(TFigureEditor *fe, const TMouseEvent &me);
+    void moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me);
+    void moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me);
 
     // by default strokes and effects aren't scaled
     TBoolModel scale_strokes_and_fx; // Preferences > General

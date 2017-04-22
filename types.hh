@@ -231,9 +231,7 @@ struct TBoundary
   bool isOverlapping(const TRectangle &rectangle) const;
   bool intersects(const TBoundary &r) const;
   void translate(TCoord dx, TCoord dy) { x1 += dx; y1 += dy; x2 += dx; y2 += dy; }
-  TPoint center() const {
-    return TPoint(x1 + (x2-x1)/2, y1 + (y2-y1)/2);
-  }
+  TPoint center() const { return TPoint(x1 + (x2-x1)/2.0, y1 + (y2-y1)/2.0); }
 };
 
 struct TRectangle
