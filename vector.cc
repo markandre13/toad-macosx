@@ -519,6 +519,13 @@ TVectorPainter::paint(TPenBase &pen)
 void
 TVectorGraphic::paint(TPenBase &pen)
 {
-  for(auto p: *this)
-    p->paint(pen);
+  for(auto &&painter: *this)
+    painter->paint(pen);
+}
+
+void
+TVectorGraphic::transform(const TMatrix2D &matrix)
+{
+  for(auto &&painter: *this)
+    painter->path->transform(matrix);
 }

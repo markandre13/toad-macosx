@@ -303,6 +303,7 @@ class TFTransform:
   protected:
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;
+    TVectorGraphic *getPath() const override;
 
     TCloneable* clone() const override { return new TFTransform(*this); }
     const char * getClassName() const override { return "toad::TFTransform"; }

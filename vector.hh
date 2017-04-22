@@ -146,6 +146,7 @@ class TVectorGraphic:
 {
   public:
     void paint(TPenBase &pen);
+    void transform(const TMatrix2D &matrix);
 };
 
 } // namespace

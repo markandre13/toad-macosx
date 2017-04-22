@@ -352,7 +352,7 @@ TSelectionTool::stopHandle(TFigureEditor *fe)
   for(auto &&figure: fe->selection) {
     TFTransform *transform = dynamic_cast<TFTransform*>(figure);
     if (transform) {
-      transform->matrix.multiply(&m);
+      transform->matrix = m * transform->matrix;
     } else {
       figuresToReplace.insert(figure);
     }
@@ -366,11 +366,14 @@ TSelectionTool::stopHandle(TFigureEditor *fe)
     transform->matrix = m;
     transform->figure = place.figure;
     place.figure = transform;
+    fe->selection.erase(transform->figure);
+    fe->selection.insert(transform);
   }
   model->insert(replacement);
 //  TUndoManager::endUndoGrouping();
-  
-  fe->getWindow()->invalidateWindow();
+
+  calcSelectionsBoundingRectangle(fe);
+  invalidateBounding(fe);
 }
 
 void
@@ -775,6 +778,7 @@ static const char cursorData[15][32][32+1] = {
     "                                ",
     "                                ",
     "                                ",
+    "                                "
   },{
   // CURSOR_SELECT_RESIZE_NE
   // 0        1         2         3
