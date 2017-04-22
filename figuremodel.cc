@@ -304,7 +304,7 @@ TFigureModel::erase(const iterator &p, const iterator &e)
  * registers an undo object.
  */
 void
-TFigureModel::erase(TFigureSet &set)
+TFigureModel::erase(TFigureSet &set, TFigureAtDepthList *placement)
 {
   if (set.empty())
     return;
@@ -331,7 +331,7 @@ TFigureModel::erase(TFigureSet &set)
   figures.insert(set.begin(), set.end());
   sigChanged();
   
-  TUndoRemove *undo = new TUndoRemove(this);
+//  TUndoRemove *undo = new TUndoRemove(this);
 
   ee.type = TFigureEditEvent::REMOVED;
   unsigned depth = 0;
@@ -342,7 +342,9 @@ TFigureModel::erase(TFigureSet &set)
     TFigureSet::iterator q = figures.find(*p);
     if (q!=figures.end()) {
 //      cerr << "  erase found figure at depth " << depth << endl;
-      undo->insert(*p, depth);
+//      undo->insert(*p, depth);
+      if (placement)
+        placement->push_back(*p, depth);
       (*p)->editEvent(ee);
       TStorage::iterator tmp = p;
       --tmp;
@@ -350,7 +352,14 @@ TFigureModel::erase(TFigureSet &set)
       p=tmp;
     }
   }
-  TUndoManager::registerUndo(this, undo);
+
+  // FIXME: undo disabled because in case the model is not registered, the
+  // undo object will be deleted and the figures within it also. this must
+  // not happen when 'placement' was set, which means that the figures are
+  // used elsewhere. but who's then responsible to delete?
+  // should we use reference counting?
+
+//  TUndoManager::registerUndo(this, undo);
 }
 
 class TUndoTranslate:

@@ -101,7 +101,7 @@ class TFigureModel:
     void add(TFigure*);
     void erase(TFigure*);
     void add(TFigureVector&);
-    virtual void erase(TFigureSet&);
+    virtual void erase(TFigureSet&, TFigureAtDepthList *placement=nullptr);
     size_t size() const { return storage.size(); }
     bool empty() const { return storage.empty(); }
     
@@ -154,22 +154,34 @@ class TFigureModel:
 class TFigureAtDepthList
 {
     friend class TFigureModel;
-    struct figdep_t {
-      figdep_t(TFigure *f, unsigned d) {
+  public:
+    struct TFigureAtDepth {
+      TFigureAtDepth(TFigure *f, unsigned d) {
         figure = f;
         depth  = d;
+      }
+      TFigureAtDepth(const TFigureAtDepth &&a) {
+        figure = a.figure;
+        depth  = a.depth;
       }
       TFigure *figure;
       unsigned depth;
     };
-    typedef vector<figdep_t> TStore;
+  protected:
+    typedef vector<TFigureAtDepth> TStore;
     TStore store;
+
   public:
     ~TFigureAtDepthList();
-  
     void push_back(TFigure *figure, unsigned depth) {
-      store.push_back(figdep_t(figure, depth));
+      store.push_back(TFigureAtDepth(figure, depth));
     }
+    typedef TStore::iterator iterator;
+    iterator begin() { return store.begin(); }
+    iterator end() { return store.end(); }
+    typedef TStore::const_iterator const_iterator;
+    const_iterator begin() const { return store.begin(); }
+    const_iterator end() const { return store.end(); }
     /**
      * Drop references to all figures (Clear list and don't delete figures.)
      */

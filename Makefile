@@ -24,7 +24,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
 	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
-	   figure/transform.cc \
+	   figure/transform.cc figure/perspectivetransform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
 	   fischland/selectiontool.cc \
 	   fischland/directselectiontool.cc \
@@ -907,6 +907,30 @@ figure/transform.o: include/toad/floatmodel.hh
 figure/transform.o: include/toad/figure/createtool.hh
 figure/transform.o: include/toad/figuretool.hh include/toad/core.hh
 figure/transform.o: include/toad/action.hh
+figure/perspectivetransform.o: include/toad/vector.hh include/toad/penbase.hh
+figure/perspectivetransform.o: include/toad/color.hh include/toad/types.hh
+figure/perspectivetransform.o: include/toad/io/serializable.hh
+figure/perspectivetransform.o: include/toad/io/atvparser.hh
+figure/perspectivetransform.o: include/toad/font.hh include/toad/pointer.hh
+figure/perspectivetransform.o: include/toad/matrix2d.hh
+figure/perspectivetransform.o: include/toad/window.hh
+figure/perspectivetransform.o: include/toad/interactor.hh
+figure/perspectivetransform.o: include/toad/connect.hh include/toad/cursor.hh
+figure/perspectivetransform.o: include/toad/region.hh include/toad/bitmap.hh
+figure/perspectivetransform.o: include/toad/figuremodel.hh
+figure/perspectivetransform.o: include/toad/model.hh include/toad/figure.hh
+figure/perspectivetransform.o: include/toad/wordprocessor.hh
+figure/perspectivetransform.o: include/toad/pen.hh
+figure/perspectivetransform.o: include/toad/figureeditor.hh
+figure/perspectivetransform.o: include/toad/scrollpane.hh
+figure/perspectivetransform.o: include/toad/undo.hh include/toad/boolmodel.hh
+figure/perspectivetransform.o: include/toad/textmodel.hh
+figure/perspectivetransform.o: include/toad/integermodel.hh
+figure/perspectivetransform.o: include/toad/numbermodel.hh
+figure/perspectivetransform.o: include/toad/floatmodel.hh
+figure/perspectivetransform.o: include/toad/figure/createtool.hh
+figure/perspectivetransform.o: include/toad/figuretool.hh
+figure/perspectivetransform.o: include/toad/core.hh include/toad/action.hh
 figure/rectangle.o: include/toad/vector.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh
@@ -2570,6 +2594,30 @@ figure/transform.o: include/toad/floatmodel.hh
 figure/transform.o: include/toad/figure/createtool.hh
 figure/transform.o: include/toad/figuretool.hh include/toad/core.hh
 figure/transform.o: include/toad/action.hh
+figure/perspectivetransform.o: include/toad/vector.hh include/toad/penbase.hh
+figure/perspectivetransform.o: include/toad/color.hh include/toad/types.hh
+figure/perspectivetransform.o: include/toad/io/serializable.hh
+figure/perspectivetransform.o: include/toad/io/atvparser.hh
+figure/perspectivetransform.o: include/toad/font.hh include/toad/pointer.hh
+figure/perspectivetransform.o: include/toad/matrix2d.hh
+figure/perspectivetransform.o: include/toad/window.hh
+figure/perspectivetransform.o: include/toad/interactor.hh
+figure/perspectivetransform.o: include/toad/connect.hh include/toad/cursor.hh
+figure/perspectivetransform.o: include/toad/region.hh include/toad/bitmap.hh
+figure/perspectivetransform.o: include/toad/figuremodel.hh
+figure/perspectivetransform.o: include/toad/model.hh include/toad/figure.hh
+figure/perspectivetransform.o: include/toad/wordprocessor.hh
+figure/perspectivetransform.o: include/toad/pen.hh
+figure/perspectivetransform.o: include/toad/figureeditor.hh
+figure/perspectivetransform.o: include/toad/scrollpane.hh
+figure/perspectivetransform.o: include/toad/undo.hh include/toad/boolmodel.hh
+figure/perspectivetransform.o: include/toad/textmodel.hh
+figure/perspectivetransform.o: include/toad/integermodel.hh
+figure/perspectivetransform.o: include/toad/numbermodel.hh
+figure/perspectivetransform.o: include/toad/floatmodel.hh
+figure/perspectivetransform.o: include/toad/figure/createtool.hh
+figure/perspectivetransform.o: include/toad/figuretool.hh
+figure/perspectivetransform.o: include/toad/core.hh include/toad/action.hh
 figure/rectangle.o: include/toad/vector.hh include/toad/penbase.hh
 figure/rectangle.o: include/toad/color.hh include/toad/types.hh
 figure/rectangle.o: include/toad/io/serializable.hh

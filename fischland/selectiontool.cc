@@ -94,11 +94,12 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     case TMouseEvent::LUP:
       switch(state) {
         case STATE_DRAG_MARQUEE:
+          dragMarquee(fe, me);
           stopMarquee(fe);
           break;
         case STATE_MOVE_HANDLE:
-          state = STATE_NONE;
-          fe->getWindow()->invalidateWindow();
+          moveHandle(fe, me);
+          stopHandle(fe);
           break;
         case STATE_MOVE_SELECTION:
           state = STATE_NONE;
@@ -106,156 +107,6 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       }
       break;
   }
-#if 0
-  TFigure *figure;
-  TPoint p;
-  TRectangle r;
-
-  if (fe->state == TFigureEditor::STATE_EDIT) {
-cout << "TSelectionTool::mouseEvent: rudimentary edit mode" << endl;
-    if (me.type == TMouseEvent::LDOWN) {
-      figure = *tmpsel.begin();
-//cout << "selection = " << figure << endl;
-      fe->mouse2sheet(me.pos, &p);
-      TFigure *f = fe->findFigureAt(p);
-//cout << "at mouse " << f << endl;
-      if (f!=figure) {
-//cout << "stop" << endl;
-        if (figure->stop(fe)==TFigure::DELETE) {
-          cout << "TSelectionTool::mouseEvent: should delete figure" << endl;
-        }
-        fe->state = TFigureEditor::STATE_NONE;
-      }
-    }
-//    unsigned r = figure->mouseEvent(fe, ke.getKey(), const_cast<char*>(ke.getString()), ke.modifier());
-    return;
-  }
-
-  switch(me.type) {
-    case TMouseEvent::LDOWN:
-      // get mouse move events
-      if (fe->state == TFigureEditor::STATE_NONE) {
-        fe->start();
-        fe->state = TFigureEditor::STATE_CREATE;
-        fe->getWindow()->setAllMouseMoveEvents(true);
-      }
-      
-      if (downHandle(fe, me)) {
-        break;
-      }
-
-      // find figure under mouse
-      fe->mouse2sheet(me.pos, &p);
-      figure = fe->findFigureAt(p);
-
-      if (figure &&
-          me.dblClick &&
-          figure->startInPlace())
-      {
-        // FIXME: selection- & createtool should now delegate to edittool?
-        cout << "TSelectionTool: figure shall be edited" << endl;
-        fe->state = TFigureEditor::STATE_EDIT;
-        fe->clearSelection();
-        // invalidateBounding(fe);
-        tmpsel.clear();
-        tmpsel.insert(figure);
-        fe->invalidateWindow();
-        break;
-      }
-      
-#if 0
-        TFigureEditEvent ee;
-        ee.model = fe->getModel(); // why???
-        ee.editor = fe;
-        ee.type = TFigureEditEvent::START_IN_PLACE;
-        if (figure->editEvent(ee)) {
-          fe->clearSelection();
-#endif
-#if 0
-          fe->clearSelection();
-          sigSelectionChanged();
-          gadget = g;
-          invalidateFigure(gadget);
-          state = STATE_EDIT;
-          goto redo;
-#endif
-
-      // if figure not part of selection and not shift
-      if (fe->selection.find(figure) == fe->selection.end() &&
-          !(me.modifier() & MK_SHIFT))
-      {
-// invalidate???
-        fe->clearSelection();
-      }
-
-      // on a figure, start grab
-      if (figure) {
-        fe->selection.insert(figure);
-        fe->sheet2grid(p, &last);
-        last_s = me.pos;
-        grab = true;
-        calcSelectionsBoundingRectangle(fe);
-        invalidateBounding(fe);
-        break;
-      }
-      
-      // invalidate old selection
-      if (!tmpsel.empty() &&
-          !(me.modifier() & MK_SHIFT))
-      {
-        // fe->invalidateWindow();
-        invalidateBounding(fe);
-        tmpsel.clear();
-      }
-      
-      down = true;
-      rx0 = rx1 = me.pos.x;
-      ry0 = ry1 = me.pos.y;
-      break;
-
-    case TMouseEvent::MOVE:
-      if (hndl) {
-        moveHandle(fe, me);
-        break;
-      }
-      if (grab) {
-        moveGrab(fe, me);
-        break;
-      }
-      if (down) {
-        moveSelect(fe, me);
-        break;
-      }
-//      setCursorForHandle(fe, me);
-      break;
-
-    case TMouseEvent::LUP:
-      if (hndl) {
-        hndl = false;
-        // oldmat should be used for undo
-        oldmat.clear();
-        break;
-      }
-      if (grab) {
-        grab = false;
-        break;
-      }
-      down = rect = false;
-      
-      // add new selection to figure editors selection
-      fe->selection.insert(tmpsel.begin(), tmpsel.end());
-      tmpsel.clear();
-
-      // calculate the selections bounding rectangle
-      calcSelectionsBoundingRectangle(fe);
-      fe->stop();
-      fe->invalidateWindow();
-      fe->getWindow()->setAllMouseMoveEvents(false);
-      break;
-    default:
-      ;
-  }
-#endif
 }
 
 void
@@ -488,6 +339,38 @@ TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
   m.translate(rotationCenter);
   m.rotate(rotd);
   m.translate(-rotationCenter);
+}
+void
+TSelectionTool::stopHandle(TFigureEditor *fe)
+{
+  state = STATE_NONE;
+  
+  TFigureModel *model = fe->getModel();
+  
+  TFigureSet figuresToReplace;
+  
+  for(auto &&figure: fe->selection) {
+    TFTransform *transform = dynamic_cast<TFTransform*>(figure);
+    if (transform) {
+      transform->matrix.multiply(&m);
+    } else {
+      figuresToReplace.insert(figure);
+    }
+  }
+  
+//  TUndoManager::beginUndoGrouping();
+  TFigureAtDepthList replacement;
+  model->erase(figuresToReplace, &replacement);
+  for(auto &&place: replacement) {
+    TFTransform *transform = new TFTransform();
+    transform->matrix = m;
+    transform->figure = place.figure;
+    place.figure = transform;
+  }
+  model->insert(replacement);
+//  TUndoManager::endUndoGrouping();
+  
+  fe->getWindow()->invalidateWindow();
 }
 
 void
