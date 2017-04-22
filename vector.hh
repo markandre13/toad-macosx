@@ -71,6 +71,10 @@ class TVectorPath
       type.push_back(CURVE); points.push_back(TPoint(x0,y0)); points.push_back(TPoint(x1,y1)); points.push_back(TPoint(x2,y2));
     }
     void close() { type.push_back(CLOSE); }
+    
+    void addRect(const TRectangle &rectangle);
+    void transform(const TMatrix2D &matrix);
+    
     TBoundary bounds() const;
     TBoundary editBounds() const;
     

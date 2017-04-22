@@ -15,6 +15,24 @@ void TVectorPath::join(const TVectorPath &p)
   points.insert(points.end(), p.points.begin(), p.points.end());
 }
 
+void
+TVectorPath::addRect(const TRectangle &rectangle)
+{
+  move(rectangle.x,             rectangle.y);
+  line(rectangle.x+rectangle.w, rectangle.y);
+  line(rectangle.x+rectangle.w, rectangle.y+rectangle.h);
+  line(rectangle.x            , rectangle.y+rectangle.h);
+  close();
+}
+
+void
+TVectorPath::transform(const TMatrix2D &matrix)
+{
+  for(auto &&p: points) {
+    matrix.map(p, &p);
+  }
+}
+
 void TVectorPath::clear()
 {
   type.clear();
@@ -25,7 +43,7 @@ ostream& toad::operator<<(ostream &out, const TVectorPath& path)
 {
   out <<"TVectorPath {"<<endl;
   const TPoint *pt = path.points.data();
-  for(auto p: path.type) {
+  for(auto &&p: path.type) {
 //cout << "apply type " << p << ", left="<<(points.size()-(pt-points.data()))<<endl;
     switch(p) {
       case TVectorPath::MOVE:

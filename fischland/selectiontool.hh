@@ -70,9 +70,12 @@ class TSelectionTool:
        * https://en.wikipedia.org/wiki/Marquee_(sign)
        */
       STATE_DRAG_MARQUEE,
+      STATE_MOVE_HANDLE,
       STATE_MOVE_SELECTION,
       STATE_ROTATE_SELECTION
     } state;
+
+    TBoundary boundary;
     
     // marquee
     bool marqueeDraggedOpen;
@@ -84,6 +87,10 @@ class TSelectionTool:
     TFigureSet temporarySelection;
     
     // handle
+    unsigned selectedHandle;
+    TPoint handleStart;
+    TMatrix2D m;
+    TBoundary oldBoundary;
     bool setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me);
     bool downHandle(TFigureEditor *fe, const TMouseEvent &me);
     void moveHandle(TFigureEditor *fe, const TMouseEvent &me);
@@ -97,8 +104,9 @@ class TSelectionTool:
     bool hndl;                // grabbed handle
     unsigned handle;
     TCoord rx0, ry0, rx1, ry1;  // rectangle for rectangle selection
-    TCoord x0, y0, x1, y1;      // bounding rectangle
-    TCoord ox0, oy0, ox1, oy1;  // bounding rectangle before resizing it
+    
+//    TCoord x0, y0, x1, y1;      // bounding rectangle
+//    TCoord ox0, oy0, ox1, oy1;  // bounding rectangle before resizing it
     TPoint last;                // last mouse position in figure coordinates when moving selection
     TPoint last_s;              // last mouse position in screen coordinates when moving selection
     TFigureSet tmpsel;          // objects to be added on next mouseLUp

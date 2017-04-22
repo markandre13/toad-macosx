@@ -47,6 +47,7 @@ struct TPoint:
   TPoint(const TPoint &p) {x=p.x; y=p.y;}
   TPoint(TCoord inX, TCoord inY) { x=inX; y=inY; }
   void set(TCoord a, TCoord b) { x=a;y=b; }
+  void translate(TCoord a, TCoord b) { x+=a; y+=b; }
   TPoint operator-() {
     return TPoint(-x, -y);
   }

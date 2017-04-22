@@ -51,6 +51,9 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         case STATE_DRAG_MARQUEE:
           dragMarquee(fe, me);
           break;
+        case STATE_MOVE_HANDLE:
+          moveHandle(fe, me);
+          break;
       }
       break;
     case TMouseEvent::LEAVE:
@@ -58,7 +61,8 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       fe->getWindow()->setAllMouseMoveEvents(false);
       break;
     case TMouseEvent::LDOWN:
-      // if figure is not part already selected and the shift key is not pressed
+      if (downHandle(fe, me))
+        return;
       if (!fe->selection.contains(figure) &&
           !(me.modifier() & MK_SHIFT))
       {
@@ -91,6 +95,10 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       switch(state) {
         case STATE_DRAG_MARQUEE:
           stopMarquee(fe);
+          break;
+        case STATE_MOVE_HANDLE:
+          state = STATE_NONE;
+          fe->getWindow()->invalidateWindow();
           break;
         case STATE_MOVE_SELECTION:
           state = STATE_NONE;
@@ -282,12 +290,18 @@ TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   }
 }
 
+/*
+ * Handles
+ */
 void
 TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
 {
+  const TCoord x0(boundary.x1), y0(boundary.y1),
+               x1(boundary.x2), y1(boundary.y2);
+
   static const TCoord s = 5.0; // size
-  TCoord w = x1 - x0;
-  TCoord h = y1 - y0;
+  const TCoord w = x1 - x0;
+  const TCoord h = y1 - y0;
   switch(i) {
     case  0: r->set(x0    +1.5, y0+1   , s, s); break;
     case  1: r->set(x0+w/2    , y0+1   , s, s); break;
@@ -307,6 +321,8 @@ TSelectionTool::getBoundingHandle(unsigned i, TRectangle *r)
     case 14: r->set(x0    -s, y0+h  +s, s, s); break;
     case 15: r->set(x0    -s, y0+h/2  , s, s); break;
   }
+  if (state==STATE_MOVE_HANDLE)
+    m.map(r->x, r->y, &r->x, &r->y);
   r->translate(TPoint(-s/2.0, -s/2.0));
 }
 
@@ -364,20 +380,11 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
     getBoundingHandle(i, &r);
 // cout << "  check " << r.x << ", " << r.y << endl;
     if (r.isInside(x, y)) {
-      handle = i;
-      ox0 = x0;
-      oy0 = y0;
-      ox1 = x1;
-      oy1 = y1;
-      hndl = true;
-      oldmat.clear();
-      for(TFigureSet::const_iterator p = fe->selection.begin();
-          p != fe->selection.end();
-          ++p)
-      {
-        oldmat.push_back(TMatrix2D());
-      }
-// cout << "its inside handle " << i << endl;
+      state = STATE_MOVE_HANDLE;
+      selectedHandle = i;
+      handleStart = me.pos;
+      m.identity();
+      oldBoundary = boundary;
       return true;
     }
   }
@@ -388,14 +395,20 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 {
-#if 0
+  fe->getWindow()->invalidateWindow();
+
+  TCoord x0(boundary.x1), y0(boundary.y1),
+         x1(boundary.x2), y1(boundary.y2),
+         ox0(oldBoundary.x1), oy0(oldBoundary.y1),
+         ox1(oldBoundary.x2), oy1(oldBoundary.y2);
+
   // mouse is holding a handle, scale the selection
   invalidateBounding(fe);
 //TCoord x0, y0;
   TCoord x, y;
   x = me.pos.x - fe->getVisible().x;
   y = me.pos.y - fe->getVisible().y;
-  switch(handle) {
+  switch(selectedHandle) {
     case 0:
       x0 = x;
       y0 = y;
@@ -428,6 +441,7 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 
   TCoord sx = (x1-x0)/(ox1 - ox0);
   TCoord sy = (y1-y0)/(oy1 - oy0);
+
   TCoord X0, OX0, Y0, OY0;
   if (fe->getMatrix()) {
     TMatrix2D m(*fe->getMatrix());
@@ -438,33 +452,12 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
     X0 = x0; Y0 = y0;
     OX0 = ox0; OY0 = oy0;
   }
-  TMatrix2D m;
+  m.identity();
   m.translate(X0, Y0);
   m.scale(sx, sy);
   m.translate(-OX0, -OY0);
 
-  unsigned i=0;
-  for(auto p = fe->selection.begin();
-      p != fe->selection.end();
-      ++p, ++i)
-  {
-    if (scale_strokes_and_fx) {
-      if ((*p)->mat) {
-        *(*p)->mat = m * oldmat[i];
-      } else {
-        (*p)->mat = new TMatrix2D(m);
-      }
-    } else {
-      if ((*p)->cmat) {
-        *(*p)->cmat = m * oldmat[i];
-      } else {
-        (*p)->cmat = new TMatrix2D(m);
-      }
-    }
-  }
-
   invalidateBounding(fe);
-#endif
 }
 
 void
@@ -611,20 +604,9 @@ void
 TSelectionTool::invalidateBounding(TFigureEditor *fe)
 {
   TPoint origin = fe->getWindow()->getOrigin();
-  fe->getWindow()->invalidateWindow(
-    x0-5+ origin.x + fe->getVisible().x,
-    y0-5 + origin.y + fe->getVisible().y,
-    x1-x0+11, y1-y0+11);
-#if 0
-  cout << "invalidate bounding ("
-       << x0-4 + fe->getWindow()->getOriginX() + fe->getVisible().x
-       << ", "
-       << y0-4 + fe->getWindow()->getOriginY() + fe->getVisible().y
-       << ", "
-       << x1-x0+9
-       << ", "
-       << y1-y0+9;
-#endif
+  TRectangle visible = fe->getVisible();
+  origin.translate(visible.x, visible.y);
+  fe->getWindow()->invalidateWindow(TRectangle(boundary).translate(origin).expand(5));
 }
 
 bool
@@ -637,42 +619,22 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     pen.pop();
     return true;
   }
-  
+/*
+  if (state==STATE_MOVE_HANDLE) {
+    pen.setColor(TColor::FIGURE_SELECTION);
+    pen.setAlpha(1.0);
+    pen.setScreenLineWidth(1.0);
+
+    TVectorPath path;
+    path.addRect(TRectangle(x0+1, y0+1, x1-x0-1, y1-y0-1));
+    path.transform(m);
+    path.apply(pen);
+    pen.stroke();
+  } else
+*/
   if (state==STATE_DRAG_MARQUEE) {
     paintMarquee(fe, pen);
   } else
-  // 'down' means that the user is holding the mouse button,
-  // draw the interactive selection rectangle
-  if (down) {
-    // draw the selection marks over all figures
-    for(auto sp = tmpsel.begin(); sp != tmpsel.end(); ++sp) {
-      pen.setLineWidth(1);   
-      (*sp)->paintSelection(pen, -1);
-    }
-    
-    // draw selection rectangle
-    if (rect) {
-      pen.push();
-      double tx = 0.0, ty = 0.0;
-      if (pen.getMatrix()) {
-        tx = pen.getMatrix()->tx - fe->getVisible().x;
-        ty = pen.getMatrix()->ty - fe->getVisible().y;
-      }
-      pen.identity();
-      pen.translate(tx, ty);
-      pen.setColor(TColor::FIGURE_SELECTION);
-      pen.setLineWidth(1);
-      pen.setAlpha(0.3);
-      if (pen.getAlpha()!=1.0)
-        pen.fillRectangle(rx0, ry0, rx1-rx0+1, ry1-ry0);
-      else
-        pen.drawRectangle(rx0, ry0, rx1-rx0+1, ry1-ry0);
-      pen.setAlpha(1.0);
-      pen.drawRectangle(rx0, ry0, rx1-rx0+1, ry1-ry0);
-      pen.pop();
-    }
-  } else
-
   if (!fe->selection.empty()) {
 //    cout << "draw bounding rectangle " << x0 << ", " << y0 << " to " << x1 << ", " << y1 << endl;
     
@@ -686,6 +648,8 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       if (!graphic)
         continue;
       for(auto &painter: *graphic) {
+        if (state==STATE_MOVE_HANDLE)
+          painter->path->transform(m);
         painter->path->apply(pen);
         pen.stroke();
       }
@@ -701,7 +665,12 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     }
 
     pen.setLineWidth(1);
-    pen.drawRectangle(x0+1, y0+1, x1-x0-1, y1-y0-1);
+    TVectorPath pr;
+    pr.addRect(TRectangle(boundary));
+    if (state==STATE_MOVE_HANDLE)
+      pr.transform(m);
+    pr.apply(pen);
+    pen.stroke();
     pen.setFillColor(1,1,1);
     TRectangle r;
     for(unsigned i=0; i<8; ++i) {
@@ -722,37 +691,13 @@ void
 TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
 {
 //cout << "TSelectionTool::calcSelectionsBoundingRectangle" << endl;
-  for(auto p = fe->selection.begin(); p != fe->selection.end(); ++p) {
+  boundary.clear();
+  for(auto &&figure: fe->selection) {
     TRectangle r;
-#if 1
-    fe->getFigureShape(*p, &r, NULL);
-    r.x-=2;
-    r.y-=2;
-    r.w+=2;
-    r.h+=2;
-//cout << "-> getFigureShape -> " << r << endl;
-#else
-    (*p)->getShape(&r);
-    if ( (*p)->mat ) {
-      TPoint p0, p1;
-      (*p)->mat->map(r.x, r.y,             &p0.x, &p0.y);
-      (*p)->mat->map(r.x+r.w-1, r.y+r.h-1, &p1.x, &p1.y);
-      r.set(p0, p1);
-    }
-#endif
-    if (p==fe->selection.begin()) {
-      x0 = r.x; 
-      y0 = r.y;
-      x1 = r.x + r.w;
-      y1 = r.y + r.h;
-    } else {
-      if (x0 > r.x) x0 = r.x;
-      if (y0 > r.y) y0 = r.y;
-      if (x1 < r.x + r.w) x1 = r.x + r.w;
-      if (y1 < r.y + r.h) y1 = r.y + r.h;
-    }
+    fe->getFigureShape(figure, &r, nullptr);
+    boundary.expand(r);
   }
-
+#if 0
   // map figure coordinates to screen coordinates
   if (fe->getMatrix()) {
     fe->getMatrix()->map(x0, y0, &x0, &y0);
@@ -768,7 +713,7 @@ TSelectionTool::calcSelectionsBoundingRectangle(TFigureEditor *fe)
       y1 += fe->getVisible().y;
 */
   }
-
+#endif
 //cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
 
 }
