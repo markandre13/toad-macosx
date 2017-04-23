@@ -183,6 +183,7 @@ class TFigure:
 
     // editor related stuff for all gadgets
     //--------------------------------------
+    // FIXME: move to geometry, use TPoint
     static TCoord distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2);
 
 #if 0
@@ -300,8 +301,15 @@ class TFTransform:
 {
   protected:
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
-    TRectangle bounds() const override;
     TVectorGraphic *getPath() const override;
+    
+    TCoord distance(const TPoint &pos) override;
+    TRectangle bounds() const override;
+
+    bool getHandle(unsigned n, TPoint *p) override;
+    bool startTranslateHandle() override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
+    void endTranslateHandle() override;
 
     TCloneable* clone() const override { return new TFTransform(*this); }
     const char * getClassName() const override { return "toad::TFTransform"; }
