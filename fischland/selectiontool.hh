@@ -72,10 +72,11 @@ class TSelectionTool:
       STATE_DRAG_MARQUEE,
       STATE_MOVE_HANDLE,
       STATE_MOVE_SELECTION,
-      STATE_ROTATE_SELECTION
     } state;
 
-    TBoundary boundary;
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+
     
     // marquee
     bool marqueeDraggedOpen;
@@ -87,57 +88,39 @@ class TSelectionTool:
     TFigureSet temporarySelection;
     
     // handle
+    void getBoundaryHandle(unsigned i, TRectangle *r);
+    bool setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me);
     unsigned selectedHandle;
     TPoint handleStart;
     TMatrix2D m;
     TBoundary oldBoundary;
     TPoint rotationCenter;
     double rotationStartDirection;
-    bool setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me);
     bool downHandle(TFigureEditor *fe, const TMouseEvent &me);
     void moveHandle(TFigureEditor *fe, const TMouseEvent &me);
     void moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me);
     void moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me);
     void stopHandle(TFigureEditor *fe);
 
+    void moveSelection(TFigureEditor *fe, const TMouseEvent &me);
+
+    TBoundary boundary;
+    void calcBoundary(TFigureEditor *fe);
+    void invalidateBoundary(TFigureEditor *fe);
+    void paintOutline(const TFigureSet &figures, TPenBase &pen);
+    bool paintSelection(TFigureEditor*, TPenBase &pen);
+
     // by default strokes and effects aren't scaled
     TBoolModel scale_strokes_and_fx; // Preferences > General
 
-    bool down;                // is the mouse button down?
-    bool rect;                // rectangle selection?
-    bool grab;                // grabbed selection for moving
-    bool hndl;                // grabbed handle
-    unsigned handle;
-    TCoord rx0, ry0, rx1, ry1;  // rectangle for rectangle selection
-    
-    TPoint last;                // last mouse position in figure coordinates when moving selection
-    TPoint last_s;              // last mouse position in screen coordinates when moving selection
-    TFigureSet tmpsel;          // objects to be added on next mouseLUp
-    vector<TMatrix2D> oldmat;
   public:
     TSelectionTool() {
       state = STATE_NONE;
       scale_strokes_and_fx = true;
-      down = false;
-      rect = false;
-      grab = false;
-      hndl = false;
     }
     static TSelectionTool* getTool();
   
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    
-    
-    void moveGrab(TFigureEditor *fe, const TMouseEvent &me);
-    void moveSelect(TFigureEditor *fe, const TMouseEvent &me);
-    
-    bool paintSelection(TFigureEditor*, TPenBase &pen);
     void stop(TFigureEditor *fe);
-    
-    void invalidateBounding(TFigureEditor *fe);
-    void getBoundingHandle(unsigned i, TRectangle *r);
-    void calcSelectionsBoundingRectangle(TFigureEditor *fe);
 };
 
 } // namespace toad
