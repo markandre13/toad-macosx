@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2005 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,24 +21,9 @@
 #include <toad/figure.hh>
 #include <toad/figureeditor.hh>
 #include <toad/vector.hh>
-
-// avoid problems on AIX, IRIX, ...
-#define exception c_exception
 #include <cmath>
-#undef exception
-
-// missing in mingw
-#ifndef M_PI
-#define M_PI 3.14159265358979323846  /* pi */
-#endif
 
 using namespace toad;
-
-// Michael Goldapp, "Approximation of circular arcs by cubic polynomials" Computer Aided Geometric Design (#8 1991 pp.227-238)
-// Tor Dokken and Morten Daehlen, "Good Approximations of circles by curvature-continuous Bezier curves" Computer Aided Geometric Design (#7 1990 pp. 33-41).
-// error is about 0.0273% of the circles radius
-// n := 4 segments, f := (4/3)*tan(pi/(2n))
-static const TCoord f = 0.552284749831;
 
 void 
 TFCircle::paint(TPenBase &pen, EPaintType)
@@ -48,33 +33,7 @@ TFCircle::paint(TPenBase &pen, EPaintType)
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   if (!filled) {
-#if 1
     pen.drawCircle(p1,p2);
-#else
-  TRectangle r = bounds();
-  TCoord rx = 0.5*(r.w);
-  TCoord ry = 0.5*(r.h);
-  TCoord cx = (double)r.x+rx;
-  TCoord cy = (double)r.y+ry;
-  auto *path = new TVectorPath;
-  path->move (cx         , cy-ry);
-  path->curve(cx + rx * f, cy-ry,
-              cx + rx    , cy-ry*f,
-              cx + rx    , cy);
-  path->curve(cx + rx    , cy+ry*f,
-              cx + rx * f, cy+ry,
-              cx         , cy+ry);
-  path->curve(cx - rx * f, cy+ry,
-              cx - rx    , cy+ry*f,
-              cx - rx    , cy);
-  path->curve(cx - rx    , cy-ry*f,
-              cx - rx * f, cy-ry,
-              cx         , cy-ry);
-  path->close();
-  path->apply(pen);
-  delete path;
-  pen.stroke();
-#endif
   } else {
     pen.setFillColor(fill_color);
     pen.fillCircle(p1,p2);
@@ -115,12 +74,19 @@ TFCircle::distance(const TPoint &pos)
 TVectorGraphic*
 TFCircle::getPath() const
 {
+  // Michael Goldapp, "Approximation of circular arcs by cubic polynomials"
+  // Computer Aided Geometric Design (#8 1991 pp.227-238) Tor Dokken and
+  // Morten Daehlen, "Good Approximations of circles by curvature-continuous
+  // Bezier curves" Computer Aided Geometric Design (#7 1990 pp.  33-41). 
+  // error is about 0.0273% of the circles radius
+  // n := 4 segments, f := (4/3)*tan(pi/(2n))
+  static const TCoord f = 0.552284749831;
+
   TRectangle r = bounds();
   TCoord rx = 0.5*(r.w);
   TCoord ry = 0.5*(r.h);
   TCoord cx = (double)r.x+rx;
   TCoord cy = (double)r.y+ry;
-  
   
   auto *path = new TVectorPath;
   path->move (cx         , cy-ry);
@@ -145,4 +111,3 @@ TFCircle::getPath() const
   ));
   return vg;
 }
-
