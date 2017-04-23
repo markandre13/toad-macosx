@@ -617,7 +617,7 @@ TWindow::~TWindow()
 {
 //cerr << "enter TWindow::~TWindow: title="<<title<<", this="<<this<<endl;
   if (lastMouse==this)
-    lastMouse = 0;
+    lastMouse = nullptr;
     
   if (grabPopupWindow==this)
     ungrabMouse();
