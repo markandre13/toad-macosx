@@ -161,7 +161,7 @@ TFigure::translate(TCoord dx, TCoord dy)
 }
 
 
-TColoredFigure::TColoredFigure()
+TAttributedFigure::TAttributedFigure()
 {
   outline = true;
   filled = false;
@@ -184,7 +184,7 @@ TFigure::getAttributes(TFigureAttributes *preferences) const
 }
 
 void
-TColoredFigure::setAttributes(const TFigureAttributes *preferences)
+TAttributedFigure::setAttributes(const TFigureAttributes *preferences)
 {
   if (preferences->reason.linecolor)
     line_color = preferences->linecolor;
@@ -203,7 +203,7 @@ TColoredFigure::setAttributes(const TFigureAttributes *preferences)
 }
 
 void
-TColoredFigure::getAttributes(TFigureAttributes *preferences) const
+TAttributedFigure::getAttributes(TFigureAttributes *preferences) const
 {
   preferences->linewidth = line_width;
   preferences->linestyle = line_style;
@@ -402,7 +402,7 @@ TFigure::store(TOutObjectStream &out) const
 }
 
 void
-TColoredFigure::store(TOutObjectStream &out) const
+TAttributedFigure::store(TOutObjectStream &out) const
 {
   super::store(out);
   ::store(out, "linecolor", line_color);
@@ -436,7 +436,7 @@ TFigure::restore(TInObjectStream &in)
 }
 
 bool
-TColoredFigure::restore(TInObjectStream &in)
+TAttributedFigure::restore(TInObjectStream &in)
 {
   bool b;
   if (in.what==ATV_START) {

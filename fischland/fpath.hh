@@ -25,11 +25,11 @@
 using namespace toad;
 
 class TFPath:
-  public TColoredFigure
+  public TAttributedFigure
 {
     SERIALIZABLE_INTERFACE(toad::, TFPath);
   public:
-    typedef TColoredFigure super;
+    typedef TAttributedFigure super;
     TFPath();
     void paint(TPenBase&, EPaintType) override;
     void paintSelection(TPenBase &pen, int handle) override;

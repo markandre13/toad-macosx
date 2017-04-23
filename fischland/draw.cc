@@ -307,7 +307,7 @@ _fixLineWidth(TFigureModel::iterator b, TFigureModel::iterator e)
       _fixLineWidth(g->gadgets.begin(), g->gadgets.end());
       continue;
     }
-    TColoredFigure *cf = dynamic_cast<TColoredFigure*>(*p1);
+    TAttributedFigure *cf = dynamic_cast<TAttributedFigure*>(*p1);
     if (cf) {
       TFigureAttributes a;
       cf->getAttributes(&a);

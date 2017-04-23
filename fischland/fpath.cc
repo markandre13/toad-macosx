@@ -743,7 +743,7 @@ namespace {
 void
 TFPath::store(TOutObjectStream &out) const
 {
-  TColoredFigure::store(out);
+  TAttributedFigure::store(out);
 
   if (arrowmode!=TFLine::NONE) {
    out.indent();
@@ -839,7 +839,7 @@ TFPath::restore(TInObjectStream &in)
     closed = b;
     return true;
   }
-  if (TColoredFigure::restore(in))
+  if (TAttributedFigure::restore(in))
     return true;
   ATV_FAILED(in)
   return false;

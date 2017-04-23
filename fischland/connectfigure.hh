@@ -26,9 +26,9 @@
 using namespace toad;
 
 class TFConnection:
-  public TColoredFigure, TFigureArrow
+  public TAttributedFigure, TFigureArrow
 {
-    typedef TColoredFigure super;
+    typedef TAttributedFigure super;
   public:
     void updatePoints();
     vector<TPoint> p;

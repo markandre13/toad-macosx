@@ -128,7 +128,7 @@ void
 TFConnection::paint(TPenBase &pen, EPaintType type)
 {
   if (type!=EDIT) {
-    pen.setColor(line_color);	// FIXME: move to TColoredFigure and update all other figures
+    pen.setColor(line_color);	// FIXME: move to TAttributedFigure and update all other figures
   }
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);

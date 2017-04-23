@@ -205,15 +205,13 @@ class TFigure:
     bool restore(TInObjectStream &in) override;
 };
 
-//! To be renamed into 'TAttributedFigure'
-//! what about *mat ?
-class TColoredFigure:
+class TAttributedFigure:
   public TFigure
 {
   public:
     typedef TFigure super;
   protected:
-    TColoredFigure();
+    TAttributedFigure();
     TCoord alpha;
   public:
     bool outline:1;       // true when outline
@@ -315,9 +313,9 @@ class TFTransform:
  * \ingroup figure
  */
 class TFRectangle:
-  public TColoredFigure
+  public TAttributedFigure
 {
-    typedef TColoredFigure super;
+    typedef TAttributedFigure super;
   public:
     TFRectangle() {}
     TFRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
@@ -352,9 +350,9 @@ class TFRectangle:
  * \ingroup figure
  */
 class TFPolygon:
-  public TColoredFigure
+  public TAttributedFigure
 {
-    typedef TColoredFigure super;
+    typedef TAttributedFigure super;
   public:
     void paint(TPenBase &, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
