@@ -33,7 +33,7 @@ static TRectangle typeColorRect(0.5,46.5,13,13);
 static TRectangle typeGradientRect(13.5,46.5,14,13);
 static TRectangle typeNoneRect(27.5,46.5,13,13);
 
-TColorPicker::TColorPicker(TWindow *p, const string &t, TFigureAttributes *attr)
+TColorPicker::TColorPicker(TWindow *p, const string &t, TFigureAttributeModel *attr)
   :TWindow(p, t)
 {
   this->attr = attr;

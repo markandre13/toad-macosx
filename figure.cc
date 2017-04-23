@@ -174,17 +174,17 @@ TAttributedFigure::TAttributedFigure()
 }
 
 void
-TFigure::setAttributes(const TFigureAttributes *preferences)
+TFigure::setAttributes(const TFigureAttributeModel *preferences)
 {
 }
 
 void
-TFigure::getAttributes(TFigureAttributes *preferences) const
+TFigure::getAttributes(TFigureAttributeModel *preferences) const
 {
 }
 
 void
-TAttributedFigure::setAttributes(const TFigureAttributes *preferences)
+TAttributedFigure::setAttributes(const TFigureAttributeModel *preferences)
 {
   if (preferences->reason.linecolor)
     line_color = preferences->linecolor;
@@ -203,7 +203,7 @@ TAttributedFigure::setAttributes(const TFigureAttributes *preferences)
 }
 
 void
-TAttributedFigure::getAttributes(TFigureAttributes *preferences) const
+TAttributedFigure::getAttributes(TFigureAttributeModel *preferences) const
 {
   preferences->linewidth = line_width;
   preferences->linestyle = line_style;

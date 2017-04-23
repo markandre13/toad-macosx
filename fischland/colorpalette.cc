@@ -27,7 +27,7 @@
 using namespace toad;
 
 TColorPalette::TColorPalette(TWindow *parent, const string &title,
-                             TFigureAttributes *preferences):
+                             TFigureAttributeModel *preferences):
   TWindow(parent, title)
 {
 //  bNoBackground = true;

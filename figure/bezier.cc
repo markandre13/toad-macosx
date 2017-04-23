@@ -673,7 +673,7 @@ TFBezier::store(TOutObjectStream &out) const
 }
 
 void
-TFBezier::setAttributes(const TFigureAttributes *attr)
+TFBezier::setAttributes(const TFigureAttributeModel *attr)
 {
   // skip the line super classes TFBezierLine -> TFLine -> TFPolygon -> ...
   // with their different handling of the 'filled' flag

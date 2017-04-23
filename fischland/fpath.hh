@@ -58,8 +58,8 @@ class TFPath:
     TPolygon polygon;
     vector<byte> corner;
     
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
+    void setAttributes(const TFigureAttributeModel*) override;
+    void getAttributes(TFigureAttributeModel*) const override;
 
     TFLine::EArrowMode arrowmode;
     TFLine::EArrowType arrowtype;

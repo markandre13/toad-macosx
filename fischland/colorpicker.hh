@@ -40,7 +40,7 @@ class TColorPicker:
     TRGB fillcolor;
 
   public:
-    TColorPicker(TWindow *p, const string &t, TFigureAttributes *a=0);
+    TColorPicker(TWindow *p, const string &t, TFigureAttributeModel *a=0);
     ~TColorPicker();
     void preferencesChanged();
     

@@ -83,19 +83,19 @@ class TToolBox:
 
 /**
  * \ingroup figure
- * \class toad::TFigureAttributes
+ * \class toad::TFigureAttributeModel
  *
  * Not yet sure whether to keep this class. There's just too much crap in it.
  */
-class TFigureAttributes:
+class TFigureAttributeModel:
   public TModel
 {
     TFigureEditor *current;
-    TFigureAttributes(const TFigureAttributes&) {};
+    TFigureAttributeModel(const TFigureAttributeModel&) {};
   public:
   
-    TFigureAttributes();
-    virtual ~TFigureAttributes();
+    TFigureAttributeModel();
+    virtual ~TFigureAttributeModel();
 
     /**
      * ...
@@ -214,7 +214,7 @@ class TFigureAttributes:
     unsigned arrowwidth;
     unsigned arrowheight;
 };
-typedef GSmartPointer<TFigureAttributes> PFigureAttributes;
+typedef GSmartPointer<TFigureAttributeModel> PFigureAttributes;
 
 /**
  * \ingroup figure
@@ -241,8 +241,8 @@ class TFigureEditor:
     TFigureEditor(TWindow*, const string &title, TFigureModel *model=0);
     ~TFigureEditor();
     
-    void setAttributes(TFigureAttributes *p);
-    TFigureAttributes* getAttributes() const {
+    void setAttributes(TFigureAttributeModel *p);
+    TFigureAttributeModel* getAttributes() const {
       return preferences;
     }
     void preferencesChanged();

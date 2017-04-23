@@ -190,7 +190,7 @@ TFText::mouseLUp(TFigureEditor*, TMouseEvent &)
 }
 
 void
-TFText::setAttributes(const TFigureAttributes *preferences)
+TFText::setAttributes(const TFigureAttributeModel *preferences)
 {
   super::setAttributes(preferences);
   if (preferences->reason.fontname) {
@@ -200,8 +200,8 @@ TFText::setAttributes(const TFigureAttributes *preferences)
   
 /*
   switch(preferences->reason) {
-    case TFigureAttributes::ALLCHANGED:
-    case TFigureAttributes::FONTNAME:
+    case TFigureAttributeModel::ALLCHANGED:
+    case TFigureAttributeModel::FONTNAME:
       fontname = preferences->fontname;
       calcSize();
       break;
@@ -210,7 +210,7 @@ TFText::setAttributes(const TFigureAttributes *preferences)
 }
 
 void
-TFText::getAttributes(TFigureAttributes *preferences) const
+TFText::getAttributes(TFigureAttributeModel *preferences) const
 {
   super::getAttributes(preferences);
   preferences->fontname = fontname;

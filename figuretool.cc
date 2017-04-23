@@ -42,7 +42,7 @@ TFigureTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 }
 
 void
-TFigureTool::setAttributes(TFigureAttributes *p)
+TFigureTool::setAttributes(TFigureAttributeModel *p)
 {
 }
 

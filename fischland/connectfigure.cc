@@ -318,14 +318,14 @@ TFConnection::mouseLUp(TFigureEditor *fe, TMouseEvent &me)
 }
 
 void
-TFConnection::setAttributes(const TFigureAttributes *attributes)
+TFConnection::setAttributes(const TFigureAttributeModel *attributes)
 {
   super::setAttributes(attributes);
   TFigureArrow::setAttributes(attributes);
 }
 
 void
-TFConnection::getAttributes(TFigureAttributes *attributes) const
+TFConnection::getAttributes(TFigureAttributeModel *attributes) const
 {
   super::getAttributes(attributes);
   TFigureArrow::getAttributes(attributes);

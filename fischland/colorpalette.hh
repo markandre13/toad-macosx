@@ -34,7 +34,7 @@ class TColorPalette:
 {
     typedef TColorPalette TThis;
   public:
-    TColorPalette(TWindow *parent, const string &title, TFigureAttributes *preferences = 0);
+    TColorPalette(TWindow *parent, const string &title, TFigureAttributeModel *preferences = 0);
   protected:
     PFigureAttributes preferences;
     struct TNamedColor:

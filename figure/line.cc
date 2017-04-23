@@ -31,7 +31,7 @@ using namespace toad;
 #endif
 
 void
-TFigureArrow::setAttributes(const TFigureAttributes *preferences)
+TFigureArrow::setAttributes(const TFigureAttributeModel *preferences)
 {
   if (preferences->reason.arrowmode)
     arrowmode = preferences->arrowmode;
@@ -49,7 +49,7 @@ TFigureArrow::TFigureArrow()
 }
 
 void
-TFigureArrow::getAttributes(TFigureAttributes *preferences) const
+TFigureArrow::getAttributes(TFigureAttributeModel *preferences) const
 {
   preferences->arrowmode = arrowmode;
   preferences->arrowtype = arrowtype;
@@ -201,14 +201,14 @@ TFLine::TFLine()
 }
 
 void
-TFLine::setAttributes(const TFigureAttributes *preferences)
+TFLine::setAttributes(const TFigureAttributeModel *preferences)
 {
   super::setAttributes(preferences);
   TFigureArrow::setAttributes(preferences);
 }
 
 void
-TFLine::getAttributes(TFigureAttributes *preferences) const
+TFLine::getAttributes(TFigureAttributeModel *preferences) const
 {
   super::getAttributes(preferences);
   TFigureArrow::getAttributes(preferences);

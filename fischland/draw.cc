@@ -309,7 +309,7 @@ _fixLineWidth(TFigureModel::iterator b, TFigureModel::iterator e)
     }
     TAttributedFigure *cf = dynamic_cast<TAttributedFigure*>(*p1);
     if (cf) {
-      TFigureAttributes a;
+      TFigureAttributeModel a;
       cf->getAttributes(&a);
       if (a.linewidth<15) {
         if (a.linewidth==0.0)

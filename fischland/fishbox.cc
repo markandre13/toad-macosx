@@ -168,9 +168,9 @@ class TLineWidthAdapter:
 class TFontButton:
   public TPushButton
 {
-    TFigureAttributes *fa;
+    TFigureAttributeModel *fa;
   public:
-    TFontButton(TWindow *parent, const string &title, TFigureAttributes *fa):
+    TFontButton(TWindow *parent, const string &title, TFigureAttributeModel *fa):
       TPushButton(parent, title)
     {
       this->fa = fa;
@@ -363,7 +363,7 @@ serialize.registerObject(new TFPath());
 
   assert(toolbox==0);
   toolbox = this;
-  preferences = new TFigureAttributes;
+  preferences = new TFigureAttributeModel;
   preferences->linewidth = 1;
 
   flagNoMenu = true;
@@ -381,7 +381,7 @@ serialize.registerObject(new TFPath());
   x = 4;
   y = 4+2+28+2+1;
 
-  TFigureAttributes *me = preferences;
+  TFigureAttributeModel *me = preferences;
   
   for(unsigned i=0; i<20; i++) {
     wnd = 0;

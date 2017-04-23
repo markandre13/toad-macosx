@@ -115,7 +115,7 @@ class TVectorFillOp:
 {
 };
 
-// what about TFigureAttributes?
+// what about TFigureAttributeModel?
 class TVectorStrokeAndFillOp:
   public TVectorOperation
 {

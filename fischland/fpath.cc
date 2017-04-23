@@ -52,7 +52,7 @@ TFPath::TFPath()
 }
 
 void
-TFPath::setAttributes(const TFigureAttributes *preferences)
+TFPath::setAttributes(const TFigureAttributeModel *preferences)
 {
   super::setAttributes(preferences);
   if (preferences->reason.arrowmode)
@@ -62,7 +62,7 @@ TFPath::setAttributes(const TFigureAttributes *preferences)
 }
 
 void
-TFPath::getAttributes(TFigureAttributes *preferences) const
+TFPath::getAttributes(TFigureAttributeModel *preferences) const
 {
   super::getAttributes(preferences);
   preferences->arrowmode = arrowmode;

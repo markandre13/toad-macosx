@@ -48,7 +48,7 @@ class TFigureSet:
 typedef vector<TFigure*> TFigureVector;
 
 class TFigureAtDepthList;
-class TFigureAttributes;
+class TFigureAttributeModel;
 
 /**
  * \ingroup figure
@@ -121,7 +121,7 @@ class TFigureModel:
 
     void ungroup(TFigureSet &grouped, TFigureSet *ungrouped);
     
-    void setAttributes(TFigureSet &set, const TFigureAttributes *attributes);
+    void setAttributes(TFigureSet &set, const TFigureAttributeModel *attributes);
     
     void erase(const iterator&);
     void erase(const iterator&, const iterator&);

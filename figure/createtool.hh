@@ -53,7 +53,7 @@ class TFCreateTool:
     void stop(TFigureEditor*);
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
     void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void setAttributes(TFigureAttributes *p);
+    void setAttributes(TFigureAttributeModel *p);
     bool paintSelection(TFigureEditor *fe, TPenBase &pen);
 };
 

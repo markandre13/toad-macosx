@@ -32,7 +32,7 @@
 namespace toad {
 
 class TFigureEditor;
-class TFigureAttributes;
+class TFigureAttributeModel;
 class TMatrix2D;
 class TVectorGraphic;
 
@@ -111,8 +111,8 @@ class TFigure:
       EDIT,
       OUTLINE
     };
-    virtual void setAttributes(const TFigureAttributes*);
-    virtual void getAttributes(TFigureAttributes*) const;
+    virtual void setAttributes(const TFigureAttributeModel*);
+    virtual void getAttributes(TFigureAttributeModel*) const;
     
     //! Called to paint the gadget.
     virtual void paint(TPenBase& pen, EPaintType type = NORMAL) = 0;
@@ -227,8 +227,8 @@ class TAttributedFigure:
   public:
     TSerializableRGB line_color;
     TSerializableRGB fill_color;
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
+    void setAttributes(const TFigureAttributeModel*) override;
+    void getAttributes(TFigureAttributeModel*) const override;
 
     void setLineColor(const TRGB &color) {
       line_color = color;
@@ -398,8 +398,8 @@ class TFigureArrow
     unsigned arrowwidth;
 
     TFigureArrow();
-    void setAttributes(const TFigureAttributes*);
-    void getAttributes(TFigureAttributes*) const;
+    void setAttributes(const TFigureAttributeModel*);
+    void getAttributes(TFigureAttributeModel*) const;
     void store(TOutObjectStream &out) const;
     bool restore(TInObjectStream &in);
 
@@ -420,8 +420,8 @@ class TFLine:
     typedef TFPolygon super;
 
     TFLine();
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
+    void setAttributes(const TFigureAttributeModel*) override;
+    void getAttributes(TFigureAttributeModel*) const override;
     void paint(TPenBase &, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
     
@@ -473,7 +473,7 @@ class TFBezier:
     void paintSelection(TPenBase &pen, int handle);
     TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    void setAttributes(const TFigureAttributes*);
+    void setAttributes(const TFigureAttributeModel*);
     
     TCloneable* clone() const { return new TFBezier(*this); }
     const char * getClassName() const { return "toad::TFBezier"; }
@@ -521,8 +521,8 @@ class TFText:
       this->fontname = fontname;
     }
 
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
+    void setAttributes(const TFigureAttributeModel*) override;
+    void getAttributes(TFigureAttributeModel*) const override;
 
     void paint(TPenBase &, EPaintType) override;
 

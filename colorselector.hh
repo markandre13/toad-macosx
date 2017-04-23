@@ -44,7 +44,7 @@ class TColorSelector:
   public:
     TColorSelector(TWindow *parent, 
                    const string &title, 
-                   TFigureAttributes *gedit = 0);
+                   TFigureAttributeModel *gedit = 0);
     ~TColorSelector();
 
     bool dialogeditorhack;

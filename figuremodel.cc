@@ -700,7 +700,7 @@ class TUndoAttributes:
     TFigureModel *model;
     struct TNode {
       TFigure *figure;
-      TFigureAttributes attributes;
+      TFigureAttributeModel attributes;
       TNode *next;
     };
     TNode *list;
@@ -759,7 +759,7 @@ class TUndoAttributes:
 };
 
 void
-TFigureModel::setAttributes(TFigureSet &set, const TFigureAttributes *attributes)
+TFigureModel::setAttributes(TFigureSet &set, const TFigureAttributeModel *attributes)
 {
   if (set.empty())
     return;

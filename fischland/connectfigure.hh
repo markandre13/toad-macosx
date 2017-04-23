@@ -56,8 +56,8 @@ class TFConnection:
     unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
     unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
     
-    void setAttributes(const TFigureAttributes*) override;
-    void getAttributes(TFigureAttributes*) const override;
+    void setAttributes(const TFigureAttributeModel*) override;
+    void getAttributes(TFigureAttributeModel*) const override;
 
     SERIALIZABLE_INTERFACE(toad::, TFConnection);
 };

@@ -114,13 +114,13 @@ using namespace toad;
  *
  */
 
-TFigureAttributes::TFigureAttributes()
+TFigureAttributeModel::TFigureAttributeModel()
 {
   linecolor.set(0,0,0);
   fillcolor.set(1,1,1);
   alpha.setRangeProperties(255,0,0,255);
 //  connect(alpha.sigChanged, foobar, this, ALPHA);
-  CLOSURE1(alpha.sigChanged, TFigureAttributes *dst, this,
+  CLOSURE1(alpha.sigChanged, TFigureAttributeModel *dst, this,
     dst->reason.alpha = true;
     dst->sigChanged();
   );
@@ -130,13 +130,13 @@ TFigureAttributes::TFigureAttributes()
 
   drawgrid = true;
 //  connect(drawgrid.sigChanged, foobar, this, GRID);
-  CLOSURE1(drawgrid.sigChanged, TFigureAttributes *dst, this,
+  CLOSURE1(drawgrid.sigChanged, TFigureAttributeModel *dst, this,
     dst->reason.grid = true;
     dst->sigChanged();
   );
   gridsize = 4;
 //  connect(gridsize.sigChanged, foobar, this, GRID);
-  CLOSURE1(gridsize.sigChanged, TFigureAttributes *dst, this,
+  CLOSURE1(gridsize.sigChanged, TFigureAttributeModel *dst, this,
     dst->reason.grid = true;
     dst->sigChanged();
   );
@@ -149,60 +149,60 @@ TFigureAttributes::TFigureAttributes()
   current = 0;
 }
 
-TFigureAttributes::~TFigureAttributes()
+TFigureAttributeModel::~TFigureAttributeModel()
 {
 }
 
 void
-TFigureAttributes::group()
+TFigureAttributeModel::group()
 {
   if (current) current->group();
 }
 
 void
-TFigureAttributes::ungroup()
+TFigureAttributeModel::ungroup()
 {
   if (current) current->ungroup();
 }
 
 void
-TFigureAttributes::selectionDown()
+TFigureAttributeModel::selectionDown()
 {
   if (current) current->selectionDown();
 }
 
 void
-TFigureAttributes::selection2Bottom()
+TFigureAttributeModel::selection2Bottom()
 {
   if (current) current->selection2Bottom();
 }
 
 void
-TFigureAttributes::selectionUp()
+TFigureAttributeModel::selectionUp()
 {
   if (current) current->selectionUp();
 }
 
 void
-TFigureAttributes::selection2Top()
+TFigureAttributeModel::selection2Top()
 {
   if (current) current->selection2Top();
 }
 
 void
-TFigureAttributes::selectionAlignVertical()
+TFigureAttributeModel::selectionAlignVertical()
 {
   if (current) current->selectionAlignVertical();
 }
 
 void
-TFigureAttributes::selectionAlignHorizontal()
+TFigureAttributeModel::selectionAlignHorizontal()
 {
   if (current) current->selectionAlignHorizontal();
 }
 
 void
-TFigureAttributes::applyAll()
+TFigureAttributeModel::applyAll()
 {
   // if (current) current->applyAll();
 }
@@ -327,7 +327,7 @@ TFigureEditor::init(TFigureModel *m)
   x1=y1=x2=y2=0;
   if (!m)
     m=new TFigureModel();
-  setAttributes(new TFigureAttributes);
+  setAttributes(new TFigureAttributeModel);
   setModel(m);
 
   TAction *action;
@@ -804,7 +804,7 @@ cout << "  shape " << r << " doesn't intersect with clipbox" << endl;
 }
 
 void 
-TFigureEditor::setAttributes(TFigureAttributes *p) {
+TFigureEditor::setAttributes(TFigureAttributeModel *p) {
   if (preferences) {
     disconnect(preferences->sigChanged, this);
     if (preferences->getCurrent() == this)
@@ -828,7 +828,7 @@ TFigureEditor::preferencesChanged()
     invalidateWindow(visible);
 //  }
   
-//  if (preferences->reason == TFigureAttributes::ALL) {
+//  if (preferences->reason == TFigureAttributeModel::ALL) {
 //    setTool(preferences->getTool());
 //    invalidateWindow(visible);
 //  }

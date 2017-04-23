@@ -242,7 +242,7 @@ TFCreateTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 }
 
 void
-TFCreateTool::setAttributes(TFigureAttributes *a)
+TFCreateTool::setAttributes(TFigureAttributeModel *a)
 {
   if (figure)
     figure->setAttributes(a);
