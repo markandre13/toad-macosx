@@ -594,7 +594,6 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       pen.getMatrix()->map(p1, &p1);
       lineWidth = 1.0/(p1.x - p0.x);
     }
-cout << "lineWidth=" << lineWidth << endl;
 
 //pen.push();
 

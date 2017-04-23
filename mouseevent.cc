@@ -142,7 +142,7 @@ _doMouse2(TWindow *twindow, TMouseEvent &me)
 {
 //cout << "_doMouse2: " << me.name() << " for window " << twindow->getTitle() << endl;
   if (TWindow::grabWindow) {
-    cout << "call " << TWindow::grabWindow->getTitle() << " instead of " << twindow->getTitle() << endl;
+//    cout << "call " << TWindow::grabWindow->getTitle() << " instead of " << twindow->getTitle() << endl;
 //    NSPoint p = [aWindow->nsview convertPoint:[anEvent locationInWindow] fromView:nil];
 
     TWindow::grabWindow->mouseEvent(me);
