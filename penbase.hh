@@ -71,6 +71,7 @@ class TPenBase
     virtual void close() = 0;
     virtual void stroke() = 0;
     virtual void fill() = 0;
+    virtual void fillStroke() = 0;
 
     virtual void identity() = 0;
     virtual void translate(const TPoint &vector) = 0;
@@ -95,7 +96,7 @@ class TPenBase
     //virtual void setClipChildren(bool) = 0;
 
     virtual void vsetColor(TCoord r, TCoord g, TCoord b) = 0;
-    virtual void vsetLineColor(TCoord r, TCoord g, TCoord b) = 0;
+    virtual void vsetStrokeColor(TCoord r, TCoord g, TCoord b) = 0;
     virtual void vsetFillColor(TCoord r, TCoord g, TCoord b) = 0;
     
     virtual void vdrawBitmap(TCoord,TCoord,const TBitmap&) = 0;
@@ -131,13 +132,13 @@ class TPenBase
     TCoord underlineThickness() const { return font->underlineThickness(); }
 
     void setColor(TCoord r, TCoord g, TCoord b) { vsetColor(r, g, b); }
-    void setLineColor(TCoord r, TCoord g, TCoord b) { vsetLineColor(r, g, b); }
+    void setStrokeColor(TCoord r, TCoord g, TCoord b) { vsetStrokeColor(r, g, b); }
     void setFillColor(TCoord r, TCoord g, TCoord b) { vsetFillColor(r, g, b); }
     void setColor(const TRGB &rgb) { vsetColor(rgb.r, rgb.g, rgb.b); }
-    void setLineColor(const TRGB &rgb) { vsetLineColor(rgb.r, rgb.g, rgb.b); }
+    void setStrokeColor(const TRGB &rgb) { vsetStrokeColor(rgb.r, rgb.g, rgb.b); }
     void setFillColor(const TRGB &rgb) { vsetFillColor(rgb.r, rgb.g, rgb.b); }
     void setColor(TColor::EColor e);
-    void setLineColor(TColor::EColor e);
+    void setStrokeColor(TColor::EColor e);
     void setFillColor(TColor::EColor e);
     virtual void setAlpha(TCoord a) = 0;
     virtual TCoord getAlpha() const = 0;

@@ -80,7 +80,7 @@ public:
     void setColor(byte r,byte g,byte b);
     
     void setFillColor(const TColor&);
-    void setLineColor(const TColor&);
+    void setStrokeColor(const TColor&);
     void _fill();
     
     void setAlpha(byte);

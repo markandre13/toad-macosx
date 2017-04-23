@@ -359,7 +359,7 @@ TCairo::setColor(byte r, byte g, byte b)
 }
 
 void
-TCairo::setLineColor(const TColor &c)
+TCairo::setStrokeColor(const TColor &c)
 {
 //cout << __FILE__ << ':' << __LINE__ << ": " << __PRETTY_FUNCTION__ << endl;
   cairo_set_source_rgba(cr,(double)c.r/255.0, 

@@ -1,6 +1,7 @@
 #include <toad/vector.hh>
 #include <toad/geometry.hh>
 #include <toad/pen.hh>
+#include <toad/figure.hh>
 
 using namespace toad;
 
@@ -494,26 +495,34 @@ again:
   }
 }
 
-TVectorStrokeAndFillOp::TVectorStrokeAndFillOp(const TRGB &s,const TRGB &f):
-  stroke(s), fill(f)
+TVectorPainter::TVectorPainter(const TAttributedFigure *figure, TVectorPath *path)
 {
-}
-
-void
-TVectorStrokeAndFillOp::paint(TPenBase &pen, const TVectorPath *path)
-{
-  pen.setColor(stroke);
-  path->apply(pen);
-  pen.stroke();
-  pen.setColor(fill);
-  path->apply(pen);
-  pen.fill();
+  this->path = path;
+  stroked = figure->outline;
+  filled  = figure->filled;
+  stroke = figure->line_color;
+  fill   = figure->fill_color;
+  alpha = figure->alpha;
+  linewidth = figure->line_width;
 }
 
 void
 TVectorPainter::paint(TPenBase &pen)
 {
-  operation->paint(pen, path);
+  pen.setLineWidth(linewidth);
+  pen.setStrokeColor(stroke);
+  pen.setFillColor(fill);
+  pen.setAlpha(alpha);
+  path->apply(pen);
+  if (stroked) {
+    if (filled)
+      pen.fillStroke();
+    else
+      pen.stroke();
+  } else
+  if (filled) {
+    pen.fill();
+  }
 }
 
 void

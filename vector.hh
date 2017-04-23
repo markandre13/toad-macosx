@@ -98,43 +98,31 @@ class TVectorPath
 bool operator==(const TVectorPath &p0, const TVectorPath &p1);
 ostream& operator<<(ostream &s, const TVectorPath& p);
 
-class TVectorOperation
+class TPathAttributes
 {
   public:
-    TVectorOperation *next;
-    virtual void paint(TPenBase &pen, const TVectorPath*) = 0;
+    bool stroked:1;
+    bool filled:1;
+    TRGB stroke;
+    TRGB fill;
+    TCoord alpha;
+    TCoord linewidth;
 };
 
-class TVectorStrokeOp:
-  public TVectorOperation
-{
-};
-
-class TVectorFillOp:
-  public TVectorOperation
-{
-};
-
-// what about TFigureAttributeModel?
-class TVectorStrokeAndFillOp:
-  public TVectorOperation
-{
-    TRGB stroke, fill;
-  public:
-    TVectorStrokeAndFillOp(const TRGB &stoke, const TRGB &fill);
-    void paint(TPenBase &pen, const TVectorPath*);
-};
+class TAttributedFigure;
 
 /**
  * Combines a TVectorPath with a TVectorOperation which paints the path
+ *
+ * FIXME: rename into TPathPainter
  */
-class TVectorPainter
+class TVectorPainter:
+  protected TPathAttributes
 {
+// FIXME: destructor
   public:
-    TVectorPainter(): operation(0), path(0) {}
-    TVectorPainter(TVectorOperation *o, TVectorPath *p): operation(o), path(p) {}
-    TVectorOperation *operation;
     TVectorPath *path;
+    TVectorPainter(const TAttributedFigure *figure, TVectorPath *path);
     void paint(TPenBase &pen);
 };
 
@@ -144,6 +132,7 @@ class TVectorPainter
 class TVectorGraphic:
   public vector<TVectorPainter*>
 {
+// FIXME: destructor!!!
   public:
     void paint(TPenBase &pen);
     void transform(const TMatrix2D &matrix);

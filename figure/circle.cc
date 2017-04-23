@@ -29,7 +29,7 @@ void
 TFCircle::paint(TPenBase &pen, EPaintType)
 {
   pen.setAlpha(alpha);
-  pen.setLineColor(line_color);
+  pen.setStrokeColor(line_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   if (!filled) {
@@ -105,9 +105,6 @@ TFCircle::getPath() const
   path->close();
   
   auto *vg = new TVectorGraphic;
-  vg->push_back(new TVectorPainter(
-    new TVectorStrokeAndFillOp(line_color, fill_color),
-    path
-  ));
+  vg->push_back(new TVectorPainter(this, path));
   return vg;
 }

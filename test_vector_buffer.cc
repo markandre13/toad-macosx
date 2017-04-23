@@ -48,13 +48,13 @@ TMyWindow::paint()
 
   TFRectangle r0(50,50,100,50);
   r0.setFillColor(TRGB(1,0.5,0));
-  r0.setLineColor(TRGB(0,0,0));
+  r0.setStrokeColor(TRGB(0,0,0));
 
   TVectorGraphic *vb = r0.getPath();
 
   TFRectangle r1(100,80,200,50);
   r1.setFillColor(TRGB(0,0.5,1));
-  r1.setLineColor(TRGB(0,0,0));
+  r1.setStrokeColor(TRGB(0,0,0));
 
   TVectorGraphic *vb2 = r1.getPath();
   vb->push_back(vb2->front());

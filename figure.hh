@@ -212,15 +212,15 @@ class TAttributedFigure:
     typedef TFigure super;
   protected:
     TAttributedFigure();
-    TCoord alpha;
   public:
+    TCoord alpha;
     bool outline:1;       // true when outline
     bool filled:1;        // true when filled
     bool closed:1;        // true when closed
-  protected:
     TPenBase::ELineStyle line_style;
     unsigned line_width;
 
+  protected:
     void store(TOutObjectStream &out) const override;
     bool restore(TInObjectStream &in) override;
 
@@ -230,7 +230,7 @@ class TAttributedFigure:
     void setAttributes(const TFigureAttributeModel*) override;
     void getAttributes(TFigureAttributeModel*) const override;
 
-    void setLineColor(const TRGB &color) {
+    void setStrokeColor(const TRGB &color) {
       line_color = color;
     }
     void setFillColor(const TRGB &color) {

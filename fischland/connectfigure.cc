@@ -169,10 +169,6 @@ TFConnection::getPath() const
     path->line(p[i]);
   
   auto *vg = new TVectorGraphic;
-  vg->push_back(new TVectorPainter(
-    new TVectorStrokeAndFillOp(line_color, fill_color),
-    path
-  ));
   return vg;
 }
 

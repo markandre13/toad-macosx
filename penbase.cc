@@ -131,10 +131,10 @@ TPenBase::setColor(TColor::EColor c)
 }
 
 void
-TPenBase::setLineColor(TColor::EColor c)
+TPenBase::setStrokeColor(TColor::EColor c)
 {
   const TRGB* rgb = TColor::lookup(c);
-  setLineColor(rgb->r/255.0, rgb->g/255.0, rgb->b/255.0);
+  setStrokeColor(rgb->r/255.0, rgb->g/255.0, rgb->b/255.0);
 }
 
 void
@@ -159,42 +159,42 @@ TPenBase::vdraw3DRectangle(TCoord x, TCoord y, TCoord w, TCoord h, bool inset)
 
   TPoint p[3];
   if (inset)
-    setLineColor(1,1,1);
+    setStrokeColor(1,1,1);
   else
-    setLineColor(0,0,0);
+    setStrokeColor(0,0,0);
   p[0].set(x+1  ,y+h-1);
   p[1].set(x+w-1,y+h-1);
   p[2].set(x+w-1,y);    
   drawLines(p,3);
 
   if (inset)  
-    setLineColor(TColor::BTNLIGHT);
+    setStrokeColor(TColor::BTNLIGHT);
   else
-    setLineColor(TColor::BTNSHADOW);
+    setStrokeColor(TColor::BTNSHADOW);
   p[0].set(x+2  ,y+h-2);
   p[1].set(x+w-2,y+h-2);
   p[2].set(x+w-2,y+1);
   drawLines(p,3);
 
   if (inset)
-    setLineColor(TColor::BTNSHADOW);
+    setStrokeColor(TColor::BTNSHADOW);
   else
-    setLineColor(TColor::BTNLIGHT);
+    setStrokeColor(TColor::BTNLIGHT);
   p[0].set(x    ,y+h-1);
   p[1].set(x    ,y);
   p[2].set(x+w-1,y);
   drawLines(p,3);
 
   if (inset)
-    setLineColor(0,0,0);
+    setStrokeColor(0,0,0);
   else
-    setLineColor(1,1,1);
+    setStrokeColor(1,1,1);
   p[0].set(x+1  ,y+h-2);
   p[1].set(x+1  ,y+1);  
   p[2].set(x+w-2,y+1);  
   drawLines(p,3);
 
-  setLineColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
+  setStrokeColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
   setFillColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
 }
 

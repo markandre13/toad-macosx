@@ -154,7 +154,7 @@ class TLineWidthAdapter:
           renderBackground(te);
           TPoint p1(30,te.h/2);
           TPoint p2(5,te.h/2);
-          te.pen->setLineColor(0,0,0);
+          te.pen->setStrokeColor(0,0,0);
           te.pen->setLineWidth(te.row);
           te.pen->drawLine(p1, p2);
           te.pen->setLineWidth(0);

@@ -330,7 +330,7 @@ TColorDialog::paint()
   x=8+256+8+16+8; y=8+32+8;
   static const char * txt[] = { "H", "S", "V", "R", "G", "B" };
   pen.setFillColor(TColor::DIALOG);
-  pen.setLineColor(0, 0, 0);
+  pen.setStrokeColor(0, 0, 0);
   for(int i=0; i<6; ++i) {
     pen.fillString(x,y+2, txt[i]);
     y+=17+8;

@@ -295,7 +295,7 @@ void
 TColorPalette::assignLineColor()
 {
   if (preferences && pcolor)
-    preferences->setLineColor(*pcolor);
+    preferences->setStrokeColor(*pcolor);
 }
 
 void

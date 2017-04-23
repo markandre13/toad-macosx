@@ -233,7 +233,7 @@ void
 TFigure::paintSelection(TPenBase &pen, int handle)
 {
 //cout << getClassName() << "::paintSelection() called TFigure" << endl;
-  pen.setLineColor(TColor::FIGURE_SELECTION);
+  pen.setStrokeColor(TColor::FIGURE_SELECTION);
   pen.setFillColor(TColor::WHITE);
 
   const TMatrix2D *m0 = pen.getMatrix();

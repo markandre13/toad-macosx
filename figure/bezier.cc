@@ -127,7 +127,7 @@ TFBezier::paintSelection(TPenBase &pen, int handle)
 void
 TFBezierline::_paintSelection(TPenBase &pen, int handle, bool filled)
 {
-  pen.setLineColor(TColor::FIGURE_SELECTION);
+  pen.setStrokeColor(TColor::FIGURE_SELECTION);
   pen.setFillColor(TColor::WHITE);
   unsigned h=0;
   TPoint pt;   
@@ -684,7 +684,7 @@ void
 TFBezier::paint(TPenBase &pen, EPaintType type)
 {
   pen.setAlpha(alpha);
-  pen.setLineColor(line_color);
+  pen.setStrokeColor(line_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);
   

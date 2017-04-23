@@ -840,7 +840,7 @@ TFigureEditor::preferencesChanged()
 }
 
 void
-TFigureEditor::setLineColor(const TRGB &rgb)
+TFigureEditor::setStrokeColor(const TRGB &rgb)
 {
   preferences->linecolor = rgb;
   preferencesChanged();

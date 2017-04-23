@@ -1097,16 +1097,16 @@ cerr << "  selection: " << bos << " - " << eos << endl;
       if (bos2 <= bol && eol <= eos2) {
 //cout << "    line is inside selection\n";
         // inside selection
-        pen.setLineColor(fillcolor);
+        pen.setStrokeColor(fillcolor);
         pen.setFillColor(0,0,0);
       } else if (eol < bos2 || bol > eos2) {
 //cout << "    line is outside selection\n";
         // outside selection
-        pen.setLineColor(0,0,0);
+        pen.setStrokeColor(0,0,0);
         pen.setFillColor(fillcolor);
       } else {
 //cout << "    line and selection true intersection\n";
-        pen.setLineColor(0,0,0);
+        pen.setStrokeColor(0,0,0);
         pen.setFillColor(fillcolor);
         part = true;
       }
@@ -1144,7 +1144,7 @@ cerr << "  selection: " << bos << " - " << eos << endl;
 //cerr << "  \"" << line.substr(_tx,pos-_tx) << "\"" << endl;
 //cerr << "x   = " << x << endl << "len = " << len << endl;
         if (len>0 && pos<line.size()) {
-          pen.setLineColor(fillcolor);
+          pen.setStrokeColor(fillcolor);
           pen.setFillColor(0,0,0);
           pen.fillString(x-_tx, y, line.c_str()+pos, len);
         }

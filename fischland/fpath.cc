@@ -217,7 +217,7 @@ TFPath::paintSelection(TPenBase &pen, int handle)
     pen.identity();
   }
   
-  pen.setLineColor(TColor::FIGURE_SELECTION);
+  pen.setStrokeColor(TColor::FIGURE_SELECTION);
   pen.setFillColor(TColor::WHITE);
 
 //  if (type==EDIT || type==SELECT) {

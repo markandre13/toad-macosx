@@ -137,7 +137,7 @@ TColorSelector::mouseLDown(const TMouseEvent &m)
     return;
   }
   TUndoManager::beginUndoGrouping();
-  gedit->setLineColor(linecolor);
+  gedit->setStrokeColor(linecolor);
   if (!filled)
     gedit->setFillColor(fillcolor);
   else
@@ -173,7 +173,7 @@ TColorSelector::dropColor(const PDnDColor &drop)
   {
     linecolor.set(drop->rgb.r, drop->rgb.g, drop->rgb.b);
     if (gedit)
-      gedit->setLineColor(linecolor);
+      gedit->setStrokeColor(linecolor);
   } else {
     fillcolor.set(drop->rgb.r, drop->rgb.g, drop->rgb.b);
     if (gedit && filled)

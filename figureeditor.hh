@@ -167,7 +167,7 @@ class TFigureAttributeModel:
       setAllReasons(false);
     }
     
-    void setLineColor(const TRGB &rgb) { 
+    void setStrokeColor(const TRGB &rgb) { 
       linecolor = rgb;
       reason.linecolor = true;
       sigChanged();
@@ -307,7 +307,7 @@ class TFigureEditor:
     const TMatrix2D* getMatrix() const { return mat; }
 
     // methods to modify selected or objects to be created
-    void setLineColor(const TRGB&);
+    void setStrokeColor(const TRGB&);
     void setFillColor(const TRGB&);
     void unsetFillColor();
     void setFont(const string &fontname);

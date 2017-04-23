@@ -398,7 +398,7 @@ TPen::vsetColor(TCoord r, TCoord g, TCoord b) {
 }
 
 void
-TPen::vsetLineColor(TCoord r, TCoord g, TCoord b) {
+TPen::vsetStrokeColor(TCoord r, TCoord g, TCoord b) {
   rgba_stroke.r = r;
   rgba_stroke.g = g;
   rgba_stroke.b = b;
@@ -478,6 +478,12 @@ void
 TPen::fill()
 {
   CGContextDrawPath(ctx, kCGPathEOFill);
+}
+
+void
+TPen::fillStroke()
+{
+  CGContextDrawPath(ctx, kCGPathFillStroke);
 }
 
 void
@@ -607,7 +613,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
     TRGBA stroke2 = stroke, fill2 = fill;
     setColor(fill2.r, fill2.g, fill2.b);    
     fillRectanglePC(x,y,size.width,font->height);
-    setLineColor(stroke2.r, stroke2.g, stroke2.b);
+    setStrokeColor(stroke2.r, stroke2.g, stroke2.b);
     setFillColor(fill2.r, fill2.g, fill2.b);
   }
   
@@ -646,7 +652,7 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
     setColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
     setAlpha(1);
     fillRectanglePC(x,y,size.width,font->height);
-    setLineColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
+    setStrokeColor(rgba_stroke2.r, rgba_stroke2.g, rgba_stroke2.b);
     setFillColor(rgba_fill2.r, rgba_fill2.g, rgba_fill2.b);
     setAlpha(rgba_stroke2.a);
   }

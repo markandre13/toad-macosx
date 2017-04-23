@@ -217,7 +217,7 @@ TFLine::getAttributes(TFigureAttributeModel *preferences) const
 void 
 TFLine::paint(TPenBase &pen, EPaintType)
 {
-  pen.setLineColor(line_color);
+  pen.setStrokeColor(line_color);
   pen.setFillColor(fill_color);
   pen.setLineStyle(line_style);
   pen.setLineWidth(line_width);

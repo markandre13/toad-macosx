@@ -196,7 +196,7 @@ TMenuButton::paint()
   if (node->isEnabled()) {
 #if 1
     if (mark) {
-      pen.setLineColor(TColor::MENUTEXT);
+      pen.setStrokeColor(TColor::MENUTEXT);
       pen.setFillColor(TColor::SELECTED);
       pen.fillRectanglePC(1,1,getWidth()-2,getHeight()-2);
     }

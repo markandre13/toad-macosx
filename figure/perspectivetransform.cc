@@ -171,7 +171,7 @@ void
 TFPerspectiveTransform::paint(TPenBase &pen, EPaintType type)
 {
   if (type==EDIT || type==SELECT) {
-    pen.setLineColor(TColor::FIGURE_SELECTION);
+    pen.setStrokeColor(TColor::FIGURE_SELECTION);
     pen.setFillColor(TColor::WHITE);
     pen.drawPolygon(handle, 4);
 

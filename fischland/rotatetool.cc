@@ -138,7 +138,7 @@ TRotateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 
   // draw center of rotation
   pen.setLineWidth(1);
-  pen.setLineColor(TColor::FIGURE_SELECTION);
+  pen.setStrokeColor(TColor::FIGURE_SELECTION);
   pen.setFillColor(TColor::WHITE);
 
   TCoord x, y;

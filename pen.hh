@@ -99,9 +99,10 @@ class TPen:
     void close() override;
     void stroke() override;
     void fill() override;
+    void fillStroke() override;
 
     void vsetColor(TCoord r, TCoord g, TCoord b) override;
-    void vsetLineColor(TCoord r, TCoord g, TCoord b) override;
+    void vsetStrokeColor(TCoord r, TCoord g, TCoord b) override;
     void vsetFillColor(TCoord r, TCoord g, TCoord b) override;
     void setAlpha(TCoord a) override;
     TCoord getAlpha() const override;
