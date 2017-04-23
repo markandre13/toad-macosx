@@ -184,8 +184,6 @@ TSelectionTool::getBoundaryHandle(unsigned i, TRectangle *r)
     case 14: r->set(x0    -s, y0+h  +s, s, s); break;
     case 15: r->set(x0    -s, y0+h/2  , s, s); break;
   }
-  if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION)
-    m.map(r->x, r->y, &r->x, &r->y);
   r->translate(TPoint(-s/2.0, -s/2.0));
 }
 
@@ -347,10 +345,17 @@ TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
   double rotd = atan2(y - rotationCenter.y, x - rotationCenter.x);
   rotd-=rotationStartDirection;
   
+  TPoint center = rotationCenter;
+  if (fe->getMatrix()) {
+    TMatrix2D m(*fe->getMatrix());
+    m.invert();
+    m.map(center, &center);
+  }
+  
   m.identity();
-  m.translate(rotationCenter);
+  m.translate(center);
   m.rotate(rotd);
-  m.translate(-rotationCenter);
+  m.translate(-center);
 }
 
 void
@@ -530,7 +535,6 @@ TSelectionTool::stopMarquee(TFigureEditor *fe)
   );
 }
 
-
 void
 TSelectionTool::invalidateBoundary(TFigureEditor *fe)
 {
@@ -579,34 +583,67 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     paintMarquee(fe, pen);
   } else
   if (!fe->selection.empty()) {
+
     paintOutline(fe->selection, pen);
 
+    TCoord lineWidth = 1.0;
     if (pen.getMatrix()) {
-      TCoord tx, ty;
-      pen.getMatrix()->map(0.0, 0.0, &tx, &ty);
-      pen.push();
-      pen.identity();
-      pen.translate(tx, ty);
+      TPoint p0(0,0);
+      TPoint p1(1,1);
+      pen.getMatrix()->map(p0, &p0);
+      pen.getMatrix()->map(p1, &p1);
+      lineWidth = 1.0/(p1.x - p0.x);
+    }
+cout << "lineWidth=" << lineWidth << endl;
+
+//pen.push();
+
+    TMatrix2D M;
+    if (pen.getMatrix()) {
+      TMatrix2D V(*pen.getMatrix());
+      V.invert();
+      if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
+        M = m * V;
+      } else {
+        M = V;
+      }
+    } else {
+      if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
+        M = m;
+      } else {
+        M.identity();
+      }
     }
 
-    pen.setLineWidth(1);
+    pen.setLineWidth(lineWidth);
     TVectorPath pr;
-    pr.addRect(TRectangle(boundary));
-    if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION)
-      pr.transform(m);
+    pr.addRect(TRectangle(boundary)); // the boundary is in screen coordinates
+    pr.transform(M);
     pr.apply(pen);
     pen.stroke();
+
     pen.setFillColor(1,1,1);
-    TRectangle r;
+
+    TCoord t=lineWidth*-2.5;
+    TCoord w=lineWidth*5.0;
     for(unsigned i=0; i<8; ++i) {
+      TRectangle r;
       getBoundaryHandle(i, &r);
+      r.translate(TPoint(2.5,2.5));
+      M.map(r.x, r.y, &r.x, &r.y);
+      r.translate(TPoint(t,t));
+      r.w = r.h = w;
       pen.fillRectangle(r);
       pen.drawRectangle(r);
     }
-    
+
+//pen.pop();
+
+/*    
     if (pen.getMatrix()) {
       pen.pop();
     }
+*/
   }
   return true;
 }
@@ -622,25 +659,11 @@ TSelectionTool::calcBoundary(TFigureEditor *fe)
     fe->getFigureShape(figure, &r, nullptr);
     boundary.expand(r);
   }
-#if 0
   // map figure coordinates to screen coordinates
   if (fe->getMatrix()) {
-    fe->getMatrix()->map(x0, y0, &x0, &y0);
-    fe->getMatrix()->map(x1, y1, &x1, &y1);
-    --x0;
-    --y0;
-    --x1;
-    --y1;
-/*
-      x0 += fe->getVisible().x;
-      x1 += fe->getVisible().x;
-      y0 += fe->getVisible().y;
-      y1 += fe->getVisible().y;
-*/
+    fe->getMatrix()->map(boundary.x1, boundary.y1, &boundary.x1, &boundary.y1);
+    fe->getMatrix()->map(boundary.x2, boundary.y2, &boundary.x2, &boundary.y2);
   }
-#endif
-//cout << "-> " << x0 << ", " << y0 << " - " << x1 << ", " << y1 << endl;
-
 }
 
 static const char cursorData[15][32][32+1] = {
