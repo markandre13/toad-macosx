@@ -606,6 +606,7 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       } else {
         M = V;
       }
+      M.translate(fe->getOrigin());
     } else {
       if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
         M = m;
