@@ -138,7 +138,7 @@ TSpringLayout::TFormNode::getShape(TWindow *parent, TRectangle *shape)
 TSpringLayout::TSpringLayout()
 {
   flist = lastadd = NULL;
-  nBorderOverlap = 1;
+  nBorderOverlap = 0;
   bKeepOwnBorder = false;
   running = false;
 }
