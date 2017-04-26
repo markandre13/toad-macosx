@@ -64,6 +64,7 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       fe->getWindow()->setAllMouseMoveEvents(false);
       break;
     case TMouseEvent::LDOWN:
+      fe->start();
       if (downHandle(fe, me))
         return;
       if (!fe->selection.contains(figure) &&
@@ -118,9 +119,10 @@ TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::stop(TFigureEditor *fe)
 {
+  invalidateBoundary(fe);
+  fe->clearSelection();
   fe->getWindow()->setAllMouseMoveEvents(true);
   fe->getWindow()->setCursor(nullptr);
-  fe->state = TFigureEditor::STATE_NONE;
 }
 
 void
@@ -406,6 +408,7 @@ TSelectionTool::stopHandle(TFigureEditor *fe)
   model->insert(replacement);
 //  TUndoManager::endUndoGrouping();
 
+  invalidateBoundary(fe);
   calcBoundary(fe);
   invalidateBoundary(fe);
 }
