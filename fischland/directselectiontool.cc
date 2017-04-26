@@ -84,6 +84,7 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 #endif
 
     case TMouseEvent::LDOWN: {
+      fe->start();
       fe->getWindow()->setAllMouseMoveEvents(true);
       fe->quick = true;
       
@@ -254,10 +255,10 @@ TDirectSelectionTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
   return false;
 }
 
-
 void
 TDirectSelectionTool::stop(TFigureEditor *fe)
 {
+  fe->clearSelection();
   fe->getWindow()->setAllMouseMoveEvents(false);
   fe->getWindow()->setCursor(0);
   fe->state = TFigureEditor::STATE_NONE;
@@ -285,9 +286,10 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   pen.push();
   pen.setColor(TColor::FIGURE_SELECTION);
   pen.setLineWidth(1);
+/*
   figure->paint(pen, TFigure::EDIT);
   pen.setLineWidth(1);
-  
+*/  
   if (xaxis || yaxis) {
     pen.setLineStyle(TPen::DOT);
     if (xaxis)
