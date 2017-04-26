@@ -1219,6 +1219,12 @@ TFigureModel*  TFigureEditor::activeModel  = nullptr;
 void
 TFigureEditor::start()
 {
+  if (activeEditor == this &&
+      activeTool   == getTool() &&
+      activeModel  == getModel())
+  {
+    return;
+  }
   if (activeEditor) {
     activeEditor->stop();
   }
