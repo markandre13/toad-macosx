@@ -645,13 +645,12 @@ DEBUG_PDF_INIT(
 DEBUG_PDF_INIT(
   toad::TBoundary view(sb);
   view.expand(cb);
-  ::origin.x = view.x1;
-  ::origin.y = view.y1;
-  ::scale    = 480.0 / std::max(view.x2-view.x1, view.y2-view.y1);
+  ::origin = view.p0;
+  ::scale    = 480.0 / std::max(view.width(), view.height());
 )
 
-  Bbox_2 subjectBB(sb.x1, sb.y1, sb.x2, sb.y2);
-  Bbox_2 clippingBB(cb.x1, cb.y1, cb.x2, cb.y2);
+  Bbox_2 subjectBB(sb.p0.x, sb.p0.y, sb.p1.x, sb.p1.y);
+  Bbox_2 clippingBB(cb.p0.x, cb.p0.y, cb.p1.x, cb.p1.y);
   const double MINMAXX = std::min(subjectBB.xmax(), clippingBB.xmax()); // for optimization 2
 
   if (trivialOperation(subj, clip, subjectBB, clippingBB, out)) // trivial cases can be quickly resolved without sweeping the plane

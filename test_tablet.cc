@@ -487,8 +487,8 @@ TVisualization::adjustPane()
 {
 //  visible.set(0,0,getWidth(), getHeight());
   TBoundary b = editmodel->path.bounds();
-  b.x2+=20; b.y2+=20;
-  pane.set(0,0,b.x2*editmodel->zoom, b.y2*editmodel->zoom);
+  b.p1.x+=20; b.p1.y+=20;
+  pane.set(0,0,b.p1.x*editmodel->zoom, b.p1.y*editmodel->zoom);
 //  pane.set(0,0,800*editmodel->zoom, 600*editmodel->zoom);
 }
 
@@ -529,21 +529,18 @@ TVisualization::mouseEvent(const TMouseEvent &me)
           cout << "clip" << endl;
           haveClip=false;
           editClip=true;
-          clip.x1=clip.x2=pt.x;
-          clip.y1=clip.y2=pt.y;
+          clip.p0 = clip.p1 = pt;
           break;
         case TMouseEvent::MOVE:
           if (!editClip)
             break;
-          clip.x2=pt.x;
-          clip.y2=pt.y;
+          clip.p1=pt;
           invalidateWindow();
           break;
         case TMouseEvent::LUP:
           if (!editClip)
             break;
-          clip.x2=pt.x;
-          clip.y2=pt.y;
+          clip.p1=pt;
           haveClip=true;
           editClip=false;
           replay(editmodel, &clip);
@@ -718,10 +715,10 @@ replay(TEditModel *editmodel, TBoundary *clip)
     } else {
       if (clip) {
         TVectorPath x;
-        x.move(TPoint(clip->x1, clip->y1));
-        x.line(TPoint(clip->x2, clip->y1));
-        x.line(TPoint(clip->x2, clip->y2));
-        x.line(TPoint(clip->x1, clip->y2));
+        x.move(clip->p0);
+        x.line(TPoint(clip->p1.x, clip->p0.y));
+        x.line(clip->p1);
+        x.line(TPoint(clip->p0.x, clip->p1.y));
         x.close();
         boolean(path, x, &path, INTERSECTION);
         boolean(nextstroke, x, &nextstroke, INTERSECTION);

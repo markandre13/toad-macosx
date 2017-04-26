@@ -161,8 +161,8 @@ TSelectionTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 void
 TSelectionTool::getBoundaryHandle(unsigned i, TRectangle *r)
 {
-  const TCoord x0(boundary.x1), y0(boundary.y1),
-               x1(boundary.x2), y1(boundary.y2);
+  const TCoord x0(boundary.p0.x), y0(boundary.p0.y),
+               x1(boundary.p1.x), y1(boundary.p1.y);
 
   static const TCoord s = 5.0; // size
   const TCoord w = x1 - x0;
@@ -271,10 +271,10 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me)
 {
-  TCoord x0(boundary.x1), y0(boundary.y1),
-         x1(boundary.x2), y1(boundary.y2),
-         ox0(oldBoundary.x1), oy0(oldBoundary.y1),
-         ox1(oldBoundary.x2), oy1(oldBoundary.y2);
+  TCoord x0(boundary.p0.x), y0(boundary.p0.y),
+         x1(boundary.p1.x), y1(boundary.p1.y),
+         ox0(oldBoundary.p0.x), oy0(oldBoundary.p0.y),
+         ox1(oldBoundary.p1.x), oy1(oldBoundary.p1.y);
 
   // mouse is holding a handle, scale the selection
   invalidateBoundary(fe);
@@ -507,13 +507,13 @@ TSelectionTool::invalidateBoundary(TFigureEditor *fe)
   TBoundary b;
   if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
     TPoint p;
-    m.map(TPoint(boundary.x1, boundary.y1), &p);
+    m.map(boundary.p0, &p);
     b.expand(p);
-    m.map(TPoint(boundary.x2, boundary.y1), &p);
+    m.map(TPoint(boundary.p1.x, boundary.p0.y), &p);
     b.expand(p);
-    m.map(TPoint(boundary.x2, boundary.y2), &p);
+    m.map(boundary.p1, &p);
     b.expand(p);
-    m.map(TPoint(boundary.x1, boundary.y2), &p);
+    m.map(TPoint(boundary.p0.x, boundary.p1.y), &p);
     b.expand(p);
   } else {
     b = boundary;
@@ -638,8 +638,8 @@ TSelectionTool::calcBoundary(TFigureEditor *fe)
   }
   // map figure coordinates to screen coordinates
   if (fe->getMatrix()) {
-    fe->getMatrix()->map(boundary.x1, boundary.y1, &boundary.x1, &boundary.y1);
-    fe->getMatrix()->map(boundary.x2, boundary.y2, &boundary.x2, &boundary.y2);
+    fe->getMatrix()->map(boundary.p0, &boundary.p0);
+    fe->getMatrix()->map(boundary.p1, &boundary.p1);
   }
 }
 

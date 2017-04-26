@@ -176,10 +176,10 @@ TRegion::set(const TRectangle &rectangle)
     nRectangles_ = 0;
   } else {
     extent_.set(rectangle);
-    rectangles_[0] = extent_.y1;
-    rectangles_[1] = extent_.y2;    
-    rectangles_[2] = extent_.x1;
-    rectangles_[3] = extent_.x2;    
+    rectangles_[0] = extent_.p0.y;
+    rectangles_[1] = extent_.p1.y;    
+    rectangles_[2] = extent_.p0.x;
+    rectangles_[3] = extent_.p1.x;    
     nRectangles_ = 1;
   }
 }
@@ -207,10 +207,8 @@ TRegion::isEqual(const TRegion &region) const
 {
   if      (nRectangles_ != region.nRectangles_) return false;
   else if (nRectangles_ == 0)                   return true;
-  else if (extent_.x1 != region.extent_.x1)     return false;
-  else if (extent_.x2 != region.extent_.x2)     return false;
-  else if (extent_.y1 != region.extent_.y1)     return false;
-  else if (extent_.y2 != region.extent_.y2)     return false;
+  else if (extent_.p0 != region.extent_.p0)     return false;
+  else if (extent_.p1 != region.extent_.p1)     return false;
   else {
     for (size_t i = 0; i < nRectangles_ << 2; i++)
       if (rectangles_[i] != region.rectangles_[i]) return false;
@@ -390,10 +388,10 @@ TRegion::getRect(size_t i, TRectangle *r) const
 void
 TRegion::collapse()
 {
-  rectangles_[0] = extent_.y1;
-  rectangles_[1] = extent_.y2;    
-  rectangles_[2] = extent_.x1;
-  rectangles_[3] = extent_.x2;
+  rectangles_[0] = extent_.p0.y;
+  rectangles_[1] = extent_.p1.y;    
+  rectangles_[2] = extent_.p0.x;
+  rectangles_[3] = extent_.p1.x;
   nRectangles_ = 1;
 }
 
@@ -653,8 +651,8 @@ TRegion::combine(const TRegion &region, int operationType)
   gNRectangles_ = 0;
 
   int yTop    = 0;
-  int yBottom = extent_.y1 < region.extent_.y1 ?
-                extent_.y1 : region.extent_.y1;
+  int yBottom = extent_.p0.y < region.extent_.p0.y ?
+                extent_.p0.y : region.extent_.p0.y;
 
   size_t previousBand = 0;
   size_t currentBand;
@@ -789,17 +787,17 @@ TRegion::updateExtent()
     extent_.set (0, 0, 0, 0);
   else {
     // Y values
-    extent_.y1 = rectangles_[0];
-    extent_.y2 = rectangles_[(nRectangles_ << 2) - 3];
+    extent_.p0.y = rectangles_[0];
+    extent_.p1.y = rectangles_[(nRectangles_ << 2) - 3];
 
     // X values initialize
-    extent_.x1 = rectangles_[2];
-    extent_.x2 = rectangles_[3];
+    extent_.p0.x = rectangles_[2];
+    extent_.p1.x = rectangles_[3];
     
     // Scan all rectangles for extreme X values
     for (size_t i = 4; i < nRectangles_ << 2; i += 4) {
-      if (rectangles_[i+2] < extent_.x1) extent_.x1 = rectangles_[i+2];
-      if (rectangles_[i+3] > extent_.x2) extent_.x2 = rectangles_[i+3];
+      if (rectangles_[i+2] < extent_.p0.x) extent_.p0.x = rectangles_[i+2];
+      if (rectangles_[i+3] > extent_.p1.x) extent_.p1.x = rectangles_[i+3];
     }
   }
 }
@@ -1165,10 +1163,10 @@ TRegion::operator|=(const TRegion &region)
   combine(region, OPERATION_UNION);
 
   // Update extent
-  extent_.x1 = min(extent_.x1, region.extent_.x1);
-  extent_.y1 = min(extent_.y1, region.extent_.y1);
-  extent_.x2 = max(extent_.x2, region.extent_.x2);
-  extent_.y2 = max(extent_.y2, region.extent_.y2);
+  extent_.p0.x = min(extent_.p0.x, region.extent_.p0.x);
+  extent_.p0.y = min(extent_.p0.y, region.extent_.p0.y);
+  extent_.p1.x = max(extent_.p1.x, region.extent_.p1.x);
+  extent_.p1.y = max(extent_.p1.y, region.extent_.p1.y);
   
   return *this;
 }

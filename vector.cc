@@ -98,8 +98,7 @@ TVectorPath::bounds() const
   if (points.empty())
     return b;
   const TPoint *pt = points.data();
-  b.x1 = b.x1 = pt->x;
-  b.y1 = b.y1 = pt->y;
+  b.expand(*pt);
   for(auto p: type) {
     switch(p) {
       case MOVE:
@@ -128,8 +127,7 @@ TVectorPath::editBounds() const
   if (points.empty())
     return b;
   auto p = points.begin();
-  b.x1 = b.x1 = p->x;
-  b.y1 = b.y1 = p->y;
+  b.expand(*p);
   for(++p; p!=points.end(); ++p) {
     b.expand(*p);
   }

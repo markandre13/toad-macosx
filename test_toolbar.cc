@@ -105,7 +105,7 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   menu->loadLayout("test_toolbar_menu.atv");
 
   TFigureEditor *editor = new TFigureEditor(this, "editor");
-  editor->scale(0.25, 0.25);
+//  editor->scale(0.25, 0.25);
 
   // this way, we would have to remove the editor from the toolbox again:
   //

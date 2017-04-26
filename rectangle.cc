@@ -125,26 +125,26 @@ TBoundary::intersects(const TBoundary &r) const
   TCoord x00, x01, x10, x11;
   TCoord y00, y01, y10, y11;
   
-  x00=x1;
-  x01=x2;
+  x00=p0.x;
+  x01=p1.x;
   if (x00>x01) {
     a=x00; x00=x01; x01=a;
   }
 
-  x10=r.x1;
-  x11=r.x2;
+  x10=r.p0.x;
+  x11=r.p1.x;
   if (x10>x11) {
     a=x10; x10=x11; x11=a;
   }
 
-  y00=y1;
-  y01=y2;
+  y00=p0.y;
+  y01=p1.y;
   if (y00>y01) {
     a=y00; y00=y01; y01=a;
   }
 
-  y10=r.y1;
-  y11=r.y2;
+  y10=r.p0.y;
+  y11=r.p1.y;
   if (y10>y11) {
     a=y10; y10=y11; y11=a;
   }
