@@ -269,8 +269,6 @@ TSelectionTool::moveHandle(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me)
 {
-  fe->getWindow()->invalidateWindow();
-
   TCoord x0(boundary.x1), y0(boundary.y1),
          x1(boundary.x2), y1(boundary.y2),
          ox0(oldBoundary.x1), oy0(oldBoundary.y1),
@@ -337,7 +335,7 @@ TSelectionTool::moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me)
 void
 TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
 {
-  fe->getWindow()->invalidateWindow();
+  invalidateBoundary(fe);
 
   TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
   TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
@@ -356,12 +354,14 @@ TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
   m.translate(center);
   m.rotate(rotd);
   m.translate(-center);
+  
+  invalidateBoundary(fe);
 }
 
 void
 TSelectionTool::moveSelection(TFigureEditor *fe, const TMouseEvent &me)
 {
-  fe->getWindow()->invalidateWindow();
+  invalidateBoundary(fe);
   
   TPoint pos;
   fe->mouse2sheet(me.pos, &pos);
@@ -370,49 +370,9 @@ TSelectionTool::moveSelection(TFigureEditor *fe, const TMouseEvent &me)
   
   m.identity();
   m.translate(pos);
+  
+  invalidateBoundary(fe);
 }
-
-#if 0
-void
-TSelectionTool::moveSelect(TFigureEditor *fe, const TMouseEvent &me)
-{
-  if (!rect) {
-    if (me.pos.x < rx0-2 || me.pos.x > rx0+2 || me.pos.y < ry0-2 || me.pos.y > ry0+2) {
-      rect = true;
-      tmpsel.clear();
-    } else {
-      return;
-    }
-  }
-  TPoint origin = fe->getWindow()->getOrigin();
-  fe->getWindow()->invalidateWindow(
-    rx0 + origin.x,
-    ry0 + origin.y,
-    rx1-rx0+3,ry1-ry0+2);
-  rx1 = me.pos.x;
-  ry1 = me.pos.y;
-  fe->getWindow()->invalidateWindow(
-    rx0 + origin.x,
-    ry0 + origin.y,
-    rx1-rx0+3,ry1-ry0+2);
-  tmpsel.clear();
-  auto p = fe->getModel()->begin();
-  auto e = fe->getModel()->end();
-  TPoint p0, p1;
-  fe->mouse2sheet(TPoint(rx0, ry0), &p0);
-  fe->mouse2sheet(TPoint(rx1, ry1), &p1);
-  TRectangle r0(p1, p0), r1;
-  while(p!=e) {
-    fe->getFigureShape(*p, &r1, NULL);
-    if (r0.isInside( r1.x, r1.y ) &&
-        r0.isInside( r1.x+r1.w, r1.y+r1.h ) )
-    {
-      tmpsel.insert(*p);
-    }
-    ++p;
-  }
-}
-#endif
 
 void
 TSelectionTool::stopHandle(TFigureEditor *fe)
@@ -541,7 +501,21 @@ TSelectionTool::invalidateBoundary(TFigureEditor *fe)
   TPoint origin = fe->getWindow()->getOrigin();
   TRectangle visible = fe->getVisible();
   origin.translate(visible.x, visible.y);
-  fe->getWindow()->invalidateWindow(TRectangle(boundary).translate(origin).expand(5));
+  TBoundary b;
+  if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
+    TPoint p;
+    m.map(TPoint(boundary.x1, boundary.y1), &p);
+    b.expand(p);
+    m.map(TPoint(boundary.x2, boundary.y1), &p);
+    b.expand(p);
+    m.map(TPoint(boundary.x2, boundary.y2), &p);
+    b.expand(p);
+    m.map(TPoint(boundary.x1, boundary.y2), &p);
+    b.expand(p);
+  } else {
+    b = boundary;
+  }
+  fe->getWindow()->invalidateWindow(TRectangle(b).translate(origin).expand(5));
 }
 
 void
