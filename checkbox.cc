@@ -90,12 +90,12 @@ TCheckBox::paint()
 
   if (isEnabled()) {
     pen.setColor(0,0,0);
-    height = pen.drawTextWidth(20,0, getLabel(),w-20);
+    height = pen.drawTextWidth(20,0, getLabel(),size.width-20);
   } else {
     pen.setColor(TColor::BTNLIGHT);
-    pen.drawTextWidth(21,1, getLabel(),w-20);
+    pen.drawTextWidth(21,1, getLabel(),size.width-20);
     pen.setColor(TColor::BTNSHADOW);
-    height = pen.drawTextWidth(20,0, getLabel(),w-20);
+    height = pen.drawTextWidth(20,0, getLabel(),size.width-20);
   }
 
   if (model->getValue()) {
@@ -109,10 +109,10 @@ TCheckBox::paint()
     
   if (isFocus()) {
     pen.setLineStyle(TPen::DOT);
-    pen.drawRectanglePC(18,0,w-18,height);
+    pen.drawRectanglePC(18,0,size.width-18,height);
   } else {
     pen.setColor(TColor::DIALOG);
-    pen.drawRectanglePC(18,0,w-18,height);
+    pen.drawRectanglePC(18,0,size.width-18,height);
   }
 }
 

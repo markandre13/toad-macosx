@@ -19,10 +19,10 @@ void TVectorPath::join(const TVectorPath &p)
 void
 TVectorPath::addRect(const TRectangle &rectangle)
 {
-  move(rectangle.x,             rectangle.y);
-  line(rectangle.x+rectangle.w, rectangle.y);
-  line(rectangle.x+rectangle.w, rectangle.y+rectangle.h);
-  line(rectangle.x            , rectangle.y+rectangle.h);
+  move(rectangle.origin);
+  line(rectangle.origin.x+rectangle.size.width, rectangle.origin.y);
+  line(rectangle.origin + rectangle.size);
+  line(rectangle.origin.x, rectangle.origin.y+rectangle.size.height);
   close();
 }
 
@@ -109,8 +109,8 @@ TVectorPath::bounds() const
       case CURVE: {
         assert(pt>points.data());
         TRectangle r(curveBounds(pt-1));
-        b.expand(TPoint(r.x, r.y));
-        b.expand(TPoint(r.x+r.w, r.y+r.h));
+        b.expand(r.origin);
+        b.expand(r.origin+r.size);
         pt+=3;
       } break;
       case CLOSE:

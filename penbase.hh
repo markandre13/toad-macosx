@@ -144,63 +144,63 @@ class TPenBase
     virtual TCoord getAlpha() const = 0;
 
     void drawRectanglePC(TCoord x,TCoord y,TCoord w,TCoord h);
-    void drawRectanglePC(const TRectangle &r) { drawRectanglePC(r.x,r.y,r.w,r.h); }
-    void drawRectanglePC(const TRectangle *r) { drawRectanglePC(r->x,r->y,r->w,r->h); }
+    void drawRectanglePC(const TRectangle &r) { drawRectanglePC(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void drawRectanglePC(const TRectangle *r) { drawRectanglePC(*r); }
     void drawRectanglePC(const TPoint &a, const TPoint &b) { vdrawRectangle(a.x+0.5, a.y+0.5, b.x-a.x+1, b.y-a.y+1); }
 
     void drawRectangle(TCoord x,TCoord y,TCoord w,TCoord h) { vdrawRectangle(x, y, w, h); } 
-    void drawRectangle(const TRectangle &r) { vdrawRectangle(r.x,r.y,r.w,r.h); }
-    void drawRectangle(const TRectangle *r) { vdrawRectangle(r->x,r->y,r->w,r->h); }
+    void drawRectangle(const TRectangle &r) { vdrawRectangle(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void drawRectangle(const TRectangle *r) { drawRectangle(*r); }
     void drawRectangle(const TPoint &a, const TPoint &b) { vdrawRectangle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void fillRectangle(TCoord x,TCoord y,TCoord w,TCoord h) { vfillRectangle(x, y, w, h); }
-    void fillRectangle(const TRectangle &r) { vfillRectangle(r.x,r.y,r.w,r.h); }
-    void fillRectangle(const TRectangle *r) { vfillRectangle(r->x,r->y,r->w,r->h); }
+    void fillRectangle(const TRectangle &r) { vfillRectangle(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void fillRectangle(const TRectangle *r) { fillRectangle(*r); }
     void fillRectangle(const TPoint &a, const TPoint &b) { vfillRectangle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void fillRectanglePC(TCoord x,TCoord y,TCoord w,TCoord h);
-    void fillRectanglePC(const TRectangle &r) { fillRectanglePC(r.x,r.y,r.w,r.h); }
-    void fillRectanglePC(const TRectangle *r) { fillRectanglePC(r->x,r->y,r->w,r->h); }
+    void fillRectanglePC(const TRectangle &r) { fillRectanglePC(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void fillRectanglePC(const TRectangle *r) { fillRectanglePC(*r); }
     void fillRectanglePC(const TPoint &a, const TPoint &b) { vfillRectangle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void drawCirclePC(TCoord x,TCoord y,TCoord w,TCoord h);
-    void drawCirclePC(const TRectangle &r) { drawCirclePC(r.x,r.y,r.w,r.h); }
-    void drawCirclePC(const TRectangle *r) { drawCirclePC(r->x,r->y,r->w,r->h); }
+    void drawCirclePC(const TRectangle &r) { drawCirclePC(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void drawCirclePC(const TRectangle *r) { drawCirclePC(*r); }
     void drawCirclePC(const TPoint &a, const TPoint &b) { vdrawCircle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void drawCircle(TCoord x,TCoord y,TCoord w,TCoord h) { vdrawCircle(x, y, w, h); } 
-    void drawCircle(const TRectangle &r) { vdrawCircle(r.x,r.y,r.w,r.h); }
-    void drawCircle(const TRectangle *r) { vdrawCircle(r->x,r->y,r->w,r->h); }
+    void drawCircle(const TRectangle &r) { vdrawCircle(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void drawCircle(const TRectangle *r) { drawCircle(*r); }
     void drawCircle(const TPoint &a, const TPoint &b) { vdrawCircle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void fillCircle(TCoord x,TCoord y,TCoord w,TCoord h) { vfillCircle(x, y, w, h); }
-    void fillCircle(const TRectangle &r) { vfillCircle(r.x,r.y,r.w,r.h); }
-    void fillCircle(const TRectangle *r) { vfillCircle(r->x,r->y,r->w,r->h); }
+    void fillCircle(const TRectangle &r) { vfillCircle(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void fillCircle(const TRectangle *r) { fillCircle(*r); }
     void fillCircle(const TPoint &a, const TPoint &b) { vfillCircle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void fillCirclePC(TCoord x,TCoord y,TCoord w,TCoord h);
-    void fillCirclePC(const TRectangle &r) { fillCirclePC(r.x,r.y,r.w,r.h); }
-    void fillCirclePC(const TRectangle *r) { fillCirclePC(r->x,r->y,r->w,r->h); }
+    void fillCirclePC(const TRectangle &r) { fillCirclePC(r.origin.x,r.origin.y,r.size.width,r.size.height); }
+    void fillCirclePC(const TRectangle *r) { fillCirclePC(*r); }
     void fillCirclePC(const TPoint &a, const TPoint &b) { vfillCircle(a.x, a.y, b.x-a.x, b.y-a.y); }
 
     void drawArc(TCoord x,TCoord y,TCoord w,TCoord h, TCoord r1, TCoord r2) { vdrawArc(x, y, w, h, r1, r2); }
-    void drawArc(const TRectangle &r, TCoord r1, TCoord r2) { vdrawArc(r.x,r.y,r.w,r.h, r1, r2); }
-    void drawArc(const TRectangle *r, TCoord r1, TCoord r2) { vdrawArc(r->x,r->y,r->w,r->h, r1, r2); }
+    void drawArc(const TRectangle &r, TCoord r1, TCoord r2) { vdrawArc(r.origin.x,r.origin.y,r.size.width,r.size.height, r1, r2); }
+    void drawArc(const TRectangle *r, TCoord r1, TCoord r2) { drawArc(*r, r1, r2); }
     void drawArc(const TPoint &a, const TPoint &b, TCoord r1, TCoord r2) { vdrawArc(a.x, a.y, b.x-a.x, b.y-a.y, r1, r2); }
 
     void drawArcPC(TCoord x,TCoord y,TCoord w,TCoord h, TCoord r1, TCoord r2);
-    void drawArcPC(const TRectangle &r, TCoord r1, TCoord r2) { drawArcPC(r.x,r.y,r.w,r.h, r1, r2); }
-    void drawArcPC(const TRectangle *r, TCoord r1, TCoord r2) { drawArcPC(r->x,r->y,r->w,r->h, r1, r2); }
+    void drawArcPC(const TRectangle &r, TCoord r1, TCoord r2) { drawArcPC(r.origin.x,r.origin.y,r.size.width,r.size.height, r1, r2); }
+    void drawArcPC(const TRectangle *r, TCoord r1, TCoord r2) { drawArcPC(*r, r1, r2); }
     void drawArcPC(const TPoint &a, const TPoint &b, TCoord r1, TCoord r2) { vdrawArc(a.x, a.y, b.x-a.x, b.y-a.y, r1, r2); }
 
     void fillArc(TCoord x,TCoord y,TCoord w,TCoord h, TCoord r1, TCoord r2) { vfillArc(x, y, w, h, r1, r2); }
-    void fillArc(const TRectangle &r, TCoord r1, TCoord r2) { vfillArc(r.x,r.y,r.w,r.h, r1, r2); }
-    void fillArc(const TRectangle *r, TCoord r1, TCoord r2) { vfillArc(r->x,r->y,r->w,r->h, r1, r2); }
+    void fillArc(const TRectangle &r, TCoord r1, TCoord r2) { vfillArc(r.origin.x,r.origin.y,r.size.width,r.size.height, r1, r2); }
+    void fillArc(const TRectangle *r, TCoord r1, TCoord r2) { fillArc(*r, r1, r2); }
     void fillArc(const TPoint &a, const TPoint &b, TCoord r1, TCoord r2) { vfillArc(a.x, a.y, b.x-a.x, b.y-a.y, r1, r2); }
 
     void fillArcPC(TCoord x,TCoord y,TCoord w,TCoord h, TCoord r1, TCoord r2);
-    void fillArcPC(const TRectangle &r, TCoord r1, TCoord r2) { fillArcPC(r.x,r.y,r.w,r.h, r1, r2); }
-    void fillArcPC(const TRectangle *r, TCoord r1, TCoord r2) { fillArcPC(r->x,r->y,r->w,r->h, r1, r2); }
+    void fillArcPC(const TRectangle &r, TCoord r1, TCoord r2) { fillArcPC(r.origin.x,r.origin.y,r.size.width,r.size.height, r1, r2); }
+    void fillArcPC(const TRectangle *r, TCoord r1, TCoord r2) { fillArcPC(*r, r1, r2); }
     void fillArcPC(const TPoint &a, const TPoint &b, TCoord r1, TCoord r2) { vfillArc(a.x, a.y, b.x-a.x, b.y-a.y, r1, r2); }
 
     virtual void drawPolygon(const TPoint *points, size_t n) = 0;
@@ -218,13 +218,13 @@ class TPenBase
     void vdraw3DRectangle(TCoord x, TCoord y, TCoord w, TCoord h, bool inset=true);
 
     void draw3DRectangle(TCoord x, TCoord y, TCoord w, TCoord h, bool inset=true) { vdraw3DRectangle(x,y,w,h,inset); }
-    void draw3DRectangle(const TRectangle &r, bool inset=true) { vdraw3DRectangle(r.x,r.y,r.w,r.h,inset); }
-    void draw3DRectangle(const TRectangle *r, bool inset=true) { vdraw3DRectangle(r->x,r->y,r->w,r->h,inset); }
+    void draw3DRectangle(const TRectangle &r, bool inset=true) { vdraw3DRectangle(r.origin.x,r.origin.y,r.size.width,r.size.height,inset); }
+    void draw3DRectangle(const TRectangle *r, bool inset=true) { draw3DRectangle(*r,inset); }
     void draw3DRectangle(const TPoint &a, const TPoint &b, double r1, double r2, bool inset=true) { vdraw3DRectangle(a.x, a.y, b.x-a.x, b.y-a.y, inset); }
 
     void draw3DRectanglePC(TCoord x, TCoord y, TCoord w, TCoord h, bool inset=true);
-    void draw3DRectanglePC(const TRectangle &r, bool inset=true) { draw3DRectanglePC(r.x,r.y,r.w,r.h,inset); }
-    void draw3DRectanglePC(const TRectangle *r, bool inset=true) { draw3DRectanglePC(r->x,r->y,r->w,r->h,inset); }
+    void draw3DRectanglePC(const TRectangle &r, bool inset=true) { draw3DRectanglePC(r.origin.x,r.origin.y,r.size.width,r.size.height,inset); }
+    void draw3DRectanglePC(const TRectangle *r, bool inset=true) { draw3DRectanglePC(*r,inset); }
     void draw3DRectanglePC(const TPoint &a, const TPoint &b, double r1, double r2, bool inset=true) { vdraw3DRectangle(a.x, a.y, b.x-a.x, b.y-a.y, inset); }
 
     void drawString(TCoord x, TCoord y, const char *str, size_t len) { vdrawString(x, y, str, len, true); }

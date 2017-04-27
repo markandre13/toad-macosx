@@ -66,8 +66,8 @@ class TInteractor:
     virtual void setPosition(TCoord x, TCoord y);
     virtual void setSize(TCoord w, TCoord h);
     virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h);
-    void setShape(const TRectangle &r){setShape(r.x,r.y,r.w,r.h);}
-    void setShape(const TRectangle *r){setShape(r->x,r->y,r->w,r->h);}
+    inline void setShape(const TRectangle &r){setShape(r.origin.x,r.origin.y,r.size.width,r.size.height);}
+    inline void setShape(const TRectangle *r){setShape(*r);}
     virtual void getShape(TRectangle*) const;
     virtual void setSuppressMessages(bool);
     virtual TCoord getXPos() const;

@@ -272,10 +272,10 @@ TFigure::paintSelection(TPenBase &pen, int handle)
     int x, y;
     for(int i=0; i<4; ++i) {
       switch(i) {
-        case 0: x = r.x;       y = r.y;       break;
-        case 1: x = r.x+r.w-1; y = r.y;       break;
-        case 2: x = r.x+r.w-1; y = r.y+r.h-1; break;
-        case 3: x = r.x;       y = r.y+r.h-1; break;
+        case 0: x = r.origin.x;                y = r.origin.y;       break;
+        case 1: x = r.origin.x+r.size.width-1; y = r.origin.y;       break;
+        case 2: x = r.origin.x+r.size.width-1; y = r.origin.y+r.size.height-1; break;
+        case 3: x = r.origin.x;                y = r.origin.y+r.size.height-1; break;
       }
       if (m0)
         m0->map(x, y, &x, &y);
@@ -293,10 +293,7 @@ TRectangle
 TFigure::editBounds() const
 {
   TRectangle r = bounds();
-  r.x-=2;
-  r.y-=2;
-  r.w+=4;
-  r.h+=4;
+  r.inflate(2);
   return r;
 }
 

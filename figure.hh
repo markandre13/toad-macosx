@@ -335,6 +335,10 @@ class TFRectangle:
       p2.x = x+w;
       p2.y = y+h;
     }
+    void setShape(const TRectangle &r) {
+      p1 = r.origin;
+      p2 = r.origin + r.size;
+    }
     TVectorGraphic* getPath() const override;
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
     TRectangle bounds() const override;

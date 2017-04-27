@@ -373,10 +373,10 @@ TRegion::getRect(size_t i, TRectangle *r) const
   if (i>=nRectangles_)
     return false;
   i<<=2;
-  r->x = rectangles_[i];
-  r->y = rectangles_[i+2];
-  r->w = rectangles_[i+3] - rectangles_[i+2];
-  r->h = rectangles_[i+1] - rectangles_[i];
+  r->origin.x    = rectangles_[i];
+  r->origin.y    = rectangles_[i+2];
+  r->size.width  = rectangles_[i+3] - rectangles_[i+2];
+  r->size.height = rectangles_[i+1] - rectangles_[i];
   return true;
 }
 
@@ -584,10 +584,10 @@ TRegion::isInside(const TRectangle &rectangle) const
   if (!extent_.isOverlapping (rectangle))
     return false;
 
-  int x1 = rectangle.x;
-  int x2 = rectangle.x + rectangle.w;
-  int y1 = rectangle.y;
-  int y2 = rectangle.y + rectangle.h;
+  int x1 = rectangle.origin.x;
+  int x2 = rectangle.origin.x + rectangle.size.width;
+  int y1 = rectangle.origin.y;
+  int y2 = rectangle.origin.y + rectangle.size.height;
 
   int rEnd = nRectangles_ << 2;
 

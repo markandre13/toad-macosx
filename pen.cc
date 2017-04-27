@@ -176,7 +176,7 @@ cout << "initClipBoard( " << clip << " )" << endl;
                         &kCFTypeDictionaryValueCallBacks);
   CFDictionarySetValue(myDictionary, kCGPDFContextTitle, CFSTR("My PDF File"));
   CFDictionarySetValue(myDictionary, kCGPDFContextCreator, CFSTR("My Name"));
-  CGRect pdfPageRect = CGRectMake(clip.x, clip.y, clip.w, clip.h);
+  CGRect pdfPageRect = CGRectMake(clip.origin.x, clip.origin.y, clip.size.width, clip.size.height);
   pdfContext = CGPDFContextCreate(dc, &pdfPageRect, myDictionary);
   CFRelease(myDictionary);
   
@@ -349,7 +349,7 @@ TPen::setClipRect(const TRectangle &r)
 //  cerr << __PRETTY_FUNCTION__ << " isn't implemented yet" << endl;
 //cout << "setClipRect(" << r.x << ", " << r.y << ", " << r.w << ", " << r.h << ")" << endl;
   if (window)
-    CGContextClipToRect(ctx, CGRectMake(r.x, r.y, r.w, r.h));
+    CGContextClipToRect(ctx, CGRectMake(r.origin.x, r.origin.y, r.size.width, r.size.height));
 /*
   NSBezierPath* clipPath = [NSBezierPath bezierPath];
   [clipPath appendBezierPathWithRect: NSMakeRect(r.x, r.y, r.w, r.h)];

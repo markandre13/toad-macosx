@@ -68,9 +68,9 @@ TColorPalette::TColorPalette(TWindow *parent, const string &title,
   rectColors.set(4.5,y+h+4.5, getWidth()-4-4, getHeight() - 4 - h - 4 - 4 - h - 4);
 
   TScrollBar *sb = new TScrollBar(this, "updown", &position);
-  rectColors.w -= sb->getWidth()+2;
-  sb->setShape(floor(rectColors.x+rectColors.w), floor(rectColors.y),
-               sb->getWidth(), rectColors.h);
+  rectColors.size.width -= sb->getWidth()+2;
+  sb->setShape(floor(rectColors.origin.x+rectColors.size.width), floor(rectColors.origin.y),
+               sb->getWidth(), rectColors.size.height);
   position.setValue(0);
   connect(position.sigChanged, this, &TWindow::invalidateWindow, true);
   
@@ -127,9 +127,9 @@ TColorPalette::selectPalette(int n)
     pcolor = &ppalette->rgb[0];
     colorname = pcolor->name;
   }
-  int fields_per_row = rectColors.w / fw;
+  int fields_per_row = rectColors.size.width / fw;
 #if 1
-  position.setExtent(rectColors.h / fh);
+  position.setExtent(rectColors.size.height / fh);
   position.setMinimum(0);
   position.setMaximum(ppalette->rgb.size()/fields_per_row);
   position.setValue(0);
@@ -186,10 +186,10 @@ TColorPalette::mouse2color(TPoint m)
     return 0;
 
   int x, y;
-  x = rectColors.x;
-  y = rectColors.y;
+  x = rectColors.origin.x;
+  y = rectColors.origin.y;
   
-  int first = position * (rectColors.w / fw);
+  int first = position * (rectColors.size.width / fw);
   if (first>=ppalette->rgb.size())
     return 0;
   
@@ -201,10 +201,10 @@ TColorPalette::mouse2color(TPoint m)
       return &(*p);
     } 
     x+=fw;
-    if (x+fw>=rectColors.x+rectColors.w) {
-      x = rectColors.x;
+    if (x+fw>=rectColors.origin.x+rectColors.size.width) {
+      x = rectColors.origin.x;
       y+=fh;
-      if (y+fh>=rectColors.y+rectColors.h) {
+      if (y+fh>=rectColors.origin.y+rectColors.size.height) {
         break;
       }
     }
@@ -225,10 +225,10 @@ TColorPalette::paint()
   }
   
   TCoord x, y;
-  x = rectColors.x;
-  y = rectColors.y;
+  x = rectColors.origin.x;
+  y = rectColors.origin.y;
   
-  int first = position * (rectColors.w / fw);
+  int first = position * (rectColors.size.width / fw);
   if (first>=ppalette->rgb.size())
     return;
   
@@ -246,10 +246,10 @@ TColorPalette::paint()
     }
     
     x+=fw;
-    if (x+fw>=rectColors.x+rectColors.w) {
-      x = rectColors.x;
+    if (x+fw>=rectColors.origin.x+rectColors.size.width) {
+      x = rectColors.origin.x;
       y+=fh;
-      if (y+fh>=rectColors.y+rectColors.h) {
+      if (y+fh>=rectColors.origin.y+rectColors.size.height) {
         break;
       }
     }

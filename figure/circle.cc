@@ -48,10 +48,10 @@ TCoord
 TFCircle::distance(const TPoint &pos)
 {
   TRectangle r = bounds();
-  TCoord rx = 0.5*(r.w);
-  TCoord ry = 0.5*(r.h);
-  TCoord cx = (double)r.x+rx;
-  TCoord cy = (double)r.y+ry;
+  TCoord rx = 0.5*(r.size.width);
+  TCoord ry = 0.5*(r.size.height);
+  TCoord cx = (double)r.origin.x+rx;
+  TCoord cy = (double)r.origin.y+ry;
   TCoord dx = (double)pos.x - cx;
   TCoord dy = (double)pos.y - cy;
   
@@ -83,10 +83,10 @@ TFCircle::getPath() const
   static const TCoord f = 0.552284749831;
 
   TRectangle r = bounds();
-  TCoord rx = 0.5*(r.w);
-  TCoord ry = 0.5*(r.h);
-  TCoord cx = (double)r.x+rx;
-  TCoord cy = (double)r.y+ry;
+  TCoord rx = 0.5*(r.size.width);
+  TCoord ry = 0.5*(r.size.height);
+  TCoord cx = (double)r.origin.x+rx;
+  TCoord cy = (double)r.origin.y+ry;
   
   auto *path = new TVectorPath;
   path->move (cx         , cy-ry);

@@ -62,6 +62,7 @@ TFConnection::editEvent(TFigureEditEvent &editEvent)
     default:
       ;
   }
+  return true;
 }
 
 TRectangle
@@ -79,8 +80,8 @@ TFConnection::bounds() const
     r1.set(p.back(), p.back());
   }
   
-  TPoint p0(min(r0.x, r1.x), min(r0.y, r1.y));
-  TPoint p1(max(r0.x+r0.w, r1.x+r1.w), max(r0.y+r0.h, r1.y+r1.h));
+  TPoint p0(min(r0.origin.x, r1.origin.x), min(r0.origin.y, r1.origin.y));
+  TPoint p1(max(r0.origin.x+r0.size.width, r1.origin.x+r1.size.width), max(r0.origin.y+r0.size.height, r1.origin.y+r1.size.height));
   
   for(size_t i=1; i<p.size()-1; ++i) {
     auto &&pt = p[i];

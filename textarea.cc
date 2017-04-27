@@ -457,7 +457,7 @@ pos.y-=2;
   unsigned cx;
   for(p=0, cx=0; p<line.size(); utf8inc(line, &p), cx++) {
     w2 = font->getTextWidth(line.substr(0, p));
-    if (w2>x)
+    if (w2>origin.x)
       break;
     w1 = w2;
   }
@@ -468,7 +468,7 @@ pos.y-=2;
   }
 //cerr << "x-w1=" << (x-w1) << ", w2-x=" << (w2-x) << endl;
 
-  if ( x-w1 < w2-pos.x ) {
+  if ( origin.x-w1 < w2-pos.x ) {
     utf8dec(line, &p);
     _cxpx = w1;
     cx--;
@@ -857,12 +857,12 @@ TTextArea::adjustScrollbars()
     cout << "error: TTextArea::adjustScrollbars: font of height 0" << endl;
     return;
   }
-  int vvl = visible.h/font->getHeight();
+  int vvl = visible.size.height/font->getHeight();
   if (vvl<model->nlines)
     need_vscroll = true;
 
   if (need_vscroll)
-    visible.w -= TScrollBar::getFixedSize();
+    visible.size.width -= TScrollBar::getFixedSize();
     
   if (need_vscroll) {
     if (!vscroll) {
@@ -1029,8 +1029,8 @@ TTextArea::paint()
   pen.fillRectangle(0,0,getWidth(),getHeight());
   
   pen.draw3DRectangle(
-    visible.x-2, visible.y-2,
-    visible.w+4-1, visible.h+4-1);
+    visible.origin.x-2, visible.origin.y-2,
+    visible.size.width+4-1, visible.size.height+4-1);
     
   if (!model) {
     pen.setColor(TColor::DIALOG);
@@ -1059,7 +1059,7 @@ TTextArea::paint()
   while(true) {
     eol = data.find('\n', bol);
     size_t n = eol==string::npos ? eol : eol-bol; // n=characters in line
-    if (y+pen.getHeight()>=clipbox.y) { // loop has reached the visible area
+    if (y+pen.getHeight()>=clipbox.origin.y) { // loop has reached the visible area
 //cerr << "line " << bol << "-" << eol << endl;
 
       string line;
@@ -1168,7 +1168,7 @@ cerr << "  selection: " << bos << " - " << eos << endl;
     if (eol==string::npos)
       break;
     y+=pen.getHeight();
-    if (y>clipbox.y+clipbox.h)
+    if (y>clipbox.origin.y+clipbox.size.height)
       break;
     sy++;
     bol=eol+1;
@@ -1179,7 +1179,7 @@ void
 TTextArea::_invalidate_line(unsigned y, bool statusChanged)
 {
   int h = font->getHeight();
-  invalidateWindow(visible.x, visible.y+y * h, visible.w, h);
+  invalidateWindow(visible.origin.x, visible.origin.y+y * h, visible.size.width, h);
   if (statusChanged)
     sigStatus();
 }
@@ -1443,7 +1443,7 @@ void
 TTextArea::_page_down()
 {
   MARK
-  int h = visible.h / font->getHeight();
+  int h = visible.size.height / font->getHeight();
   _cursor_down(h);
 }
 
@@ -1451,7 +1451,7 @@ void
 TTextArea::_page_up()
 {
   MARK
-  int h = visible.h / font->getHeight();
+  int h = visible.size.height / font->getHeight();
   _cursor_up(h);
 }
 
@@ -1525,7 +1525,7 @@ TTextArea::_catch_cursor()
     return;
   }
 //  int w = font->getTextWidth("X");
-  int th = (visible.h-h+1) / h;
+  int th = (visible.size.height-h+1) / h;
 //  int tw = (visible.w-w+1) / w;
 
   DBM(cout << "_catch_cursor: th="<<th<<", tw="<<tw<<", _cx="<<_cx<<", _cy="<<_cy<<endl;)

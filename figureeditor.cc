@@ -598,15 +598,14 @@ return;
 
   TPoint origin = window->getOrigin();
   
-  origin.x += visible.x;
-  origin.y += visible.y;
+  origin += visible.origin;
 
   TRegion region(*window->getUpdateRegion());
   TRectangle r;
 //  region.getBoundary(&r);
 //cout << "paintGrid: update region's boundary: " << r << endl;
 //cout << "paintGrid: visible                 : " << visible << endl;
-  region &= TRectangle(visible.x, visible.y, visible.w, visible.h);
+  region &= visible;
   region.getBoundary(&r);
 //cout << "paintGrid: intersection            : " << r << endl;
 //cout << "paintGrid: origin                  : " << origin << endl;
@@ -615,12 +614,10 @@ return;
   if (mat) {
     TMatrix2D m(*mat);
     m.invert();
-    TPoint p0 = m.map(TPoint(r.x, r.y));
-    TPoint p1 = m.map(TPoint(r.x+r.w, r.y+r.h));
-    r.x = p0.x;
-    r.y = p0.y;
-    r.w = p1.x - p0.x;
-    r.h = p1.y - p0.y;
+    TPoint p0 = m.map(r.origin);
+    TPoint p1 = m.map(r.origin+r.size);
+    r.origin = p0;
+    r.size   = p1-p0;
     origin = m.map(origin);
   }
 
@@ -634,9 +631,9 @@ return;
     f+=gridsize;
 
   // area jump FIXME: replace loop
-  while(f-gridsize-r.y>=0)
+  while(f-gridsize-r.origin.y>=0)
     f -= gridsize;
-  while(f-gridsize-r.y<-gridsize)
+  while(f-gridsize-r.origin.y<-gridsize)
     f += gridsize;
   y0 = f;
 
@@ -647,14 +644,14 @@ return;
     f+=gridsize;
 
   // area jump // FIXME: replace loop
-  while(f-gridsize-r.x>=0)
+  while(f-gridsize-r.origin.x>=0)
     f -= gridsize;
-  while(f-gridsize-r.x<-gridsize)
+  while(f-gridsize-r.origin.x<-gridsize)
     f += gridsize;
   x0 = f;
   
-  x1 = x0 + r.w;
-  y1 = y0 + r.h;
+  x1 = x0 + r.size.width;
+  y1 = y0 + r.size.height;
   
 //  cout << "paintGrid between x = " << x0 << " ... " << x1 << ", y = " << y0 << " ... " << y1 << ", boundary=" << r << endl;
 
@@ -695,18 +692,18 @@ TFigureEditor::paintDecoration(TPen &scr)
   if (row_header_renderer) {
     scr.push();
     scr.identity();
-    scr.setClipRect(TRectangle(0, visible.y, visible.x, visible.h));
-    scr.translate(0, visible.y+origin.y);
-    row_header_renderer->render(scr, -origin.y, visible.h, mat);
+    scr.setClipRect(TRectangle(0, visible.origin.y, visible.origin.x, visible.size.height));
+    scr.translate(0, visible.origin.y+origin.y);
+    row_header_renderer->render(scr, -origin.y, visible.size.height, mat);
     scr.pop();
   }
 
   if (col_header_renderer) {
     scr.push();
     scr.identity();
-    scr.setClipRect(TRectangle(visible.x, 0, visible.w, visible.y));
-    scr.translate(visible.x+origin.x, 0);
-    col_header_renderer->render(scr, -origin.x, visible.w, mat);
+    scr.setClipRect(TRectangle(visible.origin.x, 0, visible.size.width, visible.origin.y));
+    scr.translate(visible.origin.x+origin.x, 0);
+    col_header_renderer->render(scr, -origin.x, visible.size.width, mat);
     scr.pop();
   }
 }
@@ -1126,15 +1123,15 @@ TFigureEditor::selectionAlignHorizontal()
   for(auto &&f: selection) {
     bounds.push_back(f->bounds());
     TRectangle &b = bounds.back();
-    if (left>b.x)
-      left=b.x;
-    if (right<b.x+b.w)
-      right=b.x+b.w;
+    if (left>b.origin.x)
+      left=b.origin.x;
+    if (right<b.origin.x+b.size.width)
+      right=b.origin.x+b.size.width;
   }
   TCoord bx = left+(right-left)/2.0;
   auto p = bounds.begin();
   for(auto &&f: selection) {
-    TCoord fx = p->x + p->w/2.0;
+    TCoord fx = p->origin.x + p->size.width/2.0;
     TFigureSet set;
     set.insert(f);
     model->translate(set, bx-fx,0);
@@ -1152,15 +1149,15 @@ TFigureEditor::selectionAlignVertical()
   for(auto &&f: selection) {
     bounds.push_back(f->bounds());
     TRectangle &b = bounds.back();
-    if (top>b.y)
-      top=b.y;
-    if (bottom<b.y+b.h)
-      bottom=b.y+b.h;
+    if (top>b.origin.y)
+      top=b.origin.y;
+    if (bottom<b.origin.y+b.size.height)
+      bottom=b.origin.y+b.size.height;
   }
   TCoord by = top+(bottom-top)/2.0;
   auto p = bounds.begin();
   for(auto &&f: selection) {
-    TCoord fy = p->y + p->h/2.0;
+    TCoord fy = p->origin.y + p->size.height/2.0;
     TFigureSet set;
     set.insert(f);
     model->translate(set, 0, by-fy);
@@ -1350,7 +1347,7 @@ TFigureEditor::keyEvent(const TKeyEvent &ke)
 void
 TFigureEditor::mouse2sheet(TPoint mouse, TPoint *sheet)
 {
-  mouse-=visible.origin();
+  mouse-=visible.origin;
   if (mat) {
     TMatrix2D m(*mat);
     m.invert();
@@ -1381,15 +1378,15 @@ TFigureEditor::mouseEvent(const TMouseEvent &me)
     ...
 */
       if (row_header_renderer &&
-          pos.x < visible.x &&
-          pos.y >= visible.y ) 
+          pos.x < visible.origin.x &&
+          pos.y >= visible.origin.y ) 
       {
         TMouseEvent me2(me, TPoint(pos.x, me.pos.y));
         row_header_renderer->mouseEvent(me2);
       } else
       if (col_header_renderer &&
-          pos.x >= visible.x &&
-          pos.y < visible.y ) 
+          pos.x >= visible.origin.x &&
+          pos.y < visible.origin.y ) 
       {
         TMouseEvent me2(me, TPoint(me.pos.x, pos.y));
         row_header_renderer->mouseEvent(me2);
@@ -1467,17 +1464,16 @@ TFigureEditor::invalidateFigure(const TFigure* figure)
 
   while(true) {
     getFigureEditShape(figure, &r, mat);
-    r.x += origin.x + visible.x;
-    r.y += origin.y + visible.y;
-    if (r.x < visible.x ) {
-      TCoord d = visible.x - r.x;
-      r.x += d;
-      r.w -= d;
+    r.origin += origin + visible.origin;
+    if (r.origin.x < visible.origin.x ) {
+      TCoord d = visible.origin.x - r.origin.x;
+      r.origin.x += d;
+      r.size.width -= d;
     }
-    if (r.y < visible.y ) {
-      TCoord d = visible.y - r.y;
-      r.y += d;
-      r.h -= d;
+    if (r.origin.y < visible.origin.y ) {
+      TCoord d = visible.origin.y - r.origin.y;
+      r.origin.y += d;
+      r.size.height -= d;
     }
 //cout << figure->getClassName() << ": invalidate window " <<r.x<<"-"<<(r.x+r.w)<<","<<r.y<<"-"<<(r.y+r.h)<<endl;
     invalidateWindow(r);
@@ -1530,19 +1526,19 @@ TFigureEditor::_getFigureShape(const TFigure* figure, TRectangle *r, const TMatr
       
     TCoord x1, x2, y1, y2;
     TCoord x, y;
-    m.map(r->x, r->y, &x, &y);
+    m.map(r->origin.x, r->origin.y, &x, &y);
     x1 = x2 = x;
     y1 = y2 = y;
     for(int i=1; i<4; ++i) {
       switch(i) {
         case 1:
-          m.map(r->x+r->w, r->y, &x, &y);
+          m.map(r->origin.x+r->size.width, r->origin.y, &x, &y);
           break;
         case 2:
-          m.map(r->x+r->w, r->y+r->h, &x, &y);
+          m.map(r->origin.x+r->size.width, r->origin.y+r->size.height, &x, &y);
           break;
         case 3:
-          m.map(r->x, r->y+r->h, &x, &y);
+          m.map(r->origin.x, r->origin.y+r->size.height, &x, &y);
           break;
       }
       if (x1>x)
@@ -1635,12 +1631,12 @@ TFigureEditor::adjustPane()
   }
   visible.set(0,0,window->getWidth(), window->getHeight());
   if (row_header_renderer) {
-    visible.x = row_header_renderer->getSize();
-    visible.w -= visible.x;
+    visible.origin.x = row_header_renderer->getSize();
+    visible.size.width -= visible.origin.x;
   }
   if (col_header_renderer) {
-    visible.y = col_header_renderer->getSize();
-    visible.h -= visible.y;
+    visible.origin.y = col_header_renderer->getSize();
+    visible.size.height -= visible.origin.y;
   }
 }
 
@@ -1673,10 +1669,10 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
     {
       TCoord ax1, ay1, ax2, ay2;
       r=(*p)->editBounds();
-      ax1=r.x;
-      ay1=r.y;
-      ax2=r.x+r.w-1;
-      ay2=r.y+r.h-1;
+      ax1=r.origin.x;
+      ay1=r.origin.y;
+      ax2=r.origin.x+r.size.width-1;
+      ay2=r.origin.y+r.size.height-1;
 
       if (ax1<x1)
         x1=ax1;  
@@ -1697,18 +1693,18 @@ DBM(cout << __PRETTY_FUNCTION__ << ": entry" << endl;)
 //cout << "area size: (" << x1 << ", " << y1 << ") - (" << x2 << ", " << y2 << ")\n";
 //cout << "final" << endl << endl;
   if (!mat) {
-    pane.x = x1;
-    pane.y = y1;
-    pane.w = x2-x1+1;
-    pane.h = y2-y1+1;
+    pane.origin.x    = x1;
+    pane.origin.y    = y1;
+    pane.size.width  = x2-x1+1;
+    pane.size.height = y2-y1+1;
   } else {
     TCoord dx1, dy1, dx2, dy2;
     mat->map(x1, y1, &dx1, &dy1);
     mat->map(x2+1, y2+1, &dx2, &dy2);
-    pane.x = dx1;
-    pane.y = dy1;
-    pane.w = dx2-dx1;
-    pane.h = dy2-dy1;
+    pane.origin.x    = dx1;
+    pane.origin.y    = dy1;
+    pane.size.width  = dx2-dx1;
+    pane.size.height = dy2-dy1;
   }
   doLayout();
 DBM(cout << __PRETTY_FUNCTION__ << ": exit" << endl << endl;)

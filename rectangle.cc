@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,8 @@
 
 using namespace toad;
 
-void TRectangle::set(TCoord x, TCoord y, TCoord w, TCoord h)
+void
+TRectangle::set(TCoord x, TCoord y, TCoord w, TCoord h)
 {
   if (w<0) {
     w=-w;
@@ -32,28 +33,25 @@ void TRectangle::set(TCoord x, TCoord y, TCoord w, TCoord h)
     h=-h;
     y-=h;
   }
-  this->x = x;
-  this->y = y;
-  this->w = w;
-  this->h = h;
+  origin.x = x;
+  origin.y = y;
+  size.width = w;
+  size.height = h;
 }
 
-void TRectangle::set(const TPoint &p1, const TPoint &p2)
+void
+TRectangle::set(const TPoint &p1, const TPoint &p2)
 {
-  x = p1.x;
-  y = p1.y;
-  w = p2.x-p1.x;
-  h = p2.y-p1.y;
-  if (w<0) {
-    w=-w;
-    x-=w;
+  origin = p1;
+  size = p2-p1;
+  if (size.width<0) {
+    size.width=-size.width;
+    origin.x-=size.width;
   }
-  if (h<0) {
-    h=-h;
-    y-=h;
+  if (size.height<0) {
+    size.height=-size.height;
+    origin.y-=size.height;
   }
-  w++;
-  h++;    
 }
 
 // based on Dan Cohen and Ivan Sutherlands clipping algorithm
@@ -65,26 +63,26 @@ TRectangle::intersects(const TRectangle &r) const
   TCoord x00, x01, x10, x11;
   TCoord y00, y01, y10, y11;
   
-  x00=x;
-  x01=x+w;
+  x00=origin.x;
+  x01=origin.x+size.width;
   if (x00>x01) {
     a=x00; x00=x01; x01=a;
   }
 
-  x10=r.x;
-  x11=r.x+r.w;
+  x10=r.origin.x;
+  x11=r.origin.x+r.size.width;
   if (x10>x11) {
     a=x10; x10=x11; x11=a;
   }
 
-  y00=y;
-  y01=y+h;
+  y00=origin.y;
+  y01=origin.y+size.height;
   if (y00>y01) {
     a=y00; y00=y01; y01=a;
   }
 
-  y10=r.y;
-  y11=r.y+r.h;
+  y10=r.origin.y;
+  y11=r.origin.y+r.size.height;
   if (y10>y11) {
     a=y10; y10=y11; y11=a;
   }

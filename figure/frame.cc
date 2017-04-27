@@ -29,26 +29,26 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
   TPoint p[3];
   pen.setColor(TColor::WHITE);
   TRectangle r(p1, p2);
-  p[0].set(r.x      , r.y+r.h-1);
-  p[1].set(r.x+r.w-1, r.y+r.h-1);
-  p[2].set(r.x+r.w-1, r.y);
+  p[0].set(r.origin.x               , r.origin.y+r.size.height-1);
+  p[1].set(r.origin.x+r.size.width-1, r.origin.y+r.size.height-1);
+  p[2].set(r.origin.x+r.size.width-1, r.origin.y);
   pen.drawLines(p,3);
 
-  p[0].set(r.x+1  , r.y+r.h-2);
-  p[1].set(r.x+1  , r.y+1);
-  p[2].set(r.x+r.w-2, r.y+1);
+  p[0].set(r.origin.x+1             , r.origin.y+r.size.height-2);
+  p[1].set(r.origin.x+1             , r.origin.y+1);
+  p[2].set(r.origin.x+r.size.width-2, r.origin.y+1);
   pen.drawLines(p,3);
   pen.setColor(TColor::GRAY);
-  pen.drawRectanglePC(r.x,r.y,r.w-1,r.h-1);
+  pen.drawRectanglePC(r.origin.x,r.origin.y,r.size.width-1,r.size.height-1);
 
   if (!text.empty()) {
     pen.setFont(fontname);
     int fh = pen.getHeight();
     int tw = pen.getTextWidth(text);
     pen.setColor(TColor::DIALOG);
-    pen.fillRectanglePC(r.x+5-1, r.y-fh/2, tw+2, fh);
+    pen.fillRectanglePC(r.origin.x+5-1, r.origin.y-fh/2, tw+2, fh);
     pen.setColor(line_color);
-    pen.drawString(r.x+5, r.y-fh/2, text);
+    pen.drawString(r.origin.x+5, r.origin.y-fh/2, text);
   }
 #if 0
   if (type==EDIT) {
@@ -56,7 +56,7 @@ TFFrame::paint(TPenBase &pen, EPaintType type)
     TCoord fh = getDefaultFont().getHeight();
     unsigned dx = pen.getTextWidth(text.substr(0, cx))+5;
     TCoord yp = r.y-fh/2;
-    pen.drawLine(r.x+dx,yp,r.x+dx,yp+pen.getHeight());
+    pen.drawLine(r.origin.x+dx,yp,r.origin.x+dx,yp+pen.getHeight());
   }
 #endif
 }
@@ -67,8 +67,8 @@ TFFrame::bounds() const
   PFont font = new TFont(fontname);
   TCoord a = font->getHeight()/2;
   TRectangle r = TFRectangle::bounds();
-  r.y-=a;
-  r.h+=a;
+  r.origin.y-=a;
+  r.size.height+=a;
   return r;
 }
 

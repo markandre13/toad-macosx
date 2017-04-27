@@ -197,13 +197,11 @@ TSelectionTool::setCursorForHandle(TFigureEditor *fe, const TMouseEvent &me)
   
   // origin is already applied by scroll pane?
   
-  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
-  
+  TPoint p = me.pos - fe->getVisible().origin;
   for(unsigned i=0; i<16; ++i) {
     TRectangle r;
     getBoundaryHandle(i, &r);
-    if (r.isInside(x, y)) {
+    if (r.isInside(p)) {
       static const int wind[16] = {
         CURSOR_SELECT_RESIZE_NW,
         CURSOR_SELECT_RESIZE_N,
@@ -235,14 +233,13 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
   if (fe->selection.empty())
     return false;
   // origin is already applied by scroll pane?
-  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  TPoint p = me.pos - fe->getVisible().origin;
 // cout << "down at " << x << ", " << y << endl;
   for(unsigned i=0; i<16; ++i) {
     TRectangle r;
     getBoundaryHandle(i, &r);
 // cout << "  check " << r.x << ", " << r.y << endl;
-    if (r.isInside(x, y)) {
+    if (r.isInside(p)) {
       state = STATE_MOVE_HANDLE;
       selectedHandle = i;
       handleStart = me.pos;
@@ -250,7 +247,7 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
       oldBoundary = boundary;
       if (selectedHandle>=8) {
         rotationCenter = boundary.center();
-        rotationStartDirection = atan2(y - rotationCenter.y, x - rotationCenter.x);
+        rotationStartDirection = atan2(p.y - rotationCenter.y, p.x - rotationCenter.x);
       }
       return true;
     }
@@ -279,37 +276,35 @@ TSelectionTool::moveHandle2Scale(TFigureEditor *fe, const TMouseEvent &me)
   // mouse is holding a handle, scale the selection
   invalidateBoundary(fe);
 //TCoord x0, y0;
-  TCoord x, y;
-  x = me.pos.x - fe->getVisible().x;
-  y = me.pos.y - fe->getVisible().y;
+  TPoint p = me.pos - fe->getVisible().origin;
   switch(selectedHandle) {
     case 0:
-      x0 = x;
-      y0 = y;
+      x0 = p.x;
+      y0 = p.y;
       break;
     case 1:
-      y0 = y;
+      y0 = p.y;
       break;
     case 2:
-      x1 = x;
-      y0 = y;
+      x1 = p.x;
+      y0 = p.y;
       break;
     case 3:
-      x1 = x;
+      x1 = p.x;
       break;
     case 4:
-      x1 = x;
-      y1 = y;
+      x1 = p.x;
+      y1 = p.y;
       break;
     case 5:
-      y1 = y;
+      y1 = p.y;
       break;
     case 6:
-      x0 = x;
-      y1 = y;
+      x0 = p.x;
+      y1 = p.y;
       break;
     case 7:
-      x0 = x;
+      x0 = p.x;
       break;
   }
 
@@ -339,10 +334,9 @@ TSelectionTool::moveHandle2Rotate(TFigureEditor *fe, const TMouseEvent &me)
 {
   invalidateBoundary(fe);
 
-  TCoord x = me.pos.x /*+ fe->getWindow()->getOriginX()*/ - fe->getVisible().x;
-  TCoord y = me.pos.y /*+ fe->getWindow()->getOriginY()*/ - fe->getVisible().y;
+  TPoint p = me.pos - fe->getVisible().origin;
 
-  double rotd = atan2(y - rotationCenter.y, x - rotationCenter.x);
+  double rotd = atan2(p.y - rotationCenter.y, p.x - rotationCenter.x);
   rotd-=rotationStartDirection;
   
   TPoint center = rotationCenter;
@@ -439,11 +433,11 @@ TSelectionTool::dragMarquee(TFigureEditor *fe, const TMouseEvent &me)
 
   TPoint origin = fe->getWindow()->getOrigin();
   fe->getWindow()->invalidateWindow(
-    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).inflate(3)
   );
   marqueeEnd = me.pos;
   fe->getWindow()->invalidateWindow(
-    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).inflate(3)
   );
 
   TPoint p0, p1;
@@ -465,13 +459,13 @@ void
 TSelectionTool::paintMarquee(TFigureEditor *fe, TPenBase &pen)
 {
   pen.push();
-  TCoord tx = 0.0, ty = 0.0;
+  TPoint t;
   if (pen.getMatrix()) {
-    tx = pen.getMatrix()->tx - fe->getVisible().x;
-    ty = pen.getMatrix()->ty - fe->getVisible().y;
+    t.x = pen.getMatrix()->tx - fe->getVisible().origin.x;
+    t.y = pen.getMatrix()->ty - fe->getVisible().origin.y;
   }
   pen.identity();
-  pen.translate(tx, ty);
+  pen.translate(t);
   pen.setColor(TColor::FIGURE_SELECTION);
   pen.setLineWidth(1);
   pen.setAlpha(0.3);
@@ -494,7 +488,7 @@ TSelectionTool::stopMarquee(TFigureEditor *fe)
   calcBoundary(fe);
   TPoint origin = fe->getWindow()->getOrigin();
   fe->getWindow()->invalidateWindow(
-    TRectangle(marqueeStart, marqueeEnd).translate(origin).expand(3)
+    TRectangle(marqueeStart, marqueeEnd).translate(origin).inflate(3)
   );
 }
 
@@ -503,7 +497,7 @@ TSelectionTool::invalidateBoundary(TFigureEditor *fe)
 {
   TPoint origin = fe->getWindow()->getOrigin();
   TRectangle visible = fe->getVisible();
-  origin.translate(visible.x, visible.y);
+  origin += visible.origin;
   TBoundary b;
   if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
     TPoint p;
@@ -518,7 +512,7 @@ TSelectionTool::invalidateBoundary(TFigureEditor *fe)
   } else {
     b = boundary;
   }
-  fe->getWindow()->invalidateWindow(TRectangle(b).translate(origin).expand(5));
+  fe->getWindow()->invalidateWindow(TRectangle(b).translate(origin).inflate(5));
 }
 
 void
@@ -607,9 +601,9 @@ TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
       TRectangle r;
       getBoundaryHandle(i, &r);
       r.translate(TPoint(2.5,2.5));
-      M.map(r.x, r.y, &r.x, &r.y);
+      M.map(r.origin, &r.origin);
       r.translate(TPoint(t,t));
-      r.w = r.h = w;
+      r.size.width = r.size.height = w;
       pen.fillRectangle(r);
       pen.drawRectangle(r);
     }

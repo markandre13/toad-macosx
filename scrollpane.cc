@@ -136,13 +136,13 @@ TScrollPane::_scrolled()
   
   // IMPROVE: the two scroll rectangle commands could be merged into the
   // above scroll screen command
-  if (visible.x) {
-    TRectangle r(0,visible.y,visible.x,visible.h);
+  if (visible.origin.x) {
+    TRectangle r(0,visible.origin.y,visible.origin.x,visible.size.height);
     scrollRectangle(r, 0, dy, true);
   }
   
-  if (visible.y) {
-    TRectangle r(visible.x,0,visible.w,visible.y);
+  if (visible.origin.y) {
+    TRectangle r(visible.origin.x,0,visible.size.width,visible.origin.y);
     scrollRectangle(r, dx, 0, true);
   } 
 
@@ -210,19 +210,19 @@ TScrollPane::doLayout()
   bool need_hscroll = false;
   bool need_vscroll = false;
 
-  if (pane.w > visible.w || pane.x < 0) {
+  if (pane.size.width > visible.size.width || pane.origin.x < 0) {
     need_hscroll = true;  
-    visible.h -= TScrollBar::getFixedSize();
+    visible.size.height -= TScrollBar::getFixedSize();
   }
    
-  if (pane.h > visible.h || pane.y < 0) {
+  if (pane.size.height > visible.size.height || pane.origin.y < 0) {
     need_vscroll = true;  
-    visible.w -= TScrollBar::getFixedSize();
+    visible.size.width -= TScrollBar::getFixedSize();
   }
    
-  if (!need_hscroll && pane.w > visible.w) {
+  if (!need_hscroll && pane.size.width > visible.size.width) {
     need_hscroll = true;
-    visible.h -= TScrollBar::getFixedSize();
+    visible.size.height -= TScrollBar::getFixedSize();
   }
 /*  
 cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
@@ -239,16 +239,16 @@ cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
     }
     vscroll->flagNoFocus=true;
     vscroll->setShape(
-      visible.x+visible.w,
-      visible.y,
+      visible.origin.x+visible.size.width,
+      visible.origin.y,
       TScrollBar::getFixedSize(),
-      visible.h);
-    vscroll->setExtent(visible.h);
-    vscroll->setMinimum(pane.y);
-    if (pane.y+pane.h < visible.y+visible.h)
-      vscroll->setMaximum(visible.y+visible.h);
+      visible.size.height);
+    vscroll->setExtent(visible.size.height);
+    vscroll->setMinimum(pane.origin.y);
+    if (pane.origin.y+pane.size.height < visible.origin.y+visible.size.height)
+      vscroll->setMaximum(visible.origin.y+visible.size.height);
     else    
-      vscroll->setMaximum(pane.y+pane.h);
+      vscroll->setMaximum(pane.origin.y+pane.size.height);
     vscroll->setMapped(true);  
     vscroll->setUnitIncrement(uiy);
   } else {
@@ -266,16 +266,16 @@ cerr << "TScrollPane("<<getTitle()<<"::doLayout:" << endl
     }
     hscroll->flagNoFocus=true;
     hscroll->setShape(
-      visible.x,
-      visible.y+visible.h,
-      visible.w,
+      visible.origin.x,
+      visible.origin.y+visible.size.height,
+      visible.size.width,
       TScrollBar::getFixedSize());
-    hscroll->setExtent(visible.w);
-    hscroll->setMinimum(pane.x);
-    if (pane.x+pane.w < visible.x+visible.w)
-      hscroll->setMaximum(visible.x+visible.w);
+    hscroll->setExtent(visible.size.width);
+    hscroll->setMinimum(pane.origin.x);
+    if (pane.origin.x+pane.size.width < visible.origin.x+visible.size.width)
+      hscroll->setMaximum(visible.origin.x+visible.size.width);
     else    
-      hscroll->setMaximum(pane.x+pane.w);
+      hscroll->setMaximum(pane.origin.x+pane.size.width);
     hscroll->setMapped(true);  
     hscroll->setUnitIncrement(uix);
   } else {
@@ -310,17 +310,17 @@ TScrollPane::paintCorner(TPenBase &pen)
   pen.setColor(TColor::DIALOG);
   pen.identity();
   TRectangle r(0,0,getWidth(),getHeight());
-  if (visible.y>0) {
-    if (visible.x>0) 
-      pen.fillRectanglePC(0, 0, visible.x, visible.y);
-    if (visible.x+visible.w < getWidth())
-      pen.fillRectanglePC(visible.x+visible.w, 0, getWidth()-visible.x-visible.w, visible.y);
+  if (visible.origin.y>0) {
+    if (visible.origin.x>0) 
+      pen.fillRectanglePC(0, 0, visible.origin.x, visible.origin.y);
+    if (visible.origin.x+visible.size.width < getWidth())
+      pen.fillRectanglePC(visible.origin.x+visible.size.width, 0, getWidth()-visible.origin.x-visible.size.width, visible.origin.y);
   }
-  if (visible.y+visible.h < getHeight()) {
-    if (visible.x>0) 
-      pen.fillRectanglePC(0, visible.y+visible.h, visible.x, getHeight()-visible.y-visible.h);
-    if (visible.x+visible.w < getWidth())
-      pen.fillRectanglePC(visible.x+visible.w, visible.y+visible.h, getWidth()-visible.x-visible.w, getHeight()-visible.y-visible.h);
+  if (visible.origin.y+visible.size.height < getHeight()) {
+    if (visible.origin.x>0) 
+      pen.fillRectanglePC(0, visible.origin.y+visible.size.height, visible.origin.x, getHeight()-visible.origin.y-visible.size.height);
+    if (visible.origin.x+visible.size.width < getWidth())
+      pen.fillRectanglePC(visible.origin.x+visible.size.width, visible.origin.y+visible.size.height, getWidth()-visible.origin.x-visible.size.width, getHeight()-visible.origin.y-visible.size.height);
   }
   
 #endif

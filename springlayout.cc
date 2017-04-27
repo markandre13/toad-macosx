@@ -130,9 +130,9 @@ TSpringLayout::TFormNode::getShape(TWindow *parent, TRectangle *shape)
 {
   it(parent)->getShape(shape);
   if (w >= 0)
-    shape->w = w;
+    shape->size.width = w;
   if (h >= 0)
-    shape->h = h;
+    shape->size.height = h;
 }
 
 TSpringLayout::TSpringLayout()
@@ -315,10 +315,10 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
     ptr->done  = 0;
     ptr->nflag = 0;
     ptr->getShape(window, &shape);
-    ptr->coord[DTOP]    = shape.y;
-    ptr->coord[DBOTTOM] = shape.y+shape.h;
-    ptr->coord[DLEFT]   = shape.x;
-    ptr->coord[DRIGHT]  = shape.x+shape.w;
+    ptr->coord[DTOP]    = shape.origin.y;
+    ptr->coord[DBOTTOM] = shape.origin.y+shape.size.height;
+    ptr->coord[DLEFT]   = shape.origin.x;
+    ptr->coord[DRIGHT]  = shape.origin.x+shape.size.width;
     for(int i=0; i<4; i++) {
       if (ptr->how[i] == NONE ) {
         ptr->nflag|=(1<<i);
@@ -414,13 +414,13 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
 
         // no top and/or left attachment
         if (ptr->nflag & TOP)
-          ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.h;
+          ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.size.height;
         if (ptr->nflag & BOTTOM)
-          ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.h;
+          ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.size.height;
         if (ptr->nflag & LEFT)
-          ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
+          ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.size.width;
         if (ptr->nflag & RIGHT)
-          ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
+          ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.size.width;
 
         unsigned w,h;
         w = ptr->coord[DRIGHT] - ptr->coord[DLEFT];
@@ -429,28 +429,28 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
         //ptr->it(window)->setSize(w,h);
         //ptr->it(window)->setShape(TPOS_PREVIOUS, TPOS_PREVIOUS, w,h);
         ptr->it(window)->getShape(&shape);
-        shape.w = w;
-        shape.h = h;
+        shape.size.width  = w;
+        shape.size.height = h;
         ptr->it(window)->setShape(shape);
 
         // adjust top and/or left after SetSize
         ptr->getShape(window, &shape);
         if (ptr->nflag & TOP)
-          ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.h;
+          ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.size.height;
         if (ptr->nflag & BOTTOM)
-          ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.h;
+          ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.size.height;
         if (ptr->nflag & LEFT)
-          ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
+          ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.size.width;
         if (ptr->nflag & RIGHT)
-          ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
+          ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.size.width;
         
         ptr->it(window)->setPosition(ptr->coord[DLEFT],ptr->coord[DTOP]);
         ptr->getShape(window, &shape);
 
-        ptr->coord[DTOP]   = shape.y;
-        ptr->coord[DBOTTOM] = shape.y+shape.h;
-        ptr->coord[DLEFT]    = shape.x;
-        ptr->coord[DRIGHT]  = shape.x+shape.w;
+        ptr->coord[DTOP]    = shape.origin.y;
+        ptr->coord[DBOTTOM] = shape.origin.y+shape.size.height;
+        ptr->coord[DLEFT]   = shape.origin.x;
+        ptr->coord[DRIGHT]  = shape.origin.x+shape.size.width;
         ptr->done = HAS_ALL;
         done++;
       }
@@ -471,7 +471,7 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
             #ifdef DEBUG
             printf("guessing left side of %s\n",ptr->name.c_str());
             #endif
-            ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.w;
+            ptr->coord[DLEFT] = ptr->coord[DRIGHT] - shape.size.width;
             ptr->done|=HAS_L;
             bNoGuess = false;
           }
@@ -479,7 +479,7 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
             #ifdef DEBUG
             printf("guessing right side of %s\n",ptr->name.c_str());
             #endif
-            ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.w;
+            ptr->coord[DRIGHT] = ptr->coord[DLEFT] + shape.size.width;
             ptr->done|=HAS_R;
             bNoGuess = false;
           }
@@ -487,7 +487,7 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
             #ifdef DEBUG
             printf("guessing top side of %s\n",ptr->name.c_str());
             #endif
-            ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.h;
+            ptr->coord[DTOP] = ptr->coord[DBOTTOM] - shape.size.height;
             ptr->done|=HAS_T;
             bNoGuess = false;
           }
@@ -495,7 +495,7 @@ TSpringLayout::arrange(int fx,int fy,int fw,int fh)
             #ifdef DEBUG
             printf("guessing bottom side of %s\n",ptr->name.c_str());
             #endif
-            ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.h;
+            ptr->coord[DBOTTOM] = ptr->coord[DTOP] + shape.size.height;
             ptr->done|=HAS_B;
             bNoGuess = false;
           }

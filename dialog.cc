@@ -220,9 +220,7 @@ TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       	  TRectangle r2;
       	  for(auto p=fe->getModel()->begin(); p!=fe->getModel()->end(); ++p) {
       	    r2 = (*p)->bounds();
-      	    if (r1.isInside( r2.x, r2.y ) &&
-      	        r1.isInside( r2.x+r2.w, r2.y+r2.h ) )
-      	    {
+      	    if (r1.isInside(r2)) {
       	      fe->selection.insert(*p);
       	    }
       	  }
@@ -382,8 +380,8 @@ TDialog::paint()
       TPen pen(this);
       TRectangle r;
       wnd->getShape(&r);
-      pen.drawRectanglePC(r.x-3,r.y-2,r.w+6,r.h+4);
-      pen.drawRectanglePC(r.x-2,r.y-3,r.w+4,r.h+6);
+      pen.drawRectanglePC(r.origin.x-3,r.origin.y-2,r.size.width+6,r.size.height+4);
+      pen.drawRectanglePC(r.origin.x-2,r.origin.y-3,r.size.width+4,r.size.height+6);
     }
   }
 }
@@ -463,7 +461,7 @@ arrangeHelper(TFigureModel::iterator p,
         gw->window = (*pm).second;
         TRectangle r;
         r = gw->bounds();
-        gw->window->setShape(r.x,r.y,r.w,r.h);
+        gw->window->setShape(r.origin.x,r.origin.y,r.size.width,r.size.height);
         TLabelOwner *lo = dynamic_cast<TLabelOwner*>(gw->window);
         if (lo) {
           if (gw->label.size()!=0)
@@ -538,13 +536,13 @@ TDialogLayout::arrange()
     TFWindow *gw = new TFWindow();
     gw->title  = (*p).second->getTitle();
     gw->window = (*p).second;
-    gw->setShape(noshape.x, noshape.y, noshape.w, noshape.h);
-    gw->window->setShape(noshape.x, noshape.y, noshape.w, noshape.h);
+    gw->setShape(noshape);
+    gw->window->setShape(noshape);
     gadgets->add(gw);
-    noshape.x+=36;
-    if (noshape.x>window->getWidth()) {
-      noshape.x=4;
-      noshape.y+=36;
+    noshape.origin.x+=36;
+    if (noshape.origin.x>window->getWidth()) {
+      noshape.origin.x=4;
+      noshape.origin.y+=36;
     }
     ++p;
   }

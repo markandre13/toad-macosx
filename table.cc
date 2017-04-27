@@ -354,10 +354,10 @@ TSelectionModel::iterator::getRect()
   TRectangle rect;
   rgn->getRect(n, &rect);
   DBM(cout << "getRect " <<n<<": "<<rect.x<<", "<<rect.y<<", "<<rect.w<<", "<<rect.h<<endl;)
-  x1 = rect.x;
-  y1 = rect.y;
-  x2 = x1 + rect.w - 1;
-  y2 = y1 + rect.h - 1;
+  x1 = rect.origin.x;
+  y1 = rect.origin.y;
+  x2 = x1 + rect.size.width - 1;
+  y2 = y1 + rect.size.height - 1;
 }
     
 TSelectionModel::iterator
@@ -540,8 +540,8 @@ TDefaultTableHeaderRenderer::getWidth()
       ++p)
   {
     TRectangle r = (*p)->bounds();
-    if (w<r.w)
-      w = r.w;
+    if (w<r.size.width)
+      w = r.size.width;
   }
   return w+4;
 }
@@ -558,8 +558,8 @@ TDefaultTableHeaderRenderer::renderItem(TPen &pen, size_t idx, int w, int h)
   if (idx<figures.size() && figures[idx]) {
     fig = figures[idx];
     TRectangle r = fig->bounds();
-    x = (w - r.w)/2;
-    y = (h - r.h)/2;
+    x = (w - r.size.width)/2;
+    y = (h - r.size.height)/2;
   } else
   if (numeric) {
     snprintf(buffer, 15, "%zu", idx+1);
@@ -859,8 +859,8 @@ TTable::invalidateCursor()
     return;
 
   int xp, yp;
-  xp = fpx + visible.x;
-  yp = fpy + visible.y;
+  xp = fpx + visible.origin.x;
+  yp = fpy + visible.origin.y;
 
   for(int x=ffx; x<cx; x++) {
     xp += col_info[x].size;
@@ -871,15 +871,15 @@ TTable::invalidateCursor()
   
   int size = col_info[cx].size;
   
-  if (stretchLastColumn && cx==cols-1 && xp+size<visible.x+visible.w) {
-    size = visible.x+visible.w-xp;
+  if (stretchLastColumn && cx==cols-1 && xp+size<visible.origin.x+visible.size.width) {
+    size = visible.origin.x+visible.size.width-xp;
   }
   
   if (selection && selection->perRow()) {
-    invalidateWindow(visible.x, yp, visible.w, row_info[cy].size+1);
+    invalidateWindow(visible.origin.x, yp, visible.size.width, row_info[cy].size+1);
   } else 
   if (selection && selection->perCol()) {
-    invalidateWindow(xp, visible.y, size, visible.h);
+    invalidateWindow(xp, visible.origin.y, size, visible.size.height);
   } else {
     invalidateWindow(xp, yp, size, row_info[cy].size+1);
   }
@@ -945,17 +945,17 @@ DBSCROLL({
 
   if (col_header_renderer) {
     pen.push();
-    pen.setClipRect(TRectangle(visible.x, 0, visible.w, visible.y));
-    xp = fpx + visible.x;
+    pen.setClipRect(TRectangle(visible.origin.x, 0, visible.size.width, visible.origin.y));
+    xp = fpx + visible.origin.x;
     int h = col_header_renderer->getHeight();
-    for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
+    for(int x=ffx; x<cols && xp<visible.origin.x+visible.size.width; x++) {
       if (col_info[x].size==0)
         continue;
       pen.identity();
       pen.translate(xp,0);
       int size = col_info[x].size;
-      if (stretchLastColumn && x==cols-1 && xp+size<visible.x+visible.w)
-        size = visible.x+visible.w-xp+1;
+      if (stretchLastColumn && x==cols-1 && xp+size<visible.origin.x+visible.size.width)
+        size = visible.origin.x+visible.size.width-xp+1;
       col_header_renderer->renderItem(pen, x, size, h);
       xp+=col_info[x].size;
       if (border) {
@@ -969,10 +969,10 @@ DBSCROLL({
 
   if (row_header_renderer) {
     pen.push();
-    pen.setClipRect(TRectangle(0, visible.y, visible.x, visible.h));
-    yp = fpy + visible.y;
+    pen.setClipRect(TRectangle(0, visible.origin.y, visible.origin.x, visible.size.height));
+    yp = fpy + visible.origin.y;
     int w = row_header_renderer->getWidth();
-    for(int y=ffy; y<rows && yp<visible.y+visible.h; y++) {
+    for(int y=ffy; y<rows && yp<visible.origin.y+visible.size.height; y++) {
       if (row_info[y].size==0)
         continue;
       pen.identity();
@@ -1001,24 +1001,24 @@ DBSCROLL({
   pen.setColor(TColor::DIALOG);
   pen.identity();
 
-  if (visible.x>0) {
-    if (visible.y>0) {
-      pen.fillRectanglePC(0, 0, visible.x, visible.y);
+  if (visible.origin.x>0) {
+    if (visible.origin.y>0) {
+      pen.fillRectanglePC(0, 0, visible.origin.x, visible.origin.y);
     }
-    if (visible.y+visible.h<getHeight()) {
-      pen.fillRectanglePC(0, visible.y+visible.h,
-                          visible.x, getHeight()-visible.y-visible.h);
+    if (visible.origin.y+visible.size.height<getHeight()) {
+      pen.fillRectanglePC(0, visible.origin.y+visible.size.height,
+                          visible.origin.x, getHeight()-visible.origin.y-visible.size.height);
     }
   }
 
-  if (visible.x+visible.w<getWidth()) {
-    if (visible.y>0) {
-      pen.fillRectanglePC(visible.x+visible.w, 0,
-                          getWidth()-visible.x-visible.w, visible.y);
+  if (visible.origin.x+visible.size.width<getWidth()) {
+    if (visible.origin.y>0) {
+      pen.fillRectanglePC(visible.origin.x+visible.size.width, 0,
+                          getWidth()-visible.origin.x-visible.size.width, visible.origin.y);
     }
-    if (visible.y+visible.h<getHeight()) {
-      pen.fillRectanglePC(visible.x+visible.w, visible.y+visible.h,
-                          getWidth()-visible.x-visible.w, getHeight()-visible.y-visible.h);
+    if (visible.origin.y+visible.size.height<getHeight()) {
+      pen.fillRectanglePC(visible.origin.x+visible.size.width, visible.origin.y+visible.size.height,
+                          getWidth()-visible.origin.x-visible.size.width, getHeight()-visible.origin.y-visible.size.height);
     }
   }
 
@@ -1036,17 +1036,17 @@ DBSCROLL({
     pen.setColor(0,0,0);
     pen.setLineStyle(TPen::DOT);
     
-    xp = fpx + visible.x + border/2;
-    for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
+    xp = fpx + visible.origin.x + border/2;
+    for(int x=ffx; x<cols && xp<visible.origin.x+visible.size.width; x++) {
       xp += col_info[x].size;
-      pen.drawLine(xp, visible.y-paney, xp, visible.y+visible.h);
+      pen.drawLine(xp, visible.origin.y-paney, xp, visible.origin.y+visible.size.height);
       xp += border;
     }
     
-    yp = fpy + visible.y + border/2;
-    for(int y=ffy; y<rows && yp<visible.y+visible.h; y++) {
+    yp = fpy + visible.origin.y + border/2;
+    for(int y=ffy; y<rows && yp<visible.origin.y+visible.size.height; y++) {
       yp += row_info[y].size;
-      pen.drawLine(visible.x-panex, yp, visible.x+visible.w, yp);
+      pen.drawLine(visible.origin.x-panex, yp, visible.origin.x+visible.size.width, yp);
       yp += border;
     }
     
@@ -1072,22 +1072,22 @@ DBSCROLL({
   }
 
   // draw the fields with the table adapter
-  yp = fpy + visible.y;
-  for(int y=ffy; y<rows && yp<visible.y+visible.h; y++) {
+  yp = fpy + visible.origin.y;
+  for(int y=ffy; y<rows && yp<visible.origin.y+visible.size.height; y++) {
     if (row_info[y].size==0) {
       continue;
     }
     te.even = !te.even;
-    xp = fpx + visible.x;
+    xp = fpx + visible.origin.x;
     te.row = y;
-    for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
+    for(int x=ffx; x<cols && xp<visible.origin.x+visible.size.width; x++) {
 
       TRectangle check(xp,yp,col_info[x].size, row_info[y].size);
       if (stretchLastColumn && 
           x==cols-1 && 
-          xp+col_info[x].size<visible.x+visible.w) 
+          xp+col_info[x].size<visible.origin.x+visible.size.width) 
       {
-        check.w = visible.x+visible.w-xp;
+        check.size.width = visible.origin.x+visible.size.width-xp;
       }
 
 /*
@@ -1138,8 +1138,8 @@ DBSCROLL(
         }
         te.col = x;
         te.row = y;
-        te.w = check.w;
-        te.h = check.h;
+        te.w = check.size.width;
+        te.h = check.size.height;
         te.cursor = cursor && !noCursor;
         te.selected = selected;
         te.pen = &pen;
@@ -1166,19 +1166,19 @@ DBSCROLL(
 #if 1
   // clear unused window region (we must do it on our own because
   // background is disabled to reduce flicker)
-  if (!stretchLastColumn && xp<=visible.x+visible.w) {
+  if (!stretchLastColumn && xp<=visible.origin.x+visible.size.width) {
     pen.identity();
     pen.setColor(128,64,64);
     pen.setColor(getBackground());
     xp--;
-    pen.fillRectanglePC(xp,0,visible.x+visible.w-xp,getHeight());
+    pen.fillRectanglePC(xp,0,visible.origin.x+visible.size.width-xp,getHeight());
   }
-  if (yp<=visible.y+visible.h) {
+  if (yp<=visible.origin.y+visible.size.height) {
     pen.identity();
     pen.setColor(64,64,128);
     pen.setColor(getBackground());
     // yp--;
-    pen.fillRectanglePC(0,yp,getWidth(),visible.y+visible.h-yp);
+    pen.fillRectanglePC(0,yp,getWidth(),visible.origin.y+visible.size.height-yp);
   }
 #endif
   DBM2(cerr << "leave paint" << endl << endl;)
@@ -1264,8 +1264,8 @@ TTable::mouse2field(TPoint m, size_t *fx, size_t *fy, TPoint *fp)
   }
 
   // transform (mx, my) from screen pixel to table pixel coordinates
-  m.x -= visible.x + fpx;
-  m.y -= visible.y + fpy;
+  m.x -= visible.origin.x + fpx;
+  m.y -= visible.origin.y + fpy;
 
   pos1 = 0;
   for(x=ffx; ; x++) {
@@ -1276,7 +1276,7 @@ TTable::mouse2field(TPoint m, size_t *fx, size_t *fy, TPoint *fp)
     int size = col_info[x].size;
     pos2 = pos1 + col_info[x].size;
     if (stretchLastColumn && x==cols-1)
-      pos2 = visible.x+visible.w;
+      pos2 = visible.origin.x+visible.size.width;
     if (pos1 <= m.x && m.x < pos2) {
       break;
     }
@@ -1339,12 +1339,12 @@ TTable::mouseEvent(const TMouseEvent &me)
       int size = col_info[x].size;
       if (stretchLastColumn && x==cols-1) {
         int xp;
-        xp = fpx + visible.x;
+        xp = fpx + visible.origin.x;
         for(int _x=ffx; _x<x; _x++) {
           xp += col_info[_x].size;
         }
-        if (xp+size<visible.x+visible.w)
-          size = visible.x+visible.w-xp;
+        if (xp+size<visible.origin.x+visible.size.width)
+          size = visible.origin.x+visible.size.width-xp;
       }
       te.col = x;
       te.row = y;
@@ -1370,14 +1370,14 @@ TTable::mouseEvent(const TMouseEvent &me)
     case 1:
       int colx;
       if (col_header_renderer) {
-        TRectangle clip(visible.x, 0, visible.w, visible.y);
+        TRectangle clip(visible.origin.x, 0, visible.size.width, visible.origin.y);
         if (clip.isInside(me.pos)) {
-          int xp = fpx + visible.x;
+          int xp = fpx + visible.origin.x;
           int h = col_header_renderer->getHeight();
-          for(int x=ffx; x<cols && xp<visible.x+visible.w; x++) {
+          for(int x=ffx; x<cols && xp<visible.origin.x+visible.size.width; x++) {
             int size = col_info[x].size;
-            if (stretchLastColumn && x==cols-1 && xp+size<visible.x+visible.w)
-              size = visible.x+visible.w-xp+1;
+            if (stretchLastColumn && x==cols-1 && xp+size<visible.origin.x+visible.size.width)
+              size = visible.origin.x+visible.size.width-xp+1;
 //            cout << "xp="<<xp<<", size="<<size<<", mx="<<me.x<<endl;
             if (xp+1 <= me.pos.x && me.pos.x <= xp+size-2) {
 //              cout << "  inside " << x << endl;
@@ -1408,7 +1408,7 @@ TTable::mouseEvent(const TMouseEvent &me)
         state = 2;
         col = colx;
         osize = col_info[col].size;
-        opane = pane.w;
+        opane = pane.size.width;
         mdown = me.pos.x;
 //        cout << "grep between " << col << endl;
       }
@@ -1424,7 +1424,7 @@ TTable::mouseEvent(const TMouseEvent &me)
         col_info[col].size = osize+me.pos.x-mdown;
         if (col_info[col].size<3)
           col_info[col].size=3;
-        pane.w = opane - osize + col_info[col].size;
+        pane.size.width = opane - osize + col_info[col].size;
         invalidateWindow();
         doLayout();
       }
@@ -1465,12 +1465,12 @@ TTable::mouseLDown(const TMouseEvent &m)
     int size = col_info[x].size;
     if (stretchLastColumn && x==cols-1) {
       int xp;
-      xp = fpx + visible.x;
+      xp = fpx + visible.origin.x;
       for(int _x=ffx; _x<x; _x++) {
         xp += col_info[_x].size;
       }
-      if (xp+size<visible.x+visible.w)
-        size = visible.x+visible.w-xp;
+      if (xp+size<visible.origin.x+visible.size.width)
+        size = visible.origin.x+visible.size.width-xp;
     }
     te.col = x;
     te.row = y;
@@ -1671,14 +1671,14 @@ TTable::center(int how)
     }
     
     int y1 = paney;
-    int y2 = y1 + visible.h;
+    int y2 = y1 + visible.size.height;
     
     if (yp<=y1) {
       paney = yp;
     } else {
       yp += row_info[y].size + border;
       if (yp>y2) {
-        paney = yp-visible.h;
+        paney = yp-visible.size.height;
       }
     }
   }
@@ -1691,14 +1691,14 @@ TTable::center(int how)
     }
     
     int x1 = panex;
-    int x2 = x1 + visible.w;
+    int x2 = x1 + visible.size.width;
       
     if (xp<=x1) {
       panex = xp;
     } else {
       xp += col_info[x].size + border;
       if (xp>x2) {
-        panex = xp-visible.w;
+        panex = xp-visible.size.width;
       }
     }
   }
@@ -1977,7 +1977,7 @@ TTable::_handleInsertRow()
 //cout << "  open == " << (isRowOpen(i)?"open":"closed") << endl;
     adapter->tableEvent(te);
     info->size = te.h;
-    pane.h += te.h + border;
+    pane.size.height += te.h + border;
     ++info;
   }
   
@@ -2002,7 +2002,7 @@ TTable::_handleInsertRow()
   if (ffy <= adapter->where) {
     int py = fpy;
     for(size_t y = ffy; y<new_rows; ++y) {
-      if (py>visible.h) {
+      if (py>visible.size.height) {
         cout << "return" << endl;
         return;
       }
@@ -2034,7 +2034,7 @@ TTable::_handleRemovedRow()
   TRCInfo *info = row_info + adapter->where;
   for(int i=adapter->where; i<adapter->where+adapter->size; ++i) {
     DBM(cout << "pane.h: " << pane.h << endl;)
-    pane.h -= info->size + border;
+    pane.size.height -= info->size + border;
     ++info;
   }
 
@@ -2109,10 +2109,10 @@ TTable::_handleResizedRow()
   te.col = 0;
   for(te.row=adapter->where; te.row<adapter->where+adapter->size; ++te.row) {
     DBM(cout << "pane.h: " << pane.h << endl;)
-    pane.h -= info->size;
+    pane.size.height -= info->size;
     adapter->tableEvent(te);
     info->size = te.h;
-    pane.h += te.h;
+    pane.size.height += te.h;
     ++info;
   }
 #if 0    
@@ -2167,7 +2167,7 @@ TTable::handleNewModel()
   TRCInfo *info;
 
   // calculate pane.w
-  pane.w=0;
+  pane.size.width=0;
   info = col_info;
   TTableEvent te;
   te.type = TTableEvent::GET_COL_SIZE;
@@ -2176,7 +2176,7 @@ TTable::handleNewModel()
     te.w = 64;
     adapter->tableEvent(te);
     info->size = te.w;
-    pane.w += te.w + border;
+    pane.size.width += te.w + border;
     ++info;
   }
   DBM(cout << "pane.w: " << pane.w << endl;)
@@ -2187,7 +2187,7 @@ TTable::handleNewModel()
   TFont &font(getDefaultFont());
   TCoord h = font.getHeight()+4;
   
-  pane.h=0;
+  pane.size.height=0;
   info = row_info;
   te.type = TTableEvent::GET_ROW_SIZE;
   te.col = 0;
@@ -2198,7 +2198,7 @@ TTable::handleNewModel()
     te.h = h;
     adapter->tableEvent(te);
     info->size = te.h;
-    pane.h += te.h + border;
+    pane.size.height += te.h + border;
     ++info;
   }
   DBM(cout << "pane.h: " << pane.h << endl;)
@@ -2211,12 +2211,12 @@ void
 TTable::adjustPane()
 {
   if (row_header_renderer) {
-    visible.x = row_header_renderer->getWidth();
-    visible.w -= visible.x;
+    visible.origin.x = row_header_renderer->getWidth();
+    visible.size.width -= visible.origin.x;
   }
   if (col_header_renderer) {
-    visible.y = col_header_renderer->getHeight();
-    visible.h -= visible.y;
+    visible.origin.y = col_header_renderer->getHeight();
+    visible.size.height -= visible.origin.y;
   }
-  setUnitIncrement(cols ? pane.w/cols : 1, rows ? pane.h/rows : 1);
+  setUnitIncrement(cols ? pane.size.width/cols : 1, rows ? pane.size.height/rows : 1);
 }

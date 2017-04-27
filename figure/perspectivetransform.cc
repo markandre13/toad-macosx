@@ -127,34 +127,33 @@ TFPerspectiveTransform::init()
     r = f->bounds();
     m.identity();
     for(int i=0; i<4; ++i) {
-      int x, y;
+      TPoint p;
       switch(i) {
         case 0:
-          m.map(r.x, r.y, &x, &y);
+          m.map(r.origin, &p);
           break;
         case 1:
-          m.map(r.x+r.w, r.y, &x, &y);
+          m.map(r.origin.x+r.size.width, r.origin.y, &p.x, &p.y);
           break;
         case 2:
-          m.map(r.x+r.w, r.y+r.h, &x, &y);
+          m.map(r.origin+r.size, &p);
           break;
         case 3:
-          m.map(r.x, r.y+r.h, &x, &y);
+          m.map(r.origin.x, r.origin.y+r.size.height, &p.x, &p.y);
           break;
       }
       if (first) {
-        p1.x = p2.x = x;
-        p1.y = p2.y = y;
+        p1 = p2 = p;
         first = false;
       } else {
-        if (p1.x>x)
-          p1.x=x;
-        if (p2.x<x)
-          p2.x=x;
-        if (p1.y>y) 
-          p1.y=y;
-        if (p2.y<y)
-          p2.y=y;
+        if (p1.x>p.x)
+          p1.x=p.x;
+        if (p2.x<p.x)
+          p2.x=p.x;
+        if (p1.y>p.y) 
+          p1.y=p.y;
+        if (p2.y<p.y)
+          p2.y=p.y;
       }
     }
   }

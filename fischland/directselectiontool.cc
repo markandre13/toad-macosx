@@ -231,8 +231,7 @@ TDirectSelectionTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
         memo_pt.y-fe->fuzziness<=pos.y && pos.y<=memo_pt.y+fe->fuzziness)
     {
       fe->getFigureShape(figure, &oldshape, fe->getMatrix());
-      oldshape.x+=fe->getVisible().x;
-      oldshape.y+=fe->getVisible().y;
+      oldshape.origin += fe->getVisible().origin;
       handle = h;
       hndl = true;
       tht = figure->startTranslateHandle();

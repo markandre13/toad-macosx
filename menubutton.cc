@@ -232,11 +232,11 @@ TMenuButton::paint()
       )
     )
   {
-    TCoord y=h/2;
+    TCoord y=size.height/2;
     TPoint tri[3];
-    tri[0].x=w-7; tri[0].y=y-4;
-    tri[1].x=w-3; tri[1].y=y;
-    tri[2].x=w-7; tri[2].y=y+4;
+    tri[0].x=size.width-7; tri[0].y=y-4;
+    tri[1].x=size.width-3; tri[1].y=y;
+    tri[2].x=size.width-7; tri[2].y=y+4;
     pen.fillPolygon(tri, 3);
   }
 }

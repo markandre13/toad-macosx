@@ -349,7 +349,7 @@ class TWindow:
     virtual void setSize(TCoord w, TCoord h) override;
     virtual void setShape(TCoord x, TCoord y, TCoord w, TCoord h) override;
     void setShape(const TRectangle &r) {
-      setShape(r.x, r.y, r.w, r.h);
+      setShape(r.origin.x, r.origin.y, r.size.width, r.size.height);
     }
     virtual void getShape(TRectangle *r) const override {
       *r = *this;
@@ -378,10 +378,10 @@ class TWindow:
       _bg.set(r, g, b);
     }
     const TRGB& getBackground() const { return _bg; }
-    TCoord getXPos() const override { return x; }
-    TCoord getYPos() const override { return y; }
-    TCoord getWidth() const override { return w; }
-    TCoord getHeight() const override { return h; }  
+    TCoord getXPos() const override { return origin.x; }
+    TCoord getYPos() const override { return origin.y; }
+    TCoord getWidth() const override { return size.width; }
+    TCoord getHeight() const override { return size.height; }  
 
     void setCursor(TCursor::EType);
     void setCursor(const TCursor *cursor);

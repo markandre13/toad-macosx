@@ -67,14 +67,14 @@ TRectangle
 TFImage::bounds() const
 {
   TRectangle r;
-  r.x = x;
-  r.y = y;
+  r.origin.x = x;
+  r.origin.y = y;
   if (bitmap) {
-    r.w = bitmap->getWidth();
-    r.h = bitmap->getHeight();
+    r.size.width  = bitmap->getWidth();
+    r.size.height = bitmap->getHeight();
   } else {
-    r.w = 32;
-    r.h = 32;
+    r.size.width  = 32;
+    r.size.height = 32;
   }
   return r;
 }

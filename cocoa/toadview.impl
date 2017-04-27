@@ -81,8 +81,8 @@
               userData: NULL
               assumeInside: NO];
 */
-  twindow->w = newSize.width;
-  twindow->h = newSize.height;
+  twindow->size.width = newSize.width;
+  twindow->size.height = newSize.height;
   twindow->doResize();
   TOAD_DBG_LEAVE
 }

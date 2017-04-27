@@ -118,7 +118,7 @@ TMessageBox::TMessageBox(TWindow* p,
   
   // create buttons
   TCoord w = n * btn_width + (n-1) * btn_hspace;
-  TCoord x = (this->w - w)/2;
+  TCoord x = (this->size.width - w)/2;
   static const char* label[8] =
   {
     "Accept","Abort","Ok","Retry","Yes","No","Cancel","Ignore"

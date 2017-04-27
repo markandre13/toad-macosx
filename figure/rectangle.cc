@@ -202,10 +202,10 @@ TFRectangle::store(TOutObjectStream &out) const
 {
   super::store(out);
   TRectangle r(p1,p2);
-  ::store(out, "x", r.x);
-  ::store(out, "y", r.y);
-  ::store(out, "w", r.w);
-  ::store(out, "h", r.h);
+  ::store(out, "x", r.origin.x);
+  ::store(out, "y", r.origin.y);
+  ::store(out, "w", r.size.width);
+  ::store(out, "h", r.size.height);
 }
 
 bool
@@ -215,14 +215,14 @@ TFRectangle::restore(TInObjectStream &in)
   static TRectangle r;
 
   if (::finished(in)) {
-    setShape(r.x, r.y, r.w, r.h);
+    setShape(r);
     return true;
   }
   if (
-    ::restore(in, "x", &r.x) ||
-    ::restore(in, "y", &r.y) ||
-    ::restore(in, "w", &r.w) ||
-    ::restore(in, "h", &r.h) ||
+    ::restore(in, "x", &r.origin.x) ||
+    ::restore(in, "y", &r.origin.y) ||
+    ::restore(in, "w", &r.size.width) ||
+    ::restore(in, "h", &r.size.height) ||
     super::restore(in)
   ) return true;
   ATV_FAILED(in)

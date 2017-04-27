@@ -88,7 +88,7 @@ TColorPicker::paintFill(TPen &pen)
       pen.fillRectangle(fillRect);
       pen.setColor(1,0,0);
       pen.setLineWidth(1.5);
-      pen.drawLine(fillRect.x, fillRect.y+fillRect.h, fillRect.x+fillRect.w, fillRect.y);
+      pen.drawLine(fillRect.origin.x, fillRect.origin.y+fillRect.size.height, fillRect.origin.x+fillRect.size.width, fillRect.origin.y);
       pen.setLineWidth(1);
       break;
   }
@@ -103,16 +103,16 @@ TColorPicker::paintLine(TPen &pen)
   pen.fillRectangle(lineRect);
   if (line==COLOR) {
     pen.setColor(linecolor);
-    pen.fillRectangle(lineRect.x+1.5, lineRect.y+1.5, lineRect.w-3, lineRect.h-3);
+    pen.fillRectangle(lineRect.origin.x+1.5, lineRect.origin.y+1.5, lineRect.size.width-3, lineRect.size.height-3);
   }
   pen.setColor(1,1,1);
-  pen.fillRectangle(lineRect.x+1.5+5, lineRect.y+1.5+5, lineRect.w-3-10, lineRect.h-3-10);
+  pen.fillRectangle(lineRect.origin.x+1.5+5, lineRect.origin.y+1.5+5, lineRect.size.width-3-10, lineRect.size.height-3-10);
   pen.setColor(0,0,0);
-  pen.drawRectangle(lineRect.x+1.5+5+1.5, lineRect.y+1.5+5+1.5, lineRect.w-3-10-3, lineRect.h-3-10-3);
+  pen.drawRectangle(lineRect.origin.x+1.5+5+1.5, lineRect.origin.y+1.5+5+1.5, lineRect.size.width-3-10-3, lineRect.size.height-3-10-3);
   if (line==NONE) {
     pen.setColor(1,0,0);
     pen.setLineWidth(1.5);
-    pen.drawLine(lineRect.x, lineRect.y+lineRect.h, lineRect.x+lineRect.w, lineRect.y);
+    pen.drawLine(lineRect.origin.x, lineRect.origin.y+lineRect.size.height, lineRect.origin.x+lineRect.size.width, lineRect.origin.y);
     pen.setLineWidth(1);
     pen.setColor(0,0,0);
   }
@@ -219,34 +219,34 @@ TColorPicker::paint()
 
   // reset to default colors
   pen.setColor(0,0,0);
-  pen.fillRectangle(initRect.x+2.5, initRect.y+3, initRect.w-3, initRect.h-3);
+  pen.fillRectangle(initRect.origin.x+2.5, initRect.origin.y+3, initRect.size.width-3, initRect.size.height-3);
   pen.setColor(1,1,1);
-  pen.fillRectangle(initRect.x+4.5, initRect.y+5, initRect.w-7, initRect.h-7);
-  pen.fillRectangle(initRect.x,initRect.y+0.5, initRect.w-4, initRect.h-4);
+  pen.fillRectangle(initRect.origin.x+4.5, initRect.origin.y+5, initRect.size.width-7, initRect.size.height-7);
+  pen.fillRectangle(initRect.origin.x,initRect.origin.y+0.5, initRect.size.width-4, initRect.size.height-4);
   pen.setColor(0,0,0);
-  pen.drawRectangle(initRect.x,initRect.y+0.5, initRect.w-4, initRect.h-4);
+  pen.drawRectangle(initRect.origin.x,initRect.origin.y+0.5, initRect.size.width-4, initRect.size.height-4);
 
   // arrows
   pen.setColor(0,0,0);
   TPolygon p;
-  p.addPoint(flipRect.x  , flipRect.y+2);
-  p.addPoint(flipRect.x+2, flipRect.y);
-  p.addPoint(flipRect.x+2, flipRect.y+4);
+  p.addPoint(flipRect.origin.x  , flipRect.origin.y+2);
+  p.addPoint(flipRect.origin.x+2, flipRect.origin.y);
+  p.addPoint(flipRect.origin.x+2, flipRect.origin.y+4);
   pen.fillPolygon(p);
   pen.drawPolygon(p);
 
   p.clear();
-  p.addPoint(flipRect.x+flipRect.w-2  , flipRect.y+flipRect.h);
-  p.addPoint(flipRect.x+flipRect.w-4  , flipRect.y+flipRect.h-2);
-  p.addPoint(flipRect.x+flipRect.w  , flipRect.y+flipRect.h-2);
+  p.addPoint(flipRect.origin.x+flipRect.size.width-2, flipRect.origin.y+flipRect.size.height);
+  p.addPoint(flipRect.origin.x+flipRect.size.width-4, flipRect.origin.y+flipRect.size.height-2);
+  p.addPoint(flipRect.origin.x+flipRect.size.width  , flipRect.origin.y+flipRect.size.height-2);
   pen.fillPolygon(p);
   pen.drawPolygon(p);
 
   p.clear();
-  p.addPoint(flipRect.x+2, flipRect.y+2);
-  p.addPoint(flipRect.x+flipRect.w-2, flipRect.y+2);
-  p.addPoint(flipRect.x+flipRect.w-2, flipRect.y+2);
-  p.addPoint(flipRect.x+flipRect.w-2, flipRect.y+flipRect.h-2);
+  p.addPoint(flipRect.origin.x+2, flipRect.origin.y+2);
+  p.addPoint(flipRect.origin.x+flipRect.size.width-2, flipRect.origin.y+2);
+  p.addPoint(flipRect.origin.x+flipRect.size.width-2, flipRect.origin.y+2);
+  p.addPoint(flipRect.origin.x+flipRect.size.width-2, flipRect.origin.y+flipRect.size.height-2);
   pen.drawBezier(p);
 
   // color,gradient,none

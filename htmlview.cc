@@ -1977,7 +1977,7 @@ h = getHeight() + y;
 int flag=0;
 #endif
 
-  TState state(pane.w);
+  TState state(pane.size.width);
   state.output = true;
   p = parsed->begin();
   e = parsed->end();

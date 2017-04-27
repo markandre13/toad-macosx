@@ -47,7 +47,7 @@ TFText::TFText(TCoord x,TCoord y, const string &aText, TFigure *aRelation) {
   relation = aRelation;
   if (relation) {
     TRectangle bounds = relation->bounds();
-    p1.set(bounds.x+3, bounds.y+3);
+    p1.set(bounds.origin.x+3, bounds.origin.y+3);
   }
   wp.init(text);
   calcSize();
@@ -64,7 +64,7 @@ TFText::editEvent(TFigureEditEvent &editEvent)
         return false;
       }
       TRectangle bounds = relation->bounds();
-      TPoint difference = TPoint(p1.x-bounds.x-3, p1.y-bounds.y-3);
+      TPoint difference = TPoint(p1.x-bounds.origin.x-3, p1.y-bounds.origin.y-3);
       p1 -= difference;
       p2 -= difference;
       // in theory, an TFText with a relation is wrapped inside the relation and

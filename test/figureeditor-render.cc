@@ -135,19 +135,17 @@ gridrange(const TRectangle &inArea,
   
     TMatrix2D m(*mat);
     m.invert();
-    TPoint p0 = m.map(TPoint(area.x, area.y));
-    TPoint p1 = m.map(TPoint(area.x+area.w, area.y+area.h));
+    TPoint p0 = m.map(area.origin);
+    TPoint p1 = m.map(area.origin+area.size);
 
-    area.x = p0.x;
-    area.y = p0.y;
-    area.w = p1.x - p0.x;
-    area.h = p1.y - p0.y;
+    area.origin = p0;
+    area.size   = p1 - p0;
   } else {
     gridsizeScaled = gridsize;
   }
   
-  range.x1 = area.x + area.w;
-  range.y1 = area.y + area.h;
+  range.x1 = area.origin.x + area.size.width;
+  range.y1 = area.origin.y + area.size.height;
 
   // Y
   // origin correction
@@ -156,9 +154,9 @@ gridrange(const TRectangle &inArea,
     f+=gridsize;
 
   // area jump
-  while(f-gridsize-area.y>=0)
+  while(f-gridsize-area.origin.y>=0)
     f -= gridsize;
-  while(f-gridsize-area.y<=-5)
+  while(f-gridsize-area.origin.y<=-5)
     f += gridsize;
   range.y0 = f;
 
@@ -252,9 +250,9 @@ gridrange(const TRectangle &inArea,
   else if (f0-gridsize-area.x==-10)
     f0 += gridsize * 2;
 #else
-  while(f-gridsize-area.x>=0)
+  while(f-gridsize-area.origin.x>=0)
     f -= gridsize;
-  while(f-gridsize-area.x<=-5)
+  while(f-gridsize-area.origin.x<=-5)
     f += gridsize;
 #endif
 

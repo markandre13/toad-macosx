@@ -57,8 +57,8 @@ TFischEditor::paint()
 
   pen.setClipRect(visible);
 
-  pen.translate(origin.x+visible.x,
-                origin.y+visible.y);
+  pen.translate(origin+visible.origin);
+
   if (mat)
     pen.multiply(mat);
 

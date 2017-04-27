@@ -106,7 +106,7 @@ TMyWindow::TMyWindow(TWindow* p, const string& t):
 {
   TComboBox *cb = new TComboBox(this, "combobox");
 
-  cb->setShape(5,5,200,cb->h);
+  cb->setShape(5,5,200,cb->size.height);
   cb->setAdapter(new TCStringTableAdapter(name));
 //  cb->setSelectionModel(new TSelectionModel());
   cb->getSelectionModel()->select(0,0);

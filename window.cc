@@ -198,15 +198,15 @@ TWindow::getRootPos(int *x,int *y)
   *x = 0; // this->x;
   *y = 0; // this->y;
   while(p) {
-    *x += p->x;
-    *y += p->y;
+    *x += p->origin.x;
+    *y += p->origin.y;
     p = p->getParent();
     if (!p)
       break;
     if (p->nswindow) {
       NSRect nr;
       nr.origin.x = *x;
-      nr.origin.y = p->h-*y;
+      nr.origin.y = p->size.height-*y;
       nr = [p->nswindow convertRectToScreen: nr];
 //cout << "nswindow " << p->getTitle() << " on screen " << np.x << ", " << np.y << endl;
       *x = nr.origin.x;
@@ -256,55 +256,53 @@ TWindow::placeWindow(EWindowPlacement how, TWindow *parent, TCoord dx, TCoord dy
         [nswindow center];
         return;
       }
-      x = where.x + (where.w/2) - (w/2);
-      y = where.y + (where.h/2) - (h/2);
+      origin = where.origin + (where.size - size)/2.0;
     } break;
     case PLACE_SCREEN_RANDOM:
     case PLACE_PARENT_RANDOM: {
-      x = where.x + (where.w/2) - (w/2);
-      y = where.y + (where.h/2) - (h/2);
-      int xr = (int) (0.5*where.w*rand()/(RAND_MAX+1.0));
-      xr-=(where.w/4);
-      x+=xr;
-      int yr = (int) (0.5*where.h*rand()/(RAND_MAX+1.0));
-      yr-=(where.h/4);
-      y+=yr;
+      origin = where.origin + (where.size - size)/2.0;
+      int xr = (int) (0.5*where.size.width*rand()/(RAND_MAX+1.0));
+      xr-=(where.size.width/4);
+      origin.x+=xr;
+      int yr = (int) (0.5*where.size.height*rand()/(RAND_MAX+1.0));
+      yr-=(where.size.height/4);
+      origin.y+=yr;
       
       // keep window inside the screen boundarys
       static const TCoord dist = 32;
-      if (x+w>sw-dist)
-	x = sw-w-dist;
-      if (y+h>sh-dist)
-        y = sh-h-dist;
-      if (x<dist)
-        x=dist;   
-      if (y<dist)
-        y=dist;
+      if (origin.x+size.width>sw-dist)
+	origin.x = sw-size.width-dist;
+      if (origin.y+size.height>sh-dist)
+        origin.y = sh-size.height-dist;
+      if (origin.x<dist)
+        origin.x=dist;   
+      if (origin.y<dist)
+        origin.y=dist;
     } break;
     case PLACE_MOUSE_POINTER: {
       NSPoint p = [NSEvent mouseLocation];
-      x = p.x - w/2;
-      y = p.y - h/2;
+      origin.x = p.x - size.width/2;
+      origin.y = p.y - size.height/2;
       } break;
     case PLACE_CORNER_MOUSE_POINTER: {
       NSPoint p = [NSEvent mouseLocation];
-      x = p.x;
-      y = p.y - h;
+      origin.x = p.x;
+      origin.y = p.y - size.height;
     } break;
     case PLACE_PULLDOWN: {
       int rx, ry;
       parent->getRootPos(&rx, &ry);
-      x=rx; y=ry;
-      y-=parent->h; // below parent
-      y-=h;
+      origin.x=rx; origin.y=ry;
+      origin.y-=parent->size.height; // below parent
+      origin.y-=size.height;
       // FIXME: should update the window object now, only done in setMapped for now
     } break;
     case PLACE_TOOLTIP:
       break;
   }
   
-  x+=dx;
-  y-=dy; // inverted Y-coord on Cocoa
+  origin.x+=dx;
+  origin.y-=dy; // inverted Y-coord on Cocoa
 }
 
 /**
@@ -577,8 +575,8 @@ TWindow::_windowDidMove(NSNotification *notification)
     return;
   }
   NSPoint pt = [t frame].origin;
-  t->twindow->x = pt.x;
-  t->twindow->y = t->twindow->h - pt.y;
+  t->twindow->origin.x = pt.x;
+  t->twindow->origin.y = t->twindow->size.height - pt.y;
 }
 
 TWindow::TWindow(TWindow *parent, const string &title):
@@ -665,7 +663,7 @@ TWindow::~TWindow()
 void
 TWindow::createCocoaView()
 {
-  toadView *view = [[toadView alloc] initWithFrame: NSMakeRect(x,y,w,h)];
+  toadView *view = [[toadView alloc] initWithFrame: NSMakeRect(origin.x,origin.y,size.width,size.height)];
   view->twindow = this;
   nsview = view;
 }
@@ -708,7 +706,7 @@ TWindow::createWindow()
                 | NSWindowStyleMaskClosable
                 | NSWindowStyleMaskResizable;
     }
-    [nswindow initWithContentRect: NSMakeRect(x, y, w, h)
+    [nswindow initWithContentRect: NSMakeRect(origin.x,origin.y,size.width,size.height)
          styleMask: styleMask
          backing: NSBackingStoreBuffered
          defer: NO];
@@ -853,8 +851,7 @@ TWindow::setMapped(bool b)
   if (b && nswindow) {
     // FIXME: only the size, see also placeWindow
     NSRect frame = [nswindow frame];
-    frame.origin.x = x;
-    frame.origin.y = y;
+    frame.origin = origin;
     [nswindow setFrame: frame display: false];
   }
 
@@ -893,11 +890,11 @@ void
 TWindow::setSize(TCoord w, TCoord h)
 {
   if (w<0)
-    w = this->w;
+    w = size.width;
   if (h<0)
-    h = this->h;
+    h = size.height;
 
-  if (w==this->w && h==this->h)
+  if (w==size.width && h==size.height)
     return;
 
 #if 0
@@ -919,7 +916,7 @@ cerr << "  old pos="<<this->x<<","<<this->y<<", size="<<this->w<<","<<this->h<<e
     NSRect r = [nswindow frame];
     // MacOS's screen origin is left-bottom, TOAD's is left-top so changing the
     // size also requires to adjust the windows position
-    r.origin.y += this->h - h;
+    r.origin.y += size.height - h;
     r.size.width = w;
     r.size.height = h;
     [nswindow setFrame: r display: true];
@@ -932,22 +929,21 @@ cerr << "  old pos="<<this->x<<","<<this->y<<", size="<<this->w<<","<<this->h<<e
     [nsview setFrame: r];
   }
 
-  this->w = w;
-  this->h = h;
+  size.width = w;
+  size.height = h;
 }
 
 void
 TWindow::setPosition(TCoord x, TCoord y)
 {
+  if (origin.x==x && origin.y==y)
+    return;
+  origin.x = x;
+  origin.y = y;
   if (nsview) {
-    if (this->x==x && this->y==y)
-      return;
 //    cerr << "change position of Cocoa window " << getTitle() << " from " << this->x << ", " << this->y << " to " << x << ", " << y << endl;
-    NSPoint pt = NSMakePoint(x, y);
-    [nsview setFrameOrigin: pt];
+    [nsview setFrameOrigin: origin];
   }
-  this->x = x;
-  this->y = y;
 }
 
 void
@@ -991,7 +987,7 @@ void
 TWindow::invalidateWindow(const TRectangle &r, bool clearbg)
 {
   if (nsview) {
-    [nsview setNeedsDisplayInRect: NSMakeRect(r.x, r.y, r.w, r.h)];
+    [nsview setNeedsDisplayInRect: NSMakeRect(r.origin.x, r.origin.y, r.size.width, r.size.height)];
   }
 }
 
@@ -1034,29 +1030,29 @@ TWindow::scrollRectangle(const TRectangle &r, TCoord dx, TCoord dy, bool redraw)
 {
   if (dx>=0) {
     if (dy>=0)
-      [nsview scrollRect: CGRectMake(r.x, r.y, r.w-dx, r.h-dy) by: NSMakeSize(dx, dy)];
+      [nsview scrollRect: CGRectMake(r.origin.x, r.origin.y, r.size.width-dx, r.size.height-dy) by: NSMakeSize(dx, dy)];
     else
-      [nsview scrollRect: CGRectMake(r.x, r.y-dy, r.w-dx, r.h+dy) by: NSMakeSize(dx, dy)];
+      [nsview scrollRect: CGRectMake(r.origin.x, r.origin.y-dy, r.size.width-dx, r.size.height+dy) by: NSMakeSize(dx, dy)];
   } else {
     if (dy>=0)
-      [nsview scrollRect: CGRectMake(r.x-dx, r.y, r.w+dx, r.h-dy) by: NSMakeSize(dx, dy)];
+      [nsview scrollRect: CGRectMake(r.origin.x-dx, r.origin.y, r.size.width+dx, r.size.height-dy) by: NSMakeSize(dx, dy)];
     else
-      [nsview scrollRect: CGRectMake(r.x-dx, r.y-dy, r.w+dx, r.h+dy) by: NSMakeSize(dx, dy)];
+      [nsview scrollRect: CGRectMake(r.origin.x-dx, r.origin.y-dy, r.size.width+dx, r.size.height+dy) by: NSMakeSize(dx, dy)];
   }
   
-  [nsview translateRectsNeedingDisplayInRect: CGRectMake(r.x, r.y, r.w, r.h) by: NSMakeSize(dx, dy)];
+  [nsview translateRectsNeedingDisplayInRect: CGRectMake(r.origin.x, r.origin.y, r.size.width, r.size.height) by: NSMakeSize(dx, dy)];
   
   if (!redraw)
     return;
 
   if (dx>0)
-    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, dx, r.h)];
+    [nsview setNeedsDisplayInRect: CGRectMake(r.origin.x, r.origin.y, dx, r.size.height)];
   if (dx<0)
-    [nsview setNeedsDisplayInRect: CGRectMake(r.x+r.w+dx, r.y, -dx, r.h)];
+    [nsview setNeedsDisplayInRect: CGRectMake(r.origin.x+r.size.width+dx, r.origin.y, -dx, r.size.height)];
   if (dy>0)
-    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y, r.w, dy)];
+    [nsview setNeedsDisplayInRect: CGRectMake(r.origin.x, r.origin.y, r.size.width, dy)];
   if (dy<0)
-    [nsview setNeedsDisplayInRect: CGRectMake(r.x, r.y+r.h+dy, r.w, -dy)];
+    [nsview setNeedsDisplayInRect: CGRectMake(r.origin.x, r.origin.y+r.size.height+dy, r.size.width, -dy)];
 }
 
 #if 0
