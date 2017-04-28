@@ -36,7 +36,7 @@ class TFPath:
     TRectangle bounds() const override;
     TRectangle editBounds() const override;
 
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     bool getHandle(unsigned handle, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y) override;

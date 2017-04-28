@@ -1106,6 +1106,7 @@ vector.o: include/toad/interactor.hh include/toad/connect.hh
 vector.o: include/toad/cursor.hh include/toad/region.hh
 vector.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 vector.o: include/toad/model.hh include/toad/geometry.hh include/toad/pen.hh
+vector.o: include/toad/figure.hh include/toad/wordprocessor.hh
 geometry.o: include/toad/geometry.hh include/toad/types.hh
 geometry.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 geometry.o: include/toad/vector.hh include/toad/penbase.hh
@@ -2793,6 +2794,7 @@ vector.o: include/toad/interactor.hh include/toad/connect.hh
 vector.o: include/toad/cursor.hh include/toad/region.hh
 vector.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 vector.o: include/toad/model.hh include/toad/geometry.hh include/toad/pen.hh
+vector.o: include/toad/figure.hh include/toad/wordprocessor.hh
 geometry.o: include/toad/geometry.hh include/toad/types.hh
 geometry.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 geometry.o: include/toad/vector.hh include/toad/penbase.hh

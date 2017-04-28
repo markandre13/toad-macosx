@@ -80,13 +80,14 @@ TFRectangle::distance(const TPoint &pos)
   return min;
 }
 
-void 
-TFRectangle::translate(TCoord dx, TCoord dy)
+bool
+TFRectangle::transform(const TMatrix2D &transform)
 {
-  p1.x+=dx;
-  p1.y+=dy;
-  p2.x+=dx;
-  p2.y+=dy;
+  if (!transform.isOnlyTranslateAndScale())
+    return false;
+  transform.map(p1, &p1);
+  transform.map(p2, &p2);
+  return true;
 }
 
 bool 

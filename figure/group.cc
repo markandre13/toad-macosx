@@ -261,7 +261,7 @@ TFGroup::editEvent(TFigureEditEvent &ee)
 {
   switch(ee.type) {
     case TFigureEditEvent::TRANSLATE:
-      translate(ee.x, ee.y);
+//      translate(ee.x, ee.y);
       break;
     default:
       ;
@@ -269,9 +269,12 @@ TFGroup::editEvent(TFigureEditEvent &ee)
   return true;
 }
 
-void
-TFGroup::translate(TCoord dx, TCoord dy)
+bool
+TFGroup::transform(const TMatrix2D &transform)
 {
+  // should a group have it's own matrix?
+  return false;
+/*
   p1.x+=dx;
   p1.y+=dy;
   p2.x+=dx;
@@ -283,6 +286,7 @@ TFGroup::translate(TCoord dx, TCoord dy)
     (*p)->translate(dx,dy);
     p++;
   }
+*/
 }
 
 void

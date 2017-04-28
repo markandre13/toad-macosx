@@ -131,7 +131,9 @@ TFigure::editEvent(TFigureEditEvent &ee)
 {
   switch(ee.type) {
     case TFigureEditEvent::TRANSLATE:
-      translate(ee.x, ee.y);
+      cerr << "TFigureEditEvent::TRANSLATE not implemented" << endl;
+      exit(1);
+      // translate(ee.x, ee.y);
       break;
     case TFigureEditEvent::START_IN_PLACE:
       return startInPlace();
@@ -154,10 +156,21 @@ TFigure::distance(const TPoint &pos)
 {
   return bounds().isInside(pos) ? INSIDE : OUT_OF_RANGE;
 }
-    
-void
-TFigure::translate(TCoord dx, TCoord dy)
+
+/**
+ * Apply a transfomation to the figure.
+ *
+ * When returning 'false', TSelectionTool will make the figure a child of
+ * TFTransform, which will apply the transformation on the output of getPath()
+ * instead.
+ *
+ * Returning true and doing nothing will disable the transformation but also
+ * result in a bad user experience.
+ */
+bool
+TFigure::transform(const TMatrix2D &transform)
 {
+  return false;
 }
 
 

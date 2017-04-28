@@ -79,15 +79,12 @@ TFPolygon::distance(const TPoint &pos)
   return min;
 }
 
-void 
-TFPolygon::translate(TCoord dx, TCoord dy)
+bool
+TFPolygon::transform(const TMatrix2D &transform)
 {
-  TPolygon::iterator p(polygon.begin()), e(polygon.end());
-  while(p!=e) {
-    p->x+=dx;
-    p->y+=dy;
-    ++p;
-  }
+  for(auto &&p: polygon)
+    transform.map(p, &p);
+  return true;
 }
 
 bool 

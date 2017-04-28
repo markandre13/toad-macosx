@@ -383,7 +383,8 @@ TSelectionTool::stopHandle(TFigureEditor *fe)
     TFTransform *transform = dynamic_cast<TFTransform*>(figure);
     if (transform) {
       transform->matrix = m * transform->matrix;
-    } else {
+    } else
+    if (!figure->transform(m)) {
       figuresToReplace.insert(figure);
     }
   }

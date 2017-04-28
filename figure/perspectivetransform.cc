@@ -103,14 +103,17 @@ TFPerspectiveTransform::_distance(TFigureEditor *fe, TCoord mx, TCoord my)
   return d;
 }
 
-void
-TFPerspectiveTransform::translate(TCoord dx, TCoord dy)
+bool
+TFPerspectiveTransform::transform(const TMatrix2D &transform)
 {
+  return false;
+/*
   TPoint d(dx, dy);
   for(size_t i=0; i<4; ++i)
     handle[i]+=d;
   for(auto p: figures)
     p->translate(dx,dy);
+*/
 }
 
 void 

@@ -48,22 +48,25 @@ TFWindow::distance(const TPoint &pos)
   return super::distance(pos);
 }
 
-void
-TFWindow::translate(TCoord dx, TCoord dy)
+bool
+TFWindow::transform(const TMatrix2D &transform)
 {
-  if (window==NULL) {
-    cerr << "toad warning: TFWindow.window==NULL : " << title << endl;
-    return;
+  if (!transform.isOnlyTranslateAndScale())
+    return true; // ignore illegal transformation
+  super::transform(transform);
+  if (!window) {
+    cerr << "toad warning: TFWindow.window==nullptr : " << title << endl;
+    return true;
   }
-  super::translate(dx, dy);
   window->setShape(bounds());
+  return true;
 }
 
 void
 TFWindow::translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned m)
 {
-  if (window==NULL) {
-    cerr << "toad warning: TFWindow.window==NULL : " << title << endl;
+  if (!window) {
+    cerr << "toad warning: TFWindow.window==nullptr : " << title << endl;
     return;
   }
   super::translateHandle(handle, mx, my, m);
@@ -73,8 +76,8 @@ TFWindow::translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned m)
 void 
 TFWindow::store(TOutObjectStream &out) const
 {
-  if (window==NULL)
-    cerr << "toad warning: TFWindow.window==NULL : " << title << endl;
+  if (!window)
+    cerr << "toad warning: TFWindow.window==nullptr : " << title << endl;
     
   TRectangle r(p1,p2);
   ::store(out, "x", r.origin.x);

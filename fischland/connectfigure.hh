@@ -48,7 +48,7 @@ class TFConnection:
     TCoord distance(const TPoint &pos) override;
     bool editEvent(TFigureEditEvent &ee) override;
 
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     

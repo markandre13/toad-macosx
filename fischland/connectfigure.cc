@@ -243,9 +243,11 @@ TFConnection::updatePoints()
   }
 }
 
-void
-TFConnection::translate(TCoord dx, TCoord dy) {
+bool
+TFConnection::transform(const TMatrix2D &transform) {
   // we are bound to other figures (for now), so we can not translate
+  // FIXME: can translate middle points
+  return true;
 }
 
 bool

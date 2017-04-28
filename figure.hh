@@ -158,7 +158,7 @@ class TFigure:
     virtual TCoord distance(const TPoint &pos);
     
     // stage 2: move
-    virtual void translate(TCoord dx, TCoord dy);
+    virtual bool transform(const TMatrix2D &transform);
     
     // stage 3: manipulate
     static const int NO_HANDLE = -1;
@@ -344,7 +344,7 @@ class TFRectangle:
     TRectangle bounds() const override;
 
     TCoord distance(const TPoint &pos) override;
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
 
@@ -369,7 +369,7 @@ class TFPolygon:
     void paint(TPenBase &, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
     TRectangle bounds() const override;
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     TPolygon polygon;
@@ -614,7 +614,7 @@ class TFWindow:
 
     void paint(TPenBase&, EPaintType) override;
     TCoord distance(const TPoint &pos) override;
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
     
     TCloneable* clone() const override { return new TFWindow(*this); }
@@ -639,12 +639,12 @@ class TFGroup:
     TFGroup();
     TFGroup(const TFGroup &g);
     ~TFGroup();
-    void paint(TPenBase&, EPaintType);
-    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
-    bool getHandle(unsigned n, TPoint *p);
-    bool startTranslateHandle();
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    void endTranslateHandle();
+    void paint(TPenBase&, EPaintType) override;
+    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y) override;
+    bool getHandle(unsigned n, TPoint *p) override;
+    bool startTranslateHandle() override;
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
+    void endTranslateHandle() override;
     
     void drop() {
       gadgets.drop();
@@ -654,13 +654,13 @@ class TFGroup:
 
     TFigureModel gadgets;
 
-    void translate(TCoord dx, TCoord dy);
-    bool editEvent(TFigureEditEvent &ee);
+    bool transform(const TMatrix2D &transform) override;
+    bool editEvent(TFigureEditEvent &ee) override;
 
-    TCloneable* clone() const { return new TFGroup(*this); }
-    const char * getClassName() const { return "toad::TFGroup"; }
-    void store(TOutObjectStream&) const;
-    bool restore(TInObjectStream&);
+    TCloneable* clone() const override { return new TFGroup(*this); }
+    const char * getClassName() const override { return "toad::TFGroup"; }
+    void store(TOutObjectStream&) const override;
+    bool restore(TInObjectStream&) override;
 
   protected:
     void modelChanged();
@@ -683,7 +683,7 @@ class TFPerspectiveTransform:
     void paint(TPenBase&, EPaintType) override;
     TRectangle bounds() const override;
 
-    void translate(TCoord dx, TCoord dy) override;
+    bool transform(const TMatrix2D &transform) override;
     TCoord _distance(TFigureEditor *fe, TCoord mx, TCoord my) override;
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;

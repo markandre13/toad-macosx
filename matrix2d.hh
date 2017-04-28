@@ -63,6 +63,17 @@ class TMatrix2D:
   
     void identity();
     bool isIdentity() const;
+    
+    // stretch, rotate, shear, 
+
+    /**
+     * returns true, when the matrix does neither rotate or shear
+     */    
+    bool isOnlyTranslateAndScale() const {
+      return b == 0.0 && c == 0.0;
+    };
+    
+    
     void rotate(TCoord radiant);
     void rotateAt(TCoord x, TCoord y, TCoord radiant);
     void translate(TCoord dx, TCoord dy);
