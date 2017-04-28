@@ -537,6 +537,7 @@ class TFText:
     void getAttributes(TFigureAttributeModel*) const override;
 
     void paint(TPenBase &, EPaintType) override;
+    // TVectorGraphic* getPath() const override; [NSBezierPath appendBezierPathWithGlyphs:count:inFont]
 
     TCoord distance(const TPoint &pos) override;
     bool getHandle(unsigned n, TPoint *p) override;
