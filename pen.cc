@@ -671,14 +671,48 @@ TPen::vdrawString(TCoord x, TCoord y, char const *text, int len, bool transparen
 /*
   CFMutableAttributedStringRef attrString = CFAttributedStringCreateMutable(kCFAllocatorDefault, 0);
   CFAttributedStringReplaceString(attrString, CFRangeMake(0, 0), (CFStringRef) nstr);
-  CGContextSetTextMatrix(ctx, CGContextGetCTM(ctx));
 */
+//  CGContextSetTextMatrix(ctx, CGContextGetCTM(ctx));
+
   CGAffineTransform m = { 1, 0, 0, -1, 0, 0 };
   CGContextSetTextMatrix(ctx, m);
 
   CTLineRef line = CTLineCreateWithAttributedString((CFAttributedStringRef)attrString);
   CGContextSetTextPosition(ctx, x, y + font->baseline);
+#if 1
   CTLineDraw(line, ctx);
+#endif
+#if 0
+  CFArrayRef runs = CTLineGetGlyphRuns(line);
+  for(CFIndex i=0; i<CFArrayGetCount(runs); ++i) {
+    CTRunRef run = static_cast<CTRunRef>(CFArrayGetValueAtIndex(runs, i));
+    CTRunDraw(run, ctx, CFRangeMake(0, 0));
+  }
+#endif
+#if 0
+  // CFArrayRef CTLineGetGlyphRuns(CTLineRef line);
+  CFArrayRef runs = CTLineGetGlyphRuns(line);
+  for(CFIndex i=0; i<CFArrayGetCount(runs); ++i) {
+    CTRunRef run = static_cast<CTRunRef>(CFArrayGetValueAtIndex(runs, i));
+    size_t glyphCount = CTRunGetGlyphCount(run);
+
+    cout << "line " << i << ", glyphs " << CTRunGetGlyphCount(run) << endl;
+    
+    // void CTRunGetPositions(CTRunRef run, CFRange range, CGPoint buffer[]);
+    CGPoint positions[glyphCount];
+    CTRunGetPositions(run, CFRangeMake(0, glyphCount), positions);
+    
+    for(int i=0; i<glyphCount; ++i)
+      cout << "  " << i << ": " << positions[i].x << ", " << positions[i].y << endl;
+    
+    const CGGlyph *glyphs = CTRunGetGlyphsPtr(run);
+    // CGContextShowGlyphsAtPositions(CGContextRef c, const CGGlyph *glyphs, const CGPoint *Lpositions, size_t count);
+    CGContextShowGlyphsAtPositions(ctx, glyphs, positions, glyphCount);
+    // void CTFontDrawGlyphs(CTFontRef font, const CGGlyph glyphs[], const CGPoint positions[], size_t count, CGContextRef context);
+//    CTFontDrawGlyphs(CFDictionaryGetValue(CTRunGetAttributes(run), kCTFontAttributeName), glyphs, positions, CTRunGetGlyphCount(run), ctx);
+//    stroke();
+  }
+#endif
   CFRelease(line);
 
   CGColorRelease(cgcolor);

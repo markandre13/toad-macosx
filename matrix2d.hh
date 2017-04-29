@@ -62,13 +62,18 @@ class TMatrix2D:
     TMatrix2D operator*(const TMatrix2D &m) const;
   
     void identity();
-    bool isIdentity() const;
+    bool isIdentity() const {
+      return CGAffineTransformIsIdentity(*this);
+    }
     
     // stretch, rotate, shear, 
 
     /**
      * returns true, when the matrix does neither rotate or shear
      */    
+    bool isOnlyTranslate() const {
+      return a == 1.0 && b == 0.0 && c == 0.0 && d == 1.0;
+    }
     bool isOnlyTranslateAndScale() const {
       return b == 0.0 && c == 0.0;
     };
@@ -108,6 +113,13 @@ class TMatrix2D:
  
     SERIALIZABLE_INTERFACE(toad::, TMatrix2D);
 };
+
+inline std::ostream& operator<<(std::ostream &s, const TMatrix2D& m) {
+  return s<<"( "<<m.a<<" "<<m.b<<endl
+          <<"  "<<m.c<<" "<<m.d<<endl
+          <<"  "<<m.tx<<" "<<m.ty<<" )";
+}
+  
 
 } // namespace toad
 

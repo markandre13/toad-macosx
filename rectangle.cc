@@ -115,7 +115,7 @@ TRectangle::intersects(const TRectangle &r) const
 bool
 TBoundary::intersects(const TBoundary &r) const
 {
-  if (empty || r.empty)
+  if (empty || r.empty)
     return false;
     
   unsigned f0, f1;

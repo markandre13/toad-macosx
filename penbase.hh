@@ -83,6 +83,9 @@ class TPenBase
     virtual void push() = 0;
     virtual void pop() = 0;
     virtual void multiply(const TMatrix2D*) = 0;
+    void transform(const TMatrix2D &matrix) {
+      multiply(&matrix);
+    }
     virtual void setMatrix(TCoord a11, TCoord a21, TCoord a12, TCoord a22, TCoord tx, TCoord ty) = 0;
     virtual const TMatrix2D* getMatrix() const = 0;
 

@@ -101,6 +101,7 @@ TFFrame::stop(TFigureEditor *editor)
 unsigned
 TFFrame::keyDown(TFigureEditor *editor, TKey key, char *txt, unsigned m)
 {
+#if 0
 //  cout << __PRETTY_FUNCTION__ << endl;
   if (key==TK_RETURN)
     return STOP;
@@ -114,6 +115,9 @@ TFFrame::keyDown(TFigureEditor *editor, TKey key, char *txt, unsigned m)
 //  r.w = TOADBase::DefaultFont().TextWidth(text)+2;
   editor->invalidateFigure(this);
   return result;
+#else
+  return STOP;
+#endif
 }
 
 bool
@@ -135,7 +139,7 @@ TFFrame::mouseLDown(TFigureEditor *e, TMouseEvent &m)
 cout << "start create frame " << this << endl;
 flag = true;
       TFRectangle::mouseLDown(e, m);
-      TFText::mouseLDown(e, m);
+//      TFText::mouseLDown(e, m);
       break;
       
     case TFigureEditor::STATE_CREATE:

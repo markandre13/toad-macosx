@@ -155,6 +155,9 @@ inline TCoord distance(const TPoint &a, const TPoint &b) {
   return length(a-b);
 }
 
+/** return the distance of point a from line b to c */
+TCoord distance(const TPoint &a, const TPoint &b, const TPoint &c);
+
 /** return the maximum distance between two points along either x- or y-axis */
 inline TCoord maxDistanceAlongAxis(const TPoint &a, const TPoint &b) {
   return max(fabs(a.x-b.x), fabs(a.y-b.y));
@@ -176,7 +179,16 @@ inline TPoint normalize(const TPoint &v) {
 
 /** return the dot product of vectors a and b */
 inline TCoord dot(const CGPoint &a, const CGPoint &b) {
-  return a.x*b.x+a.y*b.y;
+  return a.x * b.x + a.y * b.y;
+}
+
+inline TCoord dot(TPoint const &a, TPoint const &b) {
+  return a.x * b.x + a.y * b.y;
+}
+
+// scalar product
+static inline TCoord cross(TPoint const &a, TPoint const &b) {
+  return dot(a, TPoint(-b.y, b.x));
 }
 
 /** rotate the direction by 90 degrees */
@@ -337,10 +349,16 @@ inline ostream& operator<<(ostream &s, const TRectangle& r) {
   return s<<'('<<r.origin.x<<','<<r.origin.y<<','<<r.size.width<<','<<r.size.height<<')';
 }
 
+class TMatrix2D;
+
 class TPolygon: 
   public std::vector<TPoint>
 {
   public:
+    TPolygon() {}
+    TPolygon(const TRectangle &r);
+    void transform(const TMatrix2D&);
+    TCoord distance(const TPoint&);
     void addPoint(const TPoint &p) { push_back(p); }
     void addPoint(TCoord x, TCoord y) { push_back(TPoint(x,y)); }
     bool isInside(TCoord x, TCoord y) const;

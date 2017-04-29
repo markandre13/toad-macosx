@@ -482,23 +482,3 @@ TAttributedFigure::restore(TInObjectStream &in)
   ATV_FAILED(in)
   return false;
 }
-
-/**
- * Returns the distance of point (x,y) to the line (x1,y1)-(x2,y2).
- */
-TCoord 
-TFigure::distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2)
-{
-  TCoord bx = x2 - x1;
-  TCoord by = y2 - y1;
-  TCoord ax = x-x1;
-  TCoord ay = y-y1;
-  if (bx==0.0 && by==0.0) {
-    return sqrt(ax*ax+ay*ay);
-  }
-  TCoord lb = bx*bx+by*by;
-  TCoord t = (bx * ax + by * ay ) / lb;
-  if (t<0.0 || t>1.0)
-    return OUT_OF_RANGE;
-  return fabs(by * ax - bx * ay) / sqrt(lb);
-}

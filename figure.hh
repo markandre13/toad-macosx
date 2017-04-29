@@ -183,8 +183,9 @@ class TFigure:
 
     // editor related stuff for all gadgets
     //--------------------------------------
-    // FIXME: move to geometry, use TPoint
-    static TCoord distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2);
+    static inline TCoord distance2Line(TCoord x, TCoord y, TCoord x1, TCoord y1, TCoord x2, TCoord y2) {
+      return toad::distance(TPoint(x, y), TPoint(x1, y1), TPoint(x2, y2));
+    }
 
 #if 0
     static const double OUT_OF_RANGE = HUGE_VAL;
@@ -515,9 +516,11 @@ class TFCircle:
  * \ingroup figure
  */
 class TFText:
-  public TFRectangle
+  public TAttributedFigure
 {
-    typedef TFRectangle super;
+    typedef TAttributedFigure super;
+    TMatrix2D matrix;
+    TSize size;
     
   public:
     TFText();
@@ -537,6 +540,8 @@ class TFText:
     void getAttributes(TFigureAttributeModel*) const override;
 
     void paint(TPenBase &, EPaintType) override;
+    bool transform(const TMatrix2D &transform) override;
+    TRectangle bounds() const override;
     // TVectorGraphic* getPath() const override; [NSBezierPath appendBezierPathWithGlyphs:count:inFont]
 
     TCoord distance(const TPoint &pos) override;
@@ -551,8 +556,8 @@ class TFText:
     unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
     unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
     void mouseEvent(TMouseEvent &me) { // FIXME
-      me.pos -= p1;
-      wp.mouseEvent(me);
+//      me.pos -= p1;
+//      wp.mouseEvent(me);
     }
 
     TCloneable* clone() const override { return new TFText(*this); }
@@ -567,7 +572,7 @@ class TFText:
     
     string text;
     string fontname;
-    virtual void calcSize();
+    void calcSize();
 
     bool editEvent(TFigureEditEvent &editEvent) override;
 };
@@ -576,9 +581,11 @@ class TFText:
  * \ingroup figure
  */
 class TFFrame:
-  public TFText
+  public TFRectangle
 {
     typedef TFText super;
+    string fontname;
+    string text;
   public:
     TFFrame() {}
     TFFrame(TCoord x, TCoord y, TCoord w, TCoord h, const string &text="") {
@@ -599,7 +606,7 @@ class TFFrame:
     TCloneable* clone() const override { return new TFFrame(*this); }
     const char * getClassName() const override { return "toad::TFFrame"; } 
 
-    void calcSize() override;
+    void calcSize();
 };
 
 /**

@@ -534,7 +534,7 @@ simpletimer.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 region.o: include/toad/region.hh include/toad/types.hh
 region.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 polygon.o: include/toad/types.hh include/toad/io/serializable.hh
-polygon.o: include/toad/io/atvparser.hh
+polygon.o: include/toad/io/atvparser.hh include/toad/matrix2d.hh
 springlayout.o: include/toad/springlayout.hh include/toad/layout.hh
 springlayout.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 springlayout.o: include/toad/eventfilter.hh include/toad/window.hh
@@ -2222,7 +2222,7 @@ simpletimer.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 region.o: include/toad/region.hh include/toad/types.hh
 region.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 polygon.o: include/toad/types.hh include/toad/io/serializable.hh
-polygon.o: include/toad/io/atvparser.hh
+polygon.o: include/toad/io/atvparser.hh include/toad/matrix2d.hh
 springlayout.o: include/toad/springlayout.hh include/toad/layout.hh
 springlayout.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 springlayout.o: include/toad/eventfilter.hh include/toad/window.hh

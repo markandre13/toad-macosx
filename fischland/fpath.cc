@@ -345,22 +345,7 @@ double
 TFPath::_distance(TFigureEditor *fe, TCoord x, TCoord y)
 {
   if (!polygon.isInside(x, y)) {
-    TCoord x1,y1,x2,y2;
-    TCoord min = OUT_OF_RANGE;
-    TPolygon::const_iterator p(polygon.begin());
-    x2=p->x;
-    y2=p->y;
-    ++p;
-    while(p!=polygon.end()) {
-      x1=x2;
-      y1=y2;
-      x2=p->x;
-      y2=p->y;
-      TCoord d = distance2Line(x,y, x1,y1, x2,y2);
-      if (d<min)
-        min = d;
-      ++p;
-    }
+    TCoord min = polygon.distance(TPoint(x, y));
     if (min > 0.5*fe->fuzziness*TFigure::RANGE)
       return OUT_OF_RANGE;
   }

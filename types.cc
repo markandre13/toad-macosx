@@ -1,6 +1,23 @@
 #include <toad/types.hh>
 
+#include <limits>
+
 using namespace toad;
+
+// distance of line (p0, p1) to point q
+TCoord
+toad::distance(const TPoint &q, const TPoint &p0, const TPoint &p1)
+{
+  TPoint b(p1-p0);
+  TPoint a(q-p0);
+  
+  TCoord lb = squaredLength(b);
+  TCoord t = dot(a, b) / lb;
+  if (t<0.0 || t>1.0)
+    return numeric_limits<TCoord>::infinity();
+  return fabs(b.y * a.x - b.x * a.y) / sqrt(lb);
+}
+
 
 void
 toad::store(TOutObjectStream &out, const vector<TPoint> &p)

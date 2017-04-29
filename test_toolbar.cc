@@ -293,6 +293,23 @@ TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
 int 
 test_toolbar()
 {
+#if 0
+  class TMyWindow:
+    public TWindow
+  {
+    public:
+      TMyWindow(): TWindow(nullptr, "TMyWindow") {}
+      void paint() {
+        TPen pen(this);
+        TMatrix2D m;
+        m.rotate(0.1);
+        m.scale(4,2);
+        pen.transform(m);
+        pen.drawString(32,32, "Hello");
+      }
+  };
+  new TMyWindow();
+#else
   TToolBox *tb = TToolBox::getToolBox();
   tb->add("selection",       TSelectionTool::getTool());
   tb->add("directselection", TDirectSelectionTool::getTool());
@@ -309,7 +326,7 @@ test_toolbar()
     cout << "TToolBox.sigChanged: selected tool" << endl;
 //    cout << "selected tool '" << TToolBox::getToolBox()->choice->getValue()->name() << "'" << endl;
   });
-
+#endif
   toad::mainLoop();
   return 0;
 }

@@ -19,8 +19,46 @@
  */
 
 #include <toad/types.hh>
+#include <toad/matrix2d.hh>
+
+#include <limits>
 
 using namespace toad;
+using namespace std;
+
+TPolygon::TPolygon(const TRectangle &r)
+{
+  addPoint(r.origin);
+  addPoint(r.origin.x+r.size.width, r.origin.y);
+  addPoint(r.origin+r.size);
+  addPoint(r.origin.x, r.origin.y+r.size.height);
+}
+
+void
+TPolygon::transform(const TMatrix2D &matrix)
+{
+  for(auto &&point: *this)
+    matrix.map(point, &point);
+}
+
+TCoord
+TPolygon::distance(const TPoint &point) {
+  TPoint p1, p2;
+  TCoord x1,y1,x2,y2;
+  TCoord min = numeric_limits<TCoord>::infinity();
+  const_iterator p(begin());
+  p2 = *p;
+  ++p;
+  while(p!=end()) {
+    p1 = p2;
+    p2 = *p;
+    TCoord d = toad::distance(point, p1, p2);
+    if (d<min)
+      min = d;
+    ++p;
+  }
+  return min;
+}
 
 /**
  * Returns 'true' when the point (x, y) is within the polygon.

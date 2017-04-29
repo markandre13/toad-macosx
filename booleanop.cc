@@ -1044,20 +1044,6 @@ BooleanOpImp::inResult(const SweepEvent* le) const
   return false; // just to avoid the compiler warning
 }
 
-// distance of line (p0, p1) to point q
-static TCoord
-distance(const TPoint &p0, const TPoint &p1, const TPoint &q)
-{
-  TPoint b(p1-p0);
-  TPoint a(q-p0);
-  
-  TCoord lb = squaredLength(b);
-  TCoord t = dot(a, b) / lb;
-  if (t<0.0 || t>1.0)
-    return 1.0/0.0;
-  return fabs(b.y * a.x - b.x * a.y) / sqrt(lb);
-}
-
 /**
  * FIXME: rename into intersectLineLineWithOverlap?
  * \param ilist points found
@@ -1095,16 +1081,16 @@ intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
   }
   
   // end point overlaps with line
-  if (!f10 && distance(l0[0], l0[1], l1[0]) < tolerance)
+  if (!f10 && distance(l1[0], l0[0], l0[1]) < tolerance)
     ilist->add(TVectorPath::LINE, nullptr, -1, l1[0],
                TVectorPath::LINE, l1     ,  0, l1[0]);
-  if (!f00 && distance(l1[0], l1[1], l0[0]) < tolerance)
+  if (!f00 && distance(l0[0], l1[0], l1[1]) < tolerance)
     ilist->add(TVectorPath::LINE, l0     ,  0, l0[0],
                TVectorPath::LINE, nullptr, -1, l0[0]);
-  if (!f11 && distance(l0[0], l0[1], l1[1]) < tolerance)
+  if (!f11 && distance(l1[1], l0[0], l0[1]) < tolerance)
     ilist->add(TVectorPath::LINE, nullptr, -1, l1[1],
                TVectorPath::LINE, l1+1   ,  1, l1[1]);
-  if (!f01 && distance(l1[0], l1[1], l0[1]) < tolerance)
+  if (!f01 && distance(l0[1], l1[0], l1[1]) < tolerance)
     ilist->add(TVectorPath::LINE, l0+1   ,  1, l0[1],
                TVectorPath::LINE, nullptr, -1, l0[1]);
 

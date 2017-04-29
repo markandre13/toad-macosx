@@ -24,7 +24,6 @@
 using namespace toad;
 TFText::TFText() {
   relation = nullptr;
-  p1.x = p1.y = 0;
   fontname = "arial,helvetica,sans-serif:size=12";
   wp.init(text);
   calcSize();
@@ -32,22 +31,22 @@ TFText::TFText() {
 
 TFText::TFText(const TFText &t) {
   relation = nullptr;
-  p1 = t.p1;
-  p2 = t.p2;
+  matrix = t.matrix;
   fontname = t.fontname;
   wp.init(text);
   calcSize();
 }
 
 TFText::TFText(TCoord x,TCoord y, const string &aText, TFigure *aRelation) {
-  p1.x = x;
-  p1.y = y;
+  matrix.translate(x, y);
   fontname = "arial,helvetica,sans-serif:size=12";
   text = aText;
   relation = aRelation;
   if (relation) {
     TRectangle bounds = relation->bounds();
-    p1.set(bounds.origin.x+3, bounds.origin.y+3);
+    matrix.identity();
+    matrix.translate(bounds.origin);
+    matrix.translate(3,3);
   }
   wp.init(text);
   calcSize();
@@ -64,9 +63,8 @@ TFText::editEvent(TFigureEditEvent &editEvent)
         return false;
       }
       TRectangle bounds = relation->bounds();
-      TPoint difference = TPoint(p1.x-bounds.origin.x-3, p1.y-bounds.origin.y-3);
-      p1 -= difference;
-      p2 -= difference;
+      matrix.translate(-bounds.origin);
+      matrix.translate(-3, -3);
       // in theory, an TFText with a relation is wrapped inside the relation and
       // we shouldn't need to invalidate
       } break;
@@ -98,16 +96,14 @@ TFText::editEvent(TFigureEditEvent &editEvent)
 void 
 TFText::calcSize()
 {
-  TCoord w=0, h=0;
 //cout << "TFText::calcSize()" << endl;
+  size.width = size.height = 0;
   for(auto &&line: wp.document.lines) {
 //cout << "  line " << line->size.width << ", " << line->size.height << endl;
-    w = max(w, line->size.width);
-    h += line->size.height;
+    size.width  = max(size.width, line->size.width);
+    size.height += line->size.height;
   }
 //cout << "  new area: " << p1 << ", " << p2 << endl;
-  p2.x=p1.x+w;
-  p2.y=p1.y+h;
 }
 
 void 
@@ -118,20 +114,56 @@ TFText::paint(TPenBase &pen, EPaintType type)
   pen.push();
   pen.setFont(fontname);
   pen.setColor(line_color);
-  pen.translate(p1.x, p1.y);
+  pen.transform(matrix);
   wp.renderPrepared(pen);
   pen.pop();
+}
+
+bool
+TFText::transform(const TMatrix2D &matrix)
+{
+  if (relation) {
+    relation->transform(matrix);
+    TRectangle r = relation->bounds();
+    this->matrix.tx = r.origin.x+3;
+    this->matrix.ty = r.origin.y+3;
+    calcSize();
+    return true;
+  }
+  this->matrix = matrix * this->matrix;
+  calcSize();
+  return true;
 }
 
 TCoord
 TFText::distance(const TPoint &pos)
 {
-  TRectangle r(p1, p2);
-// cerr << "mouse at (" << mx << ", " << my << "), text " << r << endl;
-
-  if (TRectangle(p1, p2).isInside(pos))
+/*
+  if (relation) {
+    return relation->distance(pos);
+  }
+*/
+  TRectangle r;
+  r.size = size;
+  TPolygon p(r);
+  p.transform(matrix);
+  if (p.isInside(pos))
     return INSIDE;
-  return super::distance(pos);
+  return p.distance(pos);
+}
+
+TRectangle
+TFText::bounds() const
+{
+  if (relation) {
+    return relation->bounds();
+  }
+  TRectangle r;
+  r.size = size;
+  TPolygon p(r);
+  p.transform(matrix);
+  p.getShape(&r);
+  return r;
 }
 
 bool
