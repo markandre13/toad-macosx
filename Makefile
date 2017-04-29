@@ -26,10 +26,10 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
 	   figure/transform.cc figure/perspectivetransform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
-	   fischland/selectiontool.cc \
-	   fischland/directselectiontool.cc \
-	   fischland/texttool.cc \
-	   fischland/connecttool.cc fischland/connectfigure.cc \
+	   figure/selectiontool.cc \
+	   figure/directselectiontool.cc \
+	   figure/texttool.cc \
+	   figure/connecttool.cc figure/connectfigure.cc \
 	   vector.cc geometry.cc wordprocessor.cc \
 	   stacktrace.cc \
 	   \
@@ -316,7 +316,8 @@ dialog.o: include/toad/scrollpane.hh include/toad/boolmodel.hh
 dialog.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 dialog.o: include/toad/figuretool.hh include/toad/action.hh
 dialog.o: include/toad/colorselector.hh include/toad/dnd/color.hh
-dialog.o: include/toad/dragndrop.hh fischland/directselectiontool.hh
+dialog.o: include/toad/dragndrop.hh
+dialog.o: include/toad/figure/directselectiontool.hh
 dialog.o: include/toad/undomanager.hh
 dialogeditor.o: include/toad/dialogeditor.hh include/toad/dialog.hh
 dialogeditor.o: include/toad/window.hh include/toad/interactor.hh
@@ -983,120 +984,110 @@ figure/createtool.o: include/toad/floatmodel.hh
 figure/createtool.o: include/toad/figure/createtool.hh
 figure/createtool.o: include/toad/figuretool.hh include/toad/core.hh
 figure/createtool.o: include/toad/action.hh
-fischland/selectiontool.o: fischland/selectiontool.hh
-fischland/selectiontool.o: include/toad/figureeditor.hh
-fischland/selectiontool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/selectiontool.o: include/toad/color.hh include/toad/types.hh
-fischland/selectiontool.o: include/toad/io/serializable.hh
-fischland/selectiontool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/selectiontool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/selectiontool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/selectiontool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/selectiontool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/selectiontool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/selectiontool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/selectiontool.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/selectiontool.o: include/toad/boolmodel.hh
-fischland/selectiontool.o: include/toad/textmodel.hh
-fischland/selectiontool.o: include/toad/integermodel.hh
-fischland/selectiontool.o: include/toad/numbermodel.hh
-fischland/selectiontool.o: include/toad/floatmodel.hh
-fischland/selectiontool.o: include/toad/figure/createtool.hh
-fischland/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
-fischland/selectiontool.o: include/toad/vector.hh
-fischland/directselectiontool.o: fischland/directselectiontool.hh
-fischland/directselectiontool.o: include/toad/figureeditor.hh
-fischland/directselectiontool.o: include/toad/figure.hh
-fischland/directselectiontool.o: include/toad/penbase.hh
-fischland/directselectiontool.o: include/toad/color.hh include/toad/types.hh
-fischland/directselectiontool.o: include/toad/io/serializable.hh
-fischland/directselectiontool.o: include/toad/io/atvparser.hh
-fischland/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
-fischland/directselectiontool.o: include/toad/matrix2d.hh
-fischland/directselectiontool.o: include/toad/window.hh
-fischland/directselectiontool.o: include/toad/interactor.hh
-fischland/directselectiontool.o: include/toad/connect.hh
-fischland/directselectiontool.o: include/toad/cursor.hh
-fischland/directselectiontool.o: include/toad/region.hh
-fischland/directselectiontool.o: include/toad/bitmap.hh
-fischland/directselectiontool.o: include/toad/figuremodel.hh
-fischland/directselectiontool.o: include/toad/model.hh
-fischland/directselectiontool.o: include/toad/wordprocessor.hh
-fischland/directselectiontool.o: include/toad/pen.hh
-fischland/directselectiontool.o: include/toad/scrollpane.hh
-fischland/directselectiontool.o: include/toad/undo.hh
-fischland/directselectiontool.o: include/toad/boolmodel.hh
-fischland/directselectiontool.o: include/toad/textmodel.hh
-fischland/directselectiontool.o: include/toad/integermodel.hh
-fischland/directselectiontool.o: include/toad/numbermodel.hh
-fischland/directselectiontool.o: include/toad/floatmodel.hh
-fischland/directselectiontool.o: include/toad/figure/createtool.hh
-fischland/directselectiontool.o: include/toad/figuretool.hh
-fischland/directselectiontool.o: include/toad/core.hh include/toad/action.hh
-fischland/directselectiontool.o: include/toad/undomanager.hh
-fischland/texttool.o: fischland/texttool.hh include/toad/figureeditor.hh
-fischland/texttool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/texttool.o: include/toad/color.hh include/toad/types.hh
-fischland/texttool.o: include/toad/io/serializable.hh
-fischland/texttool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/texttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/texttool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/texttool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/texttool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/texttool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/texttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/texttool.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/texttool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-fischland/texttool.o: include/toad/integermodel.hh
-fischland/texttool.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-fischland/texttool.o: include/toad/figure/createtool.hh
-fischland/texttool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/texttool.o: include/toad/action.hh fischland/fischland.hh
-fischland/connecttool.o: fischland/connecttool.hh fischland/fpath.hh
-fischland/connecttool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/connecttool.o: include/toad/color.hh include/toad/types.hh
-fischland/connecttool.o: include/toad/io/serializable.hh
-fischland/connecttool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/connecttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/connecttool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/connecttool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/connecttool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/connecttool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/connecttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/connecttool.o: include/toad/boolmodel.hh
-fischland/connecttool.o: include/toad/integermodel.hh
-fischland/connecttool.o: include/toad/numbermodel.hh
-fischland/connecttool.o: include/toad/textmodel.hh include/toad/undo.hh
-fischland/connecttool.o: include/toad/figureeditor.hh
-fischland/connecttool.o: include/toad/scrollpane.hh
-fischland/connecttool.o: include/toad/floatmodel.hh
-fischland/connecttool.o: include/toad/figure/createtool.hh
-fischland/connecttool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/connecttool.o: include/toad/action.hh fischland/connectfigure.hh
-fischland/connecttool.o: fischland/fischland.hh include/toad/vector.hh
-fischland/connectfigure.o: fischland/connectfigure.hh include/toad/figure.hh
-fischland/connectfigure.o: include/toad/penbase.hh include/toad/color.hh
-fischland/connectfigure.o: include/toad/types.hh
-fischland/connectfigure.o: include/toad/io/serializable.hh
-fischland/connectfigure.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/connectfigure.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
-fischland/connectfigure.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/connectfigure.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/connectfigure.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/connectfigure.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/connectfigure.o: include/toad/figureeditor.hh
-fischland/connectfigure.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/connectfigure.o: include/toad/boolmodel.hh
-fischland/connectfigure.o: include/toad/textmodel.hh
-fischland/connectfigure.o: include/toad/integermodel.hh
-fischland/connectfigure.o: include/toad/numbermodel.hh
-fischland/connectfigure.o: include/toad/floatmodel.hh
-fischland/connectfigure.o: include/toad/figure/createtool.hh
-fischland/connectfigure.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/connectfigure.o: include/toad/action.hh include/toad/vector.hh
-fischland/connectfigure.o: include/toad/geometry.hh
+figure/selectiontool.o: include/toad/figure/selectiontool.hh
+figure/selectiontool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/selectiontool.o: include/toad/penbase.hh include/toad/color.hh
+figure/selectiontool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/selectiontool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/selectiontool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/selectiontool.o: include/toad/window.hh include/toad/interactor.hh
+figure/selectiontool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/selectiontool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/selectiontool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/selectiontool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/selectiontool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/selectiontool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/selectiontool.o: include/toad/integermodel.hh
+figure/selectiontool.o: include/toad/numbermodel.hh
+figure/selectiontool.o: include/toad/floatmodel.hh
+figure/selectiontool.o: include/toad/figure/createtool.hh
+figure/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
+figure/selectiontool.o: include/toad/vector.hh
+figure/directselectiontool.o: include/toad/figure/directselectiontool.hh
+figure/directselectiontool.o: include/toad/figureeditor.hh
+figure/directselectiontool.o: include/toad/figure.hh include/toad/penbase.hh
+figure/directselectiontool.o: include/toad/color.hh include/toad/types.hh
+figure/directselectiontool.o: include/toad/io/serializable.hh
+figure/directselectiontool.o: include/toad/io/atvparser.hh
+figure/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
+figure/directselectiontool.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/directselectiontool.o: include/toad/interactor.hh
+figure/directselectiontool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/directselectiontool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/directselectiontool.o: include/toad/figuremodel.hh
+figure/directselectiontool.o: include/toad/model.hh
+figure/directselectiontool.o: include/toad/wordprocessor.hh
+figure/directselectiontool.o: include/toad/pen.hh include/toad/scrollpane.hh
+figure/directselectiontool.o: include/toad/undo.hh include/toad/boolmodel.hh
+figure/directselectiontool.o: include/toad/textmodel.hh
+figure/directselectiontool.o: include/toad/integermodel.hh
+figure/directselectiontool.o: include/toad/numbermodel.hh
+figure/directselectiontool.o: include/toad/floatmodel.hh
+figure/directselectiontool.o: include/toad/figure/createtool.hh
+figure/directselectiontool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/directselectiontool.o: include/toad/action.hh
+figure/directselectiontool.o: include/toad/undomanager.hh
+figure/texttool.o: include/toad/figure/texttool.hh
+figure/texttool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/texttool.o: include/toad/penbase.hh include/toad/color.hh
+figure/texttool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/texttool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/texttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/texttool.o: include/toad/window.hh include/toad/interactor.hh
+figure/texttool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/texttool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/texttool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/texttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/texttool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/texttool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/texttool.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/texttool.o: include/toad/floatmodel.hh
+figure/texttool.o: include/toad/figure/createtool.hh
+figure/texttool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/texttool.o: include/toad/action.hh
+figure/connecttool.o: include/toad/figure/connecttool.hh
+figure/connecttool.o: include/toad/boolmodel.hh include/toad/model.hh
+figure/connecttool.o: include/toad/pointer.hh include/toad/connect.hh
+figure/connecttool.o: include/toad/integermodel.hh
+figure/connecttool.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+figure/connecttool.o: include/toad/undo.hh include/toad/io/serializable.hh
+figure/connecttool.o: include/toad/io/atvparser.hh
+figure/connecttool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/connecttool.o: include/toad/penbase.hh include/toad/color.hh
+figure/connecttool.o: include/toad/types.hh include/toad/font.hh
+figure/connecttool.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/connecttool.o: include/toad/interactor.hh include/toad/cursor.hh
+figure/connecttool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/connecttool.o: include/toad/figuremodel.hh
+figure/connecttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/connecttool.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
+figure/connecttool.o: include/toad/figure/createtool.hh
+figure/connecttool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/connecttool.o: include/toad/action.hh
+figure/connecttool.o: include/toad/figure/connectfigure.hh
+figure/connecttool.o: include/toad/vector.hh
+figure/connectfigure.o: include/toad/figure/connectfigure.hh
+figure/connectfigure.o: include/toad/figure.hh include/toad/penbase.hh
+figure/connectfigure.o: include/toad/color.hh include/toad/types.hh
+figure/connectfigure.o: include/toad/io/serializable.hh
+figure/connectfigure.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/connectfigure.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
+figure/connectfigure.o: include/toad/connect.hh include/toad/cursor.hh
+figure/connectfigure.o: include/toad/region.hh include/toad/bitmap.hh
+figure/connectfigure.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/connectfigure.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/connectfigure.o: include/toad/figureeditor.hh
+figure/connectfigure.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/connectfigure.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/connectfigure.o: include/toad/integermodel.hh
+figure/connectfigure.o: include/toad/numbermodel.hh
+figure/connectfigure.o: include/toad/floatmodel.hh
+figure/connectfigure.o: include/toad/figure/createtool.hh
+figure/connectfigure.o: include/toad/figuretool.hh include/toad/core.hh
+figure/connectfigure.o: include/toad/action.hh include/toad/vector.hh
+figure/connectfigure.o: include/toad/geometry.hh
 vector.o: include/toad/vector.hh include/toad/penbase.hh
 vector.o: include/toad/color.hh include/toad/types.hh
 vector.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -1344,13 +1335,15 @@ test_toolbar.o: include/toad/focusmanager.hh
 test_toolbar.o: include/toad/figure/createtool.hh include/toad/figuretool.hh
 test_toolbar.o: include/toad/core.hh include/toad/bitmap.hh
 test_toolbar.o: include/toad/figure.hh include/toad/figuremodel.hh
-test_toolbar.o: include/toad/wordprocessor.hh fischland/selectiontool.hh
+test_toolbar.o: include/toad/wordprocessor.hh
+test_toolbar.o: include/toad/figure/selectiontool.hh
 test_toolbar.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 test_toolbar.o: include/toad/undo.hh include/toad/boolmodel.hh
 test_toolbar.o: include/toad/textmodel.hh include/toad/integermodel.hh
 test_toolbar.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-test_toolbar.o: include/toad/undomanager.hh fischland/directselectiontool.hh
-test_toolbar.o: fischland/texttool.hh
+test_toolbar.o: include/toad/undomanager.hh
+test_toolbar.o: include/toad/figure/directselectiontool.hh
+test_toolbar.o: include/toad/figure/texttool.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh
@@ -1418,7 +1411,7 @@ fischland/draw.o: fischland/colorpalette.hh include/toad/combobox.hh
 fischland/draw.o: include/toad/textfield.hh include/toad/textarea.hh
 fischland/draw.o: include/toad/control.hh include/toad/scrollbar.hh
 fischland/draw.o: include/toad/dnd/color.hh fischland/lineal.hh
-fischland/draw.o: fischland/config.h fischland/connectfigure.hh
+fischland/draw.o: fischland/config.h include/toad/figure/connectfigure.hh
 fischland/draw.o: include/toad/menubar.hh include/toad/menuhelper.hh
 fischland/draw.o: include/toad/undomanager.hh include/toad/command.hh
 fischland/draw.o: include/toad/fatradiobutton.hh
@@ -1546,19 +1539,21 @@ fischland/fishbox.o: include/toad/floatmodel.hh
 fischland/fishbox.o: include/toad/figure/createtool.hh
 fischland/fishbox.o: include/toad/figuretool.hh include/toad/core.hh
 fischland/fishbox.o: include/toad/action.hh include/toad/table.hh
-fischland/fishbox.o: include/toad/dragndrop.hh fischland/selectiontool.hh
+fischland/fishbox.o: include/toad/dragndrop.hh
+fischland/fishbox.o: include/toad/figure/selectiontool.hh
 fischland/fishbox.o: include/toad/undomanager.hh fischland/filltool.hh
 fischland/fishbox.o: fischland/fpath.hh fischland/pentool.hh
-fischland/fishbox.o: fischland/penciltool.hh fischland/directselectiontool.hh
-fischland/fishbox.o: fischland/texttool.hh fischland/rotatetool.hh
-fischland/fishbox.o: fischland/connecttool.hh fischland/colorpicker.hh
-fischland/fishbox.o: fischland/colorpalette.hh include/toad/combobox.hh
-fischland/fishbox.o: include/toad/textfield.hh include/toad/textarea.hh
-fischland/fishbox.o: include/toad/control.hh include/toad/scrollbar.hh
-fischland/fishbox.o: include/toad/dnd/color.hh fischland/fischland.hh
-fischland/fishbox.o: fischland/cairo.hh fischland/config.h
-fischland/fishbox.o: include/toad/pushbutton.hh include/toad/buttonbase.hh
-fischland/fishbox.o: include/toad/labelowner.hh
+fischland/fishbox.o: fischland/penciltool.hh
+fischland/fishbox.o: include/toad/figure/directselectiontool.hh
+fischland/fishbox.o: include/toad/figure/texttool.hh fischland/rotatetool.hh
+fischland/fishbox.o: include/toad/figure/connecttool.hh
+fischland/fishbox.o: fischland/colorpicker.hh fischland/colorpalette.hh
+fischland/fishbox.o: include/toad/combobox.hh include/toad/textfield.hh
+fischland/fishbox.o: include/toad/textarea.hh include/toad/control.hh
+fischland/fishbox.o: include/toad/scrollbar.hh include/toad/dnd/color.hh
+fischland/fishbox.o: fischland/fischland.hh fischland/cairo.hh
+fischland/fishbox.o: fischland/config.h include/toad/pushbutton.hh
+fischland/fishbox.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 fischland/fishbox.o: include/toad/fatradiobutton.hh
 fischland/fishbox.o: include/toad/radiobuttonbase.hh
 fischland/fishbox.o: include/toad/fatcheckbutton.hh
@@ -1776,7 +1771,6 @@ test/figureeditor-render.o: include/toad/numbermodel.hh
 test/figureeditor-render.o: include/toad/floatmodel.hh
 test/figureeditor-render.o: include/toad/figure/createtool.hh
 test/figureeditor-render.o: include/toad/figuretool.hh include/toad/action.hh
-test/figureeditor-render.o: fischland/connectfigure.hh
 test/wordprocessor.o: include/toad/wordprocessor.hh include/toad/types.hh
 test/wordprocessor.o: include/toad/io/serializable.hh
 test/wordprocessor.o: include/toad/io/atvparser.hh include/toad/color.hh
@@ -2004,7 +1998,8 @@ dialog.o: include/toad/scrollpane.hh include/toad/boolmodel.hh
 dialog.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 dialog.o: include/toad/figuretool.hh include/toad/action.hh
 dialog.o: include/toad/colorselector.hh include/toad/dnd/color.hh
-dialog.o: include/toad/dragndrop.hh fischland/directselectiontool.hh
+dialog.o: include/toad/dragndrop.hh
+dialog.o: include/toad/figure/directselectiontool.hh
 dialog.o: include/toad/undomanager.hh
 dialogeditor.o: include/toad/dialogeditor.hh include/toad/dialog.hh
 dialogeditor.o: include/toad/window.hh include/toad/interactor.hh
@@ -2671,120 +2666,110 @@ figure/createtool.o: include/toad/floatmodel.hh
 figure/createtool.o: include/toad/figure/createtool.hh
 figure/createtool.o: include/toad/figuretool.hh include/toad/core.hh
 figure/createtool.o: include/toad/action.hh
-fischland/selectiontool.o: fischland/selectiontool.hh
-fischland/selectiontool.o: include/toad/figureeditor.hh
-fischland/selectiontool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/selectiontool.o: include/toad/color.hh include/toad/types.hh
-fischland/selectiontool.o: include/toad/io/serializable.hh
-fischland/selectiontool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/selectiontool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/selectiontool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/selectiontool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/selectiontool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/selectiontool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/selectiontool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/selectiontool.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/selectiontool.o: include/toad/boolmodel.hh
-fischland/selectiontool.o: include/toad/textmodel.hh
-fischland/selectiontool.o: include/toad/integermodel.hh
-fischland/selectiontool.o: include/toad/numbermodel.hh
-fischland/selectiontool.o: include/toad/floatmodel.hh
-fischland/selectiontool.o: include/toad/figure/createtool.hh
-fischland/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
-fischland/selectiontool.o: include/toad/vector.hh
-fischland/directselectiontool.o: fischland/directselectiontool.hh
-fischland/directselectiontool.o: include/toad/figureeditor.hh
-fischland/directselectiontool.o: include/toad/figure.hh
-fischland/directselectiontool.o: include/toad/penbase.hh
-fischland/directselectiontool.o: include/toad/color.hh include/toad/types.hh
-fischland/directselectiontool.o: include/toad/io/serializable.hh
-fischland/directselectiontool.o: include/toad/io/atvparser.hh
-fischland/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
-fischland/directselectiontool.o: include/toad/matrix2d.hh
-fischland/directselectiontool.o: include/toad/window.hh
-fischland/directselectiontool.o: include/toad/interactor.hh
-fischland/directselectiontool.o: include/toad/connect.hh
-fischland/directselectiontool.o: include/toad/cursor.hh
-fischland/directselectiontool.o: include/toad/region.hh
-fischland/directselectiontool.o: include/toad/bitmap.hh
-fischland/directselectiontool.o: include/toad/figuremodel.hh
-fischland/directselectiontool.o: include/toad/model.hh
-fischland/directselectiontool.o: include/toad/wordprocessor.hh
-fischland/directselectiontool.o: include/toad/pen.hh
-fischland/directselectiontool.o: include/toad/scrollpane.hh
-fischland/directselectiontool.o: include/toad/undo.hh
-fischland/directselectiontool.o: include/toad/boolmodel.hh
-fischland/directselectiontool.o: include/toad/textmodel.hh
-fischland/directselectiontool.o: include/toad/integermodel.hh
-fischland/directselectiontool.o: include/toad/numbermodel.hh
-fischland/directselectiontool.o: include/toad/floatmodel.hh
-fischland/directselectiontool.o: include/toad/figure/createtool.hh
-fischland/directselectiontool.o: include/toad/figuretool.hh
-fischland/directselectiontool.o: include/toad/core.hh include/toad/action.hh
-fischland/directselectiontool.o: include/toad/undomanager.hh
-fischland/texttool.o: fischland/texttool.hh include/toad/figureeditor.hh
-fischland/texttool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/texttool.o: include/toad/color.hh include/toad/types.hh
-fischland/texttool.o: include/toad/io/serializable.hh
-fischland/texttool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/texttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/texttool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/texttool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/texttool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/texttool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/texttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/texttool.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/texttool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-fischland/texttool.o: include/toad/integermodel.hh
-fischland/texttool.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-fischland/texttool.o: include/toad/figure/createtool.hh
-fischland/texttool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/texttool.o: include/toad/action.hh fischland/fischland.hh
-fischland/connecttool.o: fischland/connecttool.hh fischland/fpath.hh
-fischland/connecttool.o: include/toad/figure.hh include/toad/penbase.hh
-fischland/connecttool.o: include/toad/color.hh include/toad/types.hh
-fischland/connecttool.o: include/toad/io/serializable.hh
-fischland/connecttool.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/connecttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/connecttool.o: include/toad/window.hh include/toad/interactor.hh
-fischland/connecttool.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/connecttool.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/connecttool.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/connecttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/connecttool.o: include/toad/boolmodel.hh
-fischland/connecttool.o: include/toad/integermodel.hh
-fischland/connecttool.o: include/toad/numbermodel.hh
-fischland/connecttool.o: include/toad/textmodel.hh include/toad/undo.hh
-fischland/connecttool.o: include/toad/figureeditor.hh
-fischland/connecttool.o: include/toad/scrollpane.hh
-fischland/connecttool.o: include/toad/floatmodel.hh
-fischland/connecttool.o: include/toad/figure/createtool.hh
-fischland/connecttool.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/connecttool.o: include/toad/action.hh fischland/connectfigure.hh
-fischland/connecttool.o: fischland/fischland.hh include/toad/vector.hh
-fischland/connectfigure.o: fischland/connectfigure.hh include/toad/figure.hh
-fischland/connectfigure.o: include/toad/penbase.hh include/toad/color.hh
-fischland/connectfigure.o: include/toad/types.hh
-fischland/connectfigure.o: include/toad/io/serializable.hh
-fischland/connectfigure.o: include/toad/io/atvparser.hh include/toad/font.hh
-fischland/connectfigure.o: include/toad/pointer.hh include/toad/matrix2d.hh
-fischland/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
-fischland/connectfigure.o: include/toad/connect.hh include/toad/cursor.hh
-fischland/connectfigure.o: include/toad/region.hh include/toad/bitmap.hh
-fischland/connectfigure.o: include/toad/figuremodel.hh include/toad/model.hh
-fischland/connectfigure.o: include/toad/wordprocessor.hh include/toad/pen.hh
-fischland/connectfigure.o: include/toad/figureeditor.hh
-fischland/connectfigure.o: include/toad/scrollpane.hh include/toad/undo.hh
-fischland/connectfigure.o: include/toad/boolmodel.hh
-fischland/connectfigure.o: include/toad/textmodel.hh
-fischland/connectfigure.o: include/toad/integermodel.hh
-fischland/connectfigure.o: include/toad/numbermodel.hh
-fischland/connectfigure.o: include/toad/floatmodel.hh
-fischland/connectfigure.o: include/toad/figure/createtool.hh
-fischland/connectfigure.o: include/toad/figuretool.hh include/toad/core.hh
-fischland/connectfigure.o: include/toad/action.hh include/toad/vector.hh
-fischland/connectfigure.o: include/toad/geometry.hh
+figure/selectiontool.o: include/toad/figure/selectiontool.hh
+figure/selectiontool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/selectiontool.o: include/toad/penbase.hh include/toad/color.hh
+figure/selectiontool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/selectiontool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/selectiontool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/selectiontool.o: include/toad/window.hh include/toad/interactor.hh
+figure/selectiontool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/selectiontool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/selectiontool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/selectiontool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/selectiontool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/selectiontool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/selectiontool.o: include/toad/integermodel.hh
+figure/selectiontool.o: include/toad/numbermodel.hh
+figure/selectiontool.o: include/toad/floatmodel.hh
+figure/selectiontool.o: include/toad/figure/createtool.hh
+figure/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
+figure/selectiontool.o: include/toad/vector.hh
+figure/directselectiontool.o: include/toad/figure/directselectiontool.hh
+figure/directselectiontool.o: include/toad/figureeditor.hh
+figure/directselectiontool.o: include/toad/figure.hh include/toad/penbase.hh
+figure/directselectiontool.o: include/toad/color.hh include/toad/types.hh
+figure/directselectiontool.o: include/toad/io/serializable.hh
+figure/directselectiontool.o: include/toad/io/atvparser.hh
+figure/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
+figure/directselectiontool.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/directselectiontool.o: include/toad/interactor.hh
+figure/directselectiontool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/directselectiontool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/directselectiontool.o: include/toad/figuremodel.hh
+figure/directselectiontool.o: include/toad/model.hh
+figure/directselectiontool.o: include/toad/wordprocessor.hh
+figure/directselectiontool.o: include/toad/pen.hh include/toad/scrollpane.hh
+figure/directselectiontool.o: include/toad/undo.hh include/toad/boolmodel.hh
+figure/directselectiontool.o: include/toad/textmodel.hh
+figure/directselectiontool.o: include/toad/integermodel.hh
+figure/directselectiontool.o: include/toad/numbermodel.hh
+figure/directselectiontool.o: include/toad/floatmodel.hh
+figure/directselectiontool.o: include/toad/figure/createtool.hh
+figure/directselectiontool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/directselectiontool.o: include/toad/action.hh
+figure/directselectiontool.o: include/toad/undomanager.hh
+figure/texttool.o: include/toad/figure/texttool.hh
+figure/texttool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/texttool.o: include/toad/penbase.hh include/toad/color.hh
+figure/texttool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/texttool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/texttool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/texttool.o: include/toad/window.hh include/toad/interactor.hh
+figure/texttool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/texttool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/texttool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/texttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/texttool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/texttool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/texttool.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/texttool.o: include/toad/floatmodel.hh
+figure/texttool.o: include/toad/figure/createtool.hh
+figure/texttool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/texttool.o: include/toad/action.hh
+figure/connecttool.o: include/toad/figure/connecttool.hh
+figure/connecttool.o: include/toad/boolmodel.hh include/toad/model.hh
+figure/connecttool.o: include/toad/pointer.hh include/toad/connect.hh
+figure/connecttool.o: include/toad/integermodel.hh
+figure/connecttool.o: include/toad/numbermodel.hh include/toad/textmodel.hh
+figure/connecttool.o: include/toad/undo.hh include/toad/io/serializable.hh
+figure/connecttool.o: include/toad/io/atvparser.hh
+figure/connecttool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/connecttool.o: include/toad/penbase.hh include/toad/color.hh
+figure/connecttool.o: include/toad/types.hh include/toad/font.hh
+figure/connecttool.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/connecttool.o: include/toad/interactor.hh include/toad/cursor.hh
+figure/connecttool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/connecttool.o: include/toad/figuremodel.hh
+figure/connecttool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/connecttool.o: include/toad/scrollpane.hh include/toad/floatmodel.hh
+figure/connecttool.o: include/toad/figure/createtool.hh
+figure/connecttool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/connecttool.o: include/toad/action.hh
+figure/connecttool.o: include/toad/figure/connectfigure.hh
+figure/connecttool.o: include/toad/vector.hh
+figure/connectfigure.o: include/toad/figure/connectfigure.hh
+figure/connectfigure.o: include/toad/figure.hh include/toad/penbase.hh
+figure/connectfigure.o: include/toad/color.hh include/toad/types.hh
+figure/connectfigure.o: include/toad/io/serializable.hh
+figure/connectfigure.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/connectfigure.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/connectfigure.o: include/toad/window.hh include/toad/interactor.hh
+figure/connectfigure.o: include/toad/connect.hh include/toad/cursor.hh
+figure/connectfigure.o: include/toad/region.hh include/toad/bitmap.hh
+figure/connectfigure.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/connectfigure.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/connectfigure.o: include/toad/figureeditor.hh
+figure/connectfigure.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/connectfigure.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/connectfigure.o: include/toad/integermodel.hh
+figure/connectfigure.o: include/toad/numbermodel.hh
+figure/connectfigure.o: include/toad/floatmodel.hh
+figure/connectfigure.o: include/toad/figure/createtool.hh
+figure/connectfigure.o: include/toad/figuretool.hh include/toad/core.hh
+figure/connectfigure.o: include/toad/action.hh include/toad/vector.hh
+figure/connectfigure.o: include/toad/geometry.hh
 vector.o: include/toad/vector.hh include/toad/penbase.hh
 vector.o: include/toad/color.hh include/toad/types.hh
 vector.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -3032,13 +3017,15 @@ test_toolbar.o: include/toad/focusmanager.hh
 test_toolbar.o: include/toad/figure/createtool.hh include/toad/figuretool.hh
 test_toolbar.o: include/toad/core.hh include/toad/bitmap.hh
 test_toolbar.o: include/toad/figure.hh include/toad/figuremodel.hh
-test_toolbar.o: include/toad/wordprocessor.hh fischland/selectiontool.hh
+test_toolbar.o: include/toad/wordprocessor.hh
+test_toolbar.o: include/toad/figure/selectiontool.hh
 test_toolbar.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 test_toolbar.o: include/toad/undo.hh include/toad/boolmodel.hh
 test_toolbar.o: include/toad/textmodel.hh include/toad/integermodel.hh
 test_toolbar.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-test_toolbar.o: include/toad/undomanager.hh fischland/directselectiontool.hh
-test_toolbar.o: fischland/texttool.hh
+test_toolbar.o: include/toad/undomanager.hh
+test_toolbar.o: include/toad/figure/directselectiontool.hh
+test_toolbar.o: include/toad/figure/texttool.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
 booleanop.o: include/toad/pen.hh include/toad/penbase.hh

@@ -19,14 +19,14 @@
  */
 
 #include "fishbox.hh"
-#include "selectiontool.hh"
+#include <toad/figure/selectiontool.hh>
 #include "filltool.hh"
 #include "pentool.hh"
 #include "penciltool.hh"
-#include "directselectiontool.hh"
-#include "texttool.hh"
+#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/texttool.hh>
 #include "rotatetool.hh"
-#include "connecttool.hh"
+#include <toad/figure/connecttool.hh>
 #include "colorpicker.hh"
 #include "colorpalette.hh"
 #include "fischland.hh"

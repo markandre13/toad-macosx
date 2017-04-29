@@ -18,13 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "texttool.hh"
-#include "fischland.hh"
-
+#include <toad/figure/texttool.hh>
 #include <toad/boolmodel.hh>
 #include <toad/integermodel.hh>
 
-using namespace fischland;
+using namespace toad;
 
 void
 TTextTool::stop(TFigureEditor *fe)

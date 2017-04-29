@@ -29,9 +29,9 @@
 //        o click'n drag point to move it
 //        o click'n drag outline to adjust control points so that outline follows mouse
 
-#include "directselectiontool.hh"
+#include <toad/figure/directselectiontool.hh>
 
-using namespace fischland;
+using namespace toad;
 
 TDirectSelectionTool*
 TDirectSelectionTool::getTool()
@@ -289,7 +289,7 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
   figure->paint(pen, TFigure::EDIT);
   pen.setLineWidth(1);
 */  
-  if (xaxis || yaxis) {
+  if (xaxis || yaxis) {
     pen.setLineStyle(TPen::DOT);
     if (xaxis)
       pen.drawLine(xaxisv,0, xaxisv, 1000); // FIXME

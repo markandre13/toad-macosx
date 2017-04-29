@@ -38,9 +38,7 @@
 #include <toad/figureeditor.hh>
 #include <toad/colorselector.hh>
 
-#include "fischland/directselectiontool.hh"
-
-using namespace fischland;
+#include <toad/figure/directselectiontool.hh>
 
 namespace toad {
 

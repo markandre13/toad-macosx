@@ -18,11 +18,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "connecttool.hh"
-#include "connectfigure.hh"
-#include "fischland.hh"
-
+#include <toad/figure/connecttool.hh>
+#include <toad/figure/connectfigure.hh>
 #include <toad/vector.hh>
+
+using namespace toad;
 
 TConnectTool*
 TConnectTool::getTool()

@@ -18,7 +18,7 @@
  * MA  02111-1307,  USA
  */
 
-#include "connectfigure.hh"
+#include <toad/figure/connectfigure.hh>
 #include <toad/figureeditor.hh>
 #include <toad/vector.hh>
 #include <toad/geometry.hh>

@@ -18,10 +18,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "selectiontool.hh"
+#include <toad/figure/selectiontool.hh>
 #include <toad/vector.hh>
 
-using namespace fischland;
+using namespace toad;
 
 void
 TSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)

@@ -18,31 +18,33 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _FISCHLAND_CONNECTTOOL_HH
-#define _FISCHLAND_CONNECTTOOL_HH 1
+#ifndef _TOAD_TEXTTOOL_HH
+#define _TOAD_TEXTTOOL_HH 1
 
-#include "fpath.hh"
-#include <toad/boolmodel.hh>
-#include <toad/integermodel.hh>
 #include <toad/figureeditor.hh>
 
-using namespace toad;
+namespace toad {
 
-class TFConnection;
-
-class TConnectTool:
+class TTextTool:
   public TFigureTool
 {
-    TFConnection *fconnect;
-    TFigure *firstFigure, *overFigure;
+    enum {
+      CURSOR_TEXT = 0,
+      CURSOR_TEXT_AREA = 1,
+      CURSOR_TEXT_SHAPE = 2,
+      CURSOR_TEXT_PATH = 3,
+    };
+    static TCursor *cursor[4];
+    TFText *text;
   public:
-    TConnectTool();
-    static TConnectTool* getTool();
-    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me) override;
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke) override;
-    bool paintSelection(TFigureEditor *fe, TPenBase &pen) override;
-    void stop(TFigureEditor*) override;
-    // TWindow* createEditor(TWindow *inWindow) override;
+    TTextTool(): text(nullptr) {}
+    static TTextTool* getTool();
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
+    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
+    bool paintSelection(TFigureEditor *fe, TPenBase &pen);
+    void stop(TFigureEditor*);
 };
+
+} // namespace toad
 
 #endif

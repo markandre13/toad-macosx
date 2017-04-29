@@ -30,15 +30,14 @@
 #include <toad/focusmanager.hh>
 
 #include <toad/figure/createtool.hh>
-#include "fischland/selectiontool.hh"
-#include "fischland/directselectiontool.hh"
-#include "fischland/texttool.hh"
+#include <toad/figure/selectiontool.hh>
+#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/texttool.hh>
 
 #include <cassert>
 #include <set>
 
 using namespace toad;
-using namespace fischland;
 
 TToolBox*
 TToolBox::getToolBox() {

@@ -23,7 +23,7 @@
 
 #include <toad/figure.hh>
 
-using namespace toad;
+namespace toad {
 
 class TFConnection:
   public TAttributedFigure, TFigureArrow
@@ -61,5 +61,7 @@ class TFConnection:
 
     SERIALIZABLE_INTERFACE(toad::, TFConnection);
 };
+
+} // namespace toad
 
 #endif

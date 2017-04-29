@@ -25,7 +25,7 @@
 #include "lineal.hh"
 #include "page.hh"
 #include "config.h"
-#include "connectfigure.hh"
+#include <toad/figure/connectfigure.hh>
 
 
 #ifdef HAVE_LIBCAIRO

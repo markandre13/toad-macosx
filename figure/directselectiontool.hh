@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _FISCHLAND_DIRECTSELECTIONTOOL_HH
-#define _FISCHLAND_DIRECTSELECTIONTOOL_HH 1
+#ifndef _TOAD_DIRECTSELECTIONTOOL_HH
+#define _TOAD_DIRECTSELECTIONTOOL_HH 1
 
 #include <toad/figureeditor.hh>
 #include <toad/boolmodel.hh>
@@ -27,10 +27,9 @@
 #include <toad/undomanager.hh>
 #include <map>
 
-namespace fischland {
+namespace toad {
 
 using namespace std;
-using namespace toad;
 
 class TDirectSelectionTool:
   public TFigureTool
