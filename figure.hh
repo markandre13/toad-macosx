@@ -351,9 +351,8 @@ class TFRectangle:
   protected:
     TPoint p1, p2;
 
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
-    unsigned mouseLUp(TFigureEditor*, TMouseEvent &) override;
+    void startCreate(const TPoint &start) override;
+    void dragCreate(const TPoint &end) override;
 };
 
 /**

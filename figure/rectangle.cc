@@ -137,60 +137,16 @@ TFRectangle::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned)
   }
 }
 
-unsigned 
-TFRectangle::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
+void
+TFRectangle::startCreate(const TPoint &point)
 {
-#if 0
-  switch(editor->state) {
-    case TFigureEditor::STATE_START_CREATE:
-      p1 = p2 = m.pos;
-      editor->invalidateFigure(this);
-      break;
-    default:
-      break;
-  }
-  return CONTINUE;
-#else
-  return 0;
-#endif
+  p1 = p2 = point;
 }
 
-unsigned 
-TFRectangle::mouseMove(TFigureEditor *editor, TMouseEvent &m)
+void
+TFRectangle::dragCreate(const TPoint &point)
 {
-#if 0
-  switch(editor->state) {
-    case TFigureEditor::STATE_CREATE:
-      editor->invalidateFigure(this);
-      p2 = m.pos;
-      editor->invalidateFigure(this);
-      break;
-    default:
-      break;
-  }
-  return CONTINUE;
-#else
-  return 0;
-#endif
-}
-
-unsigned 
-TFRectangle::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
-{
-#if 0
-  switch(editor->state) {
-    case TFigureEditor::STATE_CREATE:
-      mouseMove(editor, m);
-      if (p1.x==p2.x && p1.y==p2.y)
-        return STOP|DELETE;
-      return STOP;
-    default:
-      break;
-  }
-  return CONTINUE;
-#else
-  return 0;
-#endif
+  p2 = point;
 }
 
 TVectorGraphic*

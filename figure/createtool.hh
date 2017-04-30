@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2014 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,8 @@
  * MA  02111-1307,  USA
  */
 
-#ifndef _TOAD_FIGURE_CREATETOOL
-#define _TOAD_FIGURE_CREATETOOL 1
+#ifndef _TOAD_FIGURE_CREATETOOL_HH
+#define _TOAD_FIGURE_CREATETOOL_HH 1
 
 #include <toad/figuretool.hh>
 
@@ -37,29 +37,24 @@ class TFCreateTool:
 {
     TFigure *tmpl;	// the figure which will be cloned to create new figures
     TFigure *figure;	// the figure currently being created
-    enum {
-      STATE_NONE,
-      STATE_CREATE,
-    } state;
+
   public:
     /**
      * \param tmpl template for the figure to be created. This object will be
      *        deleted along with the TFCreateTool.
      */
     TFCreateTool(TFigure *tmpl) {
-      state = STATE_NONE;
       this->tmpl = tmpl;
-      figure = 0;
+      figure = nullptr;
     }
     ~TFCreateTool() {
       delete tmpl;
     }
   protected:    
-    void stop(TFigureEditor*);
-    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);
-    void keyEvent(TFigureEditor *fe, const TKeyEvent &ke);
-    void setAttributes(TFigureAttributeModel *p);
-    bool paintSelection(TFigureEditor *fe, TPenBase &pen);
+    void stop(TFigureEditor*) override;
+    void mouseEvent(TFigureEditor *fe, const TMouseEvent &me) override;
+    void setAttributes(TFigureAttributeModel *p) override;
+    bool paintSelection(TFigureEditor *fe, TPenBase &pen) override;
 };
 
 } // namespace toad
