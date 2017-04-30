@@ -70,7 +70,7 @@ TPenTool::stop(TFigureEditor *fe)
 //  fe->getWindow()->ungrabMouse();
   fe->getWindow()->setAllMouseMoveEvents(true);
   fe->getWindow()->setCursor(nullptr);
-  fe->state = TFigureEditor::STATE_NONE;
+  state = STATE_NONE;
   if (path) {
 /*
 cout << "---------------" << endl;
@@ -100,12 +100,11 @@ TPenTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       cursor(fe, x, y);
       break;
     case TMouseEvent::LDOWN:
-      if (fe->state == TFigureEditor::STATE_NONE) {
+      if (state == STATE_NONE) {
         // start creation
-        fe->state = TFigureEditor::STATE_CREATE;
+        state = STATE_CREATE;
         fe->getWindow()->setAllMouseMoveEvents(true);
         path = new TFPath();
-        path->removeable = true;
         fe->getAttributes()->setAllReasons();
         path->setAttributes(fe->getAttributes());
         fe->getAttributes()->clearReasons();

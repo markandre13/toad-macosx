@@ -31,8 +31,13 @@ class TPenTool:
 {
     TFPath *path;
     bool down;
+    enum {
+      STATE_NONE,
+      STATE_CREATE
+    } state;
   public:
     TPenTool() {
+      state = STATE_NONE;
       down = false;
       path = 0;
     }

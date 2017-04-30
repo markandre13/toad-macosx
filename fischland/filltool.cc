@@ -102,7 +102,6 @@ TFillTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       path = floodfill(*fe->getModel(), pos.x, pos.y);
       fe->getWindow()->setCursor(TCursor::DEFAULT);
       if (path) {
-        path->removeable = true;
         path->closed = true;
         fe->getAttributes()->setAllReasons();
         path->setAttributes(fe->getAttributes());

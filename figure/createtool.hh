@@ -35,14 +35,19 @@ namespace toad {
 class TFCreateTool:
   public TFigureTool
 {
-    TFigure *tmpl;
-    TFigure *figure;
+    TFigure *tmpl;	// the figure which will be cloned to create new figures
+    TFigure *figure;	// the figure currently being created
+    enum {
+      STATE_NONE,
+      STATE_CREATE,
+    } state;
   public:
     /**
      * \param tmpl template for the figure to be created. This object will be
      *        deleted along with the TFCreateTool.
      */
     TFCreateTool(TFigure *tmpl) {
+      state = STATE_NONE;
       this->tmpl = tmpl;
       figure = 0;
     }

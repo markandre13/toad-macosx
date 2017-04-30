@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2005 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -140,6 +140,7 @@ TFRectangle::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned)
 unsigned 
 TFRectangle::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
       p1 = p2 = m.pos;
@@ -149,11 +150,15 @@ TFRectangle::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
       break;
   }
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned 
 TFRectangle::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   switch(editor->state) {
     case TFigureEditor::STATE_CREATE:
       editor->invalidateFigure(this);
@@ -164,11 +169,15 @@ TFRectangle::mouseMove(TFigureEditor *editor, TMouseEvent &m)
       break;
   }
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned 
 TFRectangle::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   switch(editor->state) {
     case TFigureEditor::STATE_CREATE:
       mouseMove(editor, m);
@@ -179,6 +188,9 @@ TFRectangle::mouseLUp(TFigureEditor *editor, TMouseEvent &m)
       break;
   }
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 TVectorGraphic*

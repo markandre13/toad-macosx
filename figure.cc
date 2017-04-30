@@ -111,12 +111,10 @@ TInObjectStream TFigure::serialize;
 
 TFigure::TFigure()
 {
-  removeable = true;
 }
 
 TFigure::TFigure(const TFigure &f)
 {
-  removeable = f.removeable;
 }
 
 TFigure::~TFigure()
@@ -350,42 +348,52 @@ TFigure::startInPlace()
 unsigned
 TFigure::stop(TFigureEditor*) 
 { 
-  return NOTHING; 
+  return 0;
 }
 
 unsigned 
 TFigure::keyDown(TFigureEditor*, TKey, char*, unsigned)
 { 
-  return CONTINUE; 
+  return 0;
 }
 
 void
-TFigure::startCreate()
+TFigure::startCreate(const TPoint&)
+{
+}
+
+void
+TFigure::dragCreate(const TPoint&)
+{
+}
+
+void
+TFigure::endCreate()
 {
 }
 
 unsigned
 TFigure::mouseLDown(TFigureEditor*, TMouseEvent &)
 {
-  return STOP;
+  return 0;
 }
 
 unsigned
 TFigure::mouseMove(TFigureEditor*, TMouseEvent &)
 {
-  return CONTINUE;
+  return 0;
 }
 
 unsigned 
 TFigure::mouseLUp(TFigureEditor*, TMouseEvent &)
 {
-  return CONTINUE;
+  return 0;
 }
 
 unsigned
 TFigure::mouseRDown(TFigureEditor*, TMouseEvent &)
 {
-  return CONTINUE;
+  return 0;
 }
 
 namespace {

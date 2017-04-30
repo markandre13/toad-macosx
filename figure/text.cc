@@ -179,16 +179,19 @@ TFText::startInPlace()
 }
 
 void 
-TFText::startCreate()
+TFText::startCreate(const TPoint&)
 {
 }
 
 unsigned 
 TFText::stop(TFigureEditor*)
 {
+/*
   if (text.empty())
     return STOP|DELETE;
   return STOP;
+*/
+  return 0;
 }
 
 unsigned 
@@ -200,25 +203,25 @@ TFText::keyDown(TFigureEditor *editor, TKey key, char *str, unsigned modifier)
     calcSize();
     editor->invalidateFigure(this);
   }
-  return CONTINUE;
+  return 0;
 }
 
 unsigned 
 TFText::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
-  return CONTINUE;
+  return 0;
 }
 
 unsigned
 TFText::mouseMove(TFigureEditor*, TMouseEvent &)
 {
-  return CONTINUE;
+  return 0;
 }
 
 unsigned 
 TFText::mouseLUp(TFigureEditor*, TMouseEvent &)
 {
-  return CONTINUE;
+  return 0;
 }
 
 void

@@ -107,6 +107,7 @@ TFPolygon::translateHandle(unsigned handle, TCoord x, TCoord y, unsigned m)
 unsigned 
 TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   switch(editor->state) {
     case TFigureEditor::STATE_START_CREATE:
       polygon.addPoint(m.pos);
@@ -130,21 +131,29 @@ TFPolygon::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
       break;
   }
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned 
 TFPolygon::mouseMove(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   TPolygon::iterator p(--polygon.end());
   editor->invalidateFigure(this);
   *p = m.pos;
   editor->invalidateFigure(this);
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned 
 TFPolygon::keyDown(TFigureEditor *editor, TKey key, char *str, unsigned)
 {
+#if 0
   editor->invalidateFigure(this);
   switch(key) {
     case TK_BACKSPACE:
@@ -159,6 +168,9 @@ TFPolygon::keyDown(TFigureEditor *editor, TKey key, char *str, unsigned)
   }
   editor->invalidateFigure(this);
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 class TMyPopupMenu:
@@ -186,6 +198,7 @@ class TMyPopupMenu:
 unsigned
 TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   if (editor->state != TFigureEditor::STATE_NONE) {
     return NOTHING;
   }
@@ -242,6 +255,9 @@ TFPolygon::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
   menu->setScopeInteractor(dummy);
   menu->open(m.pos, m.modifier());
   return NOTHING;
+#else
+  return 0;
+#endif
 }
 
 void

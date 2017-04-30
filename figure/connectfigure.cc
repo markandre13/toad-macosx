@@ -274,6 +274,7 @@ static vector<TPoint>::iterator newpoint;
 unsigned
 TFConnection::mouseLDown(TFigureEditor *fe, TMouseEvent &me)
 {
+#if 0
 //  cout << "TFConnection::mouseLDown" << endl;
 
   auto p0(this->p.begin()),
@@ -296,24 +297,35 @@ TFConnection::mouseLDown(TFigureEditor *fe, TMouseEvent &me)
 
   newpoint = this->p.insert(m+1, me.pos);
   return TFigure::CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned
 TFConnection::mouseMove(TFigureEditor *fe, TMouseEvent &me)
 {
+#if 0
 //  cout << "TFConnection::mouseMove" << endl;
   *newpoint = me.pos;
   updatePoints();
   return TFigure::CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned
 TFConnection::mouseLUp(TFigureEditor *fe, TMouseEvent &me)
 {
+#if 0
 //  cout << "TFConnection::mouseLUp" << endl;
   *newpoint = me.pos;
   updatePoints();
   return TFigure::STOP;
+#else
+  return 0;
+#endif
 }
 
 void

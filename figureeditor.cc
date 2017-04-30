@@ -315,16 +315,15 @@ TFigureEditor::init(TFigureModel *m)
   toolbox = nullptr;
   fuzziness = 3;
 
-  handle = -1;
-  gadget = NULL;
-  state = STATE_NONE;
+//  handle = -1;
+//  gadget = NULL;
+//  state = STATE_NONE;
   use_scrollbars = true;
   mat = 0;
 //  vscroll = NULL;
 //  hscroll = NULL;
   window = 0;
   model = 0;
-  x1=y1=x2=y2=0;
   if (!m)
     m=new TFigureModel();
   setAttributes(new TFigureAttributeModel);
@@ -767,22 +766,10 @@ cout << "  shape " << r << " doesn't intersect with clipbox" << endl;
 */
     TFigure::EPaintType pt = TFigure::NORMAL;
     unsigned pushs = 0;
-    if (gadget==*p) {
-      if (state==STATE_ROTATE) {
-//cerr << "paint figure for rotation edited figure at rotd=" << rotd << endl;
-        pen.push();
-        pushs++;
-        pen.translate(rotx, roty);
-        pen.rotate(rotd);
-        pen.translate(-rotx, -roty);
-      } else {
-        pt = TFigure::EDIT;
-      }
-    }
 
     bool skip = false;
     if (withSelection || justSelection) {
-      if (gadget==*p || selection.find(*p)!=selection.end()) {
+      if (selection.find(*p)!=selection.end()) {
         if (withSelection)
           pt = TFigure::SELECT;
       } else {
@@ -932,9 +919,6 @@ TFigureEditor::addFigure(TFigure *figure)
 void
 TFigureEditor::deleteFigure(TFigure *g)
 {
-  if (g==gadget)
-    gadget=NULL;
-
   TFigureSet::iterator s;
   s = selection.find(g);
   if (s!=selection.end())
@@ -966,9 +950,6 @@ TFigureEditor::clearSelection()
 void
 TFigureEditor::deleteSelection()
 {
-  if (gadget && selection.find(gadget)!=selection.end()) {
-    gadget = 0;
-  }
   model->erase(selection);
 }
 
@@ -1434,13 +1415,9 @@ TPoint gridorigin(0.5, 0.5);
     *out = in;
     return;
   }
-  if (state!=STATE_ROTATE && state!=STATE_MOVE_ROTATE) {
-    int g = preferences->gridsize;
-    out->x = round(in.x/g)*g+gridorigin.x;
-    out->y = round(in.y/g)*g+gridorigin.y;
-  } else {
-    *out = in;
-  }
+  int g = preferences->gridsize;
+  out->x = round(in.x/g)*g+gridorigin.x;
+  out->y = round(in.y/g)*g+gridorigin.y;
 }
 
 void
@@ -1591,22 +1568,20 @@ TCoord my = m.y;
   bool stop = false;
   while(p!=b && !stop) {
     --p;
-    if (*p!=gadget) {
-      TCoord x, y;
-      x = mx;
-      y = my;
+    TCoord x, y;
+    x = mx;
+    y = my;
 //cerr << "  after rotation ("<<x<<", "<<y<<")\n";
-      TCoord d = (*p)->_distance(this, x, y);
-      if (d==TFigure::INSIDE) {
-        d = inside;
-        stop = true;
-      }
+    TCoord d = (*p)->_distance(this, x, y);
+    if (d==TFigure::INSIDE) {
+      d = inside;
+      stop = true;
+    }
 //cerr << "  distance = " << d << endl;
-      stack.identity(); // why is this instruction here?
-      if (d<distance) {
-        distance = d;
-        found = p;
-      }
+    stack.identity(); // why is this instruction here?
+    if (d<distance) {
+      distance = d;
+      found = p;
     }
   }
 

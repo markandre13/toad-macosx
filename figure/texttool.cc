@@ -30,7 +30,6 @@ TTextTool::stop(TFigureEditor *fe)
   text = nullptr;
   TWindow::ungrabMouse();
   fe->getWindow()->setCursor(nullptr);
-  fe->state = TFigureEditor::STATE_NONE;
   fe->invalidateWindow();
 }
 
@@ -64,7 +63,6 @@ TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
     case TMouseEvent::LDOWN:
       if (textUnderMouse && textUnderMouse != text) {
         textUnderMouse->startInPlace();
-        fe->state = TFigureEditor::STATE_EDIT;
         fe->clearSelection();
       }
       if (!textUnderMouse && text)
@@ -81,12 +79,10 @@ TTextTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         if (figureUnderMouse) {
           TFigureEditor::relatedTo[figureUnderMouse].insert(text);
         }
-        text->removeable = true;
         fe->getAttributes()->setAllReasons();
         text->setAttributes(fe->getAttributes());
         fe->addFigure(text);
         text->startInPlace();
-        fe->state = TFigureEditor::STATE_EDIT;
         fe->clearSelection();
         fe->invalidateFigure(text);
       }
@@ -102,11 +98,7 @@ TTextTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
 
   switch(ke.type) {
     case TKeyEvent::DOWN:
-      unsigned r = text->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
-      // FIXME: delete figure if required
-      if (r & TFigure::STOP) {
-        stop(fe);
-      }
+      text->keyDown(fe, ke.key, const_cast<char*>(ke.string.c_str()), ke.modifier);
       break;
   }
 }

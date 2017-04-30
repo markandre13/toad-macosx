@@ -272,6 +272,7 @@ TFLine::distance(const TPoint &pos)
 unsigned 
 TFLine::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
 {
+#if 0
   if (editor->state == TFigureEditor::STATE_CREATE &&
       m.dblClick) 
   {
@@ -281,6 +282,10 @@ TFLine::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
     return STOP;
   }
   return super::mouseLDown(editor, m);
+  return STOP;
+#else
+  return 0;
+#endif
 }
 
 void

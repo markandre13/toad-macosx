@@ -95,7 +95,7 @@ TFFrame::distance(const TPoint &m)
 unsigned
 TFFrame::stop(TFigureEditor *editor)
 {
-  return STOP; // NOTHING;
+  return 0;
 }
 
 unsigned
@@ -115,8 +115,9 @@ TFFrame::keyDown(TFigureEditor *editor, TKey key, char *txt, unsigned m)
 //  r.w = TOADBase::DefaultFont().TextWidth(text)+2;
   editor->invalidateFigure(this);
   return result;
-#else
   return STOP;
+#else
+  return 0;
 #endif
 }
 
@@ -133,7 +134,7 @@ unsigned
 TFFrame::mouseLDown(TFigureEditor *e, TMouseEvent &m)
 {
 //  cout << __PRETTY_FUNCTION__ << endl;
-
+#if 0
   switch(e->state) {
     case TFigureEditor::STATE_START_CREATE:
 cout << "start create frame " << this << endl;
@@ -157,6 +158,9 @@ cout << "create/edit frame " << this << endl;
       break;
   }
   return CONTINUE;
+#else
+  return 0;
+#endif
 }
 
 unsigned 
@@ -165,7 +169,8 @@ TFFrame::mouseMove(TFigureEditor *e, TMouseEvent &m)
 cout << "mouse move frame " << this << endl;
   if (flag)
     TFRectangle::mouseMove(e, m);
-  return CONTINUE;
+//  return CONTINUE;
+  return 0;
 }
 
 unsigned 
@@ -174,7 +179,8 @@ TFFrame::mouseLUp(TFigureEditor *e, TMouseEvent &m)
 cout << "mouse up frame " << this << endl;
   TFRectangle::mouseLUp(e, m);
 flag = false;
-  return CONTINUE;
+//  return CONTINUE;
+  return 0;
 }
 
 void

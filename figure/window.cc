@@ -33,7 +33,6 @@ TFWindow::TFWindow()
 {
   window = NULL;
   taborder = 0;
-  removeable = false;
   filled = true; // for super::distance()
 }
 

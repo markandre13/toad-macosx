@@ -137,28 +137,20 @@ class TFigure:
   public:
   
     // FIXME: the base class of TFigure shouldn't have any attributes
-  
+
     /**
      * 'true' when TFigureEditor is allowed to delete this object.
      *  NOTE: might be better as a virtual function
      */
-    bool removeable:1;
-    
-    // editor related stuff per figure for manipulation
-    //-------------------------------------------------
-    static const unsigned NOTHING  = 0;
-    static const unsigned CONTINUE = 1; // continue editing
-    static const unsigned STOP     = 2; // stop editing
-    static const unsigned REPEAT   = 4; // repeat the last event
-    static const unsigned DELETE   = 8; // delete this object
-    static const unsigned NOGRAB   = 16; // don't grab
 
     // stage 1: select:
-    virtual double _distance(TFigureEditor *fe, TCoord x, TCoord y);
+    virtual double _distance(TFigureEditor *fe, TCoord x, TCoord y); // FIXME: DROP
     virtual TCoord distance(const TPoint &pos);
     
     // stage 2: move
     virtual bool transform(const TMatrix2D &transform);
+
+    // TFHandleInterface
     
     // stage 3: manipulate
     static const int NO_HANDLE = -1;
@@ -173,9 +165,14 @@ class TFigure:
     virtual unsigned stop(TFigureEditor*);
     virtual unsigned keyDown(TFigureEditor*, TKey, char*, unsigned);
 
+    // TFShapeInterface
+
     // editor related stuff for manipulation & creation
     //--------------------------------------------------
-    virtual void startCreate();
+    virtual void startCreate(const TPoint &start);
+    virtual void dragCreate(const TPoint &end);
+    virtual void endCreate();
+    
     virtual unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
     virtual unsigned mouseMove(TFigureEditor*, TMouseEvent &);
     virtual unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
@@ -548,7 +545,7 @@ class TFText:
     bool getHandle(unsigned n, TPoint *p) override;
 
     bool startInPlace() override;
-    void startCreate() override;
+    void startCreate(const TPoint &start) override;
     unsigned stop(TFigureEditor*) override;
 
     unsigned keyDown(TFigureEditor*, TKey, char*, unsigned) override;

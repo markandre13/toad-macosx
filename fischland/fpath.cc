@@ -426,7 +426,7 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
   }
   
   if (found && (i%3)!=0)
-    return NOTHING;
+    return 0;
 
   TInteractor *dummy = new TInteractor(0, "dummy interactor");
 //cerr << "create tree " << dummy << endl;
@@ -468,7 +468,7 @@ TFPath::mouseRDown(TFigureEditor *editor, TMouseEvent &m)
   menu->tree = dummy;
   menu->setScopeInteractor(dummy);
   menu->open(m.pos, m.modifier());
-  return NOTHING;
+  return 0;
 }
  
 namespace {

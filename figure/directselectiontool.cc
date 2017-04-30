@@ -260,7 +260,7 @@ TDirectSelectionTool::stop(TFigureEditor *fe)
   fe->clearSelection();
   fe->getWindow()->setAllMouseMoveEvents(false);
   fe->getWindow()->setCursor(0);
-  fe->state = TFigureEditor::STATE_NONE;
+//  fe->state = TFigureEditor::STATE_NONE;
   fe->quick = false;
   if (figure) {
     fe->invalidateFigure(figure);

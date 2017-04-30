@@ -103,7 +103,6 @@ TPencilTool::stop(TFigureEditor *fe)
   fe->getWindow()->setAllMouseMoveEvents(false);
   fe->getWindow()->flagCompressMotion = true;
   fe->getWindow()->setCursor(nullptr);
-  fe->state = TFigureEditor::STATE_NONE;
   fe->invalidateWindow();
 }
 

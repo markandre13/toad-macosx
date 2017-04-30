@@ -194,9 +194,9 @@ class TFigureAttributeModel:
       return fontname;
     }
 
-    TBoolModel outline; // FIXME: rename me into line
+    TBoolModel outline; // FIXME: rename me into stroke
     TBoolModel filled; // FIXME: rename me into fill
-    TRGB linecolor;
+    TRGB linecolor; // FIXME: rename into strokeColor
     TRGB fillcolor;
     TFloatModel alpha;
     TTextModel fontname;
@@ -369,29 +369,7 @@ class TFigureEditor:
     
     TFigure* findFigureAt(TPoint pos);
 
-    static const unsigned STATE_NONE = 0;
-    
-    // states for OP_SELECT
-    static const unsigned STATE_MOVE = 1;           // moving objects
-    static const unsigned STATE_MOVE_HANDLE = 2;    // move handle
-    static const unsigned STATE_SELECT_RECT = 3;    // select rectangular area
-    static const unsigned STATE_EDIT = 4;           // edit object
-    static const unsigned STATE_ROTATE = 5;         // rotate object
-    static const unsigned STATE_MOVE_ROTATE = 6;
-    
-    // states for OP_CREATE
-    static const unsigned STATE_START_CREATE = 20;   // set during `startCreate' and first `mouseLDown'
-    static const unsigned STATE_CREATE = 21;
-    
     TCoord fuzziness; // fuzziness to catch handles
-    unsigned state;
-    
-    TCoord down_x, down_y;                             // last mouseXDown postion
-
-    // undo stuff:
-    TCoord memo_x, memo_y;
-    unsigned memo_n;
-    TPoint memo_pt;
 
     // triggered after `selection' was modified
     TSignal sigSelectionChanged;
@@ -417,19 +395,10 @@ class TFigureEditor:
     bool restore(TInObjectStream&);
     void store(TOutObjectStream&) const;
 
-    void setCurrent(TFigure *f) { gadget = f; }
-    TFigure* getCurrent() const { return gadget; }
-
   protected:
     void init(TFigureModel *m);
     
-    TFigure* gadget;        // the current gadget during create & edit
-
-    int handle;             // the current handle or -1 during select
-    bool tht; // translate handle transform?
-    
     bool use_scrollbars;
-    TCoord x1,x2, y1,y2;
     void updateScrollbars();
     void scrolled(TCoord dx, TCoord dy) override;
     
