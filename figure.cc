@@ -64,17 +64,6 @@ double toad::TFigure::INSIDE = -1.0;
 
 // this class is for backward compability
 
-namespace {
-
-class TFPolyline:
-  public TFLine
-{
-  public:
-    const char * getClassName() const { return "toad::TFPolyline"; }
-};
-
-} // namespace
-
 void
 TFigure::initialize()
 {
@@ -88,13 +77,8 @@ TFigure::initialize()
   serialize.registerObject(new TMatrix2D());
   serialize.registerObject(new TFText());
   serialize.registerObject(new TFFrame());
-  serialize.registerObject(new TFLine());
   serialize.registerObject(new TFRectangle());
   serialize.registerObject(new TFCircle());
-  serialize.registerObject(new TFPolygon());
-  serialize.registerObject(new TFPolyline());
-//  serialize.registerObject(new TFBezier());
-//  serialize.registerObject(new TFBezierline());
   serialize.registerObject(new TFGroup());
   serialize.registerObject(new TFWindow());
   serialize.registerObject(new TFImage());

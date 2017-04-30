@@ -209,8 +209,8 @@ class TFigureAttributeModel:
     unsigned linewidth; // FIXME: TCoord
     TPenBase::ELineStyle linestyle;
     
-    TFLine::EArrowMode arrowmode;
-    TFLine::EArrowType arrowtype;
+    TFigureArrow::EArrowMode arrowmode;
+    TFigureArrow::EArrowType arrowtype;
     unsigned arrowwidth;
     unsigned arrowheight;
 };

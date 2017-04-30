@@ -355,37 +355,6 @@ class TFRectangle:
     void dragCreate(const TPoint &end) override;
 };
 
-/**
- * \ingroup figure
- */
-class TFPolygon:
-  public TAttributedFigure
-{
-    typedef TAttributedFigure super;
-  public:
-    void paint(TPenBase &, EPaintType) override;
-    TCoord distance(const TPoint &pos) override;
-    TRectangle bounds() const override;
-    bool transform(const TMatrix2D &transform) override;
-    bool getHandle(unsigned n, TPoint *p) override;
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
-    TPolygon polygon;
-    
-    SERIALIZABLE_INTERFACE(toad::, TFPolygon);
-  protected:
-    // polygon creation
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &) override;
-    unsigned keyDown(TFigureEditor *editor, TKey key, char *str, unsigned) override;
-    unsigned mouseRDown(TFigureEditor *editor, TMouseEvent &) override;
-    virtual void _insertPointNear(TCoord, TCoord, bool filled);
-  public:
-    virtual void insertPointNear(TCoord, TCoord);
-    virtual void deletePoint(unsigned);
-    void addPoint(const TPoint &p) { polygon.addPoint(p); }
-    void addPoint(TCoord x, TCoord y) { polygon.addPoint(x,y); }
-};
-
 class TFigureArrow
 {
   public:
@@ -417,76 +386,6 @@ class TFigureArrow
                           const TRGB &line, const TRGB &fill,
                           TCoord w, TCoord h,
                           EArrowType type);
-};
-
-/**
- * \ingroup figure
- */
-class TFLine:
-  public TFPolygon, public TFigureArrow
-{
-  public:
-    typedef TFPolygon super;
-
-    TFLine();
-    void setAttributes(const TFigureAttributeModel*) override;
-    void getAttributes(TFigureAttributeModel*) const override;
-    void paint(TPenBase &, EPaintType) override;
-    TCoord distance(const TPoint &pos) override;
-    
-    virtual void insertPointNear(TCoord, TCoord) override;
-  protected:
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &) override;
-    SERIALIZABLE_INTERFACE(toad::, TFLine);
-};
-
-/**
- * \ingroup figure
- */
-class TFBezierline:
-  public TFLine
-{
-  protected:
-    void paintSelectionLines(TPenBase &pen);
-  public:
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
-    unsigned mouseLUp(TFigureEditor*, TMouseEvent &);
-    unsigned mouseMove(TFigureEditor*, TMouseEvent &);
-
-    void insertPointNear(TCoord x, TCoord y);
-    void deletePoint(unsigned i);
-
-    void paint(TPenBase &, EPaintType);
-    void paintSelection(TPenBase &pen, int handle);
-    void _paintSelection(TPenBase &pen, int handle, bool filled);
-    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    void _translateHandle(unsigned handle, TCoord mx, TCoord my, unsigned, bool filled);
-    unsigned mouseRDown(TFigureEditor*, TMouseEvent &);
-    
-    TCloneable* clone() const { return new TFBezierline(*this); }
-    const char * getClassName() const { return "toad::TFBezierline"; }
-};
-
-/**
- * \ingroup figure
- */
-class TFBezier:
-  public TFBezierline
-{
-    typedef TFBezier super;
-  public:
-    unsigned mouseLDown(TFigureEditor*, TMouseEvent &);
-
-    void paint(TPenBase &, EPaintType);
-    void paintSelection(TPenBase &pen, int handle);
-    TCoord _distance(TFigureEditor *fe, TCoord x, TCoord y);
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier);
-    void setAttributes(const TFigureAttributeModel*);
-    
-    TCloneable* clone() const { return new TFBezier(*this); }
-    const char * getClassName() const { return "toad::TFBezier"; }
-    void store(TOutObjectStream &out) const;
 };
 
 /**

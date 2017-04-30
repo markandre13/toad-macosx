@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2004 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,6 @@
 #include <toad/figure.hh>
 #include <toad/figureeditor.hh>
 #include <toad/penbase.hh>
-
 
 using namespace toad;
 
@@ -193,120 +192,4 @@ TFigureArrow::drawArrow(TPenBase &pen,
       pen.fillPolygon(p, 4);
       break;
   }
-}
-
-TFLine::TFLine()
-{
-  fill_color.set(1,0,0);
-}
-
-void
-TFLine::setAttributes(const TFigureAttributeModel *preferences)
-{
-  super::setAttributes(preferences);
-  TFigureArrow::setAttributes(preferences);
-}
-
-void
-TFLine::getAttributes(TFigureAttributeModel *preferences) const
-{
-  super::getAttributes(preferences);
-  TFigureArrow::getAttributes(preferences);
-}
-
-void 
-TFLine::paint(TPenBase &pen, EPaintType)
-{
-  pen.setStrokeColor(line_color);
-  pen.setFillColor(fill_color);
-  pen.setLineStyle(line_style);
-  pen.setLineWidth(line_width);
-  pen.setAlpha(alpha);
-  pen.drawLines(polygon);
-  
-  if (arrowmode == NONE) {
-    pen.setAlpha(1);
-    return;
-  }
-  pen.setLineStyle(TPenBase::SOLID);
-
-  TCoord aw = arrowwidth * line_width;
-  TCoord ah = arrowheight * line_width;
-
-  if (arrowmode == HEAD || arrowmode == BOTH)
-    drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-2], line_color, fill_color, aw, ah, arrowtype);
-  if (arrowmode == TAIL || arrowmode == BOTH)
-    drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
-  pen.setAlpha(1);
-}
-
-TCoord 
-TFLine::distance(const TPoint &pos)
-{
-  TPolygon::const_iterator p(polygon.begin()), e(polygon.end());
-  TCoord x1,y1,x2,y2;
-  TCoord min = OUT_OF_RANGE, d;
-
-  assert(p!=e);
-  x2=p->x;
-  y2=p->y;
-  ++p;
-  assert(p!=e);
-  while(p!=e) {
-    x1=x2;
-    y1=y2;
-    x2=p->x;
-    y2=p->y;
-    d = distance2Line(pos.x, pos.y, x1,y1, x2,y2);
-    if (d<min)
-      min = d;
-    ++p;
-  }
-  return min;
-}
-
-/**
- * A variation of our super class mouseLDown, which accepts a minimum of
- * 2 points instead of 3.
- */
-unsigned 
-TFLine::mouseLDown(TFigureEditor *editor, TMouseEvent &m)
-{
-#if 0
-  if (editor->state == TFigureEditor::STATE_CREATE &&
-      m.dblClick) 
-  {
-    if (polygon.size()<3)
-      return STOP|DELETE;
-    polygon.erase(--polygon.end());
-    return STOP;
-  }
-  return super::mouseLDown(editor, m);
-  return STOP;
-#else
-  return 0;
-#endif
-}
-
-void
-TFLine::insertPointNear(TCoord x, TCoord y)
-{
-  _insertPointNear(x, y, false);
-}
-
-void
-TFLine::store(TOutObjectStream &out) const
-{
-  super::store(out);
-  TFigureArrow::store(out);
-}
-
-bool
-TFLine::restore(TInObjectStream &in)
-{
-  if (TFigureArrow::restore(in) ||
-      super::restore(in))
-    return true;
-  ATV_FAILED(in)
-  return false;
 }

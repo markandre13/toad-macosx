@@ -44,8 +44,8 @@
 TFPath::TFPath()
 {
   closed = false;
-  arrowmode = TFLine::NONE;
-  arrowtype = TFLine::SIMPLE;
+  arrowmode = TFigureArrow::NONE;
+  arrowtype = TFigureArrow::SIMPLE;
   arrowheight = 8;
   arrowwidth = 4;
   fill_color.set(1,1,1);
@@ -314,22 +314,22 @@ TFPath::paint(TPenBase &pen, EPaintType type)
   TCoord ah = arrowheight * line_width;
 
   if (polygon.size()>=4) {
-    if (arrowmode == TFLine::TAIL || arrowmode == TFLine::BOTH) {
+    if (arrowmode == TFigureArrow::TAIL || arrowmode == TFigureArrow::BOTH) {
 //cout << "cornerAtHandle(TAIL)==" << cornerAtHandle(0) << endl;
       unsigned c = cornerAtHandle(0);
       if (c!=0)
-        TFLine::drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
+        TFigureArrow::drawArrow(pen, polygon[0], polygon[1], line_color, fill_color, aw, ah, arrowtype);
       else
-        TFLine::drawArrow(pen, polygon[0], polygon[3], line_color, fill_color, aw, ah, arrowtype);
+        TFigureArrow::drawArrow(pen, polygon[0], polygon[3], line_color, fill_color, aw, ah, arrowtype);
     }
     
-    if (arrowmode == TFLine::HEAD || arrowmode == TFLine::BOTH) {
+    if (arrowmode == TFigureArrow::HEAD || arrowmode == TFigureArrow::BOTH) {
 //cout << "cornerAtHandle(HEAD)==" << cornerAtHandle(polygon.size()-1) << endl;
       unsigned c = cornerAtHandle(polygon.size()-1);
       if (c==0)
-        TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-3], line_color, fill_color, aw, ah, arrowtype);
+        TFigureArrow::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-3], line_color, fill_color, aw, ah, arrowtype);
       else
-        TFLine::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-4], line_color, fill_color, aw, ah, arrowtype);
+        TFigureArrow::drawArrow(pen, polygon[polygon.size()-1], polygon[polygon.size()-4], line_color, fill_color, aw, ah, arrowtype);
 //pen.setColor(1,0,0);
 //pen.drawLine(polygon[polygon.size()-1], polygon[polygon.size()-3]);
     }
@@ -727,7 +727,7 @@ TFPath::store(TOutObjectStream &out) const
 {
   TAttributedFigure::store(out);
 
-  if (arrowmode!=TFLine::NONE) {
+  if (arrowmode!=TFigureArrow::NONE) {
    out.indent();
    out << "arrowmode = " << arrowmodename[arrowmode];
    out.indent();
@@ -797,7 +797,7 @@ TFPath::restore(TInObjectStream &in)
   if (::restore(in, "arrowmode", &s)) {
     for(unsigned i=0; i<sizeof(arrowmodename)/sizeof(char*); ++i) {
       if (s == arrowmodename[i]) {
-        arrowmode = (TFLine::EArrowMode)i;
+        arrowmode = (TFigureArrow::EArrowMode)i;
         return true;
       }
     }
@@ -805,7 +805,7 @@ TFPath::restore(TInObjectStream &in)
   if (::restore(in, "arrowtype", &s)) {
     for(unsigned i=0; i<sizeof(arrowtypename)/sizeof(char*); ++i) {
       if (s == arrowtypename[i]) {
-        arrowtype = (TFLine::EArrowType)i;
+        arrowtype = (TFigureArrow::EArrowType)i;
         return true;
       }
     }

@@ -70,11 +70,11 @@ class TArrowTypeAdapter:
           TPoint p1(30,9);
           TPoint p2(5,9);
           te.pen->drawLine(p1, p2);
-          TFLine::drawArrow(*te.pen,
+          TFigureArrow::drawArrow(*te.pen,
                             p1, p2,
                             black, white,
                             8, 16,
-                            static_cast<TFLine::EArrowType>(te.row));
+                            static_cast<TFigureArrow::EArrowType>(te.row));
           renderCursor(te);
         } break;
       }
@@ -101,9 +101,9 @@ class TArrowModeAdapter:
           TPoint p2(5,9);
           te.pen->drawLine(p1, p2);
           if (te.row==1 || te.row==3)
-            TFLine::drawArrow(*te.pen, p1, p2, black, white, 5, 10, TFLine::FILLED);
+            TFigureArrow::drawArrow(*te.pen, p1, p2, black, white, 5, 10, TFigureArrow::FILLED);
           if (te.row==2 || te.row==3)
-            TFLine::drawArrow(*te.pen, p2, p1, black, white, 5, 10, TFLine::FILLED);
+            TFigureArrow::drawArrow(*te.pen, p2, p1, black, white, 5, 10, TFigureArrow::FILLED);
           renderCursor(te);
         } break;
       }
@@ -272,7 +272,7 @@ setLineStyle(TSingleSelectionModel *model)
 void
 setArrowMode(TSingleSelectionModel *model)
 {
-  TFLine::EArrowMode n = static_cast<TFLine::EArrowMode>(model->getRow());
+  TFigureArrow::EArrowMode n = static_cast<TFigureArrow::EArrowMode>(model->getRow());
   if (TFishBox::preferences->arrowmode != n) {
     TFishBox::preferences->reason.arrowmode = true;
     TFishBox::preferences->arrowmode = n;
@@ -283,7 +283,7 @@ setArrowMode(TSingleSelectionModel *model)
 void
 setArrowType(TSingleSelectionModel *model)
 {
-  TFLine::EArrowType n = static_cast<TFLine::EArrowType>(model->getRow());
+  TFigureArrow::EArrowType n = static_cast<TFigureArrow::EArrowType>(model->getRow());
   if (TFishBox::preferences->arrowtype != n) {
     TFishBox::preferences->reason.arrowstyle = true;
     TFishBox::preferences->arrowtype = n;;
@@ -356,10 +356,6 @@ serialize.registerObject(new TFPath());
   static TFCreateTool frect(new TFRectangle);
   static TFCreateTool fcirc(new TFCircle);
   static TFCreateTool ftext(new TFText);
-  static TFCreateTool fpoly(new TFPolygon);
-  static TFCreateTool fline(new TFLine);
-//  static TFCreateTool fbezierline(new TFBezierline);
-//  static TFCreateTool fbezier(new TFBezier);
 
   assert(toolbox==0);
   toolbox = this;

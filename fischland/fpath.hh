@@ -61,8 +61,8 @@ class TFPath:
     void setAttributes(const TFigureAttributeModel*) override;
     void getAttributes(TFigureAttributeModel*) const override;
 
-    TFLine::EArrowMode arrowmode;
-    TFLine::EArrowType arrowtype;
+    TFigureArrow::EArrowMode arrowmode;
+    TFigureArrow::EArrowType arrowtype;
     TCoord arrowheight;
     TCoord arrowwidth;
 };

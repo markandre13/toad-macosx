@@ -22,8 +22,8 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   io/atvparser.cc io/binstream.cc io/serializable.cc io/urlstream.cc \
 	   gauge.cc colordialog.cc dragndrop.cc rgbmodel.cc types.cc \
 	   dnd/dropobject.cc dnd/color.cc dnd/textplain.cc dnd/image.cc \
-	   figure/bezier.cc figure/frame.cc figure/image.cc figure/polygon.cc \
-	   figure/text.cc figure/circle.cc figure/group.cc figure/line.cc \
+	   figure/frame.cc figure/image.cc figure/arrow.cc \
+	   figure/text.cc figure/circle.cc figure/group.cc \
 	   figure/transform.cc figure/perspectivetransform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
 	   figure/selectiontool.cc \
@@ -807,25 +807,22 @@ figure/image.o: include/toad/eventfilter.hh include/toad/table.hh
 figure/image.o: include/toad/dragndrop.hh include/toad/pushbutton.hh
 figure/image.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 figure/image.o: include/toad/control.hh include/toad/stl/vector.hh
-figure/polygon.o: include/toad/figure.hh include/toad/penbase.hh
-figure/polygon.o: include/toad/color.hh include/toad/types.hh
-figure/polygon.o: include/toad/io/serializable.hh
-figure/polygon.o: include/toad/io/atvparser.hh include/toad/font.hh
-figure/polygon.o: include/toad/pointer.hh include/toad/matrix2d.hh
-figure/polygon.o: include/toad/window.hh include/toad/interactor.hh
-figure/polygon.o: include/toad/connect.hh include/toad/cursor.hh
-figure/polygon.o: include/toad/region.hh include/toad/bitmap.hh
-figure/polygon.o: include/toad/figuremodel.hh include/toad/model.hh
-figure/polygon.o: include/toad/wordprocessor.hh include/toad/pen.hh
-figure/polygon.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/polygon.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/polygon.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/polygon.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-figure/polygon.o: include/toad/figure/createtool.hh
-figure/polygon.o: include/toad/figuretool.hh include/toad/core.hh
-figure/polygon.o: include/toad/action.hh include/toad/popupmenu.hh
-figure/polygon.o: include/toad/menuhelper.hh include/toad/layout.hh
-figure/polygon.o: include/toad/eventfilter.hh
+figure/arrow.o: include/toad/figure.hh include/toad/penbase.hh
+figure/arrow.o: include/toad/color.hh include/toad/types.hh
+figure/arrow.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+figure/arrow.o: include/toad/font.hh include/toad/pointer.hh
+figure/arrow.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/arrow.o: include/toad/interactor.hh include/toad/connect.hh
+figure/arrow.o: include/toad/cursor.hh include/toad/region.hh
+figure/arrow.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+figure/arrow.o: include/toad/model.hh include/toad/wordprocessor.hh
+figure/arrow.o: include/toad/pen.hh include/toad/figureeditor.hh
+figure/arrow.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/arrow.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/arrow.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/arrow.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
+figure/arrow.o: include/toad/figuretool.hh include/toad/core.hh
+figure/arrow.o: include/toad/action.hh
 figure/text.o: include/toad/figure.hh include/toad/penbase.hh
 figure/text.o: include/toad/color.hh include/toad/types.hh
 figure/text.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -874,22 +871,6 @@ figure/group.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/group.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 figure/group.o: include/toad/figuretool.hh include/toad/core.hh
 figure/group.o: include/toad/action.hh
-figure/line.o: include/toad/figure.hh include/toad/penbase.hh
-figure/line.o: include/toad/color.hh include/toad/types.hh
-figure/line.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-figure/line.o: include/toad/font.hh include/toad/pointer.hh
-figure/line.o: include/toad/matrix2d.hh include/toad/window.hh
-figure/line.o: include/toad/interactor.hh include/toad/connect.hh
-figure/line.o: include/toad/cursor.hh include/toad/region.hh
-figure/line.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-figure/line.o: include/toad/model.hh include/toad/wordprocessor.hh
-figure/line.o: include/toad/pen.hh include/toad/figureeditor.hh
-figure/line.o: include/toad/scrollpane.hh include/toad/undo.hh
-figure/line.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
-figure/line.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
-figure/line.o: include/toad/figuretool.hh include/toad/core.hh
-figure/line.o: include/toad/action.hh
 figure/transform.o: include/toad/vector.hh include/toad/penbase.hh
 figure/transform.o: include/toad/color.hh include/toad/types.hh
 figure/transform.o: include/toad/io/serializable.hh
@@ -2489,25 +2470,22 @@ figure/image.o: include/toad/eventfilter.hh include/toad/table.hh
 figure/image.o: include/toad/dragndrop.hh include/toad/pushbutton.hh
 figure/image.o: include/toad/buttonbase.hh include/toad/labelowner.hh
 figure/image.o: include/toad/control.hh include/toad/stl/vector.hh
-figure/polygon.o: include/toad/figure.hh include/toad/penbase.hh
-figure/polygon.o: include/toad/color.hh include/toad/types.hh
-figure/polygon.o: include/toad/io/serializable.hh
-figure/polygon.o: include/toad/io/atvparser.hh include/toad/font.hh
-figure/polygon.o: include/toad/pointer.hh include/toad/matrix2d.hh
-figure/polygon.o: include/toad/window.hh include/toad/interactor.hh
-figure/polygon.o: include/toad/connect.hh include/toad/cursor.hh
-figure/polygon.o: include/toad/region.hh include/toad/bitmap.hh
-figure/polygon.o: include/toad/figuremodel.hh include/toad/model.hh
-figure/polygon.o: include/toad/wordprocessor.hh include/toad/pen.hh
-figure/polygon.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
-figure/polygon.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/polygon.o: include/toad/textmodel.hh include/toad/integermodel.hh
-figure/polygon.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-figure/polygon.o: include/toad/figure/createtool.hh
-figure/polygon.o: include/toad/figuretool.hh include/toad/core.hh
-figure/polygon.o: include/toad/action.hh include/toad/popupmenu.hh
-figure/polygon.o: include/toad/menuhelper.hh include/toad/layout.hh
-figure/polygon.o: include/toad/eventfilter.hh
+figure/arrow.o: include/toad/figure.hh include/toad/penbase.hh
+figure/arrow.o: include/toad/color.hh include/toad/types.hh
+figure/arrow.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
+figure/arrow.o: include/toad/font.hh include/toad/pointer.hh
+figure/arrow.o: include/toad/matrix2d.hh include/toad/window.hh
+figure/arrow.o: include/toad/interactor.hh include/toad/connect.hh
+figure/arrow.o: include/toad/cursor.hh include/toad/region.hh
+figure/arrow.o: include/toad/bitmap.hh include/toad/figuremodel.hh
+figure/arrow.o: include/toad/model.hh include/toad/wordprocessor.hh
+figure/arrow.o: include/toad/pen.hh include/toad/figureeditor.hh
+figure/arrow.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/arrow.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/arrow.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/arrow.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
+figure/arrow.o: include/toad/figuretool.hh include/toad/core.hh
+figure/arrow.o: include/toad/action.hh
 figure/text.o: include/toad/figure.hh include/toad/penbase.hh
 figure/text.o: include/toad/color.hh include/toad/types.hh
 figure/text.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -2556,22 +2534,6 @@ figure/group.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/group.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 figure/group.o: include/toad/figuretool.hh include/toad/core.hh
 figure/group.o: include/toad/action.hh
-figure/line.o: include/toad/figure.hh include/toad/penbase.hh
-figure/line.o: include/toad/color.hh include/toad/types.hh
-figure/line.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
-figure/line.o: include/toad/font.hh include/toad/pointer.hh
-figure/line.o: include/toad/matrix2d.hh include/toad/window.hh
-figure/line.o: include/toad/interactor.hh include/toad/connect.hh
-figure/line.o: include/toad/cursor.hh include/toad/region.hh
-figure/line.o: include/toad/bitmap.hh include/toad/figuremodel.hh
-figure/line.o: include/toad/model.hh include/toad/wordprocessor.hh
-figure/line.o: include/toad/pen.hh include/toad/figureeditor.hh
-figure/line.o: include/toad/scrollpane.hh include/toad/undo.hh
-figure/line.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-figure/line.o: include/toad/integermodel.hh include/toad/numbermodel.hh
-figure/line.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
-figure/line.o: include/toad/figuretool.hh include/toad/core.hh
-figure/line.o: include/toad/action.hh
 figure/transform.o: include/toad/vector.hh include/toad/penbase.hh
 figure/transform.o: include/toad/color.hh include/toad/types.hh
 figure/transform.o: include/toad/io/serializable.hh

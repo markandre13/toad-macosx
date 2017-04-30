@@ -143,8 +143,8 @@ TFigureAttributeModel::TFigureAttributeModel()
   
   linewidth = 0;
   linestyle = TPen::SOLID;
-  arrowmode = TFLine::NONE;
-  arrowtype = TFLine::EMPTY;
+  arrowmode = TFigureArrow::NONE;
+  arrowtype = TFigureArrow::EMPTY;
   
   current = 0;
 }
