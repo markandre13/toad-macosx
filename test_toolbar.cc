@@ -29,62 +29,18 @@
 
 #include <toad/focusmanager.hh>
 
+#include <toad/figure/toolbox.hh>
+#include <toad/figure/toolpanel.hh>
 #include <toad/figure/createtool.hh>
 #include <toad/figure/selectiontool.hh>
 #include <toad/figure/nodetool.hh>
 #include <toad/figure/texttool.hh>
 
+
 #include <cassert>
 #include <set>
 
 using namespace toad;
-
-TToolBox*
-TToolBox::getToolBox() {
-  static TToolBox *tool = nullptr;
-  if (!tool) tool = new TToolBox();
-  return tool;
-}
-
-TToolBox::TToolBox()
-{
-  activePointer = 0;
-/*
-*/  
-  // FIXME: this would be nicer with closures
-  class TMyEventFilter: public TEventFilter {
-      TToolBox *toolbox;
-    public:
-      TMyEventFilter(TToolBox *aToolBox):toolbox(aToolBox) {}
-    protected:
-      bool mouseEvent(TMouseEvent &me) override {
-        if (me.type==TMouseEvent::TABLET_PROXIMITY) {
-          toolbox->selectPointer(me.pointerID());
-        }
-        return false;
-      }
-  };
-  TFocusManager::insertEventFilter(new TMyEventFilter(this), NULL, KF_GLOBAL);
-}
-
-void
-TToolBox::selectPointer(TMouseEvent::TPointerID pointerID)
-{
-  if (activePointer == pointerID)
-    return;
-
-  // new pointing device, save old one
-  toolForPointer[activePointer] = getValue();
-
-  // switch to the previously known tool for the new pointing device
-  auto &&knownTool = toolForPointer.find(pointerID);
-  if (knownTool != toolForPointer.end()) {
-    setValue(knownTool->second);
-  }
-  
-  activePointer = pointerID;
-}
-
 
 class TTestToolbar:
   public TWindow
@@ -135,159 +91,6 @@ TTestToolbar::TTestToolbar(TWindow *parent, const string &title):
   setLayout(layout);
 }
 
-// FIXME: this should be TFatRadioButton, but TRadioStateModel is not compatible with TAbstractChoice
-class TToolButton:
-  public TButtonBase
-{
-    typedef TButtonBase super;
-  public:
-    TToolButton(TWindow*, 
-                const string &,
-                TChoiceModel *choice,
-                size_t index);
-    // TAbstractChoice *choice;
-    TChoiceModel *choice;
-  protected:
-    size_t index;
-    void paint() override;
-};
-
-TToolButton::TToolButton(TWindow *parent, const string &title, TChoiceModel *aChoice, size_t anIndex)
-  :TButtonBase(parent, title), choice(aChoice), index(anIndex)
-{
-  connect(choice->sigChanged, this, [=] {
-    this->invalidateWindow();
-  });
-/*
-  // FIXME: an alternative to TSlot?
-  disconnect(choice->getModel()->sigChanged, this, [=] {
-    this.choices.remove(choice);
-    this->choice = nullptr;
-  });
-*/
-}
-
-void
-TToolButton::paint()
-{
-  TPen pen(this);
-
-  TChoiceModel *model = choice;
-  bool down = isDown() || model->getSelection()==index;
-  
-//  cout << "this: '" << getTitle() << ", model:" << model->getSelection() << endl;
-  
-  drawLabel(pen, getLabel(), down);
-  drawShadow(pen, down);
-}
-
-class TToolBar:
-  public TWindow
-{
-  public:
-    TToolBar(TWindow *parent, const string &title);
-  protected:
-    void actionsChanged();
-    void addAction(const string &title, TAction*);
-    void addChoice(const string &title, TChoiceModel*, size_t index);
-};
-
-TToolBar::TToolBar(TWindow *parent, const string &title):
-  TWindow(parent, title)
-{
-  flagParentlessAssistant = true;
-
-  connect(TAction::actions.sigChanged, this, [=] {
-    this->actionsChanged();
-  });
-  setShape(640, 900, 320, 32);
-  
-  actionsChanged();
-}
-
-void
-TToolBar::actionsChanged()
-{
-//cout << endl;
-//cout << "TToolBar::actionsChanged()" << endl;
-  std::set<std::string> found;
-
-  for(TActionStorage::iterator i = TAction::actions.begin();
-      i != TAction::actions.end();
-      ++i)
-  {
-    TAction *action = *i;
-    switch(action->type) {
-      case TAction::BUTTON:
-//cout << "  button '" << action->getTitle() << "'" << endl;
-        found.insert(action->getTitle());
-        addAction(action->getTitle(), action);
-        break;
-      case TAction::CHECKBUTTON:
-//cout << "  checkbox" << endl;
-        break;
-      case TAction::RADIOBUTTON:
-//cout << "  radiobutton '" << action->getTitle() << "'" << endl;
-        TAbstractChoice *choice = dynamic_cast<TAbstractChoice*>(action);
-        if (!choice) {
-//          cout << "    choice is not an abstract choice" << endl;
-          break;
-        }
-        for(size_t i=0; i<choice->getSize(); ++i) {
-          string title = choice->getTitle() + '|' + choice->getID(i);
-//cout << "    '" << title << "'" << endl;
-          found.insert(title);
-          addChoice(title, choice->getModel(), i);
-        }
-        break;
-    }
-  }
-}
-
-void
-TToolBar::addAction(const string &title, TAction*)
-{
-}
-
-void
-TToolBar::addChoice(const string &title, TChoiceModel *choice, size_t index)
-{
-//cout << "toolbar: addChoice(" << title << ", ...)" << endl;
-
-  TCoord x = 0;
-  for(TInteractor *child = getFirstChild(); child; child=child->getNextSibling()) {
-    if (child->getTitle() == title)
-      return;
-    x += 32;
-  }
-
-  auto&& button = new TToolButton(this, title, choice, index);
-  if (title=="tool|toolbox|selection")
-    button->loadBitmap("resource/tool_select.png");
-  else
-  if (title=="tool|toolbox|directselection")
-    button->loadBitmap("resource/tool_directselect.png");
-  if (title=="tool|toolbox|pen")
-    button->loadBitmap("resource/tool_pen.png");
-  else
-  if (title=="tool|toolbox|pencil")
-    button->loadBitmap("resource/tool_pencil.png");
-  else
-  if (title=="tool|toolbox|text")
-    button->loadBitmap("resource/tool_text.png");
-  else
-  if (title=="tool|toolbox|circle")
-    button->loadBitmap("resource/tool_circ.png");
-  else
-  if (title=="tool|toolbox|rectangle")
-    button->loadBitmap("resource/tool_rect.png");
-
-  button->setShape(x,0,32,32);
-  connect(button->sigClicked, [=] {
-    choice->select(index);
-  });
-  
-}
 
 int 
 test_toolbar()
@@ -318,7 +121,7 @@ test_toolbar()
   tb->add("rectangle",       new TShapeTool(new TFRectangle));
   tb->add("circle",          new TShapeTool(new TFCircle));
 
-  new TToolBar(nullptr, "TToolBar");
+  new TToolPanel(nullptr, "TToolPanel");
   new TTestToolbar(nullptr, "TTestToolbar");
 
   connect(TToolBox::getToolBox()->sigChanged, [=] {

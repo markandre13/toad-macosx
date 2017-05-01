@@ -31,6 +31,7 @@
 #include <toad/integermodel.hh>
 #include <toad/floatmodel.hh>
 
+#include <toad/figure/toolbox.hh>
 #include <toad/figure/createtool.hh>
 #include <toad/action.hh>
 
@@ -49,36 +50,6 @@ class TFigureEditorHeaderRenderer
     virtual void render(TPenBase &pen, int pos, int size, TMatrix2D *mat) = 0;
     virtual int getSize() = 0;
     virtual void mouseEvent(const TMouseEvent&);
-};
-
-/**
- * \ingroup figure
- * \class toad::TToolBox
- *
- * TToolBox provides a collection of TFigureTools to TFigureEditor.
- *
- * A TFigureEditor has one TToolBox, while a TToolBox may be assigned to
- * many TFigureEditors.
- *
- * One TFigureTool within TToolBox is the active tool, to which
- * TFigureEditor will delegate all edit events.
- *
- * When the pointing device provides an ID, as is the case with some graphic
- * tablet pens, TToolBox will also maintain a separate active tool per pen.
- */
-class TToolBox:
-  public GChoiceModel<TFigureTool*>
-{
-    typedef GChoiceModel<TFigureTool*> super;
-
-    // each pointer has it's own active tool
-    map<TMouseEvent::TPointerID, TFigureTool*> toolForPointer;
-    TMouseEvent::TPointerID activePointer;
-  public:
-    TToolBox();
-    TFigureTool* getTool() const { return getValue(); }
-    static TToolBox *getToolBox();
-    void selectPointer(TMouseEvent::TPointerID pointerID);
 };
 
 /**
