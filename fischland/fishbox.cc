@@ -43,6 +43,9 @@
 #include <toad/figure.hh>
 #include <toad/messagebox.hh>
 
+#include <toad/figure/toolbox.hh>
+#include <toad/figure/toolpanel.hh>
+
 #include "fontdialog.hh"
 #include "fpath.hh"
 
@@ -353,10 +356,6 @@ serialize.registerObject(new TFPath());
 
   flagParentlessAssistant = true;
 
-  static TShapeTool frect(new TFRectangle);
-  static TShapeTool fcirc(new TFCircle);
-  static TShapeTool ftext(new TFText);
-
   assert(toolbox==0);
   toolbox = this;
   preferences = new TFigureAttributeModel;
@@ -378,72 +377,32 @@ serialize.registerObject(new TFPath());
   y = 4+2+28+2+1;
 
   TFigureAttributeModel *me = preferences;
+
+  TToolBox *tb = TToolBox::getToolBox();
+  // choice = make_unique<GChoice<TFigureTool*>>(this, "tool|toolbox", tb);
+  auto *choice = new GChoice<TFigureTool*>(this, "tool|toolbox", tb);
+  tb->add("selection"      , TSelectionTool::getTool());
+  tb->add("directselection", TNodeTool::getTool());
+  tb->add("pen"            , TPenTool::getTool());
+  tb->add("pencil"         , TPencilTool::getTool());
+  tb->add("rectangle"      , new TShapeTool(new TFRectangle));
+  tb->add("circle"         , new TShapeTool(new TFCircle));
+  tb->add("text"           , TTextTool::getTool());
+  tb->add("connect"        , TConnectTool::getTool());
+  
+  connect(TToolBox::getToolBox()->sigChanged, [=] {
+    cout << "TToolBox.sigChanged: selected tool" << endl;
+//    me->setTool(choice->getValue());
+  });
+  
+  TToolPanel *tp = new TToolPanel(this, "toolpanel");
+  tp->setBackground(1,0,0);
+  tp->setShape(4,y, 2*28, 4*28);
+  y+=4*28;
   
   for(unsigned i=0; i<20; i++) {
     wnd = 0;
     switch(i) {
-      case 0:
-        wnd = rb = new TFatRadioButton(this, "select", state);
-        wnd->setToolTip("Selection");
-        rb->loadBitmap(RESOURCE("tool_select.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TSelectionTool::getTool());
-//        me->setTool(TSelectionTool::getTool());
-        rb->setDown();
-        break;
-      case 1:
-        wnd = rb = new TFatRadioButton(this, "directselect", state);
-        wnd->setToolTip("Direct Selection");
-        rb->loadBitmap(RESOURCE("tool_directselect.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TNodeTool::getTool());
-        break;
-      case 2:
-        wnd = rb = new TFatRadioButton(this, "bezier", state);
-        wnd->setToolTip("Pen: draw beziers");
-        rb->loadBitmap(RESOURCE("tool_pen.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TPenTool::getTool());
-        break;
-      case 3:
-        wnd = rb = new TFatRadioButton(this, "freehand", state);
-        wnd->setToolTip("Pencil: freehand curves");
-        rb->loadBitmap(RESOURCE("tool_pencil.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TPencilTool::getTool());
-        break;
-/*
-      case 2:
-*/
-      case 5:
-        wnd = rb = new TFatRadioButton(this, "connect", state);
-        wnd->setToolTip("Connect");
-        rb->loadBitmap(RESOURCE("tool_connect.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TConnectTool::getTool());
-        break;
-/*
-        wnd = rb = new TFatRadioButton(this, "floodfill", state);
-        wnd->setToolTip("Flood Fill");
-        rb->loadBitmap(RESOURCE("tool_floodfill.png"));
-        CONNECT(rb->sigClicked, me, setTool, TFillTool::getTool());
-        break;
-*/
-      case 6:
-        wnd = rb = new TFatRadioButton(this, "text", state);
-        wnd->setToolTip("Text");
-        rb->loadBitmap(RESOURCE("tool_text.png"));
-        // CONNECT(rb->sigClicked, me, setTool, &ftext);
-//        CONNECT(rb->sigClicked, me, setTool, TTextTool::getTool());
-        break;
-      case 7:
-        wnd = rb = new TFatRadioButton(this, "circle", state);
-        wnd->setToolTip("Ellipse");
-        rb->loadBitmap(RESOURCE("tool_circ.png"));
-//        CONNECT(rb->sigClicked, me, setTool, &fcirc);
-        break;
-      case 8:
-        wnd = rb = new TFatRadioButton(this, "rectangle", state);
-        wnd->setToolTip("Rectangle");
-        rb->loadBitmap(RESOURCE("tool_rect.png"));
-//        CONNECT(rb->sigClicked, me, setTool, &frect);
-        break;
-        
       case 9:
         y+=5;
         wnd = rb = new TFatRadioButton(this, "rotate", state);

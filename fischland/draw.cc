@@ -950,7 +950,7 @@ TMainWindow::TMainWindow(TWindow *p, const string &t, TEditModel *e):
   new TUndoManager(this, "undomanager");
 
   TFischEditor *me = new TFischEditor(this, "figureeditor");
-
+  me->setToolBox(TToolBox::getToolBox());
 
   CONNECT(me->sigFischModified, this, editorModified);
   editor = me;
@@ -1499,7 +1499,7 @@ main(int argc, char **argv, char **envv)
   new TFishBox(0, "Tools");
 //  if (argc==1) {
   TMainWindow *wnd =  new TMainWindow(0, programname);
-  wnd->load("a.fish");
+//  wnd->load("a.fish");
   TFigureEditor::restoreRelations(); // FIXME: TFigureEditor should be able to register this in TInObjectStream
 /*
   } else {

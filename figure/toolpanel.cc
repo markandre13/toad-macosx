@@ -61,7 +61,7 @@ TToolPanel::actionsChanged()
 //cout << "  radiobutton '" << action->getTitle() << "'" << endl;
         TAbstractChoice *choice = dynamic_cast<TAbstractChoice*>(action);
         if (!choice) {
-//          cout << "    choice is not an abstract choice" << endl;
+          cout << "    choice is not an abstract choice" << endl;
           break;
         }
         for(size_t i=0; i<choice->getSize(); ++i) {
@@ -85,11 +85,16 @@ TToolPanel::addChoice(const string &title, TChoiceModel *choice, size_t index)
 {
 //cout << "toolbar: addChoice(" << title << ", ...)" << endl;
 
-  TCoord x = 0;
+  TCoord x = 0, y = 0;
   for(TInteractor *child = getFirstChild(); child; child=child->getNextSibling()) {
     if (child->getTitle() == title)
       return;
-    x += 32;
+    if (x==0) {
+      x += 28;
+    } else {
+      x = 0;
+      y += 28;
+    }
   }
 
   auto&& button = new TToolButton(this, title, choice, index);
@@ -112,8 +117,11 @@ TToolPanel::addChoice(const string &title, TChoiceModel *choice, size_t index)
   else
   if (title=="tool|toolbox|rectangle")
     button->loadBitmap("resource/tool_rect.png");
+  else
+  if (title=="tool|toolbox|connect")
+    button->loadBitmap("resource/tool_connect.png");
 
-  button->setShape(x,0,32,32);
+  button->setShape(x,y,28,28);
   connect(button->sigClicked, [=] {
     choice->select(index);
   });
