@@ -1423,6 +1423,7 @@ TPoint gridorigin(0.5, 0.5);
 void
 TFigureEditor::invalidateFigure(const TFigure* figure)
 {
+  assert(figure);
   if (!window)
     return;
   TRectangle r;
@@ -1482,6 +1483,8 @@ TFigureEditor::invalidateFigure(const TFigure* figure)
 void
 TFigureEditor::getFigureShape(const TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
+  assert(figure);
+  assert(r);
   *r = figure->bounds();
   _getFigureShape(figure, r, mat);
 }
@@ -1489,6 +1492,8 @@ TFigureEditor::getFigureShape(const TFigure* figure, TRectangle *r, const TMatri
 void
 TFigureEditor::getFigureEditShape(const TFigure* figure, TRectangle *r, const TMatrix2D *mat)
 {
+  assert(figure);
+  assert(r);
   *r = figure->editBounds();
   _getFigureShape(figure, r, mat);
 }

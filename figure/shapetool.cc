@@ -36,7 +36,7 @@ TShapeTool::stop(TFigureEditor *fe)
       fe->selection.insert(figure);
       fe->getWindow()->invalidateWindow();
     }
-    figure = 0;
+    figure = nullptr;
     fe->getWindow()->ungrabMouse();
   }
 }
@@ -57,6 +57,8 @@ TShapeTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
       break;
     case TMouseEvent::MOVE:
     case TMouseEvent::LUP:
+      if (!figure)
+        break;
       fe->mouse2sheet(me.pos, &point);
       fe->sheet2grid(point, &point);
       fe->invalidateFigure(figure);
