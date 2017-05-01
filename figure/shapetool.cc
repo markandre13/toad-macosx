@@ -18,8 +18,8 @@
  * MA  02111-1307,  USA
  */
 
+#include <toad/figure/shapetool.hh>
 #include <toad/figureeditor.hh>
-#include <toad/figure/createtool.hh>
 
 using namespace toad;
 

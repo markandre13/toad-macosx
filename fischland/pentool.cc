@@ -20,10 +20,9 @@
 
 #include "pentool.hh"
 #include "fischland.hh"
+#include <toad/figureeditor.hh>
 
-#include <toad/boolmodel.hh>
-#include <toad/integermodel.hh>
-
+using namespace toad;
 using namespace fischland;
 
 TPenTool*

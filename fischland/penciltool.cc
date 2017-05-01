@@ -20,12 +20,10 @@
 
 #include "penciltool.hh"
 #include "fischland.hh"
-
+#include <toad/figureeditor.hh>
 #include <toad/undomanager.hh>
-
 #include <toad/textfield.hh>
 #include <toad/checkbox.hh>
-
 #include <sys/time.h>
 
 using namespace fischland;

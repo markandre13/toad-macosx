@@ -22,7 +22,7 @@
 #define _FISCHLAND_PENTOOL_HH 1
 
 #include "fpath.hh"
-#include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 
 using namespace toad;
 

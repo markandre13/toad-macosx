@@ -31,9 +31,9 @@
 
 #include <toad/figure/toolbox.hh>
 #include <toad/figure/toolpanel.hh>
-#include <toad/figure/createtool.hh>
 #include <toad/figure/selectiontool.hh>
 #include <toad/figure/nodetool.hh>
+#include <toad/figure/shapetool.hh>
 #include <toad/figure/texttool.hh>
 
 

@@ -20,6 +20,7 @@
 
 #include <toad/figure/connecttool.hh>
 #include <toad/figure/connectfigure.hh>
+#include <toad/figureeditor.hh>
 #include <toad/vector.hh>
 
 using namespace toad;

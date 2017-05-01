@@ -32,7 +32,6 @@
 #include <toad/floatmodel.hh>
 
 #include <toad/figure/toolbox.hh>
-#include <toad/figure/createtool.hh>
 #include <toad/action.hh>
 
 #include <set>

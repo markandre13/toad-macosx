@@ -18,10 +18,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef _TOAD_TEXTTOOL_HH
-#define _TOAD_TEXTTOOL_HH 1
+#ifndef _TOAD_FIGURE_TEXTTOOL_HH
+#define _TOAD_FIGURE_TEXTTOOL_HH 1
 
-#include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 
 namespace toad {
 

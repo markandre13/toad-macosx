@@ -28,6 +28,7 @@
 #include <toad/labelowner.hh>
 #include <toad/io/urlstream.hh>
 #include <toad/focusmanager.hh>
+#include <toad/undomanager.hh>
 
 #include <map>
 

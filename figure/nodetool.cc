@@ -30,6 +30,8 @@
 //        o click'n drag outline to adjust control points so that outline follows mouse
 
 #include <toad/figure/nodetool.hh>
+#include <toad/figureeditor.hh>
+#include <toad/undomanager.hh>
 
 using namespace toad;
 

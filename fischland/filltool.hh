@@ -21,7 +21,7 @@
 #ifndef _FISCHLAND_FILLTOOL_HH
 #define _FISCHLAND_FILLTOOL_HH 1
 
-#include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 
 #include "fpath.hh"
 

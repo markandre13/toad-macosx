@@ -19,8 +19,7 @@
  */
 
 #include <toad/figure/texttool.hh>
-#include <toad/boolmodel.hh>
-#include <toad/integermodel.hh>
+#include <toad/figureeditor.hh>
 
 using namespace toad;
 

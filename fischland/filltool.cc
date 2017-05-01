@@ -32,6 +32,7 @@
 #include <algorithm>
 
 #include "filltool.hh"
+#include <toad/figureeditor.hh>
 
 #ifdef DEBUG
 #undef DEBUG

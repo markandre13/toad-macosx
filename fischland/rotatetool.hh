@@ -22,6 +22,7 @@
 #define _FISCHLAND_ROTATETOOL_HH 1
 
 #include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 
 using namespace toad;
 

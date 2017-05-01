@@ -22,9 +22,9 @@
 #define _FISCHLAND_PENCILTOOL_HH 1
 
 #include "fpath.hh"
-#include <toad/boolmodel.hh>
+#include <toad/figuretool.hh>
 #include <toad/integermodel.hh>
-#include <toad/figureeditor.hh>
+#include <toad/boolmodel.hh>
 
 using namespace toad;
 

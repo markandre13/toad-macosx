@@ -21,9 +21,7 @@
 #ifndef _TOAD_CONNECTTOOL_HH
 #define _TOAD_CONNECTTOOL_HH 1
 
-#include <toad/boolmodel.hh>
-#include <toad/integermodel.hh>
-#include <toad/figureeditor.hh>
+#include <toad/figuretool.hh>
 
 namespace toad {
 

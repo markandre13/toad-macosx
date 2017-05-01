@@ -21,11 +21,7 @@
 #ifndef _TOAD_DIRECTSELECTIONTOOL_HH
 #define _TOAD_DIRECTSELECTIONTOOL_HH 1
 
-#include <toad/figureeditor.hh>
-#include <toad/boolmodel.hh>
-#include <toad/undo.hh>
-#include <toad/undomanager.hh>
-#include <map>
+#include <toad/figuretool.hh>
 
 namespace toad {
 
