@@ -536,90 +536,20 @@ TSelectionTool::paintOutline(const TFigureSet &figures, TPenBase &pen)
   }
 }
 
-
 bool
 TSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
-#if 0
-  if (fe->state == TFigureEditor::STATE_EDIT) {
-    TFigure *figure = *tmpsel.begin();
-    pen.push();
-    figure->paint(pen, TFigure::EDIT);
-    pen.pop();
-    return true;
-  }
-#endif
-
   if (state==STATE_DRAG_MARQUEE) {
     paintOutline(temporarySelection, pen);
     paintMarquee(fe, pen);
   } else
   if (!fe->selection.empty()) {
-
     paintOutline(fe->selection, pen);
+    paintBoundary(fe, pen);
 
-    TCoord lineWidth = 1.0;
-    if (pen.getMatrix()) {
-      TPoint p0(0,0);
-      TPoint p1(1,1);
-      pen.getMatrix()->map(p0, &p0);
-      pen.getMatrix()->map(p1, &p1);
-      lineWidth = 1.0/(p1.x - p0.x);
-    }
-
-//pen.push();
-
-    TMatrix2D M;
-    if (pen.getMatrix()) {
-      TMatrix2D V(*pen.getMatrix());
-      V.invert();
-      if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
-        M = m * V;
-      } else {
-        M = V;
-      }
-      M.translate(fe->getOrigin());
-    } else {
-      if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
-        M = m;
-      } else {
-        M.identity();
-      }
-    }
-
-    pen.setLineWidth(lineWidth);
-    TVectorPath pr;
-    pr.addRect(TRectangle(boundary)); // the boundary is in screen coordinates
-    pr.transform(M);
-    pr.apply(pen);
-    pen.stroke();
-
-    pen.setFillColor(1,1,1);
-
-    TCoord t=lineWidth*-2.5;
-    TCoord w=lineWidth*5.0;
-    for(unsigned i=0; i<8; ++i) {
-      TRectangle r;
-      getBoundaryHandle(i, &r);
-      r.translate(TPoint(2.5,2.5));
-      M.map(r.origin, &r.origin);
-      r.translate(TPoint(t,t));
-      r.size.width = r.size.height = w;
-      pen.fillRectangle(r);
-      pen.drawRectangle(r);
-    }
-
-//pen.pop();
-
-/*    
-    if (pen.getMatrix()) {
-      pen.pop();
-    }
-*/
   }
   return true;
 }
-
       
 void
 TSelectionTool::calcBoundary(TFigureEditor *fe)
@@ -637,6 +567,63 @@ TSelectionTool::calcBoundary(TFigureEditor *fe)
     fe->getMatrix()->map(boundary.p1, &boundary.p1);
   }
 }
+
+void
+TSelectionTool::paintBoundary(TFigureEditor *fe, TPenBase &pen)
+{
+  TCoord lineWidth = 1.0;
+  if (pen.getMatrix()) {
+    TPoint p0(0,0);
+    TPoint p1(1,1);
+    pen.getMatrix()->map(p0, &p0);
+    pen.getMatrix()->map(p1, &p1);
+    lineWidth = 1.0/(p1.x - p0.x);
+  }
+
+  TMatrix2D M;
+  if (pen.getMatrix()) {
+    TMatrix2D V(*pen.getMatrix());
+    V.invert();
+    if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
+      M = m * V;
+    } else {
+      M = V;
+    }
+    M.translate(fe->getOrigin());
+  } else {
+    if (state==STATE_MOVE_HANDLE || state==STATE_MOVE_SELECTION) {
+      M = m;
+    } else {
+      M.identity();
+    }
+    // M.translate(fe->getOrigin()); // FIXME: don't we need this?
+  }
+
+  M.translate(fe->getVisible().origin);
+
+  pen.setLineWidth(lineWidth);
+  TVectorPath pr;
+  pr.addRect(TRectangle(boundary)); // the boundary is in screen coordinates
+  pr.transform(M);
+  pr.apply(pen);
+  pen.stroke();
+
+  pen.setFillColor(1,1,1);
+
+  TCoord t=lineWidth*-2.5;
+  TCoord w=lineWidth*5.0;
+  for(unsigned i=0; i<8; ++i) {
+    TRectangle r;
+    getBoundaryHandle(i, &r);
+    r.translate(TPoint(2.5,2.5));
+    M.map(r.origin, &r.origin);
+    r.translate(TPoint(t,t));
+    r.size.width = r.size.height = w;
+    pen.fillRectangle(r);
+    pen.drawRectangle(r);
+  }
+}
+
 
 static const char cursorData[15][32][32+1] = {
   {

@@ -105,9 +105,11 @@ class TSelectionTool:
 
     TBoundary boundary;
     void calcBoundary(TFigureEditor *fe);
+    
     void invalidateBoundary(TFigureEditor *fe);
     void paintOutline(const TFigureSet &figures, TPenBase &pen);
     bool paintSelection(TFigureEditor*, TPenBase &pen);
+    void paintBoundary(TFigureEditor *fe, TPenBase &pen);
 
     // by default strokes and effects aren't scaled
     TBoolModel scale_strokes_and_fx; // Preferences > General
