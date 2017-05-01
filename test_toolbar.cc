@@ -31,7 +31,7 @@
 
 #include <toad/figure/createtool.hh>
 #include <toad/figure/selectiontool.hh>
-#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/nodetool.hh>
 #include <toad/figure/texttool.hh>
 
 #include <cassert>
@@ -311,7 +311,7 @@ test_toolbar()
 #else
   TToolBox *tb = TToolBox::getToolBox();
   tb->add("selection",       TSelectionTool::getTool());
-  tb->add("directselection", TDirectSelectionTool::getTool());
+  tb->add("directselection", TNodeTool::getTool());
 //  tb->add("pen",             TTextTool::getTool());
   tb->add("text",             TTextTool::getTool());
 //  tb->add("pencil",          new TShapeTool(new TFRectangle));

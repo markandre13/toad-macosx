@@ -38,7 +38,7 @@
 #include <toad/figureeditor.hh>
 #include <toad/colorselector.hh>
 
-#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/nodetool.hh>
 
 namespace toad {
 
@@ -638,7 +638,7 @@ TLayoutEditDialog::TLayoutEditDialog(TWindow *parent,
         rb = new TFatRadioButton(this, "Select", state);
 //        CONNECT(rb->sigClicked, &gedit, setOperation, TFigureEditor::OP_SELECT);
         CONNECT(rb->sigClicked, &gedit, setTool, TDialogSelectionTool::getTool());
-//        CONNECT(rb->sigClicked, &gedit, setTool, TDirectSelectionTool::getTool());
+//        CONNECT(rb->sigClicked, &gedit, setTool, TNodeTool::getTool());
         rb->setDown(true);
 	rb->sigClicked(); // FIXME: calling setDown should implicitly do that
         break;

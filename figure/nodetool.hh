@@ -31,7 +31,7 @@ namespace toad {
 
 using namespace std;
 
-class TDirectSelectionTool:
+class TNodeTool:
   public TFigureTool
 {
     enum {
@@ -54,14 +54,14 @@ class TDirectSelectionTool:
     TPoint memo_pt;
 
   public:
-    TDirectSelectionTool() {
+    TNodeTool() {
       grab = false;
       hndl = false;
       xaxis = yaxis = false;
       figure = nullptr;
       state = STATE_NONE;
     }
-    static TDirectSelectionTool* getTool();
+    static TNodeTool* getTool();
 
   protected:
     void mouseEvent(TFigureEditor *fe, const TMouseEvent &me);

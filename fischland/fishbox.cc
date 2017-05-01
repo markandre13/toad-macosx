@@ -23,7 +23,7 @@
 #include "filltool.hh"
 #include "pentool.hh"
 #include "penciltool.hh"
-#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/nodetool.hh>
 #include <toad/figure/texttool.hh>
 #include "rotatetool.hh"
 #include <toad/figure/connecttool.hh>
@@ -394,7 +394,7 @@ serialize.registerObject(new TFPath());
         wnd = rb = new TFatRadioButton(this, "directselect", state);
         wnd->setToolTip("Direct Selection");
         rb->loadBitmap(RESOURCE("tool_directselect.png"));
-//        CONNECT(rb->sigClicked, me, setTool, TDirectSelectionTool::getTool());
+//        CONNECT(rb->sigClicked, me, setTool, TNodeTool::getTool());
         break;
       case 2:
         wnd = rb = new TFatRadioButton(this, "bezier", state);

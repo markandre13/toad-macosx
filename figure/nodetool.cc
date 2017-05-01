@@ -29,21 +29,21 @@
 //        o click'n drag point to move it
 //        o click'n drag outline to adjust control points so that outline follows mouse
 
-#include <toad/figure/directselectiontool.hh>
+#include <toad/figure/nodetool.hh>
 
 using namespace toad;
 
-TDirectSelectionTool*
-TDirectSelectionTool::getTool()
+TNodeTool*
+TNodeTool::getTool()
 {
-  static TDirectSelectionTool* tool = nullptr;
+  static TNodeTool* tool = nullptr;
   if (!tool)
-    tool = new TDirectSelectionTool();
+    tool = new TNodeTool();
   return tool;
 }
 
 void
-TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
+TNodeTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   if (state == STATE_FIGURE_HANDLES_MOUSE) {
     TPoint pos;
@@ -101,7 +101,7 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         // edit mode, but it breaks switching to another figure
         TMouseEvent me2(me, pos);
         if (figure->mouseLDown(fe, me2)!=TFigure::STOP) {
-          cout << "TDirectSelectionTool: figure handles mouse" << endl;
+          cout << "TNodeTool: figure handles mouse" << endl;
           state = STATE_FIGURE_HANDLES_MOUSE;
           return;
         }
@@ -121,7 +121,7 @@ TDirectSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
         
         fe->clearSelection();
         if (figure) {
-cout << "TDirectSelectionTool::selected figure " << figure << " " << figure->getClassName() << endl;
+cout << "TNodeTool::selected figure " << figure << " " << figure->getClassName() << endl;
           fe->selection.insert(figure);
         }
       } else {
@@ -221,7 +221,7 @@ cout << "TDirectSelectionTool::selected figure " << figure << " " << figure->get
  * @return 'true' when a handle was found 
  */
 bool
-TDirectSelectionTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
+TNodeTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
 {        
   unsigned h = 0;
   while(true) {
@@ -255,7 +255,7 @@ TDirectSelectionTool::handleLDown(TFigureEditor *fe, const TPoint &pos)
 }
 
 void
-TDirectSelectionTool::stop(TFigureEditor *fe)
+TNodeTool::stop(TFigureEditor *fe)
 {
   fe->clearSelection();
   fe->getWindow()->setAllMouseMoveEvents(false);
@@ -269,7 +269,7 @@ TDirectSelectionTool::stop(TFigureEditor *fe)
 }
 
 bool
-TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
+TNodeTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
     return false;
@@ -280,7 +280,7 @@ TDirectSelectionTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
     return false;
   }
 
-//cout << "TDirectSelectionTool::paintSelection()" << endl;
+//cout << "TNodeTool::paintSelection()" << endl;
 
   pen.push();
   pen.setColor(TColor::FIGURE_SELECTION);

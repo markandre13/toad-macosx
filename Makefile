@@ -27,7 +27,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 	   figure/transform.cc figure/perspectivetransform.cc \
 	   figure/rectangle.cc figure/window.cc figure/createtool.cc \
 	   figure/selectiontool.cc \
-	   figure/directselectiontool.cc \
+	   figure/nodetool.cc \
 	   figure/texttool.cc \
 	   figure/connecttool.cc figure/connectfigure.cc \
 	   vector.cc geometry.cc wordprocessor.cc \
@@ -316,8 +316,7 @@ dialog.o: include/toad/scrollpane.hh include/toad/boolmodel.hh
 dialog.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 dialog.o: include/toad/figuretool.hh include/toad/action.hh
 dialog.o: include/toad/colorselector.hh include/toad/dnd/color.hh
-dialog.o: include/toad/dragndrop.hh
-dialog.o: include/toad/figure/directselectiontool.hh
+dialog.o: include/toad/dragndrop.hh include/toad/figure/nodetool.hh
 dialog.o: include/toad/undomanager.hh
 dialogeditor.o: include/toad/dialogeditor.hh include/toad/dialog.hh
 dialogeditor.o: include/toad/window.hh include/toad/interactor.hh
@@ -985,30 +984,24 @@ figure/selectiontool.o: include/toad/figure/createtool.hh
 figure/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
 figure/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
 figure/selectiontool.o: include/toad/vector.hh
-figure/directselectiontool.o: include/toad/figure/directselectiontool.hh
-figure/directselectiontool.o: include/toad/figureeditor.hh
-figure/directselectiontool.o: include/toad/figure.hh include/toad/penbase.hh
-figure/directselectiontool.o: include/toad/color.hh include/toad/types.hh
-figure/directselectiontool.o: include/toad/io/serializable.hh
-figure/directselectiontool.o: include/toad/io/atvparser.hh
-figure/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
-figure/directselectiontool.o: include/toad/matrix2d.hh include/toad/window.hh
-figure/directselectiontool.o: include/toad/interactor.hh
-figure/directselectiontool.o: include/toad/connect.hh include/toad/cursor.hh
-figure/directselectiontool.o: include/toad/region.hh include/toad/bitmap.hh
-figure/directselectiontool.o: include/toad/figuremodel.hh
-figure/directselectiontool.o: include/toad/model.hh
-figure/directselectiontool.o: include/toad/wordprocessor.hh
-figure/directselectiontool.o: include/toad/pen.hh include/toad/scrollpane.hh
-figure/directselectiontool.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/directselectiontool.o: include/toad/textmodel.hh
-figure/directselectiontool.o: include/toad/integermodel.hh
-figure/directselectiontool.o: include/toad/numbermodel.hh
-figure/directselectiontool.o: include/toad/floatmodel.hh
-figure/directselectiontool.o: include/toad/figure/createtool.hh
-figure/directselectiontool.o: include/toad/figuretool.hh include/toad/core.hh
-figure/directselectiontool.o: include/toad/action.hh
-figure/directselectiontool.o: include/toad/undomanager.hh
+figure/nodetool.o: include/toad/figure/nodetool.hh
+figure/nodetool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/nodetool.o: include/toad/penbase.hh include/toad/color.hh
+figure/nodetool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/nodetool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/nodetool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/nodetool.o: include/toad/window.hh include/toad/interactor.hh
+figure/nodetool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/nodetool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/nodetool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/nodetool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/nodetool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/nodetool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/nodetool.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/nodetool.o: include/toad/floatmodel.hh
+figure/nodetool.o: include/toad/figure/createtool.hh
+figure/nodetool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/nodetool.o: include/toad/action.hh include/toad/undomanager.hh
 figure/texttool.o: include/toad/figure/texttool.hh
 figure/texttool.o: include/toad/figureeditor.hh include/toad/figure.hh
 figure/texttool.o: include/toad/penbase.hh include/toad/color.hh
@@ -1322,8 +1315,7 @@ test_toolbar.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 test_toolbar.o: include/toad/undo.hh include/toad/boolmodel.hh
 test_toolbar.o: include/toad/textmodel.hh include/toad/integermodel.hh
 test_toolbar.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-test_toolbar.o: include/toad/undomanager.hh
-test_toolbar.o: include/toad/figure/directselectiontool.hh
+test_toolbar.o: include/toad/undomanager.hh include/toad/figure/nodetool.hh
 test_toolbar.o: include/toad/figure/texttool.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -1524,8 +1516,7 @@ fischland/fishbox.o: include/toad/dragndrop.hh
 fischland/fishbox.o: include/toad/figure/selectiontool.hh
 fischland/fishbox.o: include/toad/undomanager.hh fischland/filltool.hh
 fischland/fishbox.o: fischland/fpath.hh fischland/pentool.hh
-fischland/fishbox.o: fischland/penciltool.hh
-fischland/fishbox.o: include/toad/figure/directselectiontool.hh
+fischland/fishbox.o: fischland/penciltool.hh include/toad/figure/nodetool.hh
 fischland/fishbox.o: include/toad/figure/texttool.hh fischland/rotatetool.hh
 fischland/fishbox.o: include/toad/figure/connecttool.hh
 fischland/fishbox.o: fischland/colorpicker.hh fischland/colorpalette.hh
@@ -1979,8 +1970,7 @@ dialog.o: include/toad/scrollpane.hh include/toad/boolmodel.hh
 dialog.o: include/toad/floatmodel.hh include/toad/figure/createtool.hh
 dialog.o: include/toad/figuretool.hh include/toad/action.hh
 dialog.o: include/toad/colorselector.hh include/toad/dnd/color.hh
-dialog.o: include/toad/dragndrop.hh
-dialog.o: include/toad/figure/directselectiontool.hh
+dialog.o: include/toad/dragndrop.hh include/toad/figure/nodetool.hh
 dialog.o: include/toad/undomanager.hh
 dialogeditor.o: include/toad/dialogeditor.hh include/toad/dialog.hh
 dialogeditor.o: include/toad/window.hh include/toad/interactor.hh
@@ -2648,30 +2638,24 @@ figure/selectiontool.o: include/toad/figure/createtool.hh
 figure/selectiontool.o: include/toad/figuretool.hh include/toad/core.hh
 figure/selectiontool.o: include/toad/action.hh include/toad/undomanager.hh
 figure/selectiontool.o: include/toad/vector.hh
-figure/directselectiontool.o: include/toad/figure/directselectiontool.hh
-figure/directselectiontool.o: include/toad/figureeditor.hh
-figure/directselectiontool.o: include/toad/figure.hh include/toad/penbase.hh
-figure/directselectiontool.o: include/toad/color.hh include/toad/types.hh
-figure/directselectiontool.o: include/toad/io/serializable.hh
-figure/directselectiontool.o: include/toad/io/atvparser.hh
-figure/directselectiontool.o: include/toad/font.hh include/toad/pointer.hh
-figure/directselectiontool.o: include/toad/matrix2d.hh include/toad/window.hh
-figure/directselectiontool.o: include/toad/interactor.hh
-figure/directselectiontool.o: include/toad/connect.hh include/toad/cursor.hh
-figure/directselectiontool.o: include/toad/region.hh include/toad/bitmap.hh
-figure/directselectiontool.o: include/toad/figuremodel.hh
-figure/directselectiontool.o: include/toad/model.hh
-figure/directselectiontool.o: include/toad/wordprocessor.hh
-figure/directselectiontool.o: include/toad/pen.hh include/toad/scrollpane.hh
-figure/directselectiontool.o: include/toad/undo.hh include/toad/boolmodel.hh
-figure/directselectiontool.o: include/toad/textmodel.hh
-figure/directselectiontool.o: include/toad/integermodel.hh
-figure/directselectiontool.o: include/toad/numbermodel.hh
-figure/directselectiontool.o: include/toad/floatmodel.hh
-figure/directselectiontool.o: include/toad/figure/createtool.hh
-figure/directselectiontool.o: include/toad/figuretool.hh include/toad/core.hh
-figure/directselectiontool.o: include/toad/action.hh
-figure/directselectiontool.o: include/toad/undomanager.hh
+figure/nodetool.o: include/toad/figure/nodetool.hh
+figure/nodetool.o: include/toad/figureeditor.hh include/toad/figure.hh
+figure/nodetool.o: include/toad/penbase.hh include/toad/color.hh
+figure/nodetool.o: include/toad/types.hh include/toad/io/serializable.hh
+figure/nodetool.o: include/toad/io/atvparser.hh include/toad/font.hh
+figure/nodetool.o: include/toad/pointer.hh include/toad/matrix2d.hh
+figure/nodetool.o: include/toad/window.hh include/toad/interactor.hh
+figure/nodetool.o: include/toad/connect.hh include/toad/cursor.hh
+figure/nodetool.o: include/toad/region.hh include/toad/bitmap.hh
+figure/nodetool.o: include/toad/figuremodel.hh include/toad/model.hh
+figure/nodetool.o: include/toad/wordprocessor.hh include/toad/pen.hh
+figure/nodetool.o: include/toad/scrollpane.hh include/toad/undo.hh
+figure/nodetool.o: include/toad/boolmodel.hh include/toad/textmodel.hh
+figure/nodetool.o: include/toad/integermodel.hh include/toad/numbermodel.hh
+figure/nodetool.o: include/toad/floatmodel.hh
+figure/nodetool.o: include/toad/figure/createtool.hh
+figure/nodetool.o: include/toad/figuretool.hh include/toad/core.hh
+figure/nodetool.o: include/toad/action.hh include/toad/undomanager.hh
 figure/texttool.o: include/toad/figure/texttool.hh
 figure/texttool.o: include/toad/figureeditor.hh include/toad/figure.hh
 figure/texttool.o: include/toad/penbase.hh include/toad/color.hh
@@ -2985,8 +2969,7 @@ test_toolbar.o: include/toad/figureeditor.hh include/toad/scrollpane.hh
 test_toolbar.o: include/toad/undo.hh include/toad/boolmodel.hh
 test_toolbar.o: include/toad/textmodel.hh include/toad/integermodel.hh
 test_toolbar.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
-test_toolbar.o: include/toad/undomanager.hh
-test_toolbar.o: include/toad/figure/directselectiontool.hh
+test_toolbar.o: include/toad/undomanager.hh include/toad/figure/nodetool.hh
 test_toolbar.o: include/toad/figure/texttool.hh
 booleanop.o: include/toad/booleanop.hh include/toad/types.hh
 booleanop.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
