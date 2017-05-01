@@ -353,9 +353,9 @@ serialize.registerObject(new TFPath());
 
   flagParentlessAssistant = true;
 
-  static TFCreateTool frect(new TFRectangle);
-  static TFCreateTool fcirc(new TFCircle);
-  static TFCreateTool ftext(new TFText);
+  static TShapeTool frect(new TFRectangle);
+  static TShapeTool fcirc(new TFCircle);
+  static TShapeTool ftext(new TFText);
 
   assert(toolbox==0);
   toolbox = this;

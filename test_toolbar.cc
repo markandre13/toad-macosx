@@ -314,9 +314,9 @@ test_toolbar()
   tb->add("directselection", TDirectSelectionTool::getTool());
 //  tb->add("pen",             TTextTool::getTool());
   tb->add("text",             TTextTool::getTool());
-//  tb->add("pencil",          new TFCreateTool(new TFRectangle));
-  tb->add("rectangle",       new TFCreateTool(new TFRectangle));
-  tb->add("circle",          new TFCreateTool(new TFCircle));
+//  tb->add("pencil",          new TShapeTool(new TFRectangle));
+  tb->add("rectangle",       new TShapeTool(new TFRectangle));
+  tb->add("circle",          new TShapeTool(new TFCircle));
 
   new TToolBar(nullptr, "TToolBar");
   new TTestToolbar(nullptr, "TTestToolbar");

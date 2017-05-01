@@ -625,11 +625,11 @@ TLayoutEditDialog::TLayoutEditDialog(TWindow *parent,
   
   x=5; y=5; w=64; h=25; hmax=0;
 
-  static TFCreateTool gframe(new TFFrame);
-  static TFCreateTool grect(new TFRectangle);
-  static TFCreateTool gcirc(new TFCircle);
-  static TFCreateTool gtext(new TFText);
-  static TFCreateTool gline(new TFLine);
+  static TShapeTool gframe(new TFFrame);
+  static TShapeTool grect(new TFRectangle);
+  static TShapeTool gcirc(new TFCircle);
+  static TShapeTool gtext(new TFText);
+  static TShapeTool gline(new TFLine);
     
   for(unsigned i=0; i<=5; ++i) {
     rb = NULL;

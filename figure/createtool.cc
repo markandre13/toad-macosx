@@ -24,9 +24,9 @@
 using namespace toad;
 
 void
-TFCreateTool::stop(TFigureEditor *fe)
+TShapeTool::stop(TFigureEditor *fe)
 {
-//cout << "TFCreateTool::stop" << endl;
+//cout << "TShapeTool::stop" << endl;
   if (figure) {
     unsigned r = figure->stop(fe);
     if (false /* size==(0,0) */) {
@@ -42,7 +42,7 @@ TFCreateTool::stop(TFigureEditor *fe)
 }
 
 void
-TFCreateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
+TShapeTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 {
   TPoint point;
   switch(me.type) {
@@ -77,7 +77,7 @@ TFCreateTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
 }
 
 void
-TFCreateTool::setAttributes(TFigureAttributeModel *a)
+TShapeTool::setAttributes(TFigureAttributeModel *a)
 {
   // FIXME: what about the selection? and does this really belong into the tool?
   if (figure)
@@ -85,7 +85,7 @@ TFCreateTool::setAttributes(TFigureAttributeModel *a)
 }
 
 bool
-TFCreateTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
+TShapeTool::paintSelection(TFigureEditor *fe, TPenBase &pen)
 {
   if (!figure)
     return false;

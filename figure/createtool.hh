@@ -32,7 +32,7 @@ namespace toad {
  * themselves. This class just creates an interface between the figure
  * editor and the figure.
  */
-class TFCreateTool:
+class TShapeTool:
   public TFigureTool
 {
     TFigure *tmpl;	// the figure which will be cloned to create new figures
@@ -41,13 +41,13 @@ class TFCreateTool:
   public:
     /**
      * \param tmpl template for the figure to be created. This object will be
-     *        deleted along with the TFCreateTool.
+     *        deleted along with the TShapeTool.
      */
-    TFCreateTool(TFigure *tmpl) {
+    TShapeTool(TFigure *tmpl) {
       this->tmpl = tmpl;
       figure = nullptr;
     }
-    ~TFCreateTool() {
+    ~TShapeTool() {
       delete tmpl;
     }
   protected:    
