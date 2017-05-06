@@ -214,6 +214,7 @@ class GChoice:
   
     void add(const string &id, T what) { model->add(id, what); }
     const T& getValue() const { return model->getValue(); }
+    void setValue(T t) { model->setValue(t); }
     unsigned getSize() const { return model->getSize(); }
     virtual const string& getID(unsigned idx) const { return model->getID(idx); }
     virtual void select(unsigned idx=0) {

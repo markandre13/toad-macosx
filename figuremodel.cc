@@ -59,62 +59,6 @@ TFigureModel::~TFigureModel()
   clear();
 }
 
-class TUndoInsert:
-  public TUndo
-{
-    TFigureModel *model;
-    TFigureSet figures;
-  public:
-    TUndoInsert(TFigureModel *model) {
-      this->model = model;
-    }
-    void insert(TFigure *f) {
-      figures.insert(f);
-    }
-  protected:
-    void undo() {
-      model->erase(figures);
-      figures.clear();
-    }
-    bool getUndoName(string *name) const {
-      *name = "Undo: Insert";
-      return true;
-    }
-    bool getRedoName(string *name) const {
-      *name = "Redo: Remove";
-      return true;
-    }
-};
-
-class TUndoRemove:
-  public TUndo
-{
-    TFigureAtDepthList figures;
-    TFigureModel *model;
-  public:
-    TUndoRemove(TFigureModel *model) {
-      this->model = model;
-    }
-    void insert(TFigure *f, unsigned d)
-    {
-//cerr << "TUndoRemove: store figure " << f << " at depth " << d << endl;
-      figures.push_back(f, d);
-    }
-  protected:
-    void undo() {
-      model->insert(figures);
-      figures.drop();
-    }
-    bool getUndoName(string *name) const {
-      *name = "Undo: Remove";
-      return true;
-    }
-    bool getRedoName(string *name) const {
-      *name = "Redo: Insert";
-      return true;
-    }
-};
-
 class TUndoGroup:
   public TUndo
 {
@@ -188,179 +132,6 @@ TFigureAtDepthList::~TFigureAtDepthList()
   }
 }
 
-/**
- * Append a figure to the model
- *
- * This function notifies all its views about the modification and
- * registers an undo object.
- */
-void 
-TFigureModel::add(TFigure *figure) {
-  TUndoInsert *undo = new TUndoInsert(this);
-  undo->insert(figure);
-  TUndoManager::registerUndo(this, undo);
-
-  storage.push_back(figure);
-
-  type = ADD;
-  figures.clear();
-  figures.insert(figure);
-  sigChanged();
-  
-  TFigureEditEvent ee;
-  ee.model = this;
-  ee.type = TFigureEditEvent::ADDED;
-  figure->editEvent(ee);
-}
-
-/**
- * Append figures to the model.
- *
- * This function notifies all its views about the modification and
- * registers an undo object.
- */
-void 
-TFigureModel::add(TFigureVector &newfigures) {
-  TFigureEditEvent ee;
-  ee.model = this;
-  ee.type = TFigureEditEvent::ADDED;
-  figures.clear();
-  type = ADD;
-  TUndoInsert *undo = new TUndoInsert(this);
-  for(TFigureVector::iterator p = newfigures.begin();
-      p != newfigures.end();
-      ++p)
-  {
-    storage.push_back(*p);
-    figures.insert(*p);
-    undo->insert(*p);
-    (*p)->editEvent(ee);
-  }
-  TUndoManager::registerUndo(this, undo);
-  sigChanged();
-}
-
-void
-TFigureModel::insert(TFigureAtDepthList &store)
-{
-  figures.clear();
-  type = ADD;
-      
-  TUndoInsert *undo = new TUndoInsert(this);
-  for(TFigureAtDepthList::TStore::iterator p=store.store.begin();
-      p!=store.store.end();
-      ++p)
-  {
-//cerr << "TUndoRemove: insert figure " << p->figure << " at depth " << p->depth << endl;
-    storage.insert(
-      storage.begin() + p->depth,
-      p->figure);
-    figures.insert(p->figure);
-    undo->insert(p->figure);
-  }
-  TUndoManager::registerUndo(this, undo);
-  store.drop();
-  sigChanged();
-}
-
-/**
- * Erase a figure from the model.
- *
- * After the call the figure is owned by the undo manager.
- *
- * This function notifies all its views about the modification and
- * registers an undo object.
- */
-void
-TFigureModel::erase(TFigure *figure)
-{
-  TFigureSet set;
-  set.insert(figure);
-  erase(set);
-}
-
-void
-TFigureModel::erase(const iterator &p)
-{
-  TFigureSet set;
-  set.insert(*p);
-  erase(set);
-}
-
-void
-TFigureModel::erase(const iterator &p, const iterator &e)
-{
-  TFigureSet set;
-  set.insert(p, e);
-  erase(set);
-}
-
-/**
- * Erase a set of figures from the model.
- *
- * After the call the figures are owned by the undo manager.
- *
- * This function notifies all its views about the modification and
- * registers an undo object.
- */
-void
-TFigureModel::erase(TFigureSet &set, TFigureAtDepthList *placement)
-{
-  if (set.empty())
-    return;
-
-  TFigureEditEvent ee;
-  ee.model = this;
-
-  ee.type = TFigureEditEvent::RELATION_REMOVED;
-  for(auto &figureToBeRemoved: set) {
-    auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
-    if (relation==TFigureEditor::relatedTo.end()) {
-      continue;
-    }
-    figures.clear();
-    figures.insert(figureToBeRemoved);
-    for(auto &p: relation->second) {
-      const_cast<TFigure*>(p)->editEvent(ee);
-    }
-    TFigureEditor::relatedTo.erase(relation); // FIXME: there might be no guarantee that the iterator isn't invalidated
-  }
-
-  type = REMOVE;
-  figures.clear();
-  figures.insert(set.begin(), set.end());
-  sigChanged();
-  
-//  TUndoRemove *undo = new TUndoRemove(this);
-
-  ee.type = TFigureEditEvent::REMOVED;
-  unsigned depth = 0;
-  for(TStorage::iterator p=storage.begin();
-      p!=storage.end();
-      ++p, ++depth)
-  {
-    TFigureSet::iterator q = figures.find(*p);
-    if (q!=figures.end()) {
-//      cerr << "  erase found figure at depth " << depth << endl;
-//      undo->insert(*p, depth);
-      if (placement)
-        placement->push_back(*p, depth);
-      (*p)->editEvent(ee);
-      TStorage::iterator tmp = p;
-      --tmp;
-      storage.erase(p);
-      p=tmp;
-    }
-  }
-
-  // FIXME: undo disabled because in case the model is not registered, the
-  // undo object will be deleted and the figures within it also. this must
-  // not happen when 'placement' was set, which means that the figures are
-  // used elsewhere. but who's then responsible to delete?
-  // should we use reference counting?
-
-//  TUndoManager::registerUndo(this, undo);
-}
 
 class TUndoTranslate:
   public TUndo
@@ -482,6 +253,366 @@ TFigureModel::translate(const TFigureSet &set, TCoord dx, TCoord dy)
   TUndoManager::registerUndo(this, undo);
 }
 
+/*****************************************************************************
+ *                                                                           *
+ *                                  I N S E R T                              *
+ *                                                                           *
+ *****************************************************************************/
+
+namespace {
+
+class TUndoInsert:
+  public TUndo
+{
+    TFigureModel *model;
+  public:
+    TFigureSet figures;
+    TUndoInsert(TFigureModel *model) {
+      this->model = model;
+    }
+    void insert(TFigure *f) {
+      figures.insert(f);
+    }
+  protected:
+    void undo() {
+      model->erase(figures);
+      figures.clear();
+    }
+    bool getUndoName(string *name) const {
+      *name = "Undo: Insert";
+      return true;
+    }
+    bool getRedoName(string *name) const {
+      *name = "Redo: Remove";
+      return true;
+    }
+};
+
+}
+
+void
+TFigureModel::insert(TFigureAtDepthList &figuresAtDepth)
+{
+  pureInsert(figuresAtDepth);
+
+  TUndoInsert *undo = new TUndoInsert(this);
+  for(auto &&p: figuresAtDepth.store)
+    undo->figures.insert(p.figure);
+  TUndoManager::registerUndo(this, undo);
+  
+  type = ADD;
+  figures.clear();
+  for(auto &&p: figuresAtDepth.store)
+    figures.insert(p.figure);
+  sigChanged();
+
+  figuresAtDepth.drop(); // really ?
+}
+
+void 
+TFigureModel::pureInsert(const TFigureAtDepthList &figuresAtDepth)
+{
+  for(auto p=figuresAtDepth.store.begin();
+      p!=figuresAtDepth.store.end();
+      ++p)
+  {
+    storage.insert(
+      storage.begin() + p->depth,
+      p->figure);
+  }
+}
+
+/**
+ * Append a figure to the model
+ *
+ * This function notifies all its views about the modification and
+ * registers an undo object.
+ */
+void 
+TFigureModel::add(TFigure *figure) {
+  TUndoInsert *undo = new TUndoInsert(this);
+  undo->insert(figure);
+  TUndoManager::registerUndo(this, undo);
+
+  storage.push_back(figure);
+
+  type = ADD;
+  figures.clear();
+  figures.insert(figure);
+  sigChanged();
+  
+  TFigureEditEvent ee;
+  ee.model = this;
+  ee.type = TFigureEditEvent::ADDED;
+  figure->editEvent(ee);
+}
+
+/**
+ * Append figures to the model.
+ *
+ * This function notifies all its views about the modification and
+ * registers an undo object.
+ */
+void 
+TFigureModel::add(TFigureVector &newfigures) {
+  TFigureEditEvent ee;
+  ee.model = this;
+  ee.type = TFigureEditEvent::ADDED;
+  figures.clear();
+  type = ADD;
+  TUndoInsert *undo = new TUndoInsert(this);
+  for(TFigureVector::iterator p = newfigures.begin();
+      p != newfigures.end();
+      ++p)
+  {
+    storage.push_back(*p);
+    figures.insert(*p);
+    undo->insert(*p);
+    (*p)->editEvent(ee);
+  }
+  TUndoManager::registerUndo(this, undo);
+  sigChanged();
+}
+
+/*****************************************************************************
+ *                                                                           *
+ *                                   E R A S E                               *
+ *                                                                           *
+ *****************************************************************************/
+
+namespace {
+
+class TUndoRemove:
+  public TUndo
+{
+    TFigureModel *model;
+  public:
+    TFigureAtDepthList figures;
+    TUndoRemove(TFigureModel *model) {
+      this->model = model;
+    }
+    void insert(TFigure *f, unsigned d)
+    {
+//cerr << "TUndoRemove: store figure " << f << " at depth " << d << endl;
+      figures.push_back(f, d);
+    }
+  protected:
+    void undo() {
+      model->insert(figures);
+      figures.drop();
+    }
+    bool getUndoName(string *name) const {
+      *name = "Undo: Remove";
+      return true;
+    }
+    bool getRedoName(string *name) const {
+      *name = "Redo: Insert";
+      return true;
+    }
+};
+
+} // namespace
+
+void
+TFigureModel::erase(TFigureSet &set, TFigureAtDepthList *placement)
+{
+  // FIXME: create TFigureEditEvents
+  TUndoRemove *undo = new TUndoRemove(this);
+  pureErase(set, &undo->figures);
+  TUndoManager::registerUndo(this, undo);
+}
+
+/**
+ * Erase a set of figures from the model.
+ *
+ * After the call the figures are owned by the undo manager.
+ *
+ * This function notifies all its views about the modification and
+ * registers an undo object.
+ */
+void
+TFigureModel::pureErase(TFigureSet &set, TFigureAtDepthList *placement)
+{
+  if (set.empty())
+    return;
+
+//  TFigureEditEvent ee;
+//  ee.model = this;
+
+//  ee.type = TFigureEditEvent::RELATION_REMOVED;
+  for(auto &figureToBeRemoved: set) {
+    auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
+    if (relation==TFigureEditor::relatedTo.end()) {
+      continue;
+    }
+    figures.clear();
+    figures.insert(figureToBeRemoved);
+/*
+    for(auto &p: relation->second) {
+      const_cast<TFigure*>(p)->editEvent(ee);
+    }
+*/
+    TFigureEditor::relatedTo.erase(relation); // FIXME: there might be no guarantee that the iterator isn't invalidated
+  }
+/*
+  type = REMOVE;
+  figures.clear();
+  figures.insert(set.begin(), set.end());
+  sigChanged();
+    
+  ee.type = TFigureEditEvent::REMOVED;
+*/
+  unsigned depth = 0;
+  for(TStorage::iterator p=storage.begin();
+      p!=storage.end();
+      ++p, ++depth)
+  {
+    TFigureSet::iterator q = figures.find(*p);
+    if (q!=figures.end()) {
+      if (placement)
+        placement->push_back(*p, depth);
+//      (*p)->editEvent(ee);
+      TStorage::iterator tmp = p;
+      --tmp;
+      storage.erase(p);
+      p=tmp;
+    }
+  }
+}
+
+void
+TFigureModel::erase(TFigure *figure)
+{
+  TFigureSet set;
+  set.insert(figure);
+  erase(set);
+}
+
+void
+TFigureModel::erase(const iterator &p)
+{
+  TFigureSet set;
+  set.insert(*p);
+  erase(set);
+}
+
+void
+TFigureModel::erase(const iterator &p, const iterator &e)
+{
+  TFigureSet set;
+  set.insert(p, e);
+  erase(set);
+}
+
+/*****************************************************************************
+ *                                                                           *
+ *                               T R A N S F O R M                           *
+ *                                                                           *
+ *****************************************************************************/
+
+class TUndoTransform:
+  public TUndo
+{
+    TFigureModel *model;
+    TFigureSet figures;
+    TMatrix2D matrix;
+    bool invert; // to avoid floating point errors in matrix when going through multiple undo/redo events
+
+  public:
+    TUndoTransform(TFigureModel *model, const TFigureSet &set, const TMatrix2D &matrix, bool invert) {
+      this->model = model;
+      this->figures.insert(set.begin(), set.end());
+      this->matrix = matrix;
+      this->invert = invert;
+    }
+  protected:
+    void undo() override {
+cout << "TUndoTransform::undo()" << endl;
+      model->transform(&figures, matrix, invert);
+    }
+    bool getUndoName(string *name) const override {
+      *name = "Undo: Transform";
+      return true;
+    }
+    bool getRedoName(string *name) const override {
+      *name = "Redo: Transform";
+      return true;
+    }
+};
+
+/**
+ * Apply the affine transformation 'matrix' to all figures listed in 'selection'
+ * and create an undo event. the object in selection may change, please see
+ * pureTransform() for full details.
+ *
+ * \sa TFigureModel::pureTransform
+ */
+void
+TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool invert)
+{
+  if (!invert) {
+    pureTransform(selection, matrix);
+  } else {
+    TMatrix2D invertedMatrix(matrix);
+    invertedMatrix.invert();
+    pureTransform(selection, invertedMatrix);
+  }
+  TUndoManager::registerUndo(this,
+    new TUndoTransform(this, *selection, matrix, !invert)
+  );
+}
+
+/**
+ * Apply the affine transformation 'matrix' to all figures listed in 'selection'
+ * by invoking their 'transform' method.
+ *
+ * Figures which can not be transformed, are prefixed with TFTransform objects
+ * or if they already are prefixed in TFTransform objects and the transform became
+ * an identity, the TFTransform object will be removed.
+ *
+ * Selection will be updated to the TFTransform objected added/removed.
+ */
+void
+TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
+{
+  TFigureSet addTransform, removeTransform;
+  
+  for(auto &&figure: *selection) {
+    TFTransform *transform = dynamic_cast<TFTransform*>(figure);
+    if (transform) {
+      transform->matrix = matrix * transform->matrix;
+      if (transform->matrix.isIdentity()) {
+        removeTransform.insert(figure);
+      }
+    } else
+    if (!figure->transform(matrix)) {
+      addTransform.insert(figure);
+    }
+  }
+  
+  TFigureSet replace(addTransform);
+  replace.insert(removeTransform.begin(), removeTransform.end());
+  
+  TFigureAtDepthList replacement;
+  pureErase(addTransform, &replacement);
+  for(auto &&place: replacement) {
+    if (addTransform.contains(place.figure)) {
+      TFTransform *transform = new TFTransform();
+      transform->matrix = matrix;
+      transform->figure = place.figure;
+      place.figure = transform;
+      selection->erase(transform->figure);
+      selection->insert(transform);
+    } else {
+      TFTransform *transform = dynamic_cast<TFTransform*>(place.figure);
+      place.figure = transform->figure;
+      selection->erase(transform);
+      selection->insert(transform->figure);
+      delete transform;
+    }
+  }
+  pureInsert(replacement); // insert: putBack
+}
 
 /**
  * Translate a figures handle.

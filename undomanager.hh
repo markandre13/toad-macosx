@@ -60,6 +60,8 @@ class TUndoManager:
     static void unregisterModel(TWindow *, TModel*);
     static bool registerUndo(TModel*, TUndo*);
     
+    static vector<TUndo*>& getUndoStack(TModel *model);
+    
     static void enableUndoRegistration();
     static void disableUndoRegistration();
     static bool isUndoRegistrationEnabled();

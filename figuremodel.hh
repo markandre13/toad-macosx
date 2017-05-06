@@ -99,13 +99,9 @@ class TFigureModel:
     
     void push_back(TFigure *f) { add(f); }
     void add(TFigure*);
-    void erase(TFigure*);
     void add(TFigureVector&);
-    virtual void erase(TFigureSet&, TFigureAtDepthList *placement=nullptr);
     size_t size() const { return storage.size(); }
     bool empty() const { return storage.empty(); }
-    
-    void insert(TFigureAtDepthList &store);
 
     void translate(const TFigureSet &s, TPoint p) { translate(s, p.x, p.y); }
     void translate(const TFigureSet&, TCoord dx, TCoord dy);
@@ -120,18 +116,28 @@ class TFigureModel:
     void _undoGroup(TFGroup*, TFigureAtDepthList &figures);
 
     void ungroup(TFigureSet &grouped, TFigureSet *ungrouped);
-    
-    void setAttributes(TFigureSet &set, const TFigureAttributeModel *attributes);
-    
-    void erase(const iterator&);
-    void erase(const iterator&, const iterator&);
 
+    void setAttributes(TFigureSet &set, const TFigureAttributeModel *attributes);
+
+    void transform(TFigureSet *selection, const TMatrix2D &matrix, bool invert=false);
+
+    void insert(TFigureAtDepthList &store);
     void insert(const iterator &, TFigure*);
     void insert(const iterator &at, const iterator &from, const iterator &to);
 
+    void erase(const iterator&);
+    void erase(const iterator&, const iterator&);
+    void erase(TFigure*);
+    virtual void erase(TFigureSet&, TFigureAtDepthList *placement=nullptr); // FIXME: why is this virtual?
+
+    // the 'pure' methods do not create undo/redo events
+    void pureTransform(TFigureSet *selection, const TMatrix2D &matrix);
+    void pureErase(TFigureSet&, TFigureAtDepthList *placement);
+    void pureInsert(const TFigureAtDepthList &placement);
+
     //! remove and delete all figures
     void clear();
-    
+
     //! remove all figures but don't delete them
     void drop() {
       storage.clear();

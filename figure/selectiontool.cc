@@ -375,33 +375,7 @@ TSelectionTool::stopHandle(TFigureEditor *fe)
 {
   state = STATE_NONE;
   
-  TFigureModel *model = fe->getModel();
-  
-  TFigureSet figuresToReplace;
-  
-  for(auto &&figure: fe->selection) {
-    TFTransform *transform = dynamic_cast<TFTransform*>(figure);
-    if (transform) {
-      transform->matrix = m * transform->matrix;
-    } else
-    if (!figure->transform(m)) {
-      figuresToReplace.insert(figure);
-    }
-  }
-  
-//  TUndoManager::beginUndoGrouping();
-  TFigureAtDepthList replacement;
-  model->erase(figuresToReplace, &replacement);
-  for(auto &&place: replacement) {
-    TFTransform *transform = new TFTransform();
-    transform->matrix = m;
-    transform->figure = place.figure;
-    place.figure = transform;
-    fe->selection.erase(transform->figure);
-    fe->selection.insert(transform);
-  }
-  model->insert(replacement);
-//  TUndoManager::endUndoGrouping();
+  fe->getModel()->transform(&fe->selection, m);
 
   invalidateBoundary(fe);
   calcBoundary(fe);

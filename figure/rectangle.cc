@@ -21,8 +21,19 @@
 #include <toad/vector.hh>
 #include <toad/figure.hh>
 #include <toad/figureeditor.hh>
+#include <toad/figure/shapetool.hh>
 
 using namespace toad;
+
+TShapeTool*
+TFRectangle::getTool()
+{
+  static TShapeTool* tool = nullptr;
+  if (!tool) {
+    tool = new TShapeTool(new TFRectangle());
+  }
+  return tool;
+}
 
 TRectangle
 TFRectangle::bounds() const

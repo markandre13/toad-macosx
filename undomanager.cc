@@ -18,9 +18,11 @@
  * MA  02111-1307,  USA
  */
 
+#include <toad/undomanager.hh>
+#include <toad/exception.hh>
+
 #include <vector>
 #include <map>
-#include <toad/undomanager.hh>
 
 #define DBM(CMD)
 
@@ -212,6 +214,17 @@ TUndoManager::registerModel(TWindow *window, TModel *model)
     q->second.undomanagers.insert(*p);
   }
   return true;
+}
+
+vector<TUndo*>&
+TUndoManager::getUndoStack(TModel *model)
+{
+  TModelUndoMap::iterator q = models.find(model);
+  if (q==models.end()) {
+    throw TException("no undo stack found for model");
+  }
+  TModelUndoStore &store = q->second;
+  return store.undostack;
 }
 
 /**

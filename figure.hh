@@ -35,6 +35,7 @@ class TFigureEditor;
 class TFigureAttributeModel;
 class TMatrix2D;
 class TVectorGraphic;
+class TShapeTool;
 
 class TFigureEditEvent
 {
@@ -323,6 +324,8 @@ class TFRectangle:
 {
     typedef TAttributedFigure super;
   public:
+    static TShapeTool* getTool();
+  
     TFRectangle() {}
     TFRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
       setShape(x, y, w, h);

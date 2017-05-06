@@ -104,8 +104,8 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-#	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
-	./test.app/Contents/MacOS/test --gtest_filter="Rectangle.*"
+	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="Rectangle.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
 #	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.RelatedFigures"
 #	./test.app/Contents/MacOS/test
@@ -661,6 +661,7 @@ undomanager.o: include/toad/action.hh include/toad/window.hh
 undomanager.o: include/toad/cursor.hh include/toad/color.hh
 undomanager.o: include/toad/region.hh include/toad/model.hh
 undomanager.o: include/toad/pointer.hh include/toad/undo.hh
+undomanager.o: include/toad/exception.hh
 model.o: include/toad/model.hh include/toad/pointer.hh
 model.o: include/toad/connect.hh include/toad/undomanager.hh
 model.o: include/toad/interactor.hh include/toad/types.hh
@@ -958,7 +959,8 @@ figure/rectangle.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/rectangle.o: include/toad/boolmodel.hh include/toad/textmodel.hh
 figure/rectangle.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/rectangle.o: include/toad/floatmodel.hh include/toad/figure/toolbox.hh
-figure/rectangle.o: include/toad/action.hh
+figure/rectangle.o: include/toad/action.hh include/toad/figure/shapetool.hh
+figure/rectangle.o: include/toad/figuretool.hh include/toad/core.hh
 figure/window.o: include/toad/figure.hh include/toad/penbase.hh
 figure/window.o: include/toad/color.hh include/toad/types.hh
 figure/window.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh
@@ -1717,18 +1719,22 @@ test/figureeditor.o: include/toad/interactor.hh include/toad/types.hh
 test/figureeditor.o: include/toad/io/serializable.hh
 test/figureeditor.o: include/toad/io/atvparser.hh include/toad/connect.hh
 test/figureeditor.o: include/toad/cursor.hh include/toad/color.hh
-test/figureeditor.o: include/toad/region.hh test/gtest.h include/toad/core.hh
-test/figureeditor.o: include/toad/pen.hh include/toad/penbase.hh
-test/figureeditor.o: include/toad/font.hh include/toad/pointer.hh
-test/figureeditor.o: include/toad/matrix2d.hh include/toad/bitmap.hh
-test/figureeditor.o: include/toad/simpletimer.hh include/toad/figureeditor.hh
-test/figureeditor.o: include/toad/figure.hh include/toad/figuremodel.hh
+test/figureeditor.o: include/toad/region.hh test/gtest.h
+test/figureeditor.o: include/toad/figureeditor.hh include/toad/figure.hh
+test/figureeditor.o: include/toad/penbase.hh include/toad/font.hh
+test/figureeditor.o: include/toad/pointer.hh include/toad/matrix2d.hh
+test/figureeditor.o: include/toad/bitmap.hh include/toad/figuremodel.hh
 test/figureeditor.o: include/toad/model.hh include/toad/wordprocessor.hh
-test/figureeditor.o: include/toad/scrollpane.hh include/toad/undo.hh
-test/figureeditor.o: include/toad/boolmodel.hh include/toad/textmodel.hh
-test/figureeditor.o: include/toad/integermodel.hh include/toad/numbermodel.hh
-test/figureeditor.o: include/toad/floatmodel.hh
+test/figureeditor.o: include/toad/pen.hh include/toad/scrollpane.hh
+test/figureeditor.o: include/toad/undo.hh include/toad/boolmodel.hh
+test/figureeditor.o: include/toad/textmodel.hh include/toad/integermodel.hh
+test/figureeditor.o: include/toad/numbermodel.hh include/toad/floatmodel.hh
 test/figureeditor.o: include/toad/figure/toolbox.hh include/toad/action.hh
+test/figureeditor.o: include/toad/figure/selectiontool.hh
+test/figureeditor.o: include/toad/figuretool.hh include/toad/core.hh
+test/figureeditor.o: include/toad/undomanager.hh
+test/figureeditor.o: include/toad/figure/nodetool.hh
+test/figureeditor.o: include/toad/figure/shapetool.hh
 test/figureeditor-render.o: test/util.hh include/toad/window.hh
 test/figureeditor-render.o: include/toad/interactor.hh include/toad/types.hh
 test/figureeditor-render.o: include/toad/io/serializable.hh
@@ -1752,6 +1758,7 @@ test/figureeditor-render.o: include/toad/numbermodel.hh
 test/figureeditor-render.o: include/toad/floatmodel.hh
 test/figureeditor-render.o: include/toad/figure/toolbox.hh
 test/figureeditor-render.o: include/toad/action.hh
+test/figureeditor-render.o: include/toad/figure/connectfigure.hh
 test/wordprocessor.o: include/toad/wordprocessor.hh include/toad/types.hh
 test/wordprocessor.o: include/toad/io/serializable.hh
 test/wordprocessor.o: include/toad/io/atvparser.hh include/toad/color.hh
@@ -2320,6 +2327,7 @@ undomanager.o: include/toad/action.hh include/toad/window.hh
 undomanager.o: include/toad/cursor.hh include/toad/color.hh
 undomanager.o: include/toad/region.hh include/toad/model.hh
 undomanager.o: include/toad/pointer.hh include/toad/undo.hh
+undomanager.o: include/toad/exception.hh
 model.o: include/toad/model.hh include/toad/pointer.hh
 model.o: include/toad/connect.hh include/toad/undomanager.hh
 model.o: include/toad/interactor.hh include/toad/types.hh
@@ -2617,7 +2625,8 @@ figure/rectangle.o: include/toad/scrollpane.hh include/toad/undo.hh
 figure/rectangle.o: include/toad/boolmodel.hh include/toad/textmodel.hh
 figure/rectangle.o: include/toad/integermodel.hh include/toad/numbermodel.hh
 figure/rectangle.o: include/toad/floatmodel.hh include/toad/figure/toolbox.hh
-figure/rectangle.o: include/toad/action.hh
+figure/rectangle.o: include/toad/action.hh include/toad/figure/shapetool.hh
+figure/rectangle.o: include/toad/figuretool.hh include/toad/core.hh
 figure/window.o: include/toad/figure.hh include/toad/penbase.hh
 figure/window.o: include/toad/color.hh include/toad/types.hh
 figure/window.o: include/toad/io/serializable.hh include/toad/io/atvparser.hh

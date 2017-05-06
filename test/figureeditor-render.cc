@@ -10,8 +10,7 @@
 #include <toad/pen.hh>
 #include <toad/simpletimer.hh>
 #include <toad/figureeditor.hh>
-
-#include "../fischland/connectfigure.hh"
+#include <toad/figure/connectfigure.hh>
 
 namespace {
 

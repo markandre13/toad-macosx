@@ -5,13 +5,12 @@
 #include "util.hh"
 #include "gtest.h"
 
-#include <toad/core.hh>
-#include <toad/window.hh>
-#include <toad/pen.hh>
-#include <toad/simpletimer.hh>
 #include <toad/figureeditor.hh>
-
-#include <iostream>
+#include <toad/figure/selectiontool.hh>
+#include <toad/figure/nodetool.hh>
+#include <toad/figure/shapetool.hh>
+#include <toad/action.hh>
+#include <toad/undomanager.hh>
 
 using namespace toad;
 using namespace std;
@@ -31,99 +30,77 @@ class FigureEditor:
     }
 };
 
-ostringstream out;
-
-TEST_F(FigureEditor, SwitchingToANewToolStopsTheCurrentTool)
+void
+sendMouseEvent(TWindow *window, TMouseEvent::EType type, TCoord x, TCoord y)
 {
-  class TMyFigureTool:
-    public TFigureTool
-  {
-      string name;
-    public:
-      TMyFigureTool(const string &aName): name(aName) {}
-    protected:
-      void stop(TFigureEditor *fe) override {
-cout << "tool '" << name << "' stopped for editor " << fe << " '" << fe->getTitle() << "'" << endl;
-        out << "tool '" << name << "' stopped" << endl;
-      }
-  };
-
-  TFigureEditor *fe0 = new TFigureEditor(nullptr, "fe0");
-    
-  TToolBox *tb = new TToolBox();
-  
-  TFigureTool
-    *tool1 = new TMyFigureTool("tool1"),
-    *tool2 = new TMyFigureTool("tool2");
-    
-  tb->add("t1", tool1);
-  tb->add("t2", tool2);
-  
-  PFigureModel m0 = new TFigureModel();
-    
-  fe0->setToolBox(tb);
-  fe0->setModel(m0);
-
-  out.str("");
-cout << "++++++++++++++ switch to tool2" << endl;
-  tb->setValue(tool2);
-cout << "-------------- switched to tool2" << endl;
-  EXPECT_EQ("tool 'tool1' stopped\n", out.str());
-
-//  out.str("");
-//  tb->setValue(tool1);
-//  EXPECT_EQ("tool 'tool2' stopped\n", out.str());
+  TMouseEvent me;
+  me.window = window;
+  me.type = type;
+  me.pos.set(x, y);
+  window->mouseEvent(me);
 }
 
-#if 0
-TEST_F(FigureEditor, SwitchingToANewModelStopsTheCurrentTool)
+TEST_F(FigureEditor, Foo)
 {
-  class TMyFigureTool:
-    public TFigureTool
-  {
-      string name;
-    public:
-      TMyFigureTool(const string &aName): name(aName) {}
-    protected:
-      void stop(TFigureEditor *fe) override {
-        out << "tool '" << name << "' stopped" << endl;
-      }
-  };
-
-  TFigureEditor *fe0 = new TFigureEditor(nullptr, "fe0");
-    
-  TToolBox *tb = new TToolBox();
+  TFigureModel model;
   
-  TFigureTool
-    *tool1 = new TMyFigureTool("tool1"),
-    *tool2 = new TMyFigureTool("tool2");
-    
-  tb->add("t1", tool1);
-  tb->add("t2", tool2);
+  TFigureEditor *fe = new TFigureEditor(nullptr, "TFigureEditor");
   
-  PFigureModel
-    m0 = new TFigureModel(),
-    m1 = new TFigureModel();
-    
-  fe0->setToolBox(tb);
-  fe0->setModel(m0);
+  TUndoManager *undoManager = new TUndoManager(fe, "undomanager", "edit|undo", "edit|redo");
+  
+  fe->setModel(&model);
+  fe->enableGrid(false);
 
-  out.str("");
-  fe0->setModel(m1);
-  EXPECT_EQ("tool 'tool1' stopped\n", out.str());
+  TToolBox *tb = TToolBox::getToolBox();
+  auto *choice = new GChoice<TFigureTool*>(fe, "tool|toolbox", tb);
+  tb->add("selection"      , TSelectionTool::getTool());
+  tb->add("directselection", TNodeTool::getTool());
+  tb->add("rectangle"      , TFRectangle::getTool());
+  
+  fe->setToolBox(tb);
+  
+  ASSERT_EQ(choice->getValue(), TSelectionTool::getTool());
+  choice->setValue(TFRectangle::getTool());
 
-  out.str("");
-  fe0->setModel(m0);
-  EXPECT_EQ("tool 'tool1' stopped\n", out.str());
+  ASSERT_EQ(choice->getValue(), TFRectangle::getTool());
+
+  ASSERT_EQ(false, undoManager->canUndo());
+
+  // create as rect(10, 10, 10, 20)
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 10, 10);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 20, 30);
+  
+  ASSERT_EQ(1, model.size());
+  TFRectangle *rectangle = dynamic_cast<TFRectangle*>(model[0]);
+  
+  TRectangle bounds = rectangle->bounds();
+  ASSERT_EQ(TPoint(10, 10), bounds.origin);
+  ASSERT_EQ(TSize(10, 20), bounds.size);
+
+  // translate to rect(20, 15, 10, 20)
+  choice->setValue(TSelectionTool::getTool());
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 15, 10);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 25, 15);
+  
+  bounds = rectangle->bounds();
+  ASSERT_EQ(TPoint(20, 15), bounds.origin);
+  ASSERT_EQ(TSize(10, 20), bounds.size);
+
+  // undo to rect(10, 10, 10, 20)
+  ASSERT_EQ(true, undoManager->canUndo());
+  undoManager->doUndo();
+
+  bounds = rectangle->bounds();
+  ASSERT_EQ(TPoint(10, 10), bounds.origin);
+  ASSERT_EQ(TSize(10, 20), bounds.size);
+
+  // remove
+  ASSERT_EQ(true, undoManager->canUndo());
+  undoManager->doUndo();
+  
+  ASSERT_EQ(0, model.size());
+
+  ASSERT_EQ(false, undoManager->canUndo());
 }
-#endif
-
-// TFigureTool stop must be called when: a new tool is choosen or the model
-// changes (either in different or same editor)
-//
-
-// a figure being edited is locked for other users. we could extend this
-// condition to 'locked for other tools' and represent other users as tools
-// within the figure editor?
 
 } // namespace

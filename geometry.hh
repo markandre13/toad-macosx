@@ -27,6 +27,8 @@ namespace toad {
 
 static const TCoord tolerance = 10e-6;
 static const TCoord epsilon = 1e-12;
+
+// FIXME: make this std::numeric_limits<TCoord>::epsilon() // 2.22045e-16
 static const TCoord machine_epsilon = 1.12e-16;
 
 static inline bool isZero(TCoord a) { return fabs(a) <= epsilon; }

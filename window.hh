@@ -143,6 +143,7 @@ class TMouseEvent // FIXME: TPointerEvent?
     static void _doMouse(TWindow *twindow, TMouseEvent &me);
   
     NSEvent *nsevent;
+    TMouseEvent() {}
     TMouseEvent(NSEvent *ne, TWindow *window) {
       init(ne, window);
     }
