@@ -103,8 +103,6 @@ class TFigureModel:
     size_t size() const { return storage.size(); }
     bool empty() const { return storage.empty(); }
 
-    void translate(const TFigureSet &s, TPoint p) { translate(s, p.x, p.y); }
-    void translate(const TFigureSet&, TCoord dx, TCoord dy);
     // FIXME: better named translateHandleAbsolute?
     void translateHandle(TFigure *figure, unsigned handle, TPoint &p, unsigned modifier) {
       translateHandle(figure, handle, p.x, p.y, modifier);
@@ -120,6 +118,7 @@ class TFigureModel:
     void setAttributes(TFigureSet &set, const TFigureAttributeModel *attributes);
 
     void transform(TFigureSet *selection, const TMatrix2D &matrix, bool invert=false);
+    void translate(TFigureSet *selection, const TPoint &p);
 
     void insert(TFigureAtDepthList &store);
     void insert(const iterator &, TFigure*);

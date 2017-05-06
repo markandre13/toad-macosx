@@ -1115,7 +1115,7 @@ TFigureEditor::selectionAlignHorizontal()
     TCoord fx = p->origin.x + p->size.width/2.0;
     TFigureSet set;
     set.insert(f);
-    model->translate(set, bx-fx,0);
+    model->translate(&set, TPoint(bx-fx,0));
     ++p;
   }
   window->invalidateWindow();
@@ -1141,7 +1141,7 @@ TFigureEditor::selectionAlignVertical()
     TCoord fy = p->origin.y + p->size.height/2.0;
     TFigureSet set;
     set.insert(f);
-    model->translate(set, 0, by-fy);
+    model->translate(&set, TPoint(0, by-fy));
     ++p;
   }
   window->invalidateWindow();

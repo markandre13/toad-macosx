@@ -132,35 +132,6 @@ TFigureAtDepthList::~TFigureAtDepthList()
   }
 }
 
-
-class TUndoTranslate:
-  public TUndo
-{
-    TFigureModel *model;
-    TFigureSet figures;
-    TCoord dx, dy;
-  public:
-    TUndoTranslate(TFigureModel *model, const TFigureSet &set, TCoord dx, TCoord dy) {
-      this->model = model;
-      this->figures.insert(set.begin(), set.end());
-      this->dx = dx;
-      this->dy = dy;
-    }
-  protected:
-    void undo() {
-//cout << "undo translate " << dx << ", " << dy << endl;
-      model->translate(figures, dx, dy);
-    }
-    bool getUndoName(string *name) const {
-      *name = "Undo: Move";
-      return true;
-    }
-    bool getRedoName(string *name) const {
-      *name = "Redo: Move";
-      return true;
-    }
-};
-
 class TUndoTranslateHandle:
   public TUndo
 {
@@ -192,66 +163,6 @@ class TUndoTranslateHandle:
       return true;
     }
 };
-
-/**
- * Translate a set of figures by (dx, dy).
- *
- * This function notifies all its views about the modification and
- * registers an undo object.
- *
- * \param set
- *   The figures to be translated
- * \param dx
- *   horizontal translation to be added to the figures position
- * \param dy
- *   vertical translation to be added to the figures position
- */
-void
-TFigureModel::translate(const TFigureSet &set, TCoord dx, TCoord dy)
-{
-  if (set.empty())
-    return;
-  if (dx==0 && dy==0)
-    return;
-
-//cout << "translate " << dx << ", " << dy << endl;
-
-  TFigureEditEvent ee;
-  ee.model = this;
-  ee.type = TFigureEditEvent::TRANSLATE;
-  ee.x = dx;
-  ee.y = dy;
-
-  figures.clear();
-  figures.insert(set.begin(), set.end());
-
-  type = MODIFY; // FIXME: do we really need this?
-  sigChanged();
-
-  for(TFigureSet::iterator p = set.begin();
-      p!=set.end();
-      ++p)
-  {
-    (*p)->editEvent(ee);
-  }
-
-  ee.type = TFigureEditEvent::RELATION_MODIFIED;
-  for(auto &figureToBeRemoved: set) {
-    auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
-    if (relation==TFigureEditor::relatedTo.end()) {
-      continue;
-    }
-    for(auto &p: relation->second) {
-      const_cast<TFigure*>(p)->editEvent(ee);
-    }
-  }
-
-  type = MODIFIED;
-  sigChanged();
-
-  TUndoTranslate *undo = new TUndoTranslate(this, set, -dx, -dy);
-  TUndoManager::registerUndo(this, undo);
-}
 
 /*****************************************************************************
  *                                                                           *
@@ -639,6 +550,21 @@ TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
   pureInsert(replacement); // insert: putBack
   replacement.drop(); // do not delete the figures FIXME: TFigureAtDepthList should not take ownership, the undo events should
 }
+
+void
+TFigureModel::translate(TFigureSet *selection, const TPoint &p)
+{
+  TMatrix2D matrix;
+  matrix.translate(p);
+  transform(selection, matrix);
+}
+
+/*****************************************************************************
+ *                                                                           *
+ *                         T R A N S L A T E H A N D L E                     *
+ *                                                                           *
+ *****************************************************************************/
+
 
 /**
  * Translate a figures handle.

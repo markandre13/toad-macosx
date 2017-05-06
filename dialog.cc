@@ -194,7 +194,7 @@ TDialogSelectionTool::mouseEvent(TFigureEditor *fe, const TMouseEvent &me)
           TPoint delta = pos-down;
           down = pos;
           memo += delta;
-          fe->getModel()->translate(fe->selection, delta);
+          fe->getModel()->translate(&fe->selection, delta);
 /*        
           TCoord dx = x-down_x; down_x=x;
           TCoord dy = y-down_y; down_y=y;
