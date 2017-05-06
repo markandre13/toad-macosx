@@ -306,7 +306,7 @@ TFigureModel::insert(TFigureAtDepthList &figuresAtDepth)
     figures.insert(p.figure);
   sigChanged();
 
-  figuresAtDepth.drop(); // really ?
+  figuresAtDepth.drop();
 }
 
 void 
@@ -637,6 +637,7 @@ TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
     }
   }
   pureInsert(replacement); // insert: putBack
+  replacement.drop(); // do not delete the figures FIXME: TFigureAtDepthList should not take ownership, the undo events should
 }
 
 /**
