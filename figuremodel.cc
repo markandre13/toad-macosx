@@ -557,6 +557,29 @@ TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool inv
     invertedMatrix.invert();
     pureTransform(selection, invertedMatrix);
   }
+
+  figures = *selection;
+  type = MODIFY; // FIXME: do we really need this?
+  sigChanged();
+  
+  TFigureEditEvent ee;
+  ee.model = this;
+/*
+  ee.type = TFigureEditEvent::TRANSFORMED;
+  ee.transform = matrix;
+  for(auto &&figure: *selection)
+    ...
+*/
+    
+  ee.type = TFigureEditEvent::RELATION_MODIFIED;
+  for(auto &figure: *selection) {
+    auto relation = TFigureEditor::relatedTo.find(figure);
+    if (relation==TFigureEditor::relatedTo.end())
+      continue;
+    for(auto &relatedFigure: relation->second)
+      const_cast<TFigure*>(relatedFigure)->editEvent(ee);
+  }
+
   TUndoManager::registerUndo(this,
     new TUndoTransform(this, *selection, matrix, !invert)
   );
@@ -571,6 +594,8 @@ TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool inv
  * an identity, the TFTransform object will be removed.
  *
  * Selection will be updated to the TFTransform objected added/removed.
+ *
+ * FIXME?: how do we handle TFigureEditor::relatedTo???
  */
 void
 TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
