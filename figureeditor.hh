@@ -263,6 +263,7 @@ class TFigureEditor:
     void setToolBox(TToolBox *toolbox);
     
     // not all these methods work now, but the first 4 should do
+    // these methods are intended to modify the view space, not the current selection
     void identity();
     void rotate(double);
     void rotateAt(double x, double y, double radiants);

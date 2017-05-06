@@ -181,6 +181,8 @@ class TFigureAtDepthList
     void push_back(TFigure *figure, unsigned depth) {
       store.push_back(TFigureAtDepth(figure, depth));
     }
+    typedef TStore::size_type size_type;
+    size_type size() const { return store.size(); }
     typedef TStore::iterator iterator;
     iterator begin() { return store.begin(); }
     iterator end() { return store.end(); }

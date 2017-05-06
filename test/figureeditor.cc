@@ -40,7 +40,7 @@ sendMouseEvent(TWindow *window, TMouseEvent::EType type, TCoord x, TCoord y)
   window->mouseEvent(me);
 }
 
-TEST_F(FigureEditor, Foo)
+TEST_F(FigureEditor, TranslateOneFigure)
 {
   TFigureModel model;
   
@@ -98,6 +98,77 @@ TEST_F(FigureEditor, Foo)
   ASSERT_EQ(true, undoManager->canUndo());
   undoManager->doUndo();
   
+  ASSERT_EQ(0, model.size());
+
+  ASSERT_EQ(false, undoManager->canUndo());
+}
+
+TEST_F(FigureEditor, RotateTwoRectangles)
+{
+  TFigureModel model;
+  
+  TFigureEditor *fe = new TFigureEditor(nullptr, "TFigureEditor");
+  
+  TUndoManager *undoManager = new TUndoManager(fe, "undomanager", "edit|undo", "edit|redo");
+  
+  fe->setModel(&model);
+  fe->enableGrid(false);
+
+  TToolBox *tb = TToolBox::getToolBox();
+  auto *choice = new GChoice<TFigureTool*>(fe, "tool|toolbox", tb);
+  tb->add("selection"      , TSelectionTool::getTool());
+  tb->add("directselection", TNodeTool::getTool());
+  tb->add("rectangle"      , TFRectangle::getTool());
+  
+  fe->setToolBox(tb);
+  
+  ASSERT_EQ(choice->getValue(), TSelectionTool::getTool());
+  choice->setValue(TFRectangle::getTool());
+
+  ASSERT_EQ(choice->getValue(), TFRectangle::getTool());
+
+  ASSERT_EQ(false, undoManager->canUndo());
+
+  // create as rect(10, 10, 10, 20)
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 10, 10);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 20, 30);
+
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 15, 15);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 25, 35);
+  
+  ASSERT_EQ(2, model.size());
+
+  // select all
+  choice->setValue(TSelectionTool::getTool());
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 0, 0);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 90, 90);
+
+  ASSERT_EQ(2, fe->selection.size());
+  
+  // rotate (rectangles can't be rotated so they are prefixed with TFTransform)
+  sendMouseEvent(fe, TMouseEvent::LDOWN, 5, 5);
+  sendMouseEvent(fe, TMouseEvent::LUP  , 200, 5);
+  
+  ASSERT_EQ(2, fe->selection.size());
+  
+  ASSERT_STREQ("toad::TFTransform", model[0]->getClassName());
+  ASSERT_STREQ("toad::TFTransform", model[1]->getClassName());
+  
+  // undo rotation
+  ASSERT_EQ(true, undoManager->canUndo());
+  undoManager->doUndo();
+  
+  ASSERT_STREQ("toad::TFRectangle", model[0]->getClassName());
+  ASSERT_STREQ("toad::TFRectangle", model[1]->getClassName());
+
+  // undo adding a figure
+  ASSERT_EQ(true, undoManager->canUndo());
+  undoManager->doUndo();
+  ASSERT_EQ(1, model.size());
+
+  // undo adding a figure
+  ASSERT_EQ(true, undoManager->canUndo());
+  undoManager->doUndo();
   ASSERT_EQ(0, model.size());
 
   ASSERT_EQ(false, undoManager->canUndo());

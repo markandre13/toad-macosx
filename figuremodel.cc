@@ -374,20 +374,18 @@ TFigureModel::pureErase(TFigureSet &set, TFigureAtDepthList *placement)
   ee.type = TFigureEditEvent::REMOVED;
 */
   unsigned depth = 0;
-  for(TStorage::iterator p=storage.begin();
-      p!=storage.end();
-      ++p, ++depth)
-  {
-    TFigureSet::iterator q = figures.find(*p);
-    if (q!=figures.end()) {
+  auto iterator=storage.begin();
+  while(iterator!=storage.end()) {
+    TFigureSet::iterator q = set.find(*iterator);
+    if (q!=set.end()) {
       if (placement)
-        placement->push_back(*p, depth);
+        placement->push_back(*iterator, depth);
 //      (*p)->editEvent(ee);
-      TStorage::iterator tmp = p;
-      --tmp;
-      storage.erase(p);
-      p=tmp;
+      iterator = storage.erase(iterator);
+    } else {
+      ++iterator;
     }
+    ++depth;
   }
 }
 
@@ -511,6 +509,8 @@ TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool inv
 void
 TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
 {
+cout << "TFigureModel::pureTransform()" << endl;
+cout << "  number of figures: " << selection->size() << endl;
   TFigureSet addTransform, removeTransform;
   
   for(auto &&figure: *selection) {
@@ -525,14 +525,25 @@ TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
       addTransform.insert(figure);
     }
   }
-  
+
+cout << "  number of new TFTransforms: " << addTransform.size() << endl;
+for(auto &&p: addTransform)
+  cout << "    " << p << endl;
+
   TFigureSet replace(addTransform);
   replace.insert(removeTransform.begin(), removeTransform.end());
-  
-  TFigureAtDepthList replacement;
-  pureErase(addTransform, &replacement);
-  for(auto &&place: replacement) {
+
+cout << "  number of replacements : " << replace.size() << endl;
+
+  TFigureAtDepthList replaceAtDepth;
+  pureErase(replace, &replaceAtDepth);
+
+cout << "  actually to be replaced: " << replaceAtDepth.size() << endl;
+
+  for(auto &&place: replaceAtDepth) {
+cout << "  replace " << place.figure << endl;
     if (addTransform.contains(place.figure)) {
+cout << "    insert TFTransform" << endl;
       TFTransform *transform = new TFTransform();
       transform->matrix = matrix;
       transform->figure = place.figure;
@@ -540,6 +551,7 @@ TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
       selection->erase(transform->figure);
       selection->insert(transform);
     } else {
+cout << "    remove TFTransform" << endl;
       TFTransform *transform = dynamic_cast<TFTransform*>(place.figure);
       place.figure = transform->figure;
       selection->erase(transform);
@@ -547,8 +559,8 @@ TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
       delete transform;
     }
   }
-  pureInsert(replacement); // insert: putBack
-  replacement.drop(); // do not delete the figures FIXME: TFigureAtDepthList should not take ownership, the undo events should
+  pureInsert(replaceAtDepth); // insert: putBack
+  replaceAtDepth.drop(); // do not delete the figures FIXME: TFigureAtDepthList should not take ownership, the undo events should
 }
 
 void
