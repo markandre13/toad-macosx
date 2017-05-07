@@ -21,6 +21,7 @@
 #include <toad/figure.hh>
 #include <toad/figuremodel.hh>
 #include <toad/figureeditor.hh>
+#include <toad/figure/connectfigure.hh>
 #include <cmath>
 
 #include <toad/dialog.hh>
@@ -68,21 +69,22 @@ void
 TFigure::initialize()
 {
   TObjectStore& serialize(toad::getDefaultStore());
-  serialize.registerObject(new TSerializableRGB());
   serialize.registerObject(new TDialogLayout());
-  serialize.registerObject(new TMenuLayout());
-  serialize.registerObject(new TSpringLayout());
-  serialize.registerObject(new TMenuEntry());
-  serialize.registerObject(new TMenuSeparator());
-  serialize.registerObject(new TMatrix2D());
-  serialize.registerObject(new TFText());
-  serialize.registerObject(new TFFrame());
-  serialize.registerObject(new TFRectangle());
   serialize.registerObject(new TFCircle());
+  serialize.registerObject(new TFConnection());
+  serialize.registerObject(new TFFrame());
   serialize.registerObject(new TFGroup());
-  serialize.registerObject(new TFWindow());
   serialize.registerObject(new TFImage());
+  serialize.registerObject(new TFRectangle());
+  serialize.registerObject(new TFText());
+  serialize.registerObject(new TFWindow());
   serialize.registerObject(new TFigureModel());
+  serialize.registerObject(new TMatrix2D());
+  serialize.registerObject(new TMenuEntry());
+  serialize.registerObject(new TMenuLayout());
+  serialize.registerObject(new TMenuSeparator());
+  serialize.registerObject(new TSerializableRGB());
+  serialize.registerObject(new TSpringLayout());
 }
 
 void

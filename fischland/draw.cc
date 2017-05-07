@@ -25,8 +25,6 @@
 #include "lineal.hh"
 #include "page.hh"
 #include "config.h"
-#include <toad/figure/connectfigure.hh>
-
 
 #ifdef HAVE_LIBCAIRO
 #include "cairo.hh"
@@ -1264,8 +1262,6 @@ main(int argc, char **argv, char **envv)
   toad::getDefaultStore().registerObject(new TDocument());
   toad::getDefaultStore().registerObject(new TSlide());
   toad::getDefaultStore().registerObject(new TLayer());
-
-  toad::getDefaultStore().registerObject(new TFConnection());
 
   bmp_vlogo = new TBitmap();
   bmp_vlogo->load(RESOURCE("logo_vertical.jpg"));
