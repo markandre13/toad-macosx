@@ -1735,6 +1735,9 @@ test/figureeditor.o: include/toad/figuretool.hh include/toad/core.hh
 test/figureeditor.o: include/toad/undomanager.hh
 test/figureeditor.o: include/toad/figure/nodetool.hh
 test/figureeditor.o: include/toad/figure/shapetool.hh
+test/figureeditor.o: include/toad/figure/connectfigure.hh
+test/figureeditor.o: include/toad/figure/connecttool.hh
+test/figureeditor.o: include/toad/vector.hh
 test/figureeditor-render.o: test/util.hh include/toad/window.hh
 test/figureeditor-render.o: include/toad/interactor.hh include/toad/types.hh
 test/figureeditor-render.o: include/toad/io/serializable.hh

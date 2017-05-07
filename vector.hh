@@ -126,6 +126,8 @@ class TVectorPainter:
     void paint(TPenBase &pen);
 };
 
+ostream& operator<<(ostream &s, const TVectorPainter& p);
+
 /**
  * A collection of TVectorPainter
  */
@@ -137,6 +139,8 @@ class TVectorGraphic:
     void paint(TPenBase &pen);
     void transform(const TMatrix2D &matrix);
 };
+
+ostream& operator<<(ostream &s, const TVectorGraphic& p);
 
 } // namespace
 

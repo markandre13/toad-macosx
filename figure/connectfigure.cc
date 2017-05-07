@@ -28,10 +28,20 @@ using namespace toad;
 bool
 TFConnection::editEvent(TFigureEditEvent &editEvent)
 {
-  // FIXME: add helper functions for RELATION_REMOVED and REMOVED
+  // FIXME: add helper functions for RELATION_REMOVED, RELATION_REPLACED and REMOVED
   switch(editEvent.type) {
     case TFigureEditEvent::RELATION_MODIFIED:
       updatePoints();
+      break;
+    case TFigureEditEvent::RELATION_REPLACED:
+      if (editEvent.data.relationReplaced.oldRelation == start) {
+        start = editEvent.data.relationReplaced.newRelation;
+        updatePoints();
+      }
+      if (editEvent.data.relationReplaced.oldRelation == end) {
+        end = editEvent.data.relationReplaced.newRelation;
+        updatePoints();
+      }
       break;
     case TFigureEditEvent::RELATION_REMOVED:
       if (editEvent.model->figures.find(start) != editEvent.model->figures.end()) {

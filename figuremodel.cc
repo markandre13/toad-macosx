@@ -349,7 +349,8 @@ TFigureModel::pureErase(TFigureSet &set, TFigureAtDepthList *placement)
 
 //  TFigureEditEvent ee;
 //  ee.model = this;
-
+#if 0
+  // FIXME: this belongs into TFigureModel::erase()
 //  ee.type = TFigureEditEvent::RELATION_REMOVED;
   for(auto &figureToBeRemoved: set) {
     auto relation = TFigureEditor::relatedTo.find(figureToBeRemoved);
@@ -358,13 +359,13 @@ TFigureModel::pureErase(TFigureSet &set, TFigureAtDepthList *placement)
     }
     figures.clear();
     figures.insert(figureToBeRemoved);
-/*
     for(auto &p: relation->second) {
       const_cast<TFigure*>(p)->editEvent(ee);
     }
-*/
     TFigureEditor::relatedTo.erase(relation); // FIXME: there might be no guarantee that the iterator isn't invalidated
   }
+#endif
+
 /*
   type = REMOVE;
   figures.clear();
@@ -436,7 +437,6 @@ class TUndoTransform:
     }
   protected:
     void undo() override {
-cout << "TUndoTransform::undo()" << endl;
       model->transform(&figures, matrix, invert);
     }
     bool getUndoName(string *name) const override {
@@ -513,10 +513,8 @@ TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool inv
 void
 TFigureModel::pureTransform(TFigureSet *selection, const TMatrix2D &matrix)
 {
-cout << "TFigureModel::pureTransform()" << endl;
-cout << "  number of figures: " << selection->size() << endl;
   TFigureSet addTransform, removeTransform;
-  
+
   for(auto &&figure: *selection) {
     TFTransform *transform = dynamic_cast<TFTransform*>(figure);
     if (transform) {
@@ -530,40 +528,59 @@ cout << "  number of figures: " << selection->size() << endl;
     }
   }
 
-cout << "  number of new TFTransforms: " << addTransform.size() << endl;
-for(auto &&p: addTransform)
-  cout << "    " << p << endl;
-
   TFigureSet replace(addTransform);
   replace.insert(removeTransform.begin(), removeTransform.end());
-
-cout << "  number of replacements : " << replace.size() << endl;
 
   TFigureAtDepthList replaceAtDepth;
   pureErase(replace, &replaceAtDepth);
 
-cout << "  actually to be replaced: " << replaceAtDepth.size() << endl;
-
   for(auto &&place: replaceAtDepth) {
-cout << "  replace " << place.figure << endl;
     if (addTransform.contains(place.figure)) {
-cout << "    insert TFTransform" << endl;
+
       TFTransform *transform = new TFTransform();
       transform->matrix = matrix;
       transform->figure = place.figure;
       place.figure = transform;
       selection->erase(transform->figure);
       selection->insert(transform);
+
+      // FIXME: inpure, we wouldn't want to do this in pureTransform
+      auto relation = TFigureEditor::relatedTo.find(transform->figure);
+      if (relation!=TFigureEditor::relatedTo.end()) {
+        TFigureEditEvent ee;
+        ee.type = TFigureEditEvent::RELATION_REPLACED;
+        for(auto &&relatedFigure: relation->second) {
+          ee.data.relationReplaced.oldRelation = transform->figure;
+          ee.data.relationReplaced.newRelation = transform;
+          const_cast<TFigure*>(relatedFigure)->editEvent(ee);
+        }
+        TFigureEditor::relatedTo[transform] = relation->second; // FIXME: use move semantics
+        TFigureEditor::relatedTo.erase(relation);
+      }
     } else {
-cout << "    remove TFTransform" << endl;
       TFTransform *transform = dynamic_cast<TFTransform*>(place.figure);
       place.figure = transform->figure;
       selection->erase(transform);
       selection->insert(transform->figure);
+
+      auto relation = TFigureEditor::relatedTo.find(transform);
+      if (relation!=TFigureEditor::relatedTo.end()) {
+        TFigureEditEvent ee;
+        ee.type = TFigureEditEvent::RELATION_REPLACED;
+        for(auto &&relatedFigure: relation->second) {
+          ee.data.relationReplaced.oldRelation = transform;
+          ee.data.relationReplaced.newRelation = transform->figure;
+          const_cast<TFigure*>(relatedFigure)->editEvent(ee);
+        }
+        TFigureEditor::relatedTo[transform->figure] = relation->second; // FIXME: use move semantics
+        TFigureEditor::relatedTo.erase(relation);
+      }
+
+      transform->figure = nullptr;
       delete transform;
     }
   }
-  pureInsert(replaceAtDepth); // insert: putBack
+  pureInsert(replaceAtDepth);
   replaceAtDepth.drop(); // do not delete the figures FIXME: TFigureAtDepthList should not take ownership, the undo events should
 }
 

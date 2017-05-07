@@ -234,11 +234,11 @@ TSelectionTool::downHandle(TFigureEditor *fe, const TMouseEvent &me)
     return false;
   // origin is already applied by scroll pane?
   TPoint p = me.pos - fe->getVisible().origin;
-// cout << "down at " << x << ", " << y << endl;
+// cout << "down at " << p << endl;
   for(unsigned i=0; i<16; ++i) {
     TRectangle r;
     getBoundaryHandle(i, &r);
-// cout << "  check " << r.x << ", " << r.y << endl;
+// cout << "  check " << r << endl;
     if (r.isInside(p)) {
       state = STATE_MOVE_HANDLE;
       selectedHandle = i;

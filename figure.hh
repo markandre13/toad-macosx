@@ -50,6 +50,8 @@ class TFigureEditEvent
       ADDED,
       //! the figure is to be removed from the model
       REMOVED,
+
+      RELATION_REPLACED,
       
       //! the figures listed in model->figures are to be removed from the model
       RELATION_REMOVED,
@@ -70,6 +72,13 @@ class TFigureEditEvent
       MOUSE_EVENT,
       
     } type;
+
+    union {
+      struct RelationReplaced {
+        TFigure *oldRelation;
+        TFigure *newRelation;
+      } relationReplaced;
+    } data;
 
     TFigureEditor *editor; // in:START_IN_PLACE
     TFigureModel *model; // in
@@ -253,6 +262,10 @@ class TFTransformBase:
 {
   public:
     TFigure *figure;
+    ~TFTransformBase() {
+      if (figure)
+        delete figure;
+    }
 };
 
 /*
@@ -298,9 +311,10 @@ class TFTransformStrokeAndFX:
 class TFTransform:
   public TFAffiniteTransformBase
 {
+  public:
+    TVectorGraphic *getPath() const override;
   protected:
     void paint(TPenBase &pen, EPaintType type=NORMAL) override;
-    TVectorGraphic *getPath() const override;
     
     TCoord distance(const TPoint &pos) override;
     TRectangle bounds() const override;

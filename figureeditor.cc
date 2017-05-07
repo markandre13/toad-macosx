@@ -865,8 +865,9 @@ TFigureEditor::modelChanged()
     case TFigureModel::ADD:
       update_scrollbars = true;
       selection = model->figures;
-      for(auto &&f: model->figures)
+      for(auto &&f: model->figures) {
         invalidateFigure(f);
+      }
       break;
     case TFigureModel::REMOVE:
       update_scrollbars = true;
@@ -1214,7 +1215,7 @@ TFigureEditor::start()
 void
 TFigureEditor::stop()
 {
-cout << "TFigureEditor::stop(): current tool is " << activeTool << endl;
+//cout << "TFigureEditor::stop(): current tool is " << activeTool << endl;
   if (activeTool)
     activeTool->stop(this);
   activeEditor = nullptr;
@@ -1234,7 +1235,7 @@ TFigureEditor::setToolBox(TToolBox *toolbox)
   if (this->toolbox) {
     // switching to a new tool stops the active mode
     connect(this->toolbox->sigChanged, this, [=] {
-cout << "toolbox.sigChanged -> TFigureEditor::stop()" << endl;
+//cout << "toolbox.sigChanged -> TFigureEditor::stop()" << endl;
       this->stop();
     });
   }

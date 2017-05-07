@@ -40,7 +40,8 @@ void TVectorPath::clear()
   points.clear();
 }
 
-ostream& toad::operator<<(ostream &out, const TVectorPath& path)
+ostream&
+toad::operator<<(ostream &out, const TVectorPath& path)
 {
   out <<"TVectorPath {"<<endl;
   const TPoint *pt = path.points.data();
@@ -63,6 +64,29 @@ ostream& toad::operator<<(ostream &out, const TVectorPath& path)
         cout << "  close" << endl;
     }
   }
+  out<<"}"<<endl;
+  return out;
+}
+
+ostream&
+toad::operator<<(ostream &out, const TVectorPainter& painter)
+{
+  out <<"TVectorPainter {"<<endl;
+  if (!painter.path)
+    out << "nullptr" << endl;
+  else
+    out << *painter.path;
+  out<<"}"<<endl;
+  return out;
+}
+
+
+ostream&
+toad::operator<<(ostream &out, const TVectorGraphic& graphic)
+{
+  out <<"TVectorGraphic {"<<endl;
+  for(auto &&painter: graphic)
+    out << *painter;
   out<<"}"<<endl;
   return out;
 }
