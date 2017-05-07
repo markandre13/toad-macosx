@@ -459,6 +459,10 @@ cout << "TUndoTransform::undo()" << endl;
 void
 TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool invert)
 {
+  figures = *selection;
+  type = MODIFY;
+  sigChanged();
+
   if (!invert) {
     pureTransform(selection, matrix);
   } else {
@@ -468,7 +472,7 @@ TFigureModel::transform(TFigureSet *selection, const TMatrix2D &matrix, bool inv
   }
 
   figures = *selection;
-  type = MODIFY; // FIXME: do we really need this?
+  type = MODIFIED;
   sigChanged();
   
   TFigureEditEvent ee;

@@ -858,15 +858,15 @@ TFigureEditor::modelChanged()
   quickready = false; // force a view update when quick mode is enabled
   switch(model->type) {
     case TFigureModel::MODIFY:
+      for(auto &&f: model->figures)
+        invalidateFigure(f);
+      break;
     case TFigureModel::MODIFIED:
     case TFigureModel::ADD:
       update_scrollbars = true;
-      for(TFigureSet::iterator p=model->figures.begin();
-          p!=model->figures.end();
-          ++p)
-      {
-        invalidateFigure(*p);
-      }
+      selection = model->figures;
+      for(auto &&f: model->figures)
+        invalidateFigure(f);
       break;
     case TFigureModel::REMOVE:
       update_scrollbars = true;
