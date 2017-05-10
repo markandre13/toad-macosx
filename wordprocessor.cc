@@ -754,39 +754,44 @@ renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *documen
 {
 //cout << "renderPrepared document " << document << " ============================================================" << endl;
 //dump(text, *document);
-//  cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
-//  cout << "cursor " <<  document->pos[CURSOR].line << " " << document->pos[CURSOR].line->size.height << endl;
-//  for(auto &&line: document->lines) {
+//cout << "selection " << xpos[SELECTION_BGN] << "-" << xpos[SELECTION_END] << endl;
+//cout << "cursor x=" <<  document->marker[CURSOR].pos.x << ", height=" << document->marker[CURSOR].fragment->size.height << endl;
   for(vector<TPreparedLine*>::const_iterator p = document->lines.begin();
       p != document->lines.end();
       ++p)
   {
-//    if ( (*p)->fragments[0]->offset == string::npos)
-//      continue;
-  
-    size_t textend = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
+    size_t lineEnd = ((p+1) == document->lines.end()) ? string::npos : (*(p+1))->offset;
     TPreparedLine *line = *p;
-//    cout << "  line " << line->text << " - " << textend << ", height=" << line->size.height << endl;
+//cout << "  line offset=" << line->offset << " - " << lineEnd << ", height=" << line->size.height << endl;
     
-    TCoord s0=0, s1=line->size.width;
-    bool s=false;
-    if (line->offset < xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < textend) {
-      s=true;
-      s0 = document->marker[SELECTION_BGN].pos.x;
-//      cout << "    begin" << endl;
-    }
-    if (line->offset < xpos[SELECTION_END] && xpos[SELECTION_END] < textend) {
-      s=true;
-      s1 = document->marker[SELECTION_END].pos.x;
-//      cout << "    end" << endl;
-    }
-    if (!s && xpos[SELECTION_BGN] < line->offset && textend < xpos[SELECTION_END]) {
-      s=true;
-    }
-    if (s) {
-      pen.setColor(0.64,0.8,1);
-      pen.fillRectangle(s0, line->origin.y, s1-s0, line->size.height);
-      pen.setColor(0,0,0);
+    // FIXME: move this into a separate function
+    if (xpos[SELECTION_BGN]!=xpos[SELECTION_END]) {
+      TCoord s0=0, s1=line->size.width;
+      bool drawSelection=false;
+      // does the selection begin within this line?
+      if (line->offset <= xpos[SELECTION_BGN] && xpos[SELECTION_BGN] < lineEnd) {
+        drawSelection=true;
+        s0 = document->marker[SELECTION_BGN].pos.x;
+//cout << "    begin" << endl;
+      }
+      // does the selection end within this line?
+      if (line->offset < xpos[SELECTION_END] && xpos[SELECTION_END] < lineEnd) {
+        drawSelection=true;
+        s1 = document->marker[SELECTION_END].pos.x;
+//cout << "    end" << endl;
+      }
+      if (!drawSelection && xpos[SELECTION_BGN] <= line->offset && lineEnd <= xpos[SELECTION_END]) {
+        drawSelection=true;
+//cout << "    middle" << endl;
+//      } else {
+//cout << "    not middle" << endl;
+      }
+      if (drawSelection) {
+//cout << "fill selection ("<<s0<<", "<<line->origin.y<<", "<<s1-s0<<", "<<line->size.height<<")"<<endl;
+        pen.setColor(0.64,0.8,1);
+        pen.fillRectangle(s0, line->origin.y, s1-s0, line->size.height);
+        pen.setColor(0,0,0);
+      }
     }
 
     for(auto &&fragment: line->fragments) {
@@ -809,13 +814,11 @@ renderPrepared(TPenBase &pen, const char *text, const TPreparedDocument *documen
   }
 
   pen.setColor(0,0,0);
+  pen.setLineWidth(1.0);
 
-  // when there's no selection, draw cursor
-  if (xpos[SELECTION_BGN] == xpos[SELECTION_END]) {
-    TCoord cy = document->marker[CURSOR].pos.y+
-                document->marker[CURSOR].line->ascent-
-                document->marker[CURSOR].fragment->ascent;
-    pen.setLineWidth(1.0);
+  TCoord cy = document->marker[CURSOR].pos.y+
+              document->marker[CURSOR].line->ascent-
+              document->marker[CURSOR].fragment->ascent;
 /*
 dump(text, *document);
 cout << "draw cursor at " << document->marker[CURSOR].pos << " ("<<cy<<"), height " << document->marker[CURSOR].fragment->size.height << endl;
@@ -823,9 +826,8 @@ cout << "  document->marker[CURSOR].pos.y = " << document->marker[CURSOR].pos.y 
 cout << "  document->marker[CURSOR].line->ascent = " << document->marker[CURSOR].line->ascent << endl;
 cout << "  document->marker[CURSOR].fragment->ascent = " << document->marker[CURSOR].fragment->ascent << endl;
 */
-    pen.drawLine(document->marker[CURSOR].pos.x, cy,
-                 document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
-  }
+  pen.drawLine(document->marker[CURSOR].pos.x, cy,
+               document->marker[CURSOR].pos.x, cy + document->marker[CURSOR].fragment->size.height);
 }
 
 /**
