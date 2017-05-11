@@ -1147,8 +1147,12 @@ fitCubic(const TPoint *d, int first, int last, TPoint tHat1, TPoint tHat2, doubl
 void
 fitPath(const TPoint *d, size_t nPts, TCoord error, vector<TPoint> *out)
 {
-  TPoint	tHat1, tHat2;	/*  Unit tangent vectors at endpoints */
-
+  if (nPts<2) {
+    for(size_t i=0; i<nPts; ++i)
+      out->push_back(d[i]);
+    return;
+  }
+  TPoint tHat1, tHat2;	/*  Unit tangent vectors at endpoints */
   tHat1 = computeLeftTangent(d, 0);
   tHat2 = computeRightTangent(d, nPts - 1);
   fitCubic(d, 0, nPts - 1, tHat1, tHat2, error, out);
