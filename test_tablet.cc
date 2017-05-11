@@ -190,13 +190,14 @@ TMyWindow::paint()
   TPen pen(this);
 
   // draw union in gray
-  pen.setColor(0.7,0.7,0.7);
+  pen.setStrokeColor(0,0,0);
+  pen.setFillColor(0.7,0.7,0.7);
   path.apply(pen);
   pen.fill();
-  pen.setColor(0,0,0);
   path.apply(pen);
-  pen.stroke();	// -> strokeAndFill
-  
+  pen.stroke();
+//  pen.fillStroke();
+#if 0  
   // plot raw data in orange
   pen.setColor(1,0.5,0);
   for(auto p: handpath) {
@@ -211,7 +212,7 @@ TMyWindow::paint()
   if (!a.empty()) {
 
     // reduce noise of tablet input
-    movingAverage(a, 1.5, b);
+//    movingAverage(a, 1.5, b);
     
 #if 0
     // plot denoised data in red
@@ -229,15 +230,13 @@ TMyWindow::paint()
 
     // draw fitted denoised data in regular blue
     c.clear();
-    fitPath(b, 4.0, &c);
+    fitPath(a, 4.0, &c);
     pen.setColor(0,0,1);
     pen.drawBezier(c);
-
-    
   }
   
 //  fitPath(const TPoint *inPoints, size_t size, TCoord tolerance, vector<TPoint> *out);
-    
+#endif    
   
 #if 1
   // draw caret
@@ -287,10 +286,13 @@ void
 TMyWindow::mouseEvent(const TMouseEvent &me)
 {
 static double lasttime;
+static TPoint lastpos;
+static const TCoord fidility = 4.0; // smallest fidility setting in Illustrator [0.5, 20], default 4
   if (me.type==TMouseEvent::LDOWN) {
 //cout << "down" << endl;
     [NSEvent setMouseCoalescingEnabled: FALSE];
     lasttime = [me.nsevent timestamp];
+    lastpos = me.pos;
     backup.open("backup.txt", ofstream::out | ofstream::trunc);
     handpath.clear();
     path.clear();
@@ -300,6 +302,7 @@ static double lasttime;
     [NSEvent setMouseCoalescingEnabled: TRUE];
     backup.close();
     path.simplify(4.0, 2.0*M_PI/360.0*30.0);
+cout << "path is now simplified" << endl;
     // quantify raw data
     // fit curve raw data
     // fit curve outline
@@ -354,13 +357,12 @@ cout << uniqueID << " left proximity" << endl;
     invalidateWindow();
     return;
   }
-#if 1
+
+  if(distance(me.pos, lastpos)<fidility)
+    return;
+  lastpos = me.pos;
+
   pos = me.pos;
-#else
-  // round position to reduce jitter
-  pos.x = round(me.pos.x);
-  pos.y = round(me.pos.y);
-#endif
   pressure = me.pressure();
   rotation = me.rotation();
   tilt = me.tilt();
