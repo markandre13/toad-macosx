@@ -88,8 +88,15 @@ TTextEditor2::TTextEditor2(TWindow *parent, const string &title):
 //text="this is a really unbelievable very long line.<br/>and this <b>isn't.</b>";
 //text="hello <b>you.</b>";
 text="F";
+//    0         1         2
+//    012345678901234567890
+text="a<br/>b<br/>c<br/>d";
 
   wp.init(text);
+  wp.xpos[wordprocessor::CURSOR]=12;
+  wp.xpos[wordprocessor::SELECTION_BGN]=6;
+  wp.xpos[wordprocessor::SELECTION_END]=18;
+  updateMarker(text, &wp.document, wp.xpos);
 }
 
 void

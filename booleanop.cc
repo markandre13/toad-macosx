@@ -1051,7 +1051,7 @@ BooleanOpImp::inResult(const SweepEvent* le) const
  * \param l1    other line
  */
 void
-intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
+toad::intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1)
 {
   // IMPROVE ME: we might want to pick a middle point if available?
 

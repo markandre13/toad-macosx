@@ -3,8 +3,6 @@
 
 using namespace toad;
 
-void intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1);
-
 //  p0
 //  |
 //  |q0

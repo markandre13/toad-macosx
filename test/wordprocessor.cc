@@ -1174,6 +1174,22 @@ TEST(WordProcessor, updateMarker)
   cout << xpos[CURSOR] << " -> " << document.marker[CURSOR].pos << ", height " << document.marker[CURSOR].fragment->size.height << endl;
 }
 
+TEST(WordProcessor, selection)
+{ //             0         1         2
+  //             012345678901234567890
+  string text = "a<br/>b<br/>c<br/>d";
+  vector<size_t> xpos;
+  xpos.assign(3, 0);
+  TPreparedDocument document;
+  prepareHTMLText(text, xpos, &document);
+
+  // before 'a'
+  xpos[CURSOR]=0;
+  xpos[SELECTION_BGN]=6;
+  xpos[SELECTION_END]=12;
+  updateMarker(text, &document, xpos);
+}
+
 // <b>hello</b>
 // ^ insert a 0 doesn't work
 

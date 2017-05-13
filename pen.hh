@@ -124,7 +124,7 @@ class TPen:
     void fillPolygon(const TPoint *points, size_t n) override; 
     void fillPolygon(const TPolygon &p) override;
 
-    void drawBezier(const TPoint *points, size_t n) override;
+    void drawBezier(const TPoint *points, size_t n) override; // FIXME: drawCurve
     inline void drawBezier(const vector<TPoint> v) { drawBezier(v.data(), v.size()); }
     void drawCurve(TCoord x0, TCoord y0, TCoord x1, TCoord y1, TCoord x2, TCoord y2, TCoord x3, TCoord y3);
     void drawBezier(const TPolygon &p) override;

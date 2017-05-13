@@ -451,7 +451,7 @@ intersectCurveCurve(TIntersectionList &ilist, const TPoint *curve0, const TPoint
  ****************************************************************************/
 /**
  * Solves the quadratic polynomial with coefficients a, b, c for roots
- * (zero crossings) and and returns the solutions in an array.
+ * (zero crossings) and returns the solutions in array 'roots'
  *
  * a*x^2 + b*x + c = 0
  */
@@ -485,7 +485,7 @@ solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots) {
   return n; // 0, 1 or 2 solutions
 }
 
-static int 
+int 
 solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots, TCoord min, TCoord max)
 {
   int i, j, n = solveQuadratic(a, b, c, roots);

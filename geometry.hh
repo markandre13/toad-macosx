@@ -64,6 +64,7 @@ void intersectCurveCurve(TIntersectionList &ilist, const TPoint *curve0, const T
 void intersectCurveLine(TIntersectionList &ilist, const TPoint *curve, const TPoint *line);
 void intersectLineCurve(TIntersectionList &ilist, const TPoint *line, const TPoint *curve);
 void intersectLineLine(TIntersectionList &ilist, const TPoint *line0, const TPoint *line1);
+void intersectLineLine2(TIntersectionList *ilist, const TPoint *l0, const TPoint *l1);
 
 TRectangle curveBounds(const TPoint *curve);
 
@@ -84,7 +85,20 @@ equal to π.
 bool isSelfIntersecting(...)
 */
 
+/**
+ * solve quadratic equation a*x^2 + b*x + c = 0
+ */
 int solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots);
+
+/**
+ * solve quadratic equation a*x^2 + b*x + c = 0 and restrict results to [min, max]
+ */
+int solveQuadratic(TCoord a, TCoord b, TCoord c, TCoord *roots, TCoord min, TCoord max);
+
+/**
+ * solve cubic equation a + b*x + c*x^2 = + d*x^3 0 and restrict results to [min, max]
+ */
+int solveCubic(TCoord a, TCoord b, TCoord c, TCoord d, TCoord *roots, TCoord min, TCoord max);
 
 enum BooleanOpType { INTERSECTION, UNION, DIFFERENCE, XOR };
 void boolean(const TVectorPath &subj, const TVectorPath &clip, TVectorPath *out, BooleanOpType op);
