@@ -340,7 +340,7 @@ class TFRectangle:
   public:
     static TShapeTool* getTool();
   
-    TFRectangle() {}
+    TFRectangle() = default;
     TFRectangle(TCoord x, TCoord y, TCoord w, TCoord h) {
       setShape(x, y, w, h);
     };
@@ -363,7 +363,7 @@ class TFRectangle:
     bool getHandle(unsigned n, TPoint *p) override;
     void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override;
 
-    SERIALIZABLE_INTERFACE(toad::, TFRectangle);    
+    SERIALIZABLE_INTERFACE(toad::, TFRectangle);
     
   protected:
     TPoint p1, p2;

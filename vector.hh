@@ -58,6 +58,7 @@ class TVectorPath
     vector<EType> type;
 
     bool empty() const { return type.empty(); }
+    TCoord distance(const TPoint &point) const { return 0; }
     void join(const TVectorPath &); // append
     void clear();
     void move(const TPoint &p) { type.push_back(MOVE); points.push_back(p); }
@@ -89,7 +90,6 @@ class TVectorPath
     // tangent
     // normal
     // curvature
-    
     
   private:
     void subdivideCutter(EType type, const TPoint *pt, const TRectangle &bounds, bool linesToBezier);

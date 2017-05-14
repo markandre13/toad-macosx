@@ -11,6 +11,11 @@
 #include <toad/simpletimer.hh>
 #include <toad/geometry.hh>
 
+// FIXME: rename <toad/figureeditor.hh into toad/figure/editor.hh
+#include <toad/figureeditor.hh>
+#include <toad/figure/nodetool.hh>
+#include <toad/fischland/fpath.hh>
+
 #include <algorithm>
 #include <queue>
 
@@ -82,7 +87,7 @@ class TWordWrapper
     void place(const TSize &rectangle);
     void follow(const SweepEvent &event, const TPoint *upperScanLine, const TPoint *lowerScanLine);
     static TCoord distanceAtY(const SweepEvent*, const SweepEvent*, TCoord);
-    static TCoord yForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y);
+    static TPoint pointForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y);
 
     // sweep event storage
     std::deque<SweepEvent> allEvents;
@@ -114,60 +119,7 @@ inline ostream& operator<<(ostream &out, const TWordWrapper::SweepEvent &event) 
   return out;
 }
 
-class TTest:
-  public TWindow
-{
-    TPoint p[8];
-    int handle;
-  public:
-    TTest(TWindow *parent, const string &title);
-    void paint() override;
-    void mouseEvent(const TMouseEvent&) override;
-};
-
-TTest::TTest(TWindow *parent, const string &title):TWindow(parent, title) {
-  handle = -1;
-
-  p[0].set(50, 25);
-  p[1].set(75, 50);
-  p[2].set(50, 75);
-  p[3].set(25, 75);
-
-  p[4].set(125, 25);
-  p[5].set(100, 50);
-  p[6].set(125, 75);
-  p[7].set(150, 75);
-}
-
-void
-TTest::mouseEvent(const TMouseEvent &me)
-{
-  switch(me.type) {
-    case TMouseEvent::LDOWN:
-      for(int i=0; i<8; ++i) {
-        if (TRectangle(p[i].x-2.5, p[i].y-2.5, 5,5).isInside(me.pos)) {
-          handle = i;
-          break;
-        }
-      }
-      break;
-    case TMouseEvent::MOVE:
-      if (handle==-1)
-        break;
-      p[handle] = me.pos;
-      invalidateWindow();
-      break;
-    case TMouseEvent::LUP:
-      if (handle==-1)
-        break;
-      p[handle] = me.pos;
-      handle = -1;
-      invalidateWindow();
-      break;
-  }
-}
-
-
+#if 0
 void
 TTest::paint()
 {
@@ -259,6 +211,7 @@ TTest::paint()
 */
 #endif
 }
+#endif
 
 inline bool
 isEventInsideSweepLine(const TWordWrapper::SweepEvent *event, TCoord y, TCoord h)
@@ -323,8 +276,8 @@ TWordWrapper::distanceAtY(const SweepEvent *e0, const SweepEvent *e1, TCoord y)
   return -1.0;
 }
 
-TCoord
-TWordWrapper::yForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y)
+TPoint
+TWordWrapper::pointForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y)
 {
   switch(e0->type) {
     case LINE:
@@ -338,7 +291,7 @@ TWordWrapper::yForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord wi
           TIntersectionList intersections;
           intersectLineLine(intersections, e0->data.line.p, line2);
           assert(intersections.size()==1);
-          return intersections[0].seg0.pt.y;
+          return intersections[0].seg0.pt;
         } break;
         case CURVE:
           break;
@@ -347,7 +300,7 @@ TWordWrapper::yForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord wi
     case CURVE:
       break;
   }
-  return -1.0;
+  return TPoint(0,0);
 }
 
 void
@@ -388,7 +341,8 @@ cout << "distanceAtY = " << d << endl;
   while(ptr!=sweepLineEvents.end()) {
     SweepEvent *left  = *(ptr++);
     SweepEvent *right = *(ptr++);
-    TCoord y = yForDistance(left, right, rectangle.width, cursor.y);
+    cursor = pointForDistance(left, right, rectangle.width, cursor.y);
+    return;
   }
   
 
@@ -596,8 +550,95 @@ TWordWrapper::processCurve(const TPoint *p)
 */
 }
 
+class TTestWrap:
+  public TFigureEditor
+{
+    unique_ptr<GChoice<TFigureTool*>> choice;
+    TVectorPath *path;
+  public:
+    TTestWrap(TWindow *parent, const string &title);
+    void paint() override;
+};
+
+class TFPath:
+  public TAttributedFigure
+{
+  public:
+    TVectorPath path;
+    
+    TVectorGraphic* getPath() const override {
+      auto *vg = new TVectorGraphic;
+      vg->push_back(new TVectorPainter(this, new TVectorPath(path)));
+      return vg;
+    }
+    void paint(TPenBase &pen, EPaintType type=NORMAL) override {
+      pen.setColor(0,0,0);
+      path.apply(pen);
+      pen.stroke();
+    }
+    TRectangle bounds() const override {
+      return path.bounds();
+    }
+    TCoord distance(const TPoint &point) override {
+      return path.distance(point);
+    }
+    bool transform(const TMatrix2D &transform) override {
+      path.transform(transform);
+      return true;
+    }
+    bool getHandle(unsigned handle, TPoint *p) override {
+      if (handle>=path.points.size())
+        return false;
+      *p = path.points[handle];
+      return true;
+    }
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override {
+      path.points[handle] = TPoint(x, y);
+    }
+
+    SERIALIZABLE_INTERFACE(toad::, TFPath);
+};
+
+bool TFPath::restore(atv::TInObjectStream&) {}
+void TFPath::store(atv::TOutObjectStream&) const {}
+
+TTestWrap::TTestWrap(TWindow *parent, const string &title):
+  TFigureEditor(parent, title)
+{
+  TToolBox *tb = TToolBox::getToolBox();
+  tb->add("directselection", TNodeTool::getTool());
+  setToolBox(tb);
+  
+  TFPath *path = new TFPath();
+  this->path = &path->path;
+
+  path->path.move(160, 40);
+//  path.curve(320,10, 50, 100, 310,130);
+  path->path.line(310, 130);
+  path->path.line(130, 190);
+  path->path.line(10,70);
+  path->path.close();
+
+  getModel()->add(path);
+}
+
+void
+TTestWrap::paint()
+{
+  TFigureEditor::paint();
+  
+  TPen pen(this);
+  pen.setColor(0,0,1);
+
+  TWordWrapper wrap;
+  wrap.path2events(*path);
+  wrap.place(TSize(8,12));
+
+  pen.drawRectangle(wrap.cursor.x, wrap.cursor.y, 8, 12);
+}
+
 TEST_F(WordWrap, foo) {
-  TTest wnd(NULL, testname());
+  TTestWrap wnd(NULL, testname());
   wnd.doModalLoop();
 /*
   TVectorPath path;
