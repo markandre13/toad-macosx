@@ -94,6 +94,7 @@ bool SweepEventComp::operator() (const SweepEvent* e1, const SweepEvent* e2)
     return false;
   if (e1->point.y != e2->point.y) // Different points, but same x-coordinate. The event with smaller y-coordinate is processed first
     return e1->point.y > e2->point.y;
+
   if (e1->left != e2->left) // Same point, but one is a left endpoint and the other a right endpoint. The right endpoint is processed first
     return e1->left;
   // Same point, both events are left endpoints or both are right endpoints.

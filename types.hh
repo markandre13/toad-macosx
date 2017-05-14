@@ -1,6 +1,6 @@
 /*
  * TOAD -- A Simple and Powerful C++ GUI Toolkit for the X Window System
- * Copyright (C) 1996-2015 by Mark-André Hopf <mhopf@mark13.org>
+ * Copyright (C) 1996-2017 by Mark-André Hopf <mhopf@mark13.org>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,8 +43,8 @@ using namespace std;
 struct TPoint:
   public CGPoint
 {
-  TPoint() { x = y = 0; }
-  TPoint(const TPoint &p) {x=p.x; y=p.y;}
+  TPoint() = default;
+  TPoint(const TPoint &p) = default;
   TPoint(TCoord inX, TCoord inY) { x=inX; y=inY; }
   void set(TCoord a, TCoord b) { x=a;y=b; }
   void translate(TCoord a, TCoord b) { x+=a; y+=b; }

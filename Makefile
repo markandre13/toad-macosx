@@ -105,7 +105,7 @@ test.app/Contents/MacOS/test: $(TEST_OBJ)
 	@echo Ok
 
 test: test.app/Contents/MacOS/test
-	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
+#	./test.app/Contents/MacOS/test --gtest_filter="FigureEditor.*"
 	./test.app/Contents/MacOS/test --gtest_filter="WordWrap.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="Rectangle.*"
 #	./test.app/Contents/MacOS/test --gtest_filter="Serializeable.List"
