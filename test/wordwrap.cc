@@ -87,7 +87,7 @@ class TWordWrapper
     void place(const TSize &rectangle);
     void follow(const SweepEvent &event, const TPoint *upperScanLine, const TPoint *lowerScanLine);
     static TCoord distanceAtY(const SweepEvent*, const SweepEvent*, TCoord);
-    static TPoint pointForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y);
+    static TPoint pointForDistance(const SweepEvent *e0, const SweepEvent *e1, const TSize &size, TCoord y);
 
     // sweep event storage
     std::deque<SweepEvent> allEvents;
@@ -277,16 +277,39 @@ TWordWrapper::distanceAtY(const SweepEvent *e0, const SweepEvent *e1, TCoord y)
 }
 
 TPoint
-TWordWrapper::pointForDistance(const SweepEvent *e0, const SweepEvent *e1, TCoord width, TCoord y)
+TWordWrapper::pointForDistance(const SweepEvent *e0, const SweepEvent *e1, const TSize &size, TCoord y)
 {
   switch(e0->type) {
     case LINE:
       switch(e1->type) {
         case LINE: {
+          TPoint a = e0->data.line.p[0],
+                 e = e0->data.line.p[1] - a,
+                 b = e1->data.line.p[0],
+                 f = e1->data.line.p[1] - b;
+          if (e.x > 0 && f.x > 0) {
+            TPoint d = TPoint(size.width, -size.height);
+            TCoord
+              E = e.y / e.x,
+              v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x );
+            TPoint p = b + v * f;
+            p.x -= size.width;
+            return p;
+          }
+          if (e.x < 0 && f.x < 0) {
+            TPoint d = TPoint(size.width, size.height);
+            TCoord
+              E = e.y / e.x,
+              v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x );
+            TPoint p = b + v * f;
+            p.x -= size.width;
+            p.y -= size.height;
+            return p;
+          }
           const TPoint *lineB = e1->data.line.p;
           TPoint line2[2] = {
-            { lineB[0].x - width, lineB[0].y },
-            { lineB[1].x - width, lineB[1].y },
+            { lineB[0].x - size.width, lineB[0].y },
+            { lineB[1].x - size.width, lineB[1].y },
           };
           TIntersectionList intersections;
           intersectLineLine(intersections, e0->data.line.p, line2);
@@ -341,7 +364,7 @@ cout << "distanceAtY = " << d << endl;
   while(ptr!=sweepLineEvents.end()) {
     SweepEvent *left  = *(ptr++);
     SweepEvent *right = *(ptr++);
-    cursor = pointForDistance(left, right, rectangle.width, cursor.y);
+    cursor = pointForDistance(left, right, rectangle, cursor.y);
     return;
   }
   
