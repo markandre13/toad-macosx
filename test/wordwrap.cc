@@ -24,6 +24,7 @@ namespace {
 
 using namespace toad;
 
+
 class WordWrap:
   public ::testing::Test
 {
@@ -46,9 +47,6 @@ o
 class TWordWrapper
 {
   public:
-
-    TPoint cursor;
-  
     enum SweepEventType {
       LINE, CURVE
     };
@@ -81,28 +79,49 @@ class TWordWrapper
       
       SweepEvent *otherEvent;
     };
+
+    // e0 < e1
+    struct eventQueueOrder: public std::binary_function<SweepEvent, SweepEvent, bool> {
+      bool operator() (const SweepEvent *e0, const SweepEvent *e1);
+    };
+
+    TPoint cursor;
     
+    std::set<SweepEvent*, eventQueueOrder> eventQueue;
+    
+    std::deque<SweepEvent> allEvents;
+//    std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, eventQueueOrder> eventQueue;
+    std::deque<SweepEvent*> sweepLineEvents;
+
+//    TWordWrapper(): eventQueue(eventQueueOrder(), priority_vector) {
+//    }
   
     // look for place in sweep events
     void place(const TSize &rectangle);
+    bool findPlace(const SweepEvent *e0, const SweepEvent *e1, const TSize &size, TPoint *out);
+    
+    // the following methods will be obsolete
     void follow(const SweepEvent &event, const TPoint *upperScanLine, const TPoint *lowerScanLine);
     static TCoord distanceAtY(const SweepEvent*, const SweepEvent*, TCoord);
     static TPoint pointForDistance(const SweepEvent *e0, const SweepEvent *e1, const TSize &size, TCoord y);
 
-    // sweep event storage
-    std::deque<SweepEvent> allEvents;
-    struct eventQueueOrder:
-      public std::binary_function<SweepEvent, SweepEvent, bool>
-    {
-      bool operator() (const SweepEvent *e0, const SweepEvent *e1);
-    };
-
-    std::priority_queue<SweepEvent*, std::vector<SweepEvent*>, eventQueueOrder> eventQueue;
-
+    // fill allEvents and eventQueue
     void path2events(const TVectorPath& path);
-    void processLine(const TPoint &p0, const TPoint &p1);
-    void processCurve(const TPoint *p);
+    void addLine(const TPoint &p0, const TPoint &p1);
+    void addCurve(const TPoint *p);
     SweepEvent* storeSweepEvent(const SweepEvent &e);
+
+    struct Slicer {
+      const std::set<SweepEvent*, eventQueueOrder> &eventQueue;
+      std::set<SweepEvent*, eventQueueOrder>::const_iterator ptr;
+      struct slice {
+        const TWordWrapper::SweepEvent *left, *right;
+      };
+      vector<slice> slices;
+    
+      Slicer(std::set<SweepEvent*, eventQueueOrder> &theEventQueue):eventQueue(theEventQueue), ptr(theEventQueue.begin()) {}
+      bool step();
+    };
 };
 
 inline ostream& operator<<(ostream &out, const TWordWrapper::SweepEvent &event) {
@@ -118,6 +137,91 @@ inline ostream& operator<<(ostream &out, const TWordWrapper::SweepEvent &event) 
   }
   return out;
 }
+
+// 1st point of e1 is left of e0
+bool leftOf(const TWordWrapper::SweepEvent *e0, const TWordWrapper::SweepEvent *e1)
+{
+  return signedArea(e0->data.line.p[0], e0->data.line.p[1], e1->data.line.p[0]) > 0;
+}
+
+bool
+TWordWrapper::Slicer::step()
+{
+  if (ptr==eventQueue.end())
+    return false;
+
+  cout << "find a home for " << **ptr << endl;
+
+  // join
+  auto slice = slices.begin();
+  if (slices.size()>=2) {
+    while(true) {
+      auto prevSlice = slice;
+      ++slice;
+      if (slice==slices.end())
+        break;
+      
+      if (prevSlice->right->data.line.p[1] == slice->left->data.line.p[1] &&
+
+          (*ptr)->data.line.p[0].y >= prevSlice->right->data.line.p[1].y ) // FIXME: corner cases
+
+      {
+        cout << "JOIN " << *prevSlice->right << " AND " << *slice->left << endl;
+        
+        prevSlice->right = slice->right;
+        slices.erase(slice);
+        
+        return true;
+      }
+    }
+  }
+  
+  // continue
+  slice = slices.begin();
+  while(slice!=slices.end()) {
+    if ((*ptr)->data.line.p[0] == slice->left->data.line.p[1]) {
+      cout << "found left side" << endl;
+      slice->left = *(ptr++);
+      return true;
+    } else
+    if ((*ptr)->data.line.p[0] == slice->right->data.line.p[1]) {
+      cout << "found right side" << endl;
+      slice->right = *(ptr++);
+      return true;
+    }
+    ++slice;
+  }
+
+  // insert
+  slice = slices.begin();
+  while(slice!=slices.end()) {
+    if (leftOf(slice->left, *ptr)) {
+      cout << "insert slice" << endl;
+      cout << "   " << (*ptr)->data.line.p[0] << " is left of " << *slice->left << endl;
+      return true;
+    }
+    if (leftOf(slice->right, *ptr)) {
+      cout << "SPLIT" << endl;
+      struct slice s;
+      s.left = slice->left;
+      s.right = *(ptr++);
+      slice->left = *(ptr++);
+      slices.insert(slice, s);
+      return true;
+    }
+    ++slice;
+  }
+  
+  cout << "start a new slice" << endl;
+  // start a new slice
+  struct slice s;
+  s.left = *(ptr++);
+  s.right = *(ptr++);
+  slices.push_back(s);
+
+  return true;
+}
+
 
 #if 0
 void
@@ -224,6 +328,58 @@ isEventInsideSweepLine(const TWordWrapper::SweepEvent *event, TCoord y, TCoord h
       (ey0 <= y   && y+h <= ey1  ) );
 }
 
+bool
+TWordWrapper::findPlace(const SweepEvent *e0, const SweepEvent *e1, const TSize &size, TPoint *out)
+{
+  switch(e0->type) {
+    case LINE:
+      switch(e1->type) {
+        case LINE: {
+          TPoint a = e0->data.line.p[0],
+                 e = e0->data.line.p[1] - a,
+                 b = e1->data.line.p[0],
+                 f = e1->data.line.p[1] - b;
+          if (e.x > 0 && f.x > 0) {
+            TPoint d = TPoint(size.width, -size.height);
+            TCoord
+              E = e.y / e.x,
+              v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x );
+            *out = b + v * f;
+            out->x -= size.width;
+            return true;
+          }
+          if (e.x < 0 && f.x < 0) {
+            TPoint d = TPoint(size.width, size.height);
+            TCoord
+              E = e.y / e.x,
+              v = ( a.y + E * ( b.x - a.x - d.x ) + d.y - b.y ) / ( f.y - E * f.x );
+            *out = b + v * f;
+            out->x -= size.width;
+            out->y -= size.height;
+            return true;
+          }
+          const TPoint *lineB = e1->data.line.p;
+          TPoint line2[2] = {
+            { lineB[0].x - size.width, lineB[0].y },
+            { lineB[1].x - size.width, lineB[1].y },
+          };
+          TIntersectionList intersections;
+          intersectLineLine(intersections, e0->data.line.p, line2);
+          assert(intersections.size()==1);
+          *out = intersections[0].seg0.pt;
+          return true;
+        } break;
+        case CURVE:
+          break;
+      }
+      break;
+    case CURVE:
+      break;
+  }
+  return false;
+}
+
+
 //    L = p0 + u * ( p1 - p0 )
 // ⇔  L = p0 + u * d
 // ⇔  x = p0.x + u * d.x ∧ y = p0.y + u * d.y
@@ -308,8 +464,8 @@ TWordWrapper::pointForDistance(const SweepEvent *e0, const SweepEvent *e1, const
           }
           const TPoint *lineB = e1->data.line.p;
           TPoint line2[2] = {
-            { lineB[0].x - size.width, lineB[0].y },
-            { lineB[1].x - size.width, lineB[1].y },
+            { lineB[0].x - size.width, lineB[0].y },
+            { lineB[1].x - size.width, lineB[1].y },
           };
           TIntersectionList intersections;
           intersectLineLine(intersections, e0->data.line.p, line2);
@@ -329,8 +485,8 @@ TWordWrapper::pointForDistance(const SweepEvent *e0, const SweepEvent *e1, const
 void
 TWordWrapper::place(const TSize &rectangle)
 {
+#if 0
   cout << "find intersections at line " << cursor.y << endl;
-  std::deque<SweepEvent*> sweepLineEvents;
 
   // fill sweep lineLineEvents with all events within sweep line
   while(!eventQueue.empty()) {
@@ -367,7 +523,6 @@ cout << "distanceAtY = " << d << endl;
     cursor = pointForDistance(left, right, rectangle, cursor.y);
     return;
   }
-  
 
 #if 0
 
@@ -387,6 +542,7 @@ cout << "  hit" << endl;
       follow(event, upperScanLine, lowerScanLine);
     }
   }
+#endif
 #endif
 };
 
@@ -421,7 +577,7 @@ TWordWrapper::follow(const SweepEvent &event, const TPoint *upperScanLine, const
 void
 TWordWrapper::path2events(const TVectorPath& path)
 {
-  cursor = path.bounds().p0;
+  cursor = path.bounds().p0; // FIXME: this should not be here
 
 // FIXME: this function must drop neighbouring equal points (degenerated case)
 // FIXME: this function must catch empty polygons
@@ -434,22 +590,23 @@ TWordWrapper::path2events(const TVectorPath& path)
         ++pt;
         break;
       case TVectorPath::LINE:
-        processLine(*pp, *pt);
+        addLine(*pp, *pt);
         pp=pt;
         ++pt;
         break;
       case TVectorPath::CURVE:
-        processCurve(pp);
+        addCurve(pp);
         pp=pt+2;
         pt+=3;
         break;
       case TVectorPath::CLOSE:
-        processLine(*pp, *ph);
+        addLine(*pp, *ph);
         break;
     }
   }
 }
 
+// e0 < e1
 bool
 TWordWrapper::eventQueueOrder::operator() (const SweepEvent *e0, const SweepEvent *e1)
 {
@@ -458,15 +615,15 @@ TWordWrapper::eventQueueOrder::operator() (const SweepEvent *e0, const SweepEven
       switch(e1->type) {
         case TWordWrapper::LINE:
           // when e0->data.line.p[0] != e1->data.line.p[0], sort by these points
-          if (e0->data.line.p[0].y > e1->data.line.p[0].y)
+          if (e0->data.line.p[0].y < e1->data.line.p[0].y)
             return true;
-          if (e1->data.line.p[0].y > e0->data.line.p[0].y)
+          if (e1->data.line.p[0].y < e0->data.line.p[0].y)
             return false;
           if (e0->data.line.p[0].x != e1->data.line.p[0].x)
-            e0->data.line.p[0].x > e1->data.line.p[0].x;
+            return e0->data.line.p[0].x < e1->data.line.p[0].x;
           
           // see that e0 comes after e1 clockwise
-          return signedArea(e0->data.line.p[0], e0->data.line.p[1], e1->data.line.p[1]) > 0;
+          return signedArea(e0->data.line.p[0], e0->data.line.p[1], e1->data.line.p[1]) < 0;
           
           break;
         case TWordWrapper::CURVE:
@@ -504,7 +661,7 @@ TWordWrapper::storeSweepEvent(const SweepEvent &e)
  * convert segment/edge into two sweep events
  */
 void
-TWordWrapper::processLine(const TPoint &p0, const TPoint &p1)
+TWordWrapper::addLine(const TPoint &p0, const TPoint &p1)
 {
 //  events.push_back(SweepEvent(p0, p1));
 
@@ -529,7 +686,12 @@ TWordWrapper::processLine(const TPoint &p0, const TPoint &p1)
     e0->left = false;
   }
 */
-  eventQueue.push(e0);
+  if (eventQueue.find(e0)!=eventQueue.end()) {
+    cerr << "WARNING: duplicate event in eventQueue" << endl;
+    cerr << "         " << *e0 << endl;
+    cerr << "         " << **eventQueue.find(e0) << endl;
+  }
+  eventQueue.insert(e0);
 //  eventQueue.push(e1);
 
 /*
@@ -551,7 +713,7 @@ TWordWrapper::processLine(const TPoint &p0, const TPoint &p1)
 }
 
 void
-TWordWrapper::processCurve(const TPoint *p)
+TWordWrapper::addCurve(const TPoint *p)
 {
 //  events.push_back(SweepEvent(p));
 /*
@@ -622,7 +784,7 @@ class TFPath:
     SERIALIZABLE_INTERFACE(toad::, TFPath);
 };
 
-bool TFPath::restore(atv::TInObjectStream&) {}
+bool TFPath::restore(atv::TInObjectStream&) { return true; }
 void TFPath::store(atv::TOutObjectStream&) const {}
 
 TTestWrap::TTestWrap(TWindow *parent, const string &title):
@@ -649,34 +811,306 @@ void
 TTestWrap::paint()
 {
   TFigureEditor::paint();
+
+  string text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
   
   TPen pen(this);
   pen.setColor(0,0,1);
 
   TWordWrapper wrap;
   wrap.path2events(*path);
-  wrap.place(TSize(8,12));
 
-  pen.drawRectangle(wrap.cursor.x, wrap.cursor.y, 8, 12);
+  ssize_t wordStart = -1;
+  for(size_t i=0; i<text.size(); ++i) {
+    if (wordStart==-1) {
+      if (!isspace(text[i])) {
+        wrap.cursor.x += pen.getTextWidth(" ");
+        wordStart = i;
+      }
+    } else {
+      if (isspace(text[i])) {
+        string word = text.substr(wordStart, i-wordStart);
+        
+        cout << word << endl;
+        
+        TSize size(pen.getTextWidth(word), pen.getHeight());
+
+        wrap.place(size);
+        pen.drawRectangle(wrap.cursor.x, wrap.cursor.y,size.width, size.height);
+        pen.drawString(wrap.cursor.x, wrap.cursor.y, word);
+        
+        wrap.cursor.x += size.width;
+        
+        wordStart = -1;
+      }
+    }
+  }
+
 }
 
+// (10,10)   (20,10)
+//    |         |
+//    |         |
+// (20,10)   (20,20)
+TEST_F(WordWrap, order000) {
+  TWordWrapper::SweepEvent e0(TPoint(10, 10), TPoint(10, 20));
+  TWordWrapper::SweepEvent e1(TPoint(20, 10), TPoint(20, 20));
+  
+  TWordWrapper::eventQueueOrder compare;
+
+  ASSERT_EQ(true,  compare(&e0, &e1)); // e0 < e1 -> true
+  ASSERT_EQ(false, compare(&e1, &e0)); // e0 > e1 -> false
+}
+
+// (30,35)    (50,35)
+//        \  /
+//         \/
+//        (45,40)
+TEST_F(WordWrap, order001) {
+  TWordWrapper::SweepEvent e0(TPoint(40, 35), TPoint(45,40));
+  TWordWrapper::SweepEvent e1(TPoint(50, 35), TPoint(45,40));
+  
+  TWordWrapper::eventQueueOrder compare;
+
+  ASSERT_EQ(true , compare(&e0, &e1)); // e0 < e1 -> true
+  ASSERT_EQ(false, compare(&e1, &e0)); // e0 > e1 -> false
+}
+
+#if 0
 TEST_F(WordWrap, foo) {
   TTestWrap wnd(NULL, testname());
   wnd.doModalLoop();
-/*
-  TVectorPath path;
-  path.move(160, 40);
-//  path.curve(320,10, 50, 100, 310,130);
-  path.line(310, 130);
-  path.line(130, 190);
-  path.line(10,70);
-  path.close();
-
-  TWordWrapper wrap;
-  wrap.path2events(path);
-  
-  wrap.place(TSize(8,12));
-*/
 }
+#endif
+
+#if 0
+// ▘ (0,0)
+//      (30,10)
+//         ▞▖
+//        ▞ ▝▖
+//       ▞   ▝▖
+//(10,30)      (50,30)
+TEST_F(WordWrap, findPlace001) {
+  TWordWrapper wrap;
+  wrap.cursor = TPoint(0,0);
+  wrap.addLine(TPoint(30, 10), TPoint(10,30));
+  wrap.addLine(TPoint(30, 10), TPoint(50,30));
+  TPoint pos;
+  ASSERT_EQ(true, wrap.findPlace(&wrap.allEvents[0], &wrap.allEvents[1], TSize(20,10), &pos));
+  ASSERT_EQ(TPoint(20, 20), pos);
+}
+#endif
+
+// ▘ (0,0)
+//    1 2 3 4 5 6 7 8 9
+//           
+// 1        ▞▖b  
+//         ▞ ▝▖c▞▖
+// 2    a ▞   ▝▞ ▝▖
+//       ▞        ▝▖d
+// 3    ▞   g▞▖h   ▝▖
+//     ▞    ▞ ▝▖    ▝▖
+// 4  ▞    j▝▖▞i     ▞
+//    ▝▖     ▝      ▞
+// 5   ▝▖          ▞
+//      ▝▖        ▞
+// 6    f▝▖      ▞e
+//        ▝▖    ▞
+// 7       ▝▖  ▞
+//          ▝▖▞
+// 8         ▝
+TEST_F(WordWrap, stripes) {
+  TWordWrapper wrap;
+  wrap.cursor = TPoint(0,0);
+  wrap.addLine(TPoint(10, 42), TPoint(40,10)); // a
+  wrap.addLine(TPoint(40, 10), TPoint(55,20)); // b
+  wrap.addLine(TPoint(55, 20), TPoint(60,15)); // c
+  wrap.addLine(TPoint(60, 15), TPoint(80,38)); // d
+  wrap.addLine(TPoint(80, 38), TPoint(50,80)); // e
+  wrap.addLine(TPoint(50, 80), TPoint(10,42)); // f
+
+  wrap.addLine(TPoint(40, 35), TPoint(45,30)); // g
+  wrap.addLine(TPoint(45, 30), TPoint(50,35)); // h
+  wrap.addLine(TPoint(50, 35), TPoint(45,40)); // i
+  wrap.addLine(TPoint(45, 40), TPoint(40,35)); // j
+  
+  ASSERT_EQ(10, wrap.eventQueue.size());
+  
+  cout << "allEvents.size() = " << wrap.allEvents.size() << endl;
+  cout << "eventQueue.size() = " << wrap.eventQueue.size() << endl;
+  
+//  for(auto &&p: wrap.eventQueue) {
+//    cout << *p << endl;
+//  }
+  
+  TWordWrapper::Slicer slicer(wrap.eventQueue);
+  
+  // new slice
+  cout << "-------------- new slice -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+  ASSERT_EQ(1, slicer.slices.size());
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(55, 20), slicer.slices[0].right->data.line.p[1]);
+
+  // new slice
+  cout << "-------------- new slice -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+  ASSERT_EQ(2, slicer.slices.size());
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(55, 20), slicer.slices[0].right->data.line.p[1]);
+
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[1].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(55, 20), slicer.slices[1].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[1].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(80, 38), slicer.slices[1].right->data.line.p[1]);
+
+  // join slices
+  cout << "-------------- join slices -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+//  cout << "slice: " << *slicer.slices[1].left << " <---> " << *slicer.slices[1].right << endl;
+  
+  ASSERT_EQ(1, slicer.slices.size());
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[0].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(80, 38), slicer.slices[0].right->data.line.p[1]);
+
+  // split slices
+  cout << "-------------- split slices -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+  
+  ASSERT_EQ(2, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(45, 30), slicer.slices[0].right ->data.line.p[0]);
+  ASSERT_EQ(TPoint(40, 35), slicer.slices[0].right ->data.line.p[1]);
+  
+  ASSERT_EQ(TPoint(45, 30), slicer.slices[1].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 35), slicer.slices[1].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[1].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(80, 38), slicer.slices[1].right->data.line.p[1]);
+
+  cout << "-------------- continue right -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+
+  ASSERT_EQ(2, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(40, 35), slicer.slices[0].right ->data.line.p[0]);
+  ASSERT_EQ(TPoint(45, 40), slicer.slices[0].right ->data.line.p[1]);
+  
+  ASSERT_EQ(TPoint(45, 30), slicer.slices[1].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 35), slicer.slices[1].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[1].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(80, 38), slicer.slices[1].right->data.line.p[1]);
+
+  cout << "-------------- continue left -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+
+  ASSERT_EQ(2, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);   // a
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(40, 35), slicer.slices[0].right ->data.line.p[0]);  // j
+  ASSERT_EQ(TPoint(45, 40), slicer.slices[0].right ->data.line.p[1]);
+  
+  ASSERT_EQ(TPoint(50, 35), slicer.slices[1].left ->data.line.p[0]);   // i
+  ASSERT_EQ(TPoint(45, 40), slicer.slices[1].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(60, 15), slicer.slices[1].right->data.line.p[0]);   // d
+  ASSERT_EQ(TPoint(80, 38), slicer.slices[1].right->data.line.p[1]);
+
+  cout << "-------------- continue right -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+
+  ASSERT_EQ(2, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(40, 35), slicer.slices[0].right ->data.line.p[0]);
+  ASSERT_EQ(TPoint(45, 40), slicer.slices[0].right ->data.line.p[1]);
+  
+  ASSERT_EQ(TPoint(50, 35), slicer.slices[1].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(45, 40), slicer.slices[1].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(80 ,38), slicer.slices[1].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 80), slicer.slices[1].right->data.line.p[1]);
+
+  cout << "-------------- join -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+
+  ASSERT_EQ(1, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(40, 10), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(80 ,38), slicer.slices[0].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 80), slicer.slices[0].right->data.line.p[1]);
+
+  cout << "-------------- continue left -----------------" << endl;
+  ASSERT_EQ(true, slicer.step());
+  cout << "--------------------------------------------" << endl;
+
+//  for(auto &&p: slicer.slices) {
+//    cout << "-> " << *p.left << " : " << *p.right << endl;
+//  }
+
+  ASSERT_EQ(1, slicer.slices.size());
+
+  ASSERT_EQ(TPoint(10, 42), slicer.slices[0].left ->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 80), slicer.slices[0].left ->data.line.p[1]);
+  ASSERT_EQ(TPoint(80 ,38), slicer.slices[0].right->data.line.p[0]);
+  ASSERT_EQ(TPoint(50, 80), slicer.slices[0].right->data.line.p[1]);
+
+  cout << "-------------- done -----------------" << endl;
+  ASSERT_EQ(false, slicer.step());
+  cout << "--------------------------------------------" << endl;
+}
+
+#if 0
+//      (30,10)
+//         ▞▖
+//        ▞▗▝▖ (30,20)
+//       ▞   ▝▖
+//(10,30)      (50,30)
+TEST_F(WordWrap, findPlace002) {
+  TWordWrapper wrap;
+  wrap.cursor = TPoint(30,20);
+  wrap.addLine(TPoint(30, 10), TPoint(10,30));
+  wrap.addLine(TPoint(30, 10), TPoint(50,30));
+  TPoint pos;
+  ASSERT_EQ(true, wrap.findPlace(TSize(10,10), &pos);
+  ASSERT_EQ(TPoint(30, 20), pos);
+}
+#endif
+
+#if 0
+//
+//      (30,10)
+//         ▞▖
+//        ▞ ▝▖▖(50,20)
+//       ▞   ▝▖
+//(10,30)      (50,30)
+TEST_F(WordWrap, findPlace003) {
+  TWordWrapper wrap;
+  wrap.cursor = TPoint(50,20);
+  wrap.addLine(TPoint(30, 10), TPoint(10,30));
+  wrap.addLine(TPoint(30, 10), TPoint(50,30));
+  TPoint pos;
+//  ASSERT_EQ(false, wrap.findPlace(TSize(10,10), &pos))
+  ASSERT_EQ(true, wrap.findPlace(TSize(10,10), &pos))
+}
+#endif
 
 } // namespace
