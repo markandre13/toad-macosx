@@ -229,7 +229,7 @@ TPenTool::keyEvent(TFigureEditor *fe, const TKeyEvent &ke)
   if (!path)
     return;
   TPolygon &polygon = path->polygon;
-  vector<byte> &corner = path->corner;
+  vector<unsigned char> &corner = path->corner;
   switch(ke.key) {
     case TK_ESCAPE:
       delete path;

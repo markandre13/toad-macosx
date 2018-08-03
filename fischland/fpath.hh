@@ -56,7 +56,7 @@ class TFPath:
 
 //    bool closed;
     TPolygon polygon;
-    vector<byte> corner;
+    vector<unsigned char> corner;
     
     void setAttributes(const TFigureAttributeModel*) override;
     void getAttributes(TFigureAttributeModel*) const override;

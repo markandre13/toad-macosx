@@ -30,8 +30,6 @@
 #import <CoreGraphics/CGGeometry.h>
 
 typedef unsigned long ulong;
-typedef unsigned char ubyte;
-typedef unsigned char byte;
 
 namespace toad {
 

@@ -84,8 +84,8 @@ class TSpringLayout::TFormNode
     int dist[4];                // minimal distance to neighbours
     int coord[4];               // the left,right,top & bottom during calculation
     int w, h;                   // fixed size (when >= 0)
-    byte done;                  // flags for attached sides
-    byte nflag;                 // flags for sides with undefined attachment
+    unsigned char done;         // flags for attached sides
+    unsigned char nflag;                 // flags for sides with undefined attachment
     TFormNode *next, *prev;     // should remove `prev'
 };
 
