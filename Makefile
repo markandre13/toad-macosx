@@ -51,7 +51,7 @@ SRC_SHARED=interactor.cc control.cc labelowner.cc buttonbase.cc pushbutton.cc \
 SRC_COCOA=window.cc mouseevent.cc pen.cc
 
 SRC_FISH=fischland/draw.cc fischland/colorpalette.cc fischland/fitcurve.cc \
-	 fischland/fpath.cc fischland/lineal.cc fischland/page.cc \
+	 fischland/lineal.cc fischland/page.cc \
 	 fischland/fishbox.cc fischland/colorpicker.cc \
 	 fischland/rotatetool.cc \
 	 fischland/pentool.cc fischland/penciltool.cc \

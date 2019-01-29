@@ -103,7 +103,7 @@ class TPathAttributes
   public:
     bool stroked:1;
     bool filled:1;
-    TRGB stroke;
+    TRGB stroke;	// FIXME: make these RGBA and get rid of the above flags
     TRGB fill;
     TCoord alpha;
     TCoord linewidth;

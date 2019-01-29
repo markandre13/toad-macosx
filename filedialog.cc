@@ -45,7 +45,7 @@
 #include <sys/stat.h>
 
 #define FINAL_FILEDIALOG
-#define RESOURCE(file) "tresource/" file
+#define RESOURCE(file) "resource/" file
 //#define RESOURCE(file) "memory://toad/" file
 
 using namespace toad;

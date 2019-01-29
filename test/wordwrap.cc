@@ -1,5 +1,12 @@
 /*
+ * Testbed for the text editor's word wrap algorithm.
  *
+ * o sweep  : sweep buffer algorithm with all non-horizontal line and curves
+ *            of the path the text is to be placed into.
+ * o slice  : construct vertical slices from the sweep buffer, each with a
+ *            left and right side. slices can split and merge.
+ * o stitch : 
+ * o squeeze
  */
 
 #include "util.hh"
@@ -19,11 +26,9 @@
 #include <algorithm>
 #include <queue>
 
-
 namespace {
 
 using namespace toad;
-
 
 class WordWrap:
   public ::testing::Test
@@ -37,12 +42,6 @@ class WordWrap:
       toad::terminate();
     }
 };
-
-
-/*
-o convert the path into a list of non-overlapping segments
-o 
-*/
 
 class TWordWrapper
 {
@@ -221,7 +220,6 @@ TWordWrapper::Slicer::step()
 
   return true;
 }
-
 
 #if 0
 void
@@ -672,7 +670,7 @@ TWordWrapper::addLine(const TPoint &p0, const TPoint &p1)
   if (p0.y>p1.y) {
     swap = true;
   } else
-  if (p0==p1 && p0.x>p1.x)
+  if (p0.y==p1.y && p0.x>p1.x)
     swap = true;
 
   SweepEvent *e0 = storeSweepEvent(swap ? SweepEvent(p1, p0) : SweepEvent(p0, p1));
@@ -735,119 +733,6 @@ TWordWrapper::addCurve(const TPoint *p)
 */
 }
 
-class TTestWrap:
-  public TFigureEditor
-{
-    unique_ptr<GChoice<TFigureTool*>> choice;
-    TVectorPath *path;
-  public:
-    TTestWrap(TWindow *parent, const string &title);
-    void paint() override;
-};
-
-class TFPath:
-  public TAttributedFigure
-{
-  public:
-    TVectorPath path;
-    
-    TVectorGraphic* getPath() const override {
-      auto *vg = new TVectorGraphic;
-      vg->push_back(new TVectorPainter(this, new TVectorPath(path)));
-      return vg;
-    }
-    void paint(TPenBase &pen, EPaintType type=NORMAL) override {
-      pen.setColor(0,0,0);
-      path.apply(pen);
-      pen.stroke();
-    }
-    TRectangle bounds() const override {
-      return path.bounds();
-    }
-    TCoord distance(const TPoint &point) override {
-      return path.distance(point);
-    }
-    bool transform(const TMatrix2D &transform) override {
-      path.transform(transform);
-      return true;
-    }
-    bool getHandle(unsigned handle, TPoint *p) override {
-      if (handle>=path.points.size())
-        return false;
-      *p = path.points[handle];
-      return true;
-    }
-    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override {
-      path.points[handle] = TPoint(x, y);
-    }
-
-    SERIALIZABLE_INTERFACE(toad::, TFPath);
-};
-
-bool TFPath::restore(atv::TInObjectStream&) { return true; }
-void TFPath::store(atv::TOutObjectStream&) const {}
-
-TTestWrap::TTestWrap(TWindow *parent, const string &title):
-  TFigureEditor(parent, title)
-{
-  TToolBox *tb = TToolBox::getToolBox();
-  tb->add("directselection", TNodeTool::getTool());
-  setToolBox(tb);
-  
-  TFPath *path = new TFPath();
-  this->path = &path->path;
-
-  path->path.move(160, 40);
-//  path.curve(320,10, 50, 100, 310,130);
-  path->path.line(310, 130);
-  path->path.line(130, 190);
-  path->path.line(10,70);
-  path->path.close();
-
-  getModel()->add(path);
-}
-
-void
-TTestWrap::paint()
-{
-  TFigureEditor::paint();
-
-  string text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
-  
-  TPen pen(this);
-  pen.setColor(0,0,1);
-
-  TWordWrapper wrap;
-  wrap.path2events(*path);
-
-  ssize_t wordStart = -1;
-  for(size_t i=0; i<text.size(); ++i) {
-    if (wordStart==-1) {
-      if (!isspace(text[i])) {
-        wrap.cursor.x += pen.getTextWidth(" ");
-        wordStart = i;
-      }
-    } else {
-      if (isspace(text[i])) {
-        string word = text.substr(wordStart, i-wordStart);
-        
-        cout << word << endl;
-        
-        TSize size(pen.getTextWidth(word), pen.getHeight());
-
-        wrap.place(size);
-        pen.drawRectangle(wrap.cursor.x, wrap.cursor.y,size.width, size.height);
-        pen.drawString(wrap.cursor.x, wrap.cursor.y, word);
-        
-        wrap.cursor.x += size.width;
-        
-        wordStart = -1;
-      }
-    }
-  }
-
-}
-
 // (10,10)   (20,10)
 //    |         |
 //    |         |
@@ -875,13 +760,6 @@ TEST_F(WordWrap, order001) {
   ASSERT_EQ(true , compare(&e0, &e1)); // e0 < e1 -> true
   ASSERT_EQ(false, compare(&e1, &e0)); // e0 > e1 -> false
 }
-
-#if 0
-TEST_F(WordWrap, foo) {
-  TTestWrap wnd(NULL, testname());
-  wnd.doModalLoop();
-}
-#endif
 
 #if 0
 // ▘ (0,0)
@@ -919,25 +797,29 @@ TEST_F(WordWrap, findPlace001) {
 // 7       ▝▖  ▞
 //          ▝▖▞
 // 8         ▝
+void
+setupTestData001(TWordWrapper *wrap)
+{
+  wrap->addLine(TPoint(10, 42), TPoint(40,10)); // a
+  wrap->addLine(TPoint(40, 10), TPoint(55,20)); // b
+  wrap->addLine(TPoint(55, 20), TPoint(60,15)); // c
+  wrap->addLine(TPoint(60, 15), TPoint(80,38)); // d
+  wrap->addLine(TPoint(80, 38), TPoint(50,80)); // e
+  wrap->addLine(TPoint(50, 80), TPoint(10,42)); // f
+
+  wrap->addLine(TPoint(40, 35), TPoint(45,30)); // g
+  wrap->addLine(TPoint(45, 30), TPoint(50,35)); // h
+  wrap->addLine(TPoint(50, 35), TPoint(45,40)); // i
+  wrap->addLine(TPoint(45, 40), TPoint(40,35)); // j
+}  
+
 TEST_F(WordWrap, stripes) {
   TWordWrapper wrap;
   wrap.cursor = TPoint(0,0);
-  wrap.addLine(TPoint(10, 42), TPoint(40,10)); // a
-  wrap.addLine(TPoint(40, 10), TPoint(55,20)); // b
-  wrap.addLine(TPoint(55, 20), TPoint(60,15)); // c
-  wrap.addLine(TPoint(60, 15), TPoint(80,38)); // d
-  wrap.addLine(TPoint(80, 38), TPoint(50,80)); // e
-  wrap.addLine(TPoint(50, 80), TPoint(10,42)); // f
-
-  wrap.addLine(TPoint(40, 35), TPoint(45,30)); // g
-  wrap.addLine(TPoint(45, 30), TPoint(50,35)); // h
-  wrap.addLine(TPoint(50, 35), TPoint(45,40)); // i
-  wrap.addLine(TPoint(45, 40), TPoint(40,35)); // j
+  
+  setupTestData001(&wrap);
   
   ASSERT_EQ(10, wrap.eventQueue.size());
-  
-  cout << "allEvents.size() = " << wrap.allEvents.size() << endl;
-  cout << "eventQueue.size() = " << wrap.eventQueue.size() << endl;
   
 //  for(auto &&p: wrap.eventQueue) {
 //    cout << *p << endl;
@@ -1112,5 +994,124 @@ TEST_F(WordWrap, findPlace003) {
   ASSERT_EQ(true, wrap.findPlace(TSize(10,10), &pos))
 }
 #endif
+
+class TTestWrap:
+  public TFigureEditor
+{
+    unique_ptr<GChoice<TFigureTool*>> choice;
+    TVectorPath *path;
+  public:
+    TTestWrap(TWindow *parent, const string &title);
+    void paint() override;
+};
+
+class TFPath:
+  public TAttributedFigure
+{
+  public:
+    TVectorPath path;
+    
+    TVectorGraphic* getPath() const override {
+      auto *vg = new TVectorGraphic;
+      vg->push_back(new TVectorPainter(this, new TVectorPath(path)));
+      return vg;
+    }
+    void paint(TPenBase &pen, EPaintType type=NORMAL) override {
+      pen.setColor(0,0,0);
+      path.apply(pen);
+      pen.stroke();
+    }
+    TRectangle bounds() const override {
+      return path.bounds();
+    }
+    TCoord distance(const TPoint &point) override {
+      return path.distance(point);
+    }
+    bool transform(const TMatrix2D &transform) override {
+      path.transform(transform);
+      return true;
+    }
+    bool getHandle(unsigned handle, TPoint *p) override {
+      if (handle>=path.points.size())
+        return false;
+      *p = path.points[handle];
+      return true;
+    }
+    void translateHandle(unsigned handle, TCoord x, TCoord y, unsigned modifier) override {
+      path.points[handle] = TPoint(x, y);
+    }
+
+    SERIALIZABLE_INTERFACE(toad::, TFPath);
+};
+
+bool TFPath::restore(atv::TInObjectStream&) { return true; }
+void TFPath::store(atv::TOutObjectStream&) const {}
+
+TTestWrap::TTestWrap(TWindow *parent, const string &title):
+  TFigureEditor(parent, title)
+{
+  TToolBox *tb = TToolBox::getToolBox();
+  tb->add("directselection", TNodeTool::getTool());
+  setToolBox(tb);
+  
+  TFPath *path = new TFPath();
+  this->path = &path->path;
+
+  path->path.move(160, 40);
+//  path.curve(320,10, 50, 100, 310,130);
+  path->path.line(310, 130);
+  path->path.line(130, 190);
+  path->path.line(10,70);
+  path->path.close();
+
+  getModel()->add(path);
+}
+
+void
+TTestWrap::paint()
+{
+  TFigureEditor::paint();
+
+  
+  TPen pen(this);
+  pen.setColor(0,0,1);
+
+  TWordWrapper wrap;
+  wrap.path2events(*path);
+
+#if 0
+//  string text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
+  ssize_t wordStart = -1;
+  for(size_t i=0; i<text.size(); ++i) {
+    if (wordStart==-1) {
+      if (!isspace(text[i])) {
+        wrap.cursor.x += pen.getTextWidth(" ");
+        wordStart = i;
+      }
+    } else {
+      if (isspace(text[i])) {
+        string word = text.substr(wordStart, i-wordStart);
+        
+        cout << word << endl;
+        
+        TSize size(pen.getTextWidth(word), pen.getHeight());
+
+        wrap.place(size);
+        pen.drawRectangle(wrap.cursor.x, wrap.cursor.y,size.width, size.height);
+        pen.drawString(wrap.cursor.x, wrap.cursor.y, word);
+        
+        wrap.cursor.x += size.width;
+        
+        wordStart = -1;
+      }
+    }
+  }
+#endif
+}
+
+TEST_F(WordWrap, foo) {
+  TTestWrap wnd(NULL, testname());
+  wnd.doModalLoop();
+}
 
 } // namespace
