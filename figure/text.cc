@@ -109,6 +109,7 @@ TFText::calcSize()
 void 
 TFText::paint(TPenBase &pen, EPaintType type)
 {
+cout << "TFText::paint" << endl;
   if (type==TFigure::EDIT)
     return;
   pen.push();
